@@ -10,10 +10,10 @@
 /* ---------------------------------------------------------------- 1 · marca */
 :root{
   /* Marca Fundanet — constantes, no cambian con el tema */
-  --fn-primary:#0d4f87;
-  --fn-secondary:#0d8f87;
-  --fn-primary-lt:#2b74b4;
-  --fn-primary-dk:#08355c;
+  --fn-primary:#0A0A0A;
+  --fn-secondary:#8a6f00;
+  --fn-primary-lt:#2b2b2b;
+  --fn-primary-dk:#000000;
 
   /* Semánticos */
   --ok:#1f8a4c; --warn:#b26a00; --bad:#c62828; --info:#0074e4;
@@ -674,7 +674,7 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   background:rgba(255,255,255,.14);border-radius:3px;z-index:0;
 }
 .ov-line i{display:block;height:100%;border-radius:3px;
-  background:linear-gradient(90deg,var(--fn-secondary),#7ee0d6);
+  background:linear-gradient(90deg,var(--fn-secondary),#F5C500);
   box-shadow:0 0 18px rgba(126,224,214,.55);transition:width 600ms var(--ease-out)}
 
 /* Extremos: portada y cierre */
@@ -684,7 +684,7 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
 }
 .ov-end.ghost{visibility:hidden}
 .ov-end .ov-dot{width:22px;height:22px;border-radius:50%;background:#0b2a4a;border:3px solid rgba(255,255,255,.55);box-sizing:border-box}
-.ov-end.past .ov-dot,.ov-end.is-active .ov-dot{background:var(--fn-secondary);border-color:#7ee0d6;box-shadow:0 0 16px rgba(126,224,214,.6)}
+.ov-end.past .ov-dot,.ov-end.is-active .ov-dot{background:var(--fn-secondary);border-color:#F5C500;box-shadow:0 0 16px rgba(126,224,214,.6)}
 .ov-end-t{font-size:clamp(11px,.85vw,15px);color:rgba(255,255,255,.62);text-align:center;line-height:1.2}
 .ov-end:hover .ov-end-t{color:#fff}
 
@@ -701,7 +701,7 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   transition:border-color .2s,box-shadow .2s,transform .2s;
 }
 .ov-ch-head:hover{border-color:rgba(255,255,255,.5);transform:translateY(-2px)}
-.ov-ch-n{font-size:clamp(11px,.8vw,13px);letter-spacing:.22em;color:#7ee0d6;font-weight:700}
+.ov-ch-n{font-size:clamp(11px,.8vw,13px);letter-spacing:.22em;color:#F5C500;font-weight:700}
 .ov-ch-name{font-size:clamp(16px,1.3vw,25px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
 .ov-ch-meta{font-size:clamp(11px,.85vw,14px);color:rgba(255,255,255,.58);font-variant-numeric:tabular-nums}
 .ov-ch.is-now .ov-ch-head{
@@ -723,7 +723,7 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
 .ov-s:hover,.ov-s:focus-visible{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.28);transform:translateX(3px);outline:none}
 .ov-s.past{color:rgba(255,255,255,.55)}
 .ov-s.is-active{background:rgba(13,143,135,.30);border-color:var(--fn-secondary);color:#fff;font-weight:600}
-.ov-s-n{flex:0 0 auto;font-variant-numeric:tabular-nums;color:#7ee0d6;font-weight:700;font-size:.85em;padding-top:.1em}
+.ov-s-n{flex:0 0 auto;font-variant-numeric:tabular-nums;color:#F5C500;font-weight:700;font-size:.85em;padding-top:.1em}
 .ov-s.past .ov-s-n{color:rgba(126,224,214,.5)}
 
 /* Miniatura al pasar el ratón */
@@ -747,7 +747,7 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   flex:0 0 auto;display:flex;align-items:baseline;gap:22px;
   animation:ovCol 600ms 380ms var(--ease-out) both;
 }
-.ov-intro-k{font-size:clamp(13px,1vw,18px);letter-spacing:.26em;text-transform:uppercase;color:#7ee0d6;font-weight:700}
+.ov-intro-k{font-size:clamp(13px,1vw,18px);letter-spacing:.26em;text-transform:uppercase;color:#F5C500;font-weight:700}
 .ov-intro-t{font-size:clamp(28px,3vw,58px);font-weight:800;letter-spacing:-.02em;line-height:1}
 
 @media (prefers-reduced-motion:reduce){
