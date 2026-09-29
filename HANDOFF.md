@@ -41,7 +41,7 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
    pasos numerados con motivo, prompts reintentar/saltar/salir desde el teclado aunque lleguen por `curl | bash` /
    `irm | iex`, modo `-y` / `FRAME28_YES=1`, log en `~/frame28-install.log`, Homebrew y Claude Code se instalan
    si faltan, runtime VC++ en Windows). Probado en Windows en modo silencioso; **install.sh sin probar en Mac real**
-   (un usuario del entorno del autor tenía un Mac sin Homebrew: ese es el caso a validar). Pendiente la parte web: Quiere "un instalador
+   (un usuario del entorno del autor tenía un Mac sin Homebrew: ese es el caso a validar). La parte web también está hecha: `docs/instalar/index.html` (asistente: detecta el sistema, línea con copiar, pasos, checklist) y `docs/instalar.md` (instrucciones para que Claude Code instale por ti). Quedaba en el plan original: Quiere "un instalador
    interactivo que te acompañe, te diga en qué paso estás y te muestre los prompts para aceptar", sin violar
    políticas de Windows/Mac. Un navegador no puede ejecutar comandos locales, así que la respuesta recomendada es:
    - **Claude Code como asistente**: publicar `docs/instalar.md` con instrucciones para el agente y decirle al
