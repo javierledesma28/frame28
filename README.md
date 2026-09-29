@@ -22,7 +22,7 @@
   <a href="https://t28.io">t28.io</a>
 </p>
 
-<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.1.0 · MIT</sub></p>
+<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.2.0 · MIT</sub></p>
 
 ---
 
@@ -137,13 +137,13 @@ concretos en [la guía de grabación](plugin/skills/frame28-storyboard/reference
 
 ## Estado y roadmap
 
-v0.1.0 funciona de punta a punta en clips reales (probado en Windows con GPU de portátil). Lo siguiente:
+v0.2.0 funciona de punta a punta en clips reales (probado en Windows con GPU de portátil): transcripción, jump cuts, limpieza de audio, gestos, recorte, gráficas, marca y revelados GSAP. Lo siguiente:
 
 - Gráficas: dispersión y tabla con scroll (barras con fila ganadora y contadores ya están).
 - B-roll automático desde Pexels y Pixabay a partir de lo que dices.
 - Alineado con guion para nombres propios y karaoke exacto.
-- Brand kit por usuario: tus colores, tu tipografía, tu logo en el rótulo.
-- Instalador de un comando y una interfaz sobre el storyboard, para quien no quiere ver una terminal.
+- Asistente de instalación guiado (Claude Code te acompaña paso a paso) y una interfaz sobre el storyboard, para quien no quiere ver una terminal.
+- Subtítulos estilo TikTok y exportación SRT/VTT; reencuadre vertical 9:16 para Reels y Shorts.
 
 ## Estructura del repositorio
 
