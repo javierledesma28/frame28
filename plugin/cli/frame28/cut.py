@@ -18,6 +18,12 @@ FILLERS = {
     "es": {"eh", "ehh", "ehm", "em", "emm", "mm", "mmm", "hmm", "uhm", "um", "uh", "ah", "aha", "ajá", "aja", "este...", "o sea..."},
     "en": {"uh", "um", "uhm", "hmm", "mm", "mmm", "erm", "er", "ah", "like..."},
 }
+# muletillas condicionadas: solo se cortan si el audio las aísla con una pausa (antes o después). "bueno" o "este"
+# también son palabras normales; sueltas entre silencios son relleno.
+SOFT_FILLERS = {
+    "es": {"bueno", "pues", "digamos", "vale", "eh", "ehh", "em", "a ver", "o sea"},  # "este"/"nada" fuera: demasiado ambiguos
+    "en": {"well", "so", "like", "right", "okay", "ok", "you know", "i mean"},
+}
 
 
 def _norm(w: str) -> str:
@@ -86,6 +92,18 @@ def plan(words_path: str | Path, audio: str | Path | None = None, min_gap: float
         if c1 - c0 >= 0.15:
             removed.append({"start": round(max(0.0, c0), 3), "end": round(min(total, c1), 3), "reason": "silencio " + kind})
 
+    # 1b) silencios *dentro* de una palabra: Whisper estira la palabra anterior a una pausa ("bueno" de 2 s).
+    #     Se recorta el silencio de audio interior si dura >= 0.5 s, dejando aire al final de la palabra.
+    if mask is not None:
+        for w in words:
+            if (w["end"] - w["start"]) < 0.9:
+                continue
+            core = _silent_core(mask, hop, w["start"] + 0.15, w["end"])
+            if core and (core[1] - core[0]) >= max(0.7, min_gap + 0.1):
+                c0, c1 = core[0] + pad, core[1] - 0.05
+                if c1 - c0 >= 0.15:
+                    removed.append({"start": round(c0, 3), "end": round(c1, 3), "reason": f"silencio dentro de '{w['text'].strip()}'"})
+
     # 2) muletillas: palabras sueltas de la lista, cortadas con su silencio adyacente
     if fillers:
         fl = FILLERS.get(lang, set())
@@ -93,6 +111,25 @@ def plan(words_path: str | Path, audio: str | Path | None = None, min_gap: float
             if _norm(w["text"]) in fl and (w["end"] - w["start"]) <= 1.2:
                 removed.append({"start": round(max(0.0, w["start"] - 0.03), 3), "end": round(w["end"] + 0.03, 3),
                                 "reason": f"muletilla '{w['text'].strip()}'"})
+
+    # 2b) muletillas condicionadas: 'bueno', 'pues', 'este'... solo si va seguida de una pausa de audio (>= 0.2 s
+    #     pegada a su final). "este muñeco" no se toca; "este... [pausa]" sí. Se cortan con su silencio.
+    if fillers and mask is not None:
+        sf = SOFT_FILLERS.get(lang, set())
+
+        def silent_near(t: float, span: float = 0.35) -> bool:
+            core = _silent_core(mask, hop, max(0.0, t - span), t + span)
+            return bool(core and (core[1] - core[0]) >= 0.2)
+
+        for k, w in enumerate(words):
+            if _norm(w["text"]) not in sf:
+                continue
+            voiced = w["end"] - w["start"]
+            if voiced > 2.5:
+                continue
+            if silent_near(w["end"]) and not (k + 1 < len(words) and words[k + 1]["start"] - w["end"] < 0.05 and not silent_near(w["end"], 0.2)):
+                removed.append({"start": round(max(0.0, w["start"] - 0.03), 3), "end": round(w["end"] + 0.03, 3),
+                                "reason": f"muletilla '{w['text'].strip()}' (aislada por pausa)"})
 
     # 3) retakes (falsos arranques): el hablante repite la misma secuencia de >= 3 palabras
     #    y la primera vez se quedó a medias: la repetición empieza justo después (como mucho una palabra
