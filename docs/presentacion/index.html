@@ -1397,10 +1397,40 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Claude Code también existe como programa de terminal; para esta guía usamos la app de escritorio.</li></ul></div>
   </section>
 
+  <section class="slide" data-transition="slide" data-bg="aurora" data-spotlight="on" data-title="La forma rápida" data-chapter="Instalar" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Instalar · la forma rápida</p>
+      <h2 class="s-title">Una sola línea instala todo lo demás.</h2>
+      <p class="s-sub">Copia la línea de tu sistema, pégala en la terminal, pulsa Enter y espera. Si prefieres verlo paso a paso, las tres slides siguientes hacen lo mismo a mano.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="2">
+        <div class="panel" data-motion-item data-step="1" data-fx="left">
+          <h3><span class="chip">Windows</span>Terminal o PowerShell</h3>
+          <div class="code" style="margin-top:14px"><span class="ln"><span class="kw">irm</span> https://frame28.t28.io/install.ps1 | <span class="kw">iex</span></span></div>
+          <p style="margin-top:14px">Instala ffmpeg, Node.js y uv con <b>winget</b>, luego el motor de Frame28 y, si Claude Code ya está, el plugin.</p>
+        </div>
+        <div class="panel" data-motion-item data-step="2" data-fx="right">
+          <h3><span class="chip">Mac</span>Terminal</h3>
+          <div class="code" style="margin-top:14px"><span class="ln"><span class="kw">curl</span> -fsSL https://frame28.t28.io/install.sh | <span class="kw">sh</span></span></div>
+          <p style="margin-top:14px">Lo mismo con <b>Homebrew</b>. Si tu Mac no lo tiene, el instalador te manda a brew.sh y luego repites la línea.</p>
+        </div>
+      </div>
+      <div class="panel accent" data-motion-item data-step="3" style="margin-top:26px">
+        <h3>Qué verás</h3>
+        <p>Una lista con un ✓ por cada pieza y, al final, la comprobación de <b>frame28 doctor</b>. Es seguro repetir la línea: lo que ya está instalado se salta. Al terminar, cierra y abre la terminal y reinicia Claude Code.</p>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>El instalador vive en el repositorio y se sirve desde el dominio de Frame28.</li></ul></div>
+  </section>
+
   <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Paso 2 · programas de apoyo" data-chapter="Instalar" data-seconds="90">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
-      <p class="s-eyebrow">Instalar · paso 2 de 4</p>
+      <p class="s-eyebrow">Instalar a mano · paso 2 de 4</p>
       <h2 class="s-title">Instala los tres programas de apoyo. Una línea cada uno.</h2>
       <p class="s-sub">Abre la terminal y pega estas líneas, de una en una. Cada una tarda entre unos segundos y un par de minutos.</p>
     </div></header>
@@ -1430,7 +1460,7 @@ body.is-pointer{cursor:none}
   <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Paso 3 · el plugin" data-chapter="Instalar" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
-      <p class="s-eyebrow">Instalar · paso 3 de 4</p>
+      <p class="s-eyebrow">Instalar a mano · paso 3 de 4</p>
       <h2 class="s-title">Dile a Claude Code dónde vive Frame28 e instálalo.</h2>
       <p class="s-sub">Esto se escribe dentro de Claude Code, en la caja de chat, empezando por una barra.</p>
     </div></header>
@@ -1457,7 +1487,7 @@ body.is-pointer{cursor:none}
   <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Paso 4 · el motor" data-chapter="Instalar" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
-      <p class="s-eyebrow">Instalar · paso 4 de 4</p>
+      <p class="s-eyebrow">Instalar a mano · paso 4 de 4</p>
       <h2 class="s-title">Instala el motor y comprueba que todo está en su sitio.</h2>
       <p class="s-sub">De vuelta a la terminal. La última línea te dice si falta algo y cómo arreglarlo.</p>
     </div></header>

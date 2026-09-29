@@ -76,7 +76,25 @@ máquina; tu video no sale de ella.
 
 ## Instalación
 
-¿No eres informático? Hay una [presentación paso a paso](https://frame28.t28.io/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
+**La forma rápida: una sola línea.** Instala lo que falte (ffmpeg, Node.js, uv), el motor de Frame28 y el plugin
+de Claude Code si ya lo tienes. Es seguro repetirla: lo que ya está, lo salta.
+
+Windows (Terminal o PowerShell):
+
+```powershell
+irm https://frame28.t28.io/install.ps1 | iex
+```
+
+macOS (Terminal, con [Homebrew](https://brew.sh)):
+
+```bash
+curl -fsSL https://frame28.t28.io/install.sh | sh
+```
+
+Antes o después, instala [Claude Code](https://claude.com/claude-code) e inicia sesión. El instalador te dice al
+final qué queda por hacer, si algo.
+
+**La forma manual**, por si quieres ver cada paso. ¿No eres informático? Hay una [presentación paso a paso](https://frame28.t28.io/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
 
 Necesitas Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 22+ y ffmpeg.
 
@@ -136,6 +154,7 @@ v0.1.0 funciona de punta a punta en clips reales (probado en Windows con GPU de 
 | `docs/guia-plugin.md` | el ciclo completo del plugin: crear, probar, publicar, consumir, securizar |
 | `docs/brand/` | logos de Think28 (del [press kit](https://t28.io/press-kit.html)) |
 | `docs/presentacion/` | la guía para personas no técnicas como presentación web (fuente `deck.html`, publicada como `index.html`) |
+| `docs/install.ps1`, `docs/install.sh` | instaladores de una línea para Windows y macOS, servidos en frame28.t28.io |
 | `research/04-roadmap-features.md` | investigación de features y repos a integrar, con roadmap priorizado |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
