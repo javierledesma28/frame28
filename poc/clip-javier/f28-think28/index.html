@@ -55,12 +55,38 @@
       .bc .bc-sub { opacity: 0; font-size: 44px; font-family: var(--mono); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 18px; color: var(--grey); }
       .bc .bc-endorse { opacity: 0; position: absolute; bottom: 64px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; color: var(--grey); }
       .bc.accent .bc-sub, .bc.accent .bc-endorse { color: rgba(10,10,10,.7); }
+      /* chart: barras horizontales y contador */
+      .chart { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 90px 140px; }
+      .chart.panel { position: absolute; inset: auto; background: rgba(10,10,10,.82); border-radius: 22px; padding: 36px 44px; color: #fff; }
+      .chart .ch-title { font-weight: 600; letter-spacing: -0.03em; font-size: 56px; opacity: 0; }
+      .chart .ch-sub { font-family: var(--mono); font-size: 24px; margin-top: 8px; opacity: 0.85; }
+      .chart .rows { margin-top: 44px; position: relative; width: 100%; }
+      .chart .row { display: flex; align-items: center; height: 74px; position: relative; opacity: 0; }
+      .chart .row.hero { isolation: isolate; }
+      .chart .grp { width: 200px; font-family: var(--mono); font-size: 24px; }
+      .chart .grp span { background: var(--ink); color: var(--accent); padding: 2px 8px; }
+      .chart.black .grp span, .chart.panel .grp span { background: var(--accent); color: var(--ink); }
+      .chart .lbl { width: 320px; font-family: var(--mono); font-size: 26px; text-align: right; padding-right: 28px; white-space: nowrap; }
+      .chart .track { position: relative; height: 34px; flex: 0 0 auto; }
+      .chart .fill { position: absolute; left: 0; top: 0; height: 34px; background: rgba(10,10,10,.55); transform-origin: left center; transform: scaleX(0); }
+      .chart.black .fill, .chart.panel .fill { background: rgba(255,255,255,.45); }
+      .chart .row.hero .fill { background: var(--ink); }
+      .chart.black .row.hero .fill, .chart.panel .row.hero .fill { background: var(--accent); }
+      .chart .val { position: absolute; top: 0; line-height: 34px; font-family: var(--mono); font-size: 26px; opacity: 0; white-space: nowrap; }
+      .chart .hero-box { position: absolute; left: -24px; right: -24px; top: 4px; bottom: 4px; background: var(--paper); z-index: -1; opacity: 0; color: var(--ink); }
+      .chart.black .hero-box, .chart.panel .hero-box { background: rgba(255,255,255,.12); color: #fff; }
+      .chart .hero-box .c { border-color: currentColor; }
+      .counter { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .counter .num { font-weight: 800; letter-spacing: -0.05em; font-size: 300px; line-height: 1; opacity: 0; }
+      .counter .num b { color: var(--accent); font-weight: 800; }
+      .counter .lab { font-size: 64px; letter-spacing: -0.03em; margin-top: 12px; opacity: 0; }
+      .counter .sub { font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 26px; opacity: 0.8; }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: 40px; }
     </style>
   </head>
   <body>
     <!-- Generado por Frame28 a partir de storyboard.json. Edita el storyboard, no este fichero. -->
-    <div id="root" data-composition-id="main" data-start="0" data-duration="13.0" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="19.5" data-width="1920" data-height="1080">
       <video id="bg" class="clip cover" data-start="0" data-duration="10.0" data-track-index="0" src="clip.mp4" muted playsinline style="z-index:1"></video>
       <audio id="voice" data-start="0" data-duration="10.0" data-track-index="9" src="voice.wav"></audio>
       <div id="lt" class="lower" data-start="0.3" data-duration="2.5" data-track-index="3" style="z-index:4;left:1150px; top:660px; width:811px;"><i class="c tl"></i><i class="c br"></i><div class="line"><span class="mask" id="lt-l1"><img class="lt-logo" src="assets/brand/isotipo.svg" alt="">&nbsp;JAVIER LEDESMA&nbsp;&nbsp;&nbsp;&nbsp;×</span></div><div class="line"><span class="mask" id="lt-l2">Think28 · Digital Growth Partner<span class="cur">▌</span></span></div></div>
@@ -72,8 +98,10 @@
       <div id="c1" class="box" data-start="5.55" data-duration="1.2" data-track-index="4" style="z-index:4;left:1150px; top:840px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>en esta parte</div>
       <div id="p1" class="clip" data-start="6.7" data-duration="1.5" data-track-index="6" style="z-index:4;"><div class="dot" id="p1-dot" style="left:1341px; top:761px;"></div><div class="conn" id="p1-line" style="left:1350px; top:769px; transform: rotate(-55.3deg);"></div><div class="box" id="p1-box" style="left:1440px; top:560px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>una cosa</div></div>
       <div id="p2" class="clip" data-start="8.15" data-duration="1.75" data-track-index="6" style="z-index:4;"><div class="dot" id="p2-dot" style="left:461px; top:731px;"></div><div class="conn" id="p2-line" style="left:470px; top:739px; transform: rotate(-133.76deg);"></div><div class="box" id="p2-box" style="left:150px; top:520px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>otra</div></div>
-      <div id="end" class="clip card bc black" data-start="9.9" data-duration="3.1" data-track-index="6" style="z-index:5;"><img id="end-logo" class="bc-logo" src="assets/brand/logo-dark.svg" alt="" style="width:520px"><div id="end-t" class="bc-title">Frame28</div><div id="end-s" class="bc-sub">Graba hablando a cámara. Frame28 monta el resto.</div><div id="end-e" class="bc-endorse">A Think28 product · t28.io</div></div>
-      <div id="caps" class="clip caps" data-start="0" data-duration="13.0" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;"><span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span><span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span><span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span></div>
+      <div id="ch1" class="clip card chart accent" data-start="9.9" data-duration="4.3" data-track-index="6" style="z-index:5;"><div class="ch-title" id="ch1-t">Minutos para montar un video de 1 minuto</div><div class="ch-sub">estimación interna · menor es mejor</div><div class="rows"><div class="row" id="ch1-r0"><div class="grp"><span>Manual</span></div><div class="lbl">Editor de video</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f0" style="width:950px"></div><div class="val" id="ch1-v0" style="left:966px">90 min</div></div></div><div class="row" id="ch1-r1"><div class="grp"></div><div class="lbl">Plantilla online</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f1" style="width:369px"></div><div class="val" id="ch1-v1" style="left:385px">35 min</div></div></div><div class="row" id="ch1-r2"><div class="grp"><span>IA</span></div><div class="lbl">Editor con IA</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f2" style="width:190px"></div><div class="val" id="ch1-v2" style="left:206px">18 min</div></div></div><div class="row hero" id="ch1-r3"><div class="grp"><span>Think28</span></div><div class="lbl">Frame28</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f3" style="width:42px"></div><div class="val" id="ch1-v3" style="left:58px">4 min</div></div><div class="hero-box" id="ch1-hb"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div></div></div></div>
+      <div id="ch2" class="clip card counter black" data-start="14.2" data-duration="2.4" data-track-index="6" style="z-index:5;"><div class="num" id="ch2-n"><span id="ch2-nv">0</span><b>×</b></div><div class="lab" id="ch2-l">más rápido que editar a mano</div><div class="sub">mismo clip · mismos overlays</div></div>
+      <div id="end" class="clip card bc black" data-start="16.6" data-duration="2.9" data-track-index="6" style="z-index:5;"><img id="end-logo" class="bc-logo" src="assets/brand/logo-dark.svg" alt="" style="width:520px"><div id="end-t" class="bc-title">Frame28</div><div id="end-s" class="bc-sub">Graba hablando a cámara. Frame28 monta el resto.</div><div id="end-e" class="bc-endorse">A Think28 product · t28.io</div></div>
+      <div id="caps" class="clip caps" data-start="0" data-duration="19.5" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;"><span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span><span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span><span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span></div>
     </div>
     <script>
       const tl = gsap.timeline({ paused: true });
@@ -105,10 +133,27 @@
       tl.fromTo("#p2-line", { width: 0 }, { width: 194, duration: 0.3, ease: "power3.out" }, 8.32);
       tl.fromTo("#p2-box", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 8.55);
       tl.to("#p2", { opacity: 0, duration: 0.2 }, 9.7);
-      tl.fromTo("#end-logo", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.0);
-      tl.fromTo("#end-t", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.18);
-      tl.fromTo("#end-s", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.36);
-      tl.fromTo("#end-e", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.54);
+      tl.fromTo("#ch1-t", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 10.0);
+      tl.to("#ch1-r0", { opacity: 1, duration: 0.2 }, 10.3);
+      tl.fromTo("#ch1-f0", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.35);
+      tl.to("#ch1-v0", { opacity: 1, duration: 0.4 }, 10.55);
+      tl.to("#ch1-r1", { opacity: 1, duration: 0.2 }, 10.43);
+      tl.fromTo("#ch1-f1", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.48);
+      tl.to("#ch1-v1", { opacity: 1, duration: 0.4 }, 10.68);
+      tl.to("#ch1-r2", { opacity: 1, duration: 0.2 }, 10.56);
+      tl.fromTo("#ch1-f2", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.61);
+      tl.to("#ch1-v2", { opacity: 1, duration: 0.4 }, 10.81);
+      tl.to("#ch1-r3", { opacity: 1, duration: 0.2 }, 10.69);
+      tl.fromTo("#ch1-f3", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.74);
+      tl.to("#ch1-v3", { opacity: 1, duration: 0.4 }, 10.94);
+      tl.fromTo("#ch1-hb", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" }, 11.27);
+      tl.fromTo("#ch2-n", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 14.3);
+      { const c = { v: 0 }; const el = () => document.getElementById("ch2-nv"); tl.to(c, { v: 22.0, duration: 1.1, ease: "power2.out", onUpdate: () => { const e = el(); if (e) e.textContent = c.v.toFixed(0); } }, 14.4); }
+      tl.fromTo("#ch2-l", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 14.65);
+      tl.fromTo("#end-logo", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 16.7);
+      tl.fromTo("#end-t", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 16.88);
+      tl.fromTo("#end-s", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 17.06);
+      tl.fromTo("#end-e", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 17.24);
       tl.set("#cap0", { visibility: "visible" }, 0.5); tl.set("#cap0", { visibility: "hidden" }, 2.86);
       tl.set("#cap1", { visibility: "visible" }, 2.86); tl.set("#cap1", { visibility: "hidden" }, 6.7);
       tl.set("#cap2", { visibility: "visible" }, 6.7); tl.set("#cap2", { visibility: "hidden" }, 10.0);

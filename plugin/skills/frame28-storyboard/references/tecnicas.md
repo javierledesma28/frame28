@@ -18,10 +18,10 @@ punto, animaciones de 0,15–0,5 s con *ease-out*. Ritmo: un evento visual cada 
 | T9 | Carrera de terminales lado a lado | (pendiente) | dos velocidades de tipeo | comparar rendimiento |
 | T10a | Rejilla de puntos secuencial vs paralela | (pendiente) | celdas que se encienden | explicar un proceso |
 | T10b | Barras 3D isométricas | (pendiente) | proyección isométrica | datos con dos dimensiones |
-| T10c | Bar chart horizontal agrupado con fila ganadora | (pendiente: `chart`) | barras con ease-out + caja blanca | comparativa con ganador |
+| T10c | Bar chart horizontal agrupado con fila ganadora | `chart` kind `bar` (+ `hero`) | barras con ease-out + caja blanca | comparativa con ganador |
 | T10d | Tabla con scroll hasta la fila clave | (pendiente) | desplazamiento vertical | listas largas con un ganador |
 | T10e | Scatter log con punto destacado | (pendiente) | puntos escalonados + etiqueta | "off the charts" |
-| T10f | Cifras animadas (contador, anillo) | (pendiente) | interpolación numérica | un número fuerte |
+| T10f | Cifras animadas (contador, anillo) | `chart` kind `counter` | interpolación numérica | un número fuerte |
 | T11 | PiP del hablante dentro de una tarjeta de datos | (pendiente) | vídeo escalado con marco | dato + reacción |
 | T12 | Rueda giratoria de textos en arco | (pendiente) | rotación de grupo, activo en blanco | enumeración de 3 males |
 | T13 | Karaoke de párrafo | (pendiente) | palabras que se iluminan | disclaimer, cita larga |

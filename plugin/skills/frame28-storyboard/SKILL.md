@@ -23,6 +23,7 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
    | enumerar | `list_focus` (3–5 ítems) | el foco salta en el `start` de cada ítem |
    | señalar con la mano | `pointer` | `at` = palabra "aquí/este/esto"; `dot` donde apunta |
    | dato corto / matiz | `box` | `at` = primera palabra del dato |
+   | comparar / cifra fuerte | `chart` (`bar` con `hero`, `counter`) | 3–6 s; el ganador entra el último |
    | frase-lema, cambio de capítulo | `card` (negro o acento) o `card_words` | tapa al hablante 1,5–3 s |
    | mostrar algo | `image` | `at` = cuando lo nombra |
    | abrir o cerrar con marca | `brand_card` | 2–3 s; al final, con `duration` raíz mayor que el clip |

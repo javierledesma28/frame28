@@ -38,6 +38,8 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 | `list_focus` | `bg?`, `label?` ("New"), `size?` (96), `items: [{text, at}]` | Lista donde el foco salta de ítem en ítem al decirse cada uno (T5). |
 | `card_words` | `bg?`, `size?` (118), `lines: [[{text, at, accent?, initial?}]]` | Pizarra con frase palabra a palabra; `initial: true` colorea la inicial (T2/T5). |
 | `image` | `src`, `x`, `y`, `w`, `at?` | Imagen o captura que entra con pop: UI, logo, foto (T8). |
+| `chart` (kind `bar`) | `series: [{label, value, group?}]`, `hero?` (label ganador), `title?`, `subtitle?`, `unit?`, `decimals?`, `sort?` (asc/desc), `stagger?`, `bg?` o `panel?: {x,y,w,h?}` | Barras horizontales agrupadas que crecen una a una; la fila `hero` se destaca con caja al final (T10c). A pantalla completa (`bg`) o como panel flotante junto al hablante (`panel`). |
+| `chart` (kind `counter`) | `value`, `prefix?`, `suffix?`, `decimals?`, `duration?` (s), `label?`, `subtitle?`, `bg?` o `panel?` | Cifra grande que cuenta desde 0 (T10f): "100×", "$42", "3 clientes". |
 | `brand_card` | `bg?` (black/accent/white), `logo?` (on_dark/on_light/on_accent/isotipo; por defecto según `bg`), `logo_width?`, `title?`, `subtitle?`, `endorsement?`, `at?` | Tarjeta de marca de apertura o cierre: logo, título, tagline y endorsement (por defecto los de la marca). |
 
 ## Marcas

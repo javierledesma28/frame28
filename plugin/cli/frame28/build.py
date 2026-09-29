@@ -14,7 +14,7 @@ from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
 
-OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card"}
+OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart"}
 
 DEFAULT_BRAND = {
     "accent": "#EA77A1",
@@ -76,6 +76,32 @@ CSS = """
       .bc .bc-sub { opacity: 0; font-size: 44px; font-family: var(--mono); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 18px; color: var(--grey); }
       .bc .bc-endorse { opacity: 0; position: absolute; bottom: 64px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; color: var(--grey); }
       .bc.accent .bc-sub, .bc.accent .bc-endorse { color: rgba(10,10,10,.7); }
+      /* chart: barras horizontales y contador */
+      .chart { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 90px 140px; }
+      .chart.panel { position: absolute; inset: auto; background: rgba(10,10,10,.82); border-radius: 22px; padding: 36px 44px; color: #fff; }
+      .chart .ch-title { font-weight: 600; letter-spacing: -0.03em; font-size: 56px; opacity: 0; }
+      .chart .ch-sub { font-family: var(--mono); font-size: 24px; margin-top: 8px; opacity: 0.85; }
+      .chart .rows { margin-top: 44px; position: relative; width: 100%; }
+      .chart .row { display: flex; align-items: center; height: 74px; position: relative; opacity: 0; }
+      .chart .row.hero { isolation: isolate; }
+      .chart .grp { width: 200px; font-family: var(--mono); font-size: 24px; }
+      .chart .grp span { background: var(--ink); color: var(--accent); padding: 2px 8px; }
+      .chart.black .grp span, .chart.panel .grp span { background: var(--accent); color: var(--ink); }
+      .chart .lbl { width: 320px; font-family: var(--mono); font-size: 26px; text-align: right; padding-right: 28px; white-space: nowrap; }
+      .chart .track { position: relative; height: 34px; flex: 0 0 auto; }
+      .chart .fill { position: absolute; left: 0; top: 0; height: 34px; background: rgba(10,10,10,.55); transform-origin: left center; transform: scaleX(0); }
+      .chart.black .fill, .chart.panel .fill { background: rgba(255,255,255,.45); }
+      .chart .row.hero .fill { background: var(--ink); }
+      .chart.black .row.hero .fill, .chart.panel .row.hero .fill { background: var(--accent); }
+      .chart .val { position: absolute; top: 0; line-height: 34px; font-family: var(--mono); font-size: 26px; opacity: 0; white-space: nowrap; }
+      .chart .hero-box { position: absolute; left: -24px; right: -24px; top: 4px; bottom: 4px; background: var(--paper); z-index: -1; opacity: 0; color: var(--ink); }
+      .chart.black .hero-box, .chart.panel .hero-box { background: rgba(255,255,255,.12); color: #fff; }
+      .chart .hero-box .c { border-color: currentColor; }
+      .counter { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .counter .num { font-weight: 800; letter-spacing: -0.05em; font-size: 300px; line-height: 1; opacity: 0; }
+      .counter .num b { color: var(--accent); font-weight: 800; }
+      .counter .lab { font-size: 64px; letter-spacing: -0.03em; margin-top: 12px; opacity: 0; }
+      .counter .sub { font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 26px; opacity: 0.8; }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: {capsize}px; }
 """
 
@@ -310,6 +336,86 @@ class Builder:
                 self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }}, {round(at + step, 3)});')
                 step += 0.18
 
+    def chart(self, o: dict) -> None:
+        kind = o.get("kind", "bar")
+        if kind == "bar":
+            self._chart_bar(o)
+        elif kind == "counter":
+            self._chart_counter(o)
+        else:
+            self.warnings.append(f"chart {o.get('id')}: kind desconocido '{kind}' (bar, counter)")
+
+    def _chart_frame(self, o: dict, cls: str) -> tuple[str, str]:
+        """Clase y estilo inline según sea tarjeta a pantalla completa (bg) o panel flotante (panel: {x,y,w})."""
+        if o.get("panel"):
+            pnl = o["panel"]
+            return f"clip {cls} panel", f"left:{pnl['x']}px; top:{pnl['y']}px; width:{pnl['w']}px;" + (f" height:{pnl['h']}px;" if pnl.get("h") else "")
+        bg = o.get("bg", "accent")
+        return f"clip card {cls} {bg}", ""
+
+    def _chart_bar(self, o: dict) -> None:
+        """Barras horizontales agrupadas; la fila `hero` entra la última y se destaca con caja (T10c)."""
+        i = o["id"]; at = o.get("at", o["start"])
+        series = list(o["series"])
+        if o.get("sort") in ("asc", "desc"):
+            series.sort(key=lambda r: r["value"], reverse=o["sort"] == "desc")
+        hero = o.get("hero")
+        vmax = max((r["value"] for r in series), default=1) or 1
+        unit = o.get("unit", ""); dec = o.get("decimals", 2)
+        # ancho de la barra más larga: ancho del marco menos márgenes, columna de grupo, etiqueta y sitio para el valor
+        if o.get("panel"):
+            scale = max(200, o["panel"]["w"] - 88 - 200 - 320 - 170)
+        else:
+            scale = self.W - 280 - 200 - 320 - 170
+        rows_html = []
+        prev_group = None
+        for k, r in enumerate(series):
+            grp = r.get("group", "")
+            grp_html = f'<span>{esc(grp)}</span>' if grp and grp != prev_group else ""
+            prev_group = grp or prev_group
+            is_hero = hero is not None and r.get("label") == hero
+            w = max(6, round(r["value"] / vmax * scale))
+            val = f"{r['value']:.{dec}f}{unit}"
+            hero_box = f'<div class="hero-box" id="{i}-hb">{self.corners()}</div>' if is_hero else ""
+            rows_html.append(
+                f'<div class="row{" hero" if is_hero else ""}" id="{i}-r{k}"><div class="grp">{grp_html}</div>'
+                f'<div class="lbl">{esc(r["label"])}</div><div class="track" style="width:{scale + 180}px"><div class="fill" id="{i}-f{k}" style="width:{w}px"></div>'
+                f'<div class="val" id="{i}-v{k}" style="left:{w + 16}px">{esc(val)}</div></div>{hero_box}</div>')
+        title = o.get("title", ""); sub = o.get("subtitle", "")
+        inner = (f'<div class="ch-title" id="{i}-t">{esc(title)}</div>' if title else "") + \
+                (f'<div class="ch-sub">{esc(sub)}</div>' if sub else "") + f'<div class="rows">{"".join(rows_html)}</div>'
+        cls, style = self._chart_frame(o, "chart")
+        self.timed(o, style, cls=cls, inner=inner, z=5 if not o.get("panel") else 4, track=6)
+        if title:
+            self.js.append(f'tl.fromTo("#{i}-t", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {at});')
+        step = o.get("stagger", 0.13); t0 = at + (0.3 if title else 0.05)
+        for k, r in enumerate(series):
+            tk = round(t0 + k * step, 3)
+            self.js.append(f'tl.to("#{i}-r{k}", {{ opacity: 1, duration: 0.2 }}, {tk});')
+            self.js.append(f'tl.fromTo("#{i}-f{k}", {{ scaleX: 0 }}, {{ scaleX: 1, duration: 0.6, ease: "power3.out" }}, {round(tk + 0.05, 3)});')
+            self.js.append(f'tl.to("#{i}-v{k}", {{ opacity: 1, duration: 0.4 }}, {round(tk + 0.25, 3)});')
+        if hero is not None:
+            th = round(t0 + len(series) * step + 0.45, 3)
+            self.js.append(f'tl.fromTo("#{i}-hb", {{ opacity: 0, scale: 1.04 }}, {{ opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" }}, {th});')
+
+    def _chart_counter(self, o: dict) -> None:
+        """Cifra grande que cuenta desde 0 hasta `value` (T10f), con etiqueta y subtítulo."""
+        i = o["id"]; at = o.get("at", o["start"])
+        value = float(o["value"]); dec = int(o.get("decimals", 0)); dur = float(o.get("duration", 1.2))
+        prefix = esc(o.get("prefix", "")); suffix = esc(o.get("suffix", ""))
+        start_txt = f"{0:.{dec}f}"
+        inner = (f'<div class="num" id="{i}-n">{prefix}<span id="{i}-nv">{start_txt}</span><b>{suffix}</b></div>'
+                 + (f'<div class="lab" id="{i}-l">{esc(o["label"])}</div>' if o.get("label") else "")
+                 + (f'<div class="sub">{esc(o["subtitle"])}</div>' if o.get("subtitle") else ""))
+        cls, style = self._chart_frame(o, "counter")
+        self.timed(o, style, cls=cls, inner=inner, z=5 if not o.get("panel") else 4, track=6)
+        self.js.append(f'tl.fromTo("#{i}-n", {{ opacity: 0, y: 30 }}, {{ opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {at});')
+        # contador: tween sobre un objeto; onUpdate escribe el texto (funciona con seek, que es lo que usa el render)
+        self.js.append(f'{{ const c = {{ v: 0 }}; const el = () => document.getElementById("{i}-nv"); '
+                       f'tl.to(c, {{ v: {value}, duration: {dur}, ease: "power2.out", onUpdate: () => {{ const e = el(); if (e) e.textContent = c.v.toFixed({dec}); }} }}, {round(at + 0.1, 3)}); }}')
+        if o.get("label"):
+            self.js.append(f'tl.fromTo("#{i}-l", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {round(at + 0.35, 3)});')
+
     # ---------- documento ----------
     def build(self) -> str:
         sb = self.sb; src = sb["source"]
@@ -393,10 +499,15 @@ def validate(sb: dict) -> list[str]:
         t = o.get("type")
         req = {"lower_third": ["x", "y", "title"], "box": ["x", "y", "text"], "kinetic": ["x", "y", "lines"],
                "behind": ["text", "matte"], "pointer": ["dot", "box", "text"], "card": ["title"],
-               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": []}.get(t, [])
+               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"]}.get(t, [])
         for k in req:
             if k not in o:
                 errs.append(f"{p} ({t}): falta '{k}'")
+        if t == "chart":
+            if o.get("kind") == "bar" and not o.get("series"):
+                errs.append(f"{p} (chart bar): falta 'series' [{{label, value, group?}}]")
+            if o.get("kind") == "counter" and "value" not in o:
+                errs.append(f"{p} (chart counter): falta 'value'")
     for n, c in enumerate(sb.get("captions", [])):
         for k in ("start", "end", "text"):
             if k not in c:

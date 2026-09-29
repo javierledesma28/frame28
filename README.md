@@ -36,6 +36,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | "y esto cambia **todo**" | La palabra clave, gigante, pasando por detrás de tu cabeza |
 | "por aquí tenemos la consola…" | Un callout con línea justo donde apunta tu dedo |
 | "tres cosas: rápido, barato, fiable" | Una lista donde el foco salta al decir cada una |
+| "somos veinte veces más rápidos" | Una cifra que cuenta hasta 20× o una gráfica de barras con tu fila destacada |
 | "así se ve el producto" | La captura entrando en pantalla |
 | todo el rato | Subtítulos limpios, frase a frase |
 
@@ -114,7 +115,7 @@ concretos en [la guía de grabación](plugin/skills/frame28-storyboard/reference
 
 v0.1.0 funciona de punta a punta en clips reales (probado en Windows con GPU de portátil). Lo siguiente:
 
-- Gráficas como overlays: barras con fila ganadora, contadores, dispersión.
+- Gráficas: dispersión y tabla con scroll (barras con fila ganadora y contadores ya están).
 - Detección de pose para colocar callouts donde señalas, sin intervención.
 - Alineado con guion para nombres propios y karaoke exacto.
 - Brand kit por usuario: tus colores, tu tipografía, tu logo en el rótulo.

@@ -1,7 +1,7 @@
 {
  "version": 1,
  "meta": {
-  "title": "Javier · Frame28 con marca Think28",
+  "title": "Javier · Frame28 con marca Think28 y gráficas",
   "lang": "es"
  },
  "canvas": {
@@ -9,7 +9,7 @@
   "height": 1080,
   "fps": 30
  },
- "duration": 13.0,
+ "duration": 19.5,
  "source": {
   "video": "clip.mp4",
   "audio": "voice.wav",
@@ -176,11 +176,62 @@
    "text": "otra"
   },
   {
+   "type": "chart",
+   "id": "ch1",
+   "kind": "bar",
+   "start": 9.9,
+   "end": 14.2,
+   "at": 10.0,
+   "bg": "accent",
+   "title": "Minutos para montar un video de 1 minuto",
+   "subtitle": "estimación interna · menor es mejor",
+   "unit": " min",
+   "decimals": 0,
+   "hero": "Frame28",
+   "series": [
+    {
+     "group": "Manual",
+     "label": "Editor de video",
+     "value": 90
+    },
+    {
+     "group": "",
+     "label": "Plantilla online",
+     "value": 35
+    },
+    {
+     "group": "IA",
+     "label": "Editor con IA",
+     "value": 18
+    },
+    {
+     "group": "Think28",
+     "label": "Frame28",
+     "value": 4
+    }
+   ]
+  },
+  {
+   "type": "chart",
+   "id": "ch2",
+   "kind": "counter",
+   "start": 14.2,
+   "end": 16.6,
+   "at": 14.3,
+   "bg": "black",
+   "value": 22,
+   "suffix": "×",
+   "decimals": 0,
+   "duration": 1.1,
+   "label": "más rápido que editar a mano",
+   "subtitle": "mismo clip · mismos overlays"
+  },
+  {
    "type": "brand_card",
    "id": "end",
-   "start": 9.9,
-   "end": 13.0,
-   "at": 10.0,
+   "start": 16.6,
+   "end": 19.5,
+   "at": 16.7,
    "bg": "black",
    "title": "Frame28",
    "subtitle": "Graba hablando a cámara. Frame28 monta el resto."
