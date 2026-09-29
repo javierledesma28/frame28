@@ -44,6 +44,8 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
 
 - Cajas: 2–4 palabras. Cinéticos: hasta 5 palabras por línea, 2 líneas. `behind`: una palabra en mayúsculas.
 - Una palabra de acento por overlay como mucho (`accent: true`), la que lleva la carga.
+- Revelado: `reveal: "rise"` para titulares de impacto (máscara por palabra), `"chars"` para una sola palabra o marca, `fade` para el resto. No mezclar los tres en la misma escena.
+- `draw` (icono que se dibuja) solo con propósito: un check al confirmar, un subrayado bajo la palabra clave, una flecha hacia lo señalado. Uno por escena.
 - Pizarras: fondo negro para afirmaciones, acento para "producto", blanco para listas.
 - El dato ganador entra el último y destacado; nunca una tabla entera de golpe.
 - Todo en el idioma del hablante; nombres propios tal como los escribe el usuario.
