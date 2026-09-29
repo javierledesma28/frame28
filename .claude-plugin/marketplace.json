@@ -10,7 +10,7 @@
       "name": "frame28",
       "source": "./plugin",
       "description": "Frame28: de un clip hablando a cámara a un video con overlays sincronizados con la voz.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "media",
       "tags": [
         "video",
