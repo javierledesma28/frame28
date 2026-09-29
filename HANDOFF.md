@@ -28,16 +28,14 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   brand_card, chart (bar con hero, counter), draw (iconos DrawSVG); `reveal` fade/rise/chars en textos; marca por
   nombre con `brands/think28.json` + logos oficiales.
 - Distribución: plugin validado e instalado en local; repo recreado limpio (sin caras ni material de terceros) y
-  público; tag y release `v0.1.0`; GitHub Pages sobre `docs/` con dominio `frame28.t28.io` (CNAME en Cloudflare,
+  público; tags y releases `v0.1.0` y `v0.2.0` (2026-09-30); GitHub Pages sobre `docs/` con dominio `frame28.t28.io` (CNAME en Cloudflare,
   HTTPS forzado); guía para no técnicos como deck de 17 slides (`docs/presentacion/`); instaladores
   `docs/install.ps1` (probado en esta máquina, funciona) e `install.sh` (solo sintaxis comprobada; sin Mac a mano).
-- Versión subida a **0.2.0** en manifiestos, pyproject y README (ver "A medias").
+- Versión **0.2.0** en manifiestos, pyproject y README, etiquetada y publicada como release en GitHub.
 
 ## A medias / pendiente inmediato
 
-1. **Tag y release v0.2.0**: los ficheros ya dicen 0.2.0 pero no hay tag. Hacer `git tag -a v0.2.0 -m "Frame28 v0.2.0"`,
-   `git push --tags` y `gh release create v0.2.0 --title "Frame28 v0.2.0" --notes "..."` (proponer al usuario antes).
-2. **Asistente de instalación guiado**: HECHA la parte de scripts interactivos (`docs/install.ps1` e `install.sh`:
+1. **Asistente de instalación guiado**: HECHA la parte de scripts interactivos (`docs/install.ps1` e `install.sh`:
    pasos numerados con motivo, prompts reintentar/saltar/salir desde el teclado aunque lleguen por `curl | bash` /
    `irm | iex`, modo `-y` / `FRAME28_YES=1`, log en `~/frame28-install.log`, Homebrew y Claude Code se instalan
    si faltan, runtime VC++ en Windows). Probado en Windows en modo silencioso; **install.sh sin probar en Mac real**
