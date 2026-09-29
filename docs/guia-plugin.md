@@ -88,8 +88,20 @@ claude plugin install frame28@think28
 uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
 frame28 doctor
 ```
-Para alguien no técnico esto son demasiados pasos: el roadmap incluye `install.ps1`/`install.sh` que instale
-`uv`, `ffmpeg`, Node y todo lo anterior con un solo comando, y más adelante una interfaz.
+Para alguien no técnico esto son demasiados pasos, así que existe el **instalador de una línea** (hecho el
+2026-09-29), servido desde el dominio de Frame28 vía GitHub Pages:
+
+```powershell
+irm https://frame28.t28.io/install.ps1 | iex        # Windows
+```
+```bash
+curl -fsSL https://frame28.t28.io/install.sh | sh    # macOS (Homebrew) y Linux (apt)
+```
+Instalan solo lo que falta (ffmpeg, Node.js, uv), el CLI desde GitHub con `uv tool install --force`, el plugin si
+`claude` está en el PATH, y terminan con `frame28 doctor`. Son idempotentes. Fuente: `docs/install.ps1` y
+`docs/install.sh`; cualquier cambio se publica solo al hacer push. Es el mismo patrón `irm | iex` / `curl | sh`
+que usan uv, Homebrew o Scoop: el script se lee entero desde HTTPS en tu dominio, y quien desconfíe puede abrir
+la URL en el navegador y leerlo antes de ejecutarlo.
 
 ## 5. Securizar · limpieza previa a hacerlo público ✅ (2026-09-29)
 
