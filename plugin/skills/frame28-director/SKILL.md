@@ -41,6 +41,21 @@ frame28 transcribe work/audio16k.wav -o work --lang es      # words.json, captio
 Lee `work/transcript.txt` y `work/words.json`. Si el usuario tiene guion, pásalo con `--script guion.txt`.
 Corrige en `words.json` los nombres propios mal reconocidos antes de seguir (el ASR falla justo en marcas y nombres).
 
+## 2b. Jump cuts (opcional, recomendado en clips de más de 30 s)
+
+```bash
+frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json
+```
+Propone quitar silencios de más de 0,6 s, muletillas ("eh", "mmm") y falsos arranques (misma frase repetida
+tras una pausa). Lee la lista con el usuario si hay dudas: cada tramo lleva su motivo. Para aplicarlos:
+```bash
+frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
+```
+Deja en `work/cut/` el clip y la voz cortados (fundidos de 30 ms, sin clics) y `words.json`/`captions.json`
+con los tiempos ya reajustados. **A partir de aquí trabaja sobre `work/cut/`** (speaker, gestures, matte,
+storyboard). Si ya existía un storyboard, `--storyboard` lo remapea; si un corte cae dentro de un `behind`,
+regenera su máscara sobre el clip cortado.
+
 ## 3. Decidir el storyboard → skill `frame28-storyboard`
 
 Escribe `work/storyboard.json` siguiendo `frame28 storyboard schema` y las reglas de dirección de la skill

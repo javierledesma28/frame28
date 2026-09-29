@@ -154,6 +154,47 @@ def gestures(video, words, sample_fps, annotate, out_json, as_json):
 
 
 @main.group()
+def cut():
+    """Jump cuts por transcripción: quitar silencios, muletillas y repeticiones."""
+
+
+@cut.command("plan")
+@click.argument("words", type=click.Path(exists=True))
+@click.option("--audio", type=click.Path(exists=True), default=None, help="voice.wav para confirmar los silencios")
+@click.option("--min-gap", default=0.6, show_default=True, help="pausa mínima (s) para cortar")
+@click.option("--pad", default=0.12, show_default=True, help="aire que se deja a cada lado del corte (s)")
+@click.option("--lang", default="es", show_default=True)
+@click.option("--no-fillers", is_flag=True, help="no cortar muletillas")
+@click.option("--no-retakes", is_flag=True, help="no detectar repeticiones")
+@click.option("--duration", type=float, default=None, help="duración del clip si no se pasa audio")
+@click.option("-o", "--out", "out_json", required=True, type=click.Path())
+def cut_plan(words, audio, min_gap, pad, lang, no_fillers, no_retakes, duration, out_json):
+    """Propone los cortes → cuts.json (tramos a conservar y motivo de cada eliminación)."""
+    from .cut import plan as _plan
+    r = _plan(words, audio, min_gap, pad, lang, not no_fillers, not no_retakes, duration)
+    Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
+    click.echo(f"duración: {r['source_duration']} s → {r['result_duration']} s  (se quitan {r['removed_seconds']} s en {len(r['removed'])} tramos)")
+    for x in r["removed"]:
+        click.echo(f"  - {x['start']:6.2f}–{x['end']:6.2f}  {x['reason']}")
+    click.echo(f"guardado: {out_json}")
+
+
+@cut.command("apply")
+@click.argument("video", type=click.Path(exists=True))
+@click.argument("cuts", type=click.Path(exists=True))
+@click.option("--audio", type=click.Path(exists=True), default=None)
+@click.option("--words", type=click.Path(exists=True), default=None)
+@click.option("--captions", type=click.Path(exists=True), default=None)
+@click.option("--storyboard", type=click.Path(exists=True), default=None)
+@click.option("-o", "--out", "out_dir", required=True, type=click.Path())
+@click.option("--json", "as_json", is_flag=True)
+def cut_apply(video, cuts, audio, words, captions, storyboard, out_dir, as_json):
+    """Aplica cuts.json: clip.mp4 y voice.wav cortados (fundidos de 30 ms) + words/captions/storyboard remapeados."""
+    from .cut import apply as _apply
+    out(_apply(video, audio, cuts, out_dir, words, captions, storyboard), as_json or True)
+
+
+@main.group()
 def storyboard():
     """Validar y construir a partir del storyboard JSON."""
 
