@@ -40,7 +40,14 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 | `image` | `src`, `x`, `y`, `w`, `at?` | Imagen o captura que entra con pop: UI, logo, foto (T8). |
 | `chart` (kind `bar`) | `series: [{label, value, group?}]`, `hero?` (label ganador), `title?`, `subtitle?`, `unit?`, `decimals?`, `sort?` (asc/desc), `stagger?`, `bg?` o `panel?: {x,y,w,h?}` | Barras horizontales agrupadas que crecen una a una; la fila `hero` se destaca con caja al final (T10c). A pantalla completa (`bg`) o como panel flotante junto al hablante (`panel`). |
 | `chart` (kind `counter`) | `value`, `prefix?`, `suffix?`, `decimals?`, `duration?` (s), `label?`, `subtitle?`, `bg?` o `panel?` | Cifra grande que cuenta desde 0 (T10f): "100×", "$42", "3 clientes". |
+| `draw` | `x`, `y`, `w`, `h?`, `icon?` (check, circle-check, circle, arrow-right, arrow-up-right, arrow-down, zap, star, x, plus, heart, underline) o `paths?` (lista de `d`) o `src?` (SVG), `color?`, `stroke_width?`, `duration?`, `at?` | Icono o trazo que se dibuja solo (DrawSVG). Para marcar, subrayar o señalar con estilo "a mano". |
 | `brand_card` | `bg?` (black/accent/white), `logo?` (on_dark/on_light/on_accent/isotipo; por defecto según `bg`), `logo_width?`, `title?`, `subtitle?`, `endorsement?`, `at?` | Tarjeta de marca de apertura o cierre: logo, título, tagline y endorsement (por defecto los de la marca). |
+
+## Revelado de texto (`reveal`)
+
+`kinetic`, `behind`, `card.title` y `brand_card` aceptan `"reveal"`: `"fade"` (por defecto, sube y aparece),
+`"rise"` (cada palabra sube desde detrás de una máscara, estilo *launch video*) o `"chars"` (las letras entran
+escalonadas, SplitText de GSAP). Los tiempos siguen siendo los `at` de cada palabra.
 
 ## Marcas
 

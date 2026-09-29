@@ -14,7 +14,7 @@ from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
 
-OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart"}
+OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw"}
 
 DEFAULT_BRAND = {
     "accent": "#EA77A1",
@@ -102,6 +102,11 @@ CSS = """
       .counter .num b { color: var(--accent); font-weight: 800; }
       .counter .lab { font-size: 64px; letter-spacing: -0.03em; margin-top: 12px; opacity: 0; }
       .counter .sub { font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 26px; opacity: 0.8; }
+      .w .wi { display: inline-block; }
+      .w.rise { overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+      .draw { position: absolute; opacity: 0; }
+      .draw svg { width: 100%; height: 100%; overflow: visible; }
+      .draw svg * { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: {capsize}px; }
 """
 
@@ -134,6 +139,23 @@ def list_brands() -> dict[str, Path]:
     return found
 
 
+# Iconos de trazo (Lucide, ISC), viewBox 0 0 24 24, para el overlay `draw`
+ICONS = {
+    "check": ["M20 6 9 17l-5-5"],
+    "circle-check": ["M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", "m9 12 2 2 4-4"],
+    "circle": ["M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"],
+    "arrow-right": ["M5 12h14", "m12 5 7 7-7 7"],
+    "arrow-up-right": ["M7 7h10v10", "M7 17 17 7"],
+    "arrow-down": ["M12 5v14", "m19 12-7 7-7-7"],
+    "zap": ["M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"],
+    "star": ["M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"],
+    "x": ["M18 6 6 18", "m6 6 12 12"],
+    "plus": ["M5 12h14", "M12 5v14"],
+    "heart": ["M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"],
+    "underline": ["M2 12c4-6 8-6 10 0s6 6 10 0"],
+}
+
+
 def esc(s: str) -> str:
     return html.escape(str(s), quote=True)
 
@@ -157,6 +179,9 @@ class Builder:
         self.W = int(canvas.get("width", 1920)); self.H = int(canvas.get("height", 1080)); self.fps = int(canvas.get("fps", 30))
         self.html: list[str] = []
         self.js: list[str] = []
+        self.uses_split = False
+        self.uses_draw = False
+        self.sb_dir: Path | None = None
         self.assets: set[str] = set()
         self.warnings: list[str] = []
 
@@ -174,6 +199,17 @@ class Builder:
 
     def pop(self, sel: str, at: float, d: float = 0.18) -> None:
         self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, y: 26 }}, {{ opacity: 1, y: 0, duration: {d}, ease: "power3.out" }}, {at});')
+
+    def reveal(self, sel: str, at: float, mode: str = "fade", d: float = 0.18) -> None:
+        """Entrada de un texto envuelto en .w > .wi: fade (por defecto), rise (máscara) o chars (SplitText)."""
+        if mode == "rise":
+            self.js.append(f'tl.set("{sel}", {{ opacity: 1 }}, {at}); tl.fromTo("{sel} .wi", {{ yPercent: 110 }}, {{ yPercent: 0, duration: {max(d, 0.3)}, ease: "power3.out" }}, {at});')
+        elif mode == "chars":
+            self.uses_split = True
+            self.js.append(f'{{ const sp = SplitText.create("{sel} .wi", {{ type: "chars" }}); tl.set("{sel}", {{ opacity: 1 }}, {at}); '
+                           f'tl.fromTo(sp.chars, {{ yPercent: 60, opacity: 0 }}, {{ yPercent: 0, opacity: 1, duration: 0.28, stagger: 0.025, ease: "power3.out" }}, {at}); }}')
+        else:
+            self.pop(sel, at, d)
 
     def box_in(self, sel: str, at: float) -> None:
         self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, scale: 0.9 }}, {{ opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }}, {at});')
@@ -222,23 +258,28 @@ class Builder:
         i = o["id"]; size = o.get("size", 124)
         rows = []
         for li, line in enumerate(o["lines"]):
-            spans = "".join(f'<span class="w{" accent" if w.get("accent") else ""}" id="{i}-{li}-{wi}">{esc(w["text"])}</span>' for wi, w in enumerate(line))
+            mode = o.get("reveal", "fade")
+            spans = "".join(f'<span class="w{" accent" if w.get("accent") else ""}{" rise" if mode == "rise" else ""}" id="{i}-{li}-{wi}"><span class="wi">{esc(w["text"])}</span></span>' for wi, w in enumerate(line))
             rows.append(f"<div>{spans}</div>")
         self.timed(o, f"left:{o['x']}px; top:{o['y']}px; font-size:{size}px;", cls="kin", inner="".join(rows), z=4, track=5)
         for li, line in enumerate(o["lines"]):
             for wi, w in enumerate(line):
-                self.pop(f"#{i}-{li}-{wi}", w["at"])
+                self.reveal(f"#{i}-{li}-{wi}", w["at"], o.get("reveal", "fade"))
         self.fade_out(f"#{i}", o["end"])
 
     def behind(self, o: dict) -> None:
         """Texto detrás del hablante: capa 2 = texto, capa 3 = vídeo con alfa (solo en su tramo)."""
         i = o["id"]; size = o.get("size", 240)
-        self.timed(o, "", cls="clip behind", inner=f'<div class="w" id="{i}-w" style="font-size:{size}px;">{esc(o["text"])}</div>', z=2, track=1)
+        mode = o.get("reveal", "fade")
+        self.timed(o, "", cls="clip behind", inner=f'<div class="w{" rise" if mode == "rise" else ""}" id="{i}-w" style="font-size:{size}px;"><span class="wi">{esc(o["text"])}</span></div>', z=2, track=1)
         m = self.asset(o["matte"]); ms = o.get("matte_start", o["start"]); me = o.get("matte_end", o["end"])
         self.html.append(f'<video id="{i}-fg" class="clip cover" data-start="{ms}" data-duration="{round(me - ms, 3)}" data-track-index="2" '
                          f'src="{m}" muted playsinline style="z-index:3"></video>')
         at = o.get("at", o["start"])
-        self.js.append(f'tl.fromTo("#{i}-w", {{ opacity: 0, scale: 1.15 }}, {{ opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }}, {at});')
+        if mode in ("rise", "chars"):
+            self.reveal(f"#{i}-w", at, mode, 0.4)
+        else:
+            self.js.append(f'tl.fromTo("#{i}-w", {{ opacity: 0, scale: 1.15 }}, {{ opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }}, {at});')
         self.fade_out(f"#{i}-w", o["end"], 0.25)
 
     def pointer(self, o: dict) -> None:
@@ -260,11 +301,15 @@ class Builder:
 
     def card(self, o: dict) -> None:
         i = o["id"]; bg = o.get("bg", "black"); t = o.get("title", {}); s = o.get("subtitle")
-        inner = f'<div class="big" id="{i}-t" style="font-size:{t.get("size", 190)}px;">{esc(t["text"])}</div>'
+        mode = t.get("reveal", "fade")
+        inner = f'<div class="big w{" rise" if mode == "rise" else ""}" id="{i}-t" style="font-size:{t.get("size", 190)}px;"><span class="wi">{esc(t["text"])}</span></div>'
         if s:
             inner += f'<div class="small" id="{i}-s" style="font-size:{s.get("size", 72)}px;">{esc(s["text"])}</div>'
         self.timed(o, "", cls=f"clip card {bg}", inner=inner, z=5, track=6)
-        self.js.append(f'tl.fromTo("#{i}-t", {{ opacity: 0, y: 30 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {t.get("at", o["start"])});')
+        if mode in ("rise", "chars"):
+            self.reveal(f"#{i}-t", t.get("at", o["start"]), mode, 0.35)
+        else:
+            self.js.append(f'tl.fromTo("#{i}-t", {{ opacity: 0, y: 30 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {t.get("at", o["start"])});')
         if s:
             self.js.append(f'tl.fromTo("#{i}-s", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.3 }}, {s.get("at", o["start"] + 0.4)});')
 
@@ -323,8 +368,9 @@ class Builder:
         inner = ""
         if logo:
             inner += f'<img id="{i}-logo" class="bc-logo" src="{logo}" alt="" style="width:{o.get("logo_width", 520)}px">'
+        mode = o.get("reveal", "fade")
         if title:
-            inner += f'<div id="{i}-t" class="bc-title">{esc(title)}</div>'
+            inner += f'<div id="{i}-t" class="bc-title w{" rise" if mode == "rise" else ""}"><span class="wi">{esc(title)}</span></div>'
         if sub:
             inner += f'<div id="{i}-s" class="bc-sub">{esc(sub)}</div>'
         if endorse:
@@ -333,7 +379,10 @@ class Builder:
         step = 0.0
         for sel, present in ((f"#{i}-logo", bool(logo)), (f"#{i}-t", bool(title)), (f"#{i}-s", bool(sub)), (f"#{i}-e", bool(endorse))):
             if present:
-                self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }}, {round(at + step, 3)});')
+                if sel == f"#{i}-t" and mode in ("rise", "chars"):
+                    self.reveal(sel, round(at + step, 3), mode, 0.45)
+                else:
+                    self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }}, {round(at + step, 3)});')
                 step += 0.18
 
     def chart(self, o: dict) -> None:
@@ -416,6 +465,23 @@ class Builder:
         if o.get("label"):
             self.js.append(f'tl.fromTo("#{i}-l", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {round(at + 0.35, 3)});')
 
+    def draw(self, o: dict) -> None:
+        """Icono o trazo que se dibuja (DrawSVG): `icon` de la lista incluida, `paths` propios o un `src` SVG inline."""
+        i = o["id"]; at = o.get("at", o["start"]); dur = o.get("duration", 0.6)
+        color = o.get("color", "#ffffff"); sw = o.get("stroke_width", 2)
+        if o.get("src"):
+            svg = (Path(self.sb_dir) / o["src"]).read_text(encoding="utf-8") if self.sb_dir else Path(o["src"]).read_text(encoding="utf-8")
+            svg = svg[svg.find("<svg"):]
+        else:
+            paths = o.get("paths") or ICONS.get(o.get("icon", "check")) or ICONS["check"]
+            vb = o.get("viewBox", "0 0 24 24")
+            svg = f'<svg viewBox="{vb}" xmlns="http://www.w3.org/2000/svg" stroke-width="{sw}">' + "".join(f'<path d="{d}"/>' for d in paths) + "</svg>"
+        style = f"left:{o['x']}px; top:{o['y']}px; width:{o['w']}px; height:{o.get('h', o['w'])}px; color:{color};"
+        self.timed(o, style, cls="draw", inner=svg, z=4, track=7)
+        self.uses_draw = True
+        self.js.append(f'tl.set("#{i}", {{ opacity: 1 }}, {at}); tl.fromTo("#{i} svg *", {{ drawSVG: "0%" }}, {{ drawSVG: "100%", duration: {dur}, stagger: {round(dur * 0.35, 3)}, ease: "power2.inOut" }}, {at});')
+        self.fade_out(f"#{i}", o["end"])
+
     # ---------- documento ----------
     def build(self) -> str:
         sb = self.sb; src = sb["source"]
@@ -444,6 +510,18 @@ class Builder:
         body = "\n      ".join(self.html); js = "\n      ".join(self.js)
         fl = self.brand_meta.get("font_link")
         font_link = f'    <link rel="stylesheet" href="{fl}">\n' if fl else ""
+        plugins = ""
+        if self.uses_split:
+            plugins += '    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/SplitText.min.js"></script>\n'
+        if self.uses_draw:
+            plugins += '    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>\n'
+        font_link = plugins + font_link
+        reg = []
+        if self.uses_split:
+            reg.append("SplitText")
+        if self.uses_draw:
+            reg.append("DrawSVGPlugin")
+        js = (f"gsap.registerPlugin({', '.join(reg)});\n      " if reg else "") + js
         lang = sb.get("meta", {}).get("lang", "es")
         return f"""<!doctype html>
 <html lang="{lang}" data-resolution="landscape">
@@ -499,7 +577,7 @@ def validate(sb: dict) -> list[str]:
         t = o.get("type")
         req = {"lower_third": ["x", "y", "title"], "box": ["x", "y", "text"], "kinetic": ["x", "y", "lines"],
                "behind": ["text", "matte"], "pointer": ["dot", "box", "text"], "card": ["title"],
-               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"]}.get(t, [])
+               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"], "draw": ["x", "y", "w"]}.get(t, [])
         for k in req:
             if k not in o:
                 errs.append(f"{p} ({t}): falta '{k}'")
@@ -523,6 +601,7 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
         raise SystemExit("Storyboard inválido:\n  - " + "\n  - ".join(errs))
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     b = Builder(sb, out)
+    b.sb_dir = sb_path.parent
     html_text = b.build()
     (out / "index.html").write_text(html_text, encoding="utf-8")
     (out / "hyperframes.json").write_text(json.dumps({

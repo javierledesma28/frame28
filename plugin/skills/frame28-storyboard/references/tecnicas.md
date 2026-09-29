@@ -8,12 +8,13 @@ punto, animaciones de 0,15–0,5 s con *ease-out*. Ritmo: un evento visual cada 
 | # | Técnica | `type` en Frame28 | Cómo se logra | Cuándo usarla |
 |---|---|---|---|---|
 | T1 | Tarjeta de identidad monoespaciada que se escribe | `lower_third` | máscara de anchura animada + cursor de acento | presentación, primeros 4 s |
-| T2 | Tipografía cinética sincronizada con la voz | `kinetic`, `card_words` | cada palabra entra en su `start` | afirmaciones, lemas |
+| T2 | Tipografía cinética sincronizada con la voz | `kinetic`, `card_words` (+ `reveal`: fade / rise / chars) | cada palabra entra en su `start`; `rise` = máscara por palabra, `chars` = letras escalonadas (SplitText) | afirmaciones, lemas |
 | T3 | Texto detrás del hablante | `behind` | fondo → texto → vídeo con alfa del hablante encima | una palabra clave, fondo fijo |
 | T4 | Transición de mosaico de píxeles | (pendiente) | rejilla de celdas con retardo aleatorio | cambio de capítulo |
 | T5 | Pizarras minimalistas a pantalla completa | `card`, `list_focus`, `card_words` | fondo plano + texto + diagrama mínimo | cuando el hablante no aporta |
 | T6 | Callout con conector (punto + línea) | `pointer` | línea que crece del punto a la caja | señalar algo en el encuadre |
 | T7 | Esquinas de encuadre | (automático en cajas) | cuatro `<i>` con bordes | firma visual |
+| T7b | Iconos y trazos que se dibujan | `draw` | DrawSVG sobre paths de Lucide o propios | marcar, subrayar, señalar |
 | T8 | Mockups de UI (ventana, terminal) | `image` (por ahora) | HTML/CSS renderizado | mostrar producto |
 | T9 | Carrera de terminales lado a lado | (pendiente) | dos velocidades de tipeo | comparar rendimiento |
 | T10a | Rejilla de puntos secuencial vs paralela | (pendiente) | celdas que se encienden | explicar un proceso |

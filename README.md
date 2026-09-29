@@ -34,7 +34,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | Lo que dices | Lo que aparece |
 |---|---|
 | "Soy Javier, de Think28" | Tarjeta de identidad que se escribe sola |
-| "y esto cambia **todo**" | La palabra clave, gigante, pasando por detrás de tu cabeza |
+| "y esto cambia **todo**" | La palabra clave, gigante, pasando por detrás de tu cabeza, letra a letra |
 | "por aquí tenemos la consola…" | Un callout con línea justo donde apunta tu dedo |
 | "tres cosas: rápido, barato, fiable" | Una lista donde el foco salta al decir cada una |
 | "somos veinte veces más rápidos" | Una cifra que cuenta hasta 20× o una gráfica de barras con tu fila destacada |
@@ -122,6 +122,7 @@ concretos en [la guía de grabación](plugin/skills/frame28-storyboard/reference
 v0.1.0 funciona de punta a punta en clips reales (probado en Windows con GPU de portátil). Lo siguiente:
 
 - Gráficas: dispersión y tabla con scroll (barras con fila ganadora y contadores ya están).
+- B-roll automático desde Pexels y Pixabay a partir de lo que dices.
 - Alineado con guion para nombres propios y karaoke exacto.
 - Brand kit por usuario: tus colores, tu tipografía, tu logo en el rótulo.
 - Instalador de un comando y una interfaz sobre el storyboard, para quien no quiere ver una terminal.
