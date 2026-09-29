@@ -1,0 +1,58 @@
+/* Logo del deck: el motor no trae ninguno. Cada deck declara --brand-logo y --brand-logo-blanco (url de una imagen,
+   mejor como data URI para que siga siendo un fichero autocontenido), p. ej. en think28-brand.css. */
+:root{
+  --brand-logo:none;
+  --brand-logo-blanco:none;
+}
+
+/* Uso del logo. Relación de aspecto real 334x60 (5.567:1) — el alto manda y
+   el ancho se deduce, así nunca se deforma. */
+.brand-logo{
+  display:inline-block;background-repeat:no-repeat;background-position:left center;
+  background-size:contain;background-image:var(--brand-logo);
+  height:44px;width:245px;flex:0 0 auto;
+}
+.brand-logo.blanco{background-image:var(--brand-logo-blanco)}
+.brand-logo.sm{height:30px;width:167px}
+.brand-logo.lg{height:66px;width:367px}
+.brand-logo.xl{height:88px;width:490px}
+
+/* En tema oscuro el wordmark negro no se lee: se usa la variante blanca */
+[data-theme="dark"] .brand-logo:not(.blanco){background-image:var(--brand-logo-blanco)}
+
+/* Pie de slide: el logo va delante del texto */
+.s-foot .brand-logo{margin-right:10px;vertical-align:middle}
+.s-foot{gap:14px}
+
+/* Portada: el logo entra antes que el título */
+.cover .brand-logo{margin-bottom:34px;display:block}
+.motion-ready .slide.cover.is-active .brand-logo{animation:logoIn 1000ms var(--ease-out) both}
+@keyframes logoIn{
+  from{opacity:0;transform:translateY(24px) scale(.96);filter:blur(8px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+/* Logo del cliente (co-branding) y créditos: entran detrás del logo del deck */
+.motion-ready .slide.cover.is-active .cover-client{animation:logoIn 1000ms 260ms var(--ease-out) both}
+.motion-ready .slide.cover.is-active .made-with{animation:logoIn 900ms 900ms var(--ease-out) both}
+
+/* Icono de Claude Code (Anthropic): trazo vectorial del "spark" en su naranja
+   #D97757. Se usa sólo en los créditos de cierre, como acento; la marca del
+   deck sigue siendo la suya. Sustituir por el activo oficial si se dispone de él. */
+:root{
+  --cc-logo:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg stroke='%23D97757' stroke-width='9' stroke-linecap='round' fill='none'%3E%3Cpath d='M50 50L90 50M50 50L72.5 63M50 50L68 81.2M50 50L50 78M50 50L30 84.6M50 50L27.5 63M50 50L14 50M50 50L25.8 36M50 50L30 15.4M50 50L50 24M50 50L68 18.8M50 50L74.2 36'/%3E%3C/g%3E%3C/svg%3E");
+}
+.cc-logo{
+  display:inline-block;width:30px;height:30px;flex:0 0 auto;
+  background:var(--cc-logo) center/contain no-repeat;
+}
+.cc-logo.lg{width:44px;height:44px}
+
+@media (prefers-reduced-motion:reduce){
+  .motion-ready .slide.cover.is-active .brand-logo,
+  .motion-ready .slide.cover.is-active .cover-client,
+  .motion-ready .slide.cover.is-active .made-with{animation:none !important}
+}
+@media print{
+  .motion-ready .slide.cover.is-active .cover-client,
+  .motion-ready .slide.cover.is-active .made-with{animation:none !important}
+}
