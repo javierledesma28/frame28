@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      :root { --accent: #F5C500; --ink: #0A0A0A; --paper: #FFFFFF; --grey: #555555; --sans: Inter, "Segoe UI", Arial, sans-serif; --mono: "Space Mono", "Cascadia Mono", Consolas, monospace; }
+      #root { position: relative; width: 1920px; height: 1080px; font-family: var(--sans); color: #fff; }
+      .clip { position: absolute; inset: 0; }
+      video.cover { width: 100%; height: 100%; object-fit: cover; }
+      .c { position: absolute; width: 18px; height: 18px; border: 0 solid currentColor; }
+      .tl { top: -6px; left: -6px; border-top-width: 3px; border-left-width: 3px; }
+      .tr { top: -6px; right: -6px; border-top-width: 3px; border-right-width: 3px; }
+      .bl { bottom: -6px; left: -6px; border-bottom-width: 3px; border-left-width: 3px; }
+      .br { bottom: -6px; right: -6px; border-bottom-width: 3px; border-right-width: 3px; }
+      .box { position: absolute; padding: 10px 26px; font-size: 54px; font-weight: 500; letter-spacing: -0.03em; color: #fff; background: rgba(0,0,0,.45); white-space: nowrap; opacity: 0; }
+      .lower { position: absolute; font-family: var(--mono); font-size: 34px; color: #fff; opacity: 0; }
+      .lower .line { overflow: hidden; white-space: nowrap; border: 1.5px solid rgba(255,255,255,.9); padding: 12px 22px; background: rgba(0,0,0,.45); }
+      .lower .line + .line { border-top: 0; }
+      .lower .mask { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: bottom; width: 0; }
+      .lower .cur { color: var(--accent); }
+      .lower .c { width: 18px; height: 18px; } .lower .tl { top: -9px; left: -9px; } .lower .br { bottom: -9px; right: -9px; }
+      .kin { position: absolute; font-weight: 600; line-height: 1.02; letter-spacing: -0.045em; text-shadow: 0 6px 30px rgba(0,0,0,.55); }
+      .kin .w { display: inline-block; opacity: 0; margin-right: 0.22em; }
+      .accent { color: var(--accent); }
+      .behind { display: flex; align-items: center; justify-content: center; }
+      .behind .w { font-weight: 700; letter-spacing: -0.05em; white-space: nowrap; text-shadow: 0 8px 40px rgba(0,0,0,.35); opacity: 0; }
+      .conn { position: absolute; height: 3px; background: #fff; transform-origin: left center; width: 0; }
+      .dot { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgba(255,255,255,.25); transform: scale(0); }
+      .card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .card.black { background: #000; color: #fff; }
+      .card.white { background: var(--paper); color: var(--ink); }
+      .card.accent { background: var(--accent); color: var(--ink); }
+      .card .big { font-weight: 600; letter-spacing: -0.05em; opacity: 0; text-align: center; }
+      .card .small { color: #bdbdb8; letter-spacing: -0.03em; margin-top: 10px; opacity: 0; }
+      .card.white .small { color: var(--grey); }
+      .list { position: relative; display: grid; row-gap: 26px; letter-spacing: -0.04em; align-items: center; }
+      .list .item { color: var(--grey); opacity: 0; }
+      .list .lab { grid-column: 1; }
+      .list .newlabel { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 22px; color: var(--ink); }
+      .list .newlabel .icon { border: 2px solid #c9c9c4; border-radius: 22px; display: flex; align-items: center; justify-content: center; }
+      .list .newlabel .icon i { width: 22px; height: 22px; border: 4px solid var(--ink); border-radius: 50%; }
+      .cw .row { display: flex; gap: 0.28em; font-weight: 600; letter-spacing: -0.045em; justify-content: center; }
+      .cw .w { opacity: 0; }
+      .cw .w b { color: var(--accent); font-weight: 600; }
+      .img { position: absolute; opacity: 0; box-shadow: 0 30px 80px rgba(0,0,0,.45); border-radius: 18px; overflow: hidden; }
+      .img img { display: block; width: 100%; height: auto; }
+      .lt-logo { height: 30px; width: auto; vertical-align: -6px; margin-right: 4px; }
+      .bc .bc-logo { opacity: 0; margin-bottom: 40px; }
+      .bc .bc-title { opacity: 0; font-weight: 800; font-size: 120px; letter-spacing: -0.035em; }
+      .bc .bc-sub { opacity: 0; font-size: 44px; font-family: var(--mono); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 18px; color: var(--grey); }
+      .bc .bc-endorse { opacity: 0; position: absolute; bottom: 64px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; color: var(--grey); }
+      .bc.accent .bc-sub, .bc.accent .bc-endorse { color: rgba(10,10,10,.7); }
+      /* chart: barras horizontales y contador */
+      .chart { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 90px 140px; }
+      .chart.panel { position: absolute; inset: auto; background: rgba(10,10,10,.82); border-radius: 22px; padding: 36px 44px; color: #fff; }
+      .chart .ch-title { font-weight: 600; letter-spacing: -0.03em; font-size: 56px; opacity: 0; }
+      .chart .ch-sub { font-family: var(--mono); font-size: 24px; margin-top: 8px; opacity: 0.85; }
+      .chart .rows { margin-top: 44px; position: relative; width: 100%; }
+      .chart .row { display: flex; align-items: center; height: 74px; position: relative; opacity: 0; }
+      .chart .row.hero { isolation: isolate; }
+      .chart .grp { width: 200px; font-family: var(--mono); font-size: 24px; }
+      .chart .grp span { background: var(--ink); color: var(--accent); padding: 2px 8px; }
+      .chart.black .grp span, .chart.panel .grp span { background: var(--accent); color: var(--ink); }
+      .chart .lbl { width: 320px; font-family: var(--mono); font-size: 26px; text-align: right; padding-right: 28px; white-space: nowrap; }
+      .chart .track { position: relative; height: 34px; flex: 0 0 auto; }
+      .chart .fill { position: absolute; left: 0; top: 0; height: 34px; background: rgba(10,10,10,.55); transform-origin: left center; transform: scaleX(0); }
+      .chart.black .fill, .chart.panel .fill { background: rgba(255,255,255,.45); }
+      .chart .row.hero .fill { background: var(--ink); }
+      .chart.black .row.hero .fill, .chart.panel .row.hero .fill { background: var(--accent); }
+      .chart .val { position: absolute; top: 0; line-height: 34px; font-family: var(--mono); font-size: 26px; opacity: 0; white-space: nowrap; }
+      .chart .hero-box { position: absolute; left: -24px; right: -24px; top: 4px; bottom: 4px; background: var(--paper); z-index: -1; opacity: 0; color: var(--ink); }
+      .chart.black .hero-box, .chart.panel .hero-box { background: rgba(255,255,255,.12); color: #fff; }
+      .chart .hero-box .c { border-color: currentColor; }
+      .counter { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .counter .num { font-weight: 800; letter-spacing: -0.05em; font-size: 300px; line-height: 1; opacity: 0; }
+      .counter .num b { color: var(--accent); font-weight: 800; }
+      .counter .lab { font-size: 64px; letter-spacing: -0.03em; margin-top: 12px; opacity: 0; }
+      .counter .sub { font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 26px; opacity: 0.8; }
+      .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: 40px; }
+    </style>
+  </head>
+  <body>
+    <!-- Generado por Frame28 a partir de storyboard.json. Edita el storyboard, no este fichero. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="19.5" data-width="1920" data-height="1080">
+      <video id="bg" class="clip cover" data-start="0" data-duration="10.0" data-track-index="0" src="clip.mp4" muted playsinline style="z-index:1"></video>
+      <audio id="voice" data-start="0" data-duration="10.0" data-track-index="9" src="voice.wav"></audio>
+      <div id="lt" class="lower" data-start="0.3" data-duration="2.5" data-track-index="3" style="z-index:4;left:1150px; top:660px; width:811px;"><i class="c tl"></i><i class="c br"></i><div class="line"><span class="mask" id="lt-l1"><img class="lt-logo" src="assets/brand/isotipo.svg" alt="">&nbsp;JAVIER LEDESMA&nbsp;&nbsp;&nbsp;&nbsp;×</span></div><div class="line"><span class="mask" id="lt-l2">Think28 · Digital Growth Partner<span class="cur">▌</span></span></div></div>
+      <div id="k0" class="kin" data-start="0.45" data-duration="2.05" data-track-index="5" style="z-index:4;left:1150px; top:230px; font-size:124px;"><div><span class="w" id="k0-0-0">Bueno,</span></div><div><span class="w" id="k0-1-0">bueno,</span></div><div><span class="w accent" id="k0-2-0">bueno.</span></div></div>
+      <div id="c0" class="box" data-start="2.5" data-duration="1.8" data-track-index="4" style="z-index:4;left:1150px; top:250px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>esta es una frase</div>
+      <div id="k1" class="kin" data-start="2.8" data-duration="1.7" data-track-index="5" style="z-index:4;left:1150px; top:420px; font-size:124px;"><div><span class="w" id="k1-0-0">Vamos</span><span class="w" id="k1-0-1">a</span><span class="w" id="k1-0-2">ver</span></div><div><span class="w accent" id="k1-1-0">los</span><span class="w accent" id="k1-1-1">distintos</span></div></div>
+      <div id="bh" class="clip behind" data-start="4.5" data-duration="2.2" data-track-index="1" style="z-index:2;"><div class="w" id="bh-w" style="font-size:240px;">COMPONENTES</div></div>
+      <video id="bh-fg" class="clip cover" data-start="4.3" data-duration="2.5" data-track-index="2" src="alpha_4.3.webm" muted playsinline style="z-index:3"></video>
+      <div id="c1" class="box" data-start="5.55" data-duration="1.2" data-track-index="4" style="z-index:4;left:1150px; top:840px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>en esta parte</div>
+      <div id="ch1" class="clip card chart accent" data-start="9.9" data-duration="4.3" data-track-index="6" style="z-index:5;"><div class="ch-title" id="ch1-t">Minutos para montar un video de 1 minuto</div><div class="ch-sub">estimación interna · menor es mejor</div><div class="rows"><div class="row" id="ch1-r0"><div class="grp"><span>Manual</span></div><div class="lbl">Editor de video</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f0" style="width:950px"></div><div class="val" id="ch1-v0" style="left:966px">90 min</div></div></div><div class="row" id="ch1-r1"><div class="grp"></div><div class="lbl">Plantilla online</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f1" style="width:369px"></div><div class="val" id="ch1-v1" style="left:385px">35 min</div></div></div><div class="row" id="ch1-r2"><div class="grp"><span>IA</span></div><div class="lbl">Editor con IA</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f2" style="width:190px"></div><div class="val" id="ch1-v2" style="left:206px">18 min</div></div></div><div class="row hero" id="ch1-r3"><div class="grp"><span>Think28</span></div><div class="lbl">Frame28</div><div class="track" style="width:1130px"><div class="fill" id="ch1-f3" style="width:42px"></div><div class="val" id="ch1-v3" style="left:58px">4 min</div></div><div class="hero-box" id="ch1-hb"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div></div></div></div>
+      <div id="ch2" class="clip card counter black" data-start="14.2" data-duration="2.4" data-track-index="6" style="z-index:5;"><div class="num" id="ch2-n"><span id="ch2-nv">0</span><b>×</b></div><div class="lab" id="ch2-l">más rápido que editar a mano</div><div class="sub">mismo clip · mismos overlays</div></div>
+      <div id="end" class="clip card bc black" data-start="16.6" data-duration="2.9" data-track-index="6" style="z-index:5;"><img id="end-logo" class="bc-logo" src="assets/brand/logo-dark.svg" alt="" style="width:520px"><div id="end-t" class="bc-title">Frame28</div><div id="end-s" class="bc-sub">Graba hablando a cámara. Frame28 monta el resto.</div><div id="end-e" class="bc-endorse">A Think28 product · t28.io</div></div>
+      <div id="auto1" class="clip" data-start="7.25" data-duration="1.15" data-track-index="6" style="z-index:4;"><div class="dot" id="auto1-dot" style="left:1381px; top:885px;"></div><div class="conn" id="auto1-line" style="left:1390px; top:893px; transform: rotate(-55.3deg);"></div><div class="box" id="auto1-box" style="left:1480px; top:684px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>hay una cosa</div></div>
+      <div id="auto2" class="clip" data-start="8.57" data-duration="0.93" data-track-index="6" style="z-index:4;"><div class="dot" id="auto2-dot" style="left:260px; top:751px;"></div><div class="conn" id="auto2-line" style="left:269px; top:759px; transform: rotate(-49.55deg);"></div><div class="box" id="auto2-box" style="left:60px; top:550px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>hay otra</div></div>
+      <div id="caps" class="clip caps" data-start="0" data-duration="19.5" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;"><span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span><span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span><span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#lt", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.3);
+      tl.fromTo("#lt-l1", { width: 0 }, { width: 494, duration: 0.9, ease: "none" }, 0.4);
+      tl.fromTo("#lt-l2", { width: 0 }, { width: 763, duration: 1.0, ease: "none" }, 1.05);
+      tl.to("#lt", { opacity: 0, duration: 0.25 }, 2.55);
+      tl.fromTo("#k0-0-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 0.5);
+      tl.fromTo("#k0-1-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 1.14);
+      tl.fromTo("#k0-2-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 1.36);
+      tl.to("#k0", { opacity: 0, duration: 0.2 }, 2.3);
+      tl.fromTo("#c0", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 2.56);
+      tl.to("#c0", { opacity: 0, duration: 0.2 }, 4.1);
+      tl.fromTo("#k1-0-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 2.86);
+      tl.fromTo("#k1-0-1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 3.16);
+      tl.fromTo("#k1-0-2", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 3.4);
+      tl.fromTo("#k1-1-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 3.9);
+      tl.fromTo("#k1-1-1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 4.26);
+      tl.to("#k1", { opacity: 0, duration: 0.2 }, 4.3);
+      tl.fromTo("#bh-w", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 4.58);
+      tl.to("#bh-w", { opacity: 0, duration: 0.25 }, 6.45);
+      tl.fromTo("#c1", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 5.6);
+      tl.to("#c1", { opacity: 0, duration: 0.2 }, 6.55);
+      tl.fromTo("#ch1-t", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 10.0);
+      tl.to("#ch1-r0", { opacity: 1, duration: 0.2 }, 10.3);
+      tl.fromTo("#ch1-f0", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.35);
+      tl.to("#ch1-v0", { opacity: 1, duration: 0.4 }, 10.55);
+      tl.to("#ch1-r1", { opacity: 1, duration: 0.2 }, 10.43);
+      tl.fromTo("#ch1-f1", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.48);
+      tl.to("#ch1-v1", { opacity: 1, duration: 0.4 }, 10.68);
+      tl.to("#ch1-r2", { opacity: 1, duration: 0.2 }, 10.56);
+      tl.fromTo("#ch1-f2", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.61);
+      tl.to("#ch1-v2", { opacity: 1, duration: 0.4 }, 10.81);
+      tl.to("#ch1-r3", { opacity: 1, duration: 0.2 }, 10.69);
+      tl.fromTo("#ch1-f3", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power3.out" }, 10.74);
+      tl.to("#ch1-v3", { opacity: 1, duration: 0.4 }, 10.94);
+      tl.fromTo("#ch1-hb", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" }, 11.27);
+      tl.fromTo("#ch2-n", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 14.3);
+      { const c = { v: 0 }; const el = () => document.getElementById("ch2-nv"); tl.to(c, { v: 22.0, duration: 1.1, ease: "power2.out", onUpdate: () => { const e = el(); if (e) e.textContent = c.v.toFixed(0); } }, 14.4); }
+      tl.fromTo("#ch2-l", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, 14.65);
+      tl.fromTo("#end-logo", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 16.7);
+      tl.fromTo("#end-t", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 16.88);
+      tl.fromTo("#end-s", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 17.06);
+      tl.fromTo("#end-e", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 17.24);
+      tl.fromTo("#auto1-dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 7.3);
+      tl.fromTo("#auto1-line", { width: 0 }, { width: 158, duration: 0.3, ease: "power3.out" }, 7.42);
+      tl.fromTo("#auto1-box", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 7.65);
+      tl.to("#auto1", { opacity: 0, duration: 0.2 }, 8.2);
+      tl.fromTo("#auto2-dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 8.62);
+      tl.fromTo("#auto2-line", { width: 0 }, { width: 171, duration: 0.3, ease: "power3.out" }, 8.74);
+      tl.fromTo("#auto2-box", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 8.97);
+      tl.to("#auto2", { opacity: 0, duration: 0.2 }, 9.3);
+      tl.set("#cap0", { visibility: "visible" }, 0.5); tl.set("#cap0", { visibility: "hidden" }, 2.86);
+      tl.set("#cap1", { visibility: "visible" }, 2.86); tl.set("#cap1", { visibility: "hidden" }, 6.7);
+      tl.set("#cap2", { visibility: "visible" }, 6.7); tl.set("#cap2", { visibility: "hidden" }, 10.0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

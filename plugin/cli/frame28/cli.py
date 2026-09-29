@@ -136,6 +136,23 @@ def frames(video, times, out_dir, width):
         click.echo(str(frame_at(video, t, Path(out_dir) / f"f_{t:05.2f}.png", width)))
 
 
+@main.command()
+@click.argument("video", type=click.Path(exists=True))
+@click.option("--words", type=click.Path(exists=True), default=None, help="words.json para cruzar gestos con palabras")
+@click.option("--sample-fps", default=10.0, show_default=True)
+@click.option("--annotate", type=click.Path(), default=None, help="PNG con un fotograma por gesto para revisar")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar el resultado en JSON")
+@click.option("--json", "as_json", is_flag=True)
+def gestures(video, words, sample_fps, annotate, out_json, as_json):
+    """Detecta cuándo el hablante señala (MediaPipe Pose) y propone los overlays `pointer` ya colocados."""
+    from .pose import analyze
+    r = analyze(video, words, sample_fps, annotate)
+    if out_json:
+        Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
+        r["saved"] = out_json
+    out(r, as_json or True)
+
+
 @main.group()
 def storyboard():
     """Validar y construir a partir del storyboard JSON."""

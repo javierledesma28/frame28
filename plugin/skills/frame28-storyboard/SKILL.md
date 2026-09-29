@@ -5,7 +5,7 @@ description: 'Decide el montaje de un video hablado y lo escribe como storyboard
 
 # Frame28 · Storyboard
 
-Entrada: `work/words.json`, `work/captions.json`, `work/transcript.txt`, salida de `frame28 speaker`, hoja de
+Entrada: `work/words.json`, `work/captions.json`, `work/transcript.txt`, salida de `frame28 speaker` y de `frame28 gestures`, hoja de
 contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json` válido
 (`frame28 storyboard schema` imprime el formato; `references/ejemplo-storyboard.json` es uno real).
 
@@ -21,7 +21,7 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
    | presentar | `lower_third` | 0,3 s tras la primera palabra, dura 2,5–4 s |
    | afirmar / palabra clave | `kinetic` (2 líneas máx.) o `behind` (una palabra) | cada palabra en su `start` |
    | enumerar | `list_focus` (3–5 ítems) | el foco salta en el `start` de cada ítem |
-   | señalar con la mano | `pointer` | `at` = palabra "aquí/este/esto"; `dot` donde apunta |
+   | señalar con la mano | `pointer` | copia la sugerencia de `frame28 gestures` (`confidence: high`) |
    | dato corto / matiz | `box` | `at` = primera palabra del dato |
    | comparar / cifra fuerte | `chart` (`bar` con `hero`, `counter`) | 3–6 s; el ganador entra el último |
    | frase-lema, cambio de capítulo | `card` (negro o acento) o `card_words` | tapa al hablante 1,5–3 s |
@@ -31,7 +31,8 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
 
 3. **Coloca** cada overlay en el lado libre (`free_side` de `frame28 speaker`): con hablante a la izquierda,
    `x` entre 1100 y 1750; a la derecha, `x` entre 90 y 800; centrado, usa esquinas y `behind`. Nunca sobre la
-   cara (`bbox_1080p`). Los `pointer` se colocan mirando el fotograma del gesto (`frame28 frames`).
+   cara (`face_box_1080p` de `frame28 gestures` o `bbox_1080p` de `frame28 speaker`). Los `pointer` salen de
+   `frame28 gestures`; si hay que ajustar uno, mira el fotograma con `frame28 frames`.
 4. **Ritmo**: un evento visual cada 2–4 s; ningún tramo de más de 8 s sin nada; máximo un overlay grande a la
    vez, más subtítulos. Los overlays se solapan solo si están en zonas distintas.
 5. **Tiempos**: `start` = 0,05 s antes del `at`; `end` = fin de la frase o inicio del siguiente overlay en la

@@ -55,7 +55,7 @@ nada. Lo estudiamos plano a plano antes de escribir una línea ([qué sacamos de
 Frame28 es un plugin de [Claude Code](https://claude.com/claude-code) más un CLI. El agente dirige; el CLI ejecuta.
 
 ```
-tu clip ──▶ prep ──▶ transcribe (tiempos por palabra) ──▶ speaker (dónde estás) ──▶ matte (recorte)
+tu clip ──▶ prep ──▶ transcribe (tiempos por palabra) ──▶ speaker (dónde estás) ──▶ gestures (dónde señalas) ──▶ matte
                                                                      │
                                        el agente escribe ──▶ storyboard.json ◀── reglas de dirección
                                                                      │
@@ -67,7 +67,8 @@ agente a partir de tu voz; tú lo corriges si quieres y se vuelve a renderizar. 
 
 Debajo: [HyperFrames](https://github.com/heygen-com/hyperframes) para componer y renderizar,
 [faster-whisper](https://github.com/SYSTRAN/faster-whisper) para los tiempos por palabra y
-[RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting) para recortarte del fondo. Todo corre en tu
+[RobustVideoMatting](https://github.com/PeterL1n/RobustVideoMatting) para recortarte del fondo y
+[MediaPipe](https://github.com/google-ai-edge/mediapipe) para saber cuándo y hacia dónde señalas. Todo corre en tu
 máquina; tu video no sale de ella.
 
 ## Instalación
@@ -116,7 +117,6 @@ concretos en [la guía de grabación](plugin/skills/frame28-storyboard/reference
 v0.1.0 funciona de punta a punta en clips reales (probado en Windows con GPU de portátil). Lo siguiente:
 
 - Gráficas: dispersión y tabla con scroll (barras con fila ganadora y contadores ya están).
-- Detección de pose para colocar callouts donde señalas, sin intervención.
 - Alineado con guion para nombres propios y karaoke exacto.
 - Brand kit por usuario: tus colores, tu tipografía, tu logo en el rótulo.
 - Instalador de un comando y una interfaz sobre el storyboard, para quien no quiere ver una terminal.

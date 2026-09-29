@@ -1,0 +1,240 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Javier · pointers automáticos por pose",
+  "lang": "es"
+ },
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30
+ },
+ "duration": 19.5,
+ "source": {
+  "video": "clip.mp4",
+  "audio": "voice.wav",
+  "duration": 10.0
+ },
+ "brand": "think28",
+ "speaker": {
+  "side": "left"
+ },
+ "captions": [
+  {
+   "start": 0.5,
+   "end": 2.86,
+   "text": "Bueno, bueno, bueno. Esta es una frase."
+  },
+  {
+   "start": 2.86,
+   "end": 6.7,
+   "text": "Vamos a ver los distintos componentes que tenemos en esta parte."
+  },
+  {
+   "start": 6.7,
+   "end": 10.0,
+   "text": "Por aquí hay una cosa, por aquí hay otra."
+  }
+ ],
+ "overlays": [
+  {
+   "type": "lower_third",
+   "id": "lt",
+   "start": 0.3,
+   "end": 2.8,
+   "x": 1150,
+   "y": 660,
+   "title": "JAVIER LEDESMA",
+   "subtitle": "Think28 · Digital Growth Partner"
+  },
+  {
+   "type": "kinetic",
+   "id": "k0",
+   "start": 0.45,
+   "end": 2.5,
+   "x": 1150,
+   "y": 230,
+   "lines": [
+    [
+     {
+      "text": "Bueno,",
+      "at": 0.5
+     }
+    ],
+    [
+     {
+      "text": "bueno,",
+      "at": 1.14
+     }
+    ],
+    [
+     {
+      "text": "bueno.",
+      "at": 1.36,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "c0",
+   "start": 2.5,
+   "end": 4.3,
+   "x": 1150,
+   "y": 250,
+   "text": "esta es una frase",
+   "at": 2.56
+  },
+  {
+   "type": "kinetic",
+   "id": "k1",
+   "start": 2.8,
+   "end": 4.5,
+   "x": 1150,
+   "y": 420,
+   "lines": [
+    [
+     {
+      "text": "Vamos",
+      "at": 2.86
+     },
+     {
+      "text": "a",
+      "at": 3.16
+     },
+     {
+      "text": "ver",
+      "at": 3.4
+     }
+    ],
+    [
+     {
+      "text": "los",
+      "at": 3.9,
+      "accent": true
+     },
+     {
+      "text": "distintos",
+      "at": 4.26,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "behind",
+   "id": "bh",
+   "start": 4.5,
+   "end": 6.7,
+   "at": 4.58,
+   "text": "COMPONENTES",
+   "matte": "alpha_4.3.webm",
+   "matte_start": 4.3,
+   "matte_end": 6.8
+  },
+  {
+   "type": "box",
+   "id": "c1",
+   "start": 5.55,
+   "end": 6.75,
+   "x": 1150,
+   "y": 840,
+   "text": "en esta parte",
+   "at": 5.6
+  },
+  {
+   "type": "chart",
+   "id": "ch1",
+   "kind": "bar",
+   "start": 9.9,
+   "end": 14.2,
+   "at": 10.0,
+   "bg": "accent",
+   "title": "Minutos para montar un video de 1 minuto",
+   "subtitle": "estimación interna · menor es mejor",
+   "unit": " min",
+   "decimals": 0,
+   "hero": "Frame28",
+   "series": [
+    {
+     "group": "Manual",
+     "label": "Editor de video",
+     "value": 90
+    },
+    {
+     "group": "",
+     "label": "Plantilla online",
+     "value": 35
+    },
+    {
+     "group": "IA",
+     "label": "Editor con IA",
+     "value": 18
+    },
+    {
+     "group": "Think28",
+     "label": "Frame28",
+     "value": 4
+    }
+   ]
+  },
+  {
+   "type": "chart",
+   "id": "ch2",
+   "kind": "counter",
+   "start": 14.2,
+   "end": 16.6,
+   "at": 14.3,
+   "bg": "black",
+   "value": 22,
+   "suffix": "×",
+   "decimals": 0,
+   "duration": 1.1,
+   "label": "más rápido que editar a mano",
+   "subtitle": "mismo clip · mismos overlays"
+  },
+  {
+   "type": "brand_card",
+   "id": "end",
+   "start": 16.6,
+   "end": 19.5,
+   "at": 16.7,
+   "bg": "black",
+   "title": "Frame28",
+   "subtitle": "Graba hablando a cámara. Frame28 monta el resto."
+  },
+  {
+   "id": "auto1",
+   "type": "pointer",
+   "start": 7.25,
+   "end": 8.4,
+   "at": 7.3,
+   "dot": [
+    1390,
+    894
+   ],
+   "box": [
+    1480,
+    684
+   ],
+   "text": "hay una cosa"
+  },
+  {
+   "id": "auto2",
+   "type": "pointer",
+   "start": 8.57,
+   "end": 9.5,
+   "at": 8.62,
+   "dot": [
+    269,
+    760
+   ],
+   "box": [
+    60,
+    550
+   ],
+   "text": "hay otra"
+  }
+ ]
+}

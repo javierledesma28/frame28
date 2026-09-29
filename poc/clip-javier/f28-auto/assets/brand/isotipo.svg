@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Think28 — Isotipo (solo "28")
+  Versión: v1.0 · 2026
+  Uso: Favicon, avatar de redes, app icon, marca de agua
+  Specs: 120×120 px (cuadrado) · viewBox 0 0 120 120 · radius 24
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="24" fill="#0a0a0a"/>
+  <text x="60" y="30" font-family="Space Mono,Courier,monospace" font-size="10" fill="#555555" letter-spacing="3" text-anchor="middle">think</text>
+  <text x="60" y="92" font-family="Inter,Arial,sans-serif" font-weight="900" font-size="72" fill="#F5C500" letter-spacing="-4" text-anchor="middle">28</text>
+</svg>

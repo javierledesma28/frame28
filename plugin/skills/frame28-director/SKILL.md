@@ -23,6 +23,13 @@ frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav
 frame28 speaker work/clip.mp4          # side: left|center|right, free_side, bbox_1080p
 frame28 sheet work/clip.mp4 -o work/sheet.png --every 1
 ```
+Tras transcribir (paso 2), detecta los gestos de señalar y sus palabras:
+```bash
+frame28 gestures work/clip.mp4 --words work/words.json -o work/gestures.json --annotate work/gestos.png
+```
+`pointer_suggestions` trae los overlays `pointer` ya colocados (dot en la punta del dedo, box fuera de la cara,
+`at` en la palabra "aquí/esto/este"). Usa los de `confidence: high` tal cual; los `low` solo si al mirar
+`work/gestos.png` el gesto es realmente de señalar. `face_box_1080p` es la zona que ningún overlay debe tapar.
 Mira `work/sheet.png` (Read) para conocer encuadre, luz, fondo y gestos. Anota: dónde está el hablante, qué lado
 queda libre, si el fondo es fijo (necesario para `behind`), si hay gestos de señalar (candidatos a `pointer`).
 
@@ -38,10 +45,10 @@ Corrige en `words.json` los nombres propios mal reconocidos antes de seguir (el 
 
 Escribe `work/storyboard.json` siguiendo `frame28 storyboard schema` y las reglas de dirección de la skill
 `frame28-storyboard`. Los `at` de cada palabra salen de `words.json`; las posiciones, del lado libre que devolvió
-`frame28 speaker`; los callouts `pointer`, de mirar fotogramas en los instantes de los gestos:
+`frame28 speaker`; los callouts `pointer`, de `work/gestures.json`. Si un gesto no se detectó, mira el fotograma:
 
 ```bash
-frame28 frames work/clip.mp4 -t 7.3 -t 8.7 -o work/frames
+frame28 frames work/clip.mp4 -t 7.3 -o work/frames
 ```
 
 Si el storyboard usa `behind`, genera la máscara **solo** para ese tramo → skill `frame28-cutout`:
