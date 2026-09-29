@@ -17,7 +17,7 @@
 <p align="center">
   <a href="#instalación">Instalar</a> ·
   <a href="#cómo-funciona">Cómo funciona</a> ·
-  <a href="https://javierledesma28.github.io/frame28/presentacion/">Guía paso a paso (presentación)</a> ·
+  <a href="https://frame28.t28.io/presentacion/">Guía paso a paso (presentación)</a> ·
   <a href="docs/guia-plugin.md">Guía del plugin</a> ·
   <a href="https://t28.io">t28.io</a>
 </p>
@@ -74,7 +74,7 @@ máquina; tu video no sale de ella.
 
 ## Instalación
 
-¿No eres informático? Hay una [presentación paso a paso](https://javierledesma28.github.io/frame28/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
+¿No eres informático? Hay una [presentación paso a paso](https://frame28.t28.io/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
 
 Necesitas Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 22+ y ffmpeg.
 
