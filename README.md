@@ -17,6 +17,7 @@
 <p align="center">
   <a href="#instalación">Instalar</a> ·
   <a href="#cómo-funciona">Cómo funciona</a> ·
+  <a href="https://javierledesma28.github.io/frame28/presentacion/">Guía paso a paso (presentación)</a> ·
   <a href="docs/guia-plugin.md">Guía del plugin</a> ·
   <a href="https://t28.io">t28.io</a>
 </p>
@@ -72,6 +73,8 @@ Debajo: [HyperFrames](https://github.com/heygen-com/hyperframes) para componer y
 máquina; tu video no sale de ella.
 
 ## Instalación
+
+¿No eres informático? Hay una [presentación paso a paso](https://javierledesma28.github.io/frame28/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
 
 Necesitas Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 22+ y ffmpeg.
 
@@ -129,6 +132,8 @@ v0.1.0 funciona de punta a punta en clips reales (probado en Windows con GPU de 
 | `.claude-plugin/marketplace.json` | este repo es su propio marketplace |
 | `docs/guia-plugin.md` | el ciclo completo del plugin: crear, probar, publicar, consumir, securizar |
 | `docs/brand/` | logos de Think28 (del [press kit](https://t28.io/press-kit.html)) |
+| `docs/presentacion/` | la guía para personas no técnicas como presentación web (fuente `deck.html`, publicada como `index.html`) |
+| `research/04-roadmap-features.md` | investigación de features y repos a integrar, con roadmap priorizado |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
 

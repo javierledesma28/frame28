@@ -1,0 +1,28 @@
+:root{
+  /* Marca Think28 sobre el motor de decks: negro profundo + amarillo Think, Inter y Space Mono */
+  --fn-primary:#0A0A0A;
+  --fn-secondary:#F5C500;
+  --fn-primary-lt:#2b2b2b;
+  --fn-primary-dk:#000000;
+  --font:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Space Mono','Cascadia Code',ui-monospace,Consolas,monospace;
+  --fn-logo:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0NCiAgVGhpbmsyOCDigJQgTG9nbyBuZWdhdGl2byAoZm9uZG8gYmxhbmNvKQ0KICBWZXJzacOzbjogdjEuMCDCtyAyMDI2DQogIFVzbzogRG9jdW1lbnRvcyBpbXByZXNvcywgcGFwZWxlcsOtYSBlbiBibGFuY28sIGZvbmRvcyBjbGFyb3MNCiAgU3BlY3M6IDQ4MMOXMTIwIHB4IMK3IHZpZXdCb3ggMCAwIDQ4MCAxMjAgwrcgSW50ZXIgODAwIMK3IGFjZW50byAjQzlBMDAwIChnb2xkIGRhcmspDQotLT4NCjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDQ4MCAxMjAiPg0KICA8cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2ZmZmZmZiIvPg0KICA8dGV4dCB4PSIzMiIgeT0iNzgiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iODAwIiBmb250LXNpemU9IjY0IiBmaWxsPSIjMTExMTExIiBsZXR0ZXItc3BhY2luZz0iLTIiPlRoaW5rPC90ZXh0Pg0KICA8dGV4dCB4PSIyNDgiIHk9Ijc4IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI2NCIgZmlsbD0iI0M5QTAwMCIgbGV0dGVyLXNwYWNpbmc9Ii0zIj4yODwvdGV4dD4NCiAgPHJlY3QgeD0iMzIiIHk9Ijg4IiB3aWR0aD0iMjQiIGhlaWdodD0iMS41IiBmaWxsPSIjQzlBMDAwIiBvcGFjaXR5PSIwLjQ1Ii8+DQogIDx0ZXh0IHg9IjMyIiB5PSIxMDYiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iMzAwIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNTU1NTU1IiBsZXR0ZXItc3BhY2luZz0iMiI+RElHSVRBTCBHUk9XVEggUEFSVE5FUjwvdGV4dD4NCjwvc3ZnPg0K');
+  --fn-logo-blanco:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0NCiAgVGhpbmsyOCDigJQgTG9nbyBwcmltYXJpbyAoZm9uZG8gb3NjdXJvKQ0KICBUYWdsaW5lOiBEaWdpdGFsIEdyb3d0aCBQYXJ0bmVyDQogIFZlcnNpw7NuOiB2MS4wIMK3IDIwMjYNCiAgVXNvOiBXZWIsIHByZXNlbnRhY2lvbmVzLCBkb2N1bWVudG9zIGVuIGZvbmRvIG9zY3Vybw0KICBTcGVjczogNDgww5cxMjAgcHggwrcgdmlld0JveCAwIDAgNDgwIDEyMCDCtyBJbnRlciA4MDAgwrcgI0Y1QzUwMA0KLS0+DQo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA0ODAgMTIwIj4NCiAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMwYTBhMGEiLz4NCiAgPHRleHQgeD0iMzIiIHk9Ijc4IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI2NCIgZmlsbD0iI2ZmZmZmZiIgbGV0dGVyLXNwYWNpbmc9Ii0yIj5UaGluazwvdGV4dD4NCiAgPHRleHQgeD0iMjQ4IiB5PSI3OCIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI4MDAiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNGNUM1MDAiIGxldHRlci1zcGFjaW5nPSItMyI+Mjg8L3RleHQ+DQogIDxyZWN0IHg9IjMyIiB5PSI4OCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjEuNSIgZmlsbD0iI0Y1QzUwMCIgb3BhY2l0eT0iMC40NSIvPg0KICA8dGV4dCB4PSIzMiIgeT0iMTA2IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjMwMCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzY2NjY2NiIgbGV0dGVyLXNwYWNpbmc9IjIiPkRJR0lUQUwgR1JPV1RIIFBBUlRORVI8L3RleHQ+DQo8L3N2Zz4NCg==');
+  --t28-yellow:#F5C500;
+}
+/* Logo 480×120 (4:1): el alto manda */
+.fn-logo{height:44px;width:176px;border-radius:6px}
+.fn-logo.sm{height:30px;width:120px}
+.fn-logo.lg{height:66px;width:264px}
+.fn-logo.xl{height:88px;width:352px}
+/* Acentos amarillos donde el motor usa el secundario ya vienen por variable; refuerzos puntuales */
+.s-eyebrow{color:#8a6f00}
+[data-theme="dark"] .s-eyebrow{color:var(--t28-yellow)}
+.cover .cover-tag{color:var(--t28-yellow);letter-spacing:.22em}
+.t28-y{color:var(--t28-yellow)}
+.cover .s-title .t28-y{color:var(--t28-yellow)}
+.bulb{background:var(--t28-yellow)!important;color:#0A0A0A!important}
+.chip{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--t28-yellow);color:#0A0A0A;font-weight:700;font-size:20px;margin-right:8px;vertical-align:middle}
+.say{font-size:30px;line-height:1.35;padding:22px 28px;border-left:6px solid var(--t28-yellow);background:var(--bg-soft);border-radius:0 14px 14px 0;font-style:italic}
+.say b{font-style:normal}
+.qr-card img{border-radius:12px}

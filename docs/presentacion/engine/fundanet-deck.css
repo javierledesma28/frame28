@@ -1,0 +1,817 @@
+/* =============================================================================
+   FUNDANET DECK ENGINE · hoja de estilo
+   Escenario fijo 1920x1080 escalado en bloque. El deck se ve idéntico en
+   cualquier pantalla o proyector, y al imprimir sale una slide por página.
+
+   Contrato "estático primero": todo el contenido semántico existe en el HTML.
+   Las clases de movimiento solo lo revelan. Sin JavaScript se ve todo.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------- 1 · marca */
+:root{
+  /* Marca Fundanet — constantes, no cambian con el tema */
+  --fn-primary:#0d4f87;
+  --fn-secondary:#0d8f87;
+  --fn-primary-lt:#2b74b4;
+  --fn-primary-dk:#08355c;
+
+  /* Semánticos */
+  --ok:#1f8a4c; --warn:#b26a00; --bad:#c62828; --info:#0074e4;
+  --ok-bg:#eefaf2; --warn-bg:#fdf6ea; --bad-bg:#fdf1f1; --info-bg:#eef5fe;
+
+  /* Tema claro (por defecto: es el que se lee en un proyector de sala) */
+  --bg:#ffffff;
+  --bg-soft:#f4f7fb;
+  --bg-sunk:#eaf0f8;
+  --ink:#12233f;
+  --ink-soft:#4a5b76;
+  --ink-faint:#8494ad;
+  --line:#d8e2ef;
+  --line-soft:#e9eff7;
+  --panel:#ffffff;
+  --code-bg:#0c1a30;
+  --code-ink:#d6e6ff;
+  --shadow:0 18px 48px rgba(13,79,135,.10);
+  --shadow-lg:0 32px 80px rgba(13,79,135,.16);
+
+  /* Un solo reloj para todo el movimiento */
+  --motion-fast:160ms;
+  --motion-step:480ms;
+  --motion-hold:720ms;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+
+  /* Tipografía */
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code',ui-monospace,Consolas,'SF Mono',monospace;
+}
+
+[data-theme="dark"]{
+  --bg:#0a1526;
+  --bg-soft:#101f38;
+  --bg-sunk:#0c1a2e;
+  --ink:#e8f0fb;
+  --ink-soft:#a3b6d1;
+  --ink-faint:#6a7f9e;
+  --line:#1e3355;
+  --line-soft:#16273f;
+  --panel:#0f1e35;
+  --code-bg:#060f1e;
+  --shadow:0 18px 48px rgba(0,0,0,.4);
+  --shadow-lg:0 32px 80px rgba(0,0,0,.55);
+  --fn-primary-lt:#4d94d6;
+  --ok-bg:#0d2419; --warn-bg:#2a1f0c; --bad-bg:#2a1111; --info-bg:#0d1f38;
+}
+
+/* ------------------------------------------------- 2 · escenario 1920x1080 */
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#06101f}
+body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#06101f}
+.deck-stage{
+  position:absolute;left:0;top:0;width:1920px;height:1080px;
+  transform-origin:0 0;overflow:hidden;background:var(--bg);
+
+  /* Escalado SIN JavaScript.
+     CSS no sabe dividir dos longitudes, pero tan(atan2(a,b)) devuelve a/b como
+     número puro — es el truco estándar para esto. El motor lo recalcula luego
+     con clientWidth, que es más exacto; esto es la red de seguridad para cuando
+     el JS no llega a correr: vista previa estática, JS bloqueado, o el primer
+     fotograma antes de init(). Sin esto el escenario se queda a 1920x1080
+     reales dentro de una ventana pequeña y parece que el deck está ampliado. */
+  --fit:min(tan(atan2(100vw,1920px)),tan(atan2(100vh,1080px)));
+  transform:translate(calc((100vw - 1920px * var(--fit)) / 2),
+                      calc((100vh - 1080px * var(--fit)) / 2))
+            scale(var(--fit));
+}
+
+/* Cada slide ocupa el escenario entero. Se apilan. */
+.slide{
+  position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;
+  background:var(--bg);padding:78px 96px 96px;
+  visibility:hidden;opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;
+}
+.slide.is-active{visibility:visible;opacity:1;pointer-events:auto;z-index:2}
+
+/* --------------------------------------------- 3 · transiciones entre slides
+   Cuatro tipos, elegibles por slide con data-transition.
+   La entrante lleva .is-enter; la saliente .is-exit durante el cruce. */
+.slide.is-enter{animation:slideIn var(--t-dur,620ms) var(--ease-out) both}
+.slide.is-exit{animation:slideOut var(--t-dur,620ms) var(--ease) both;z-index:1;visibility:visible;opacity:1}
+
+@keyframes slideIn{from{opacity:0;transform:translateX(56px)}to{opacity:1;transform:none}}
+@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-40px)}}
+
+.slide[data-transition="fade"].is-enter{animation-name:fadeIn}
+.slide[data-transition="fade"].is-exit{animation-name:fadeOut}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+
+.slide[data-transition="rise"].is-enter{animation-name:riseIn}
+.slide[data-transition="rise"].is-exit{animation-name:riseOut}
+@keyframes riseIn{from{opacity:0;transform:translateY(52px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes riseOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-28px) scale(.99)}}
+
+/* "zoom" da sensación de profundizar en un detalle de la slide anterior */
+.slide[data-transition="zoom"].is-enter{animation-name:zoomIn}
+.slide[data-transition="zoom"].is-exit{animation-name:zoomOut}
+@keyframes zoomIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:none}}
+@keyframes zoomOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(1.08)}}
+
+@media (prefers-reduced-motion:no-preference){
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:520ms}
+}
+
+/* -------------------------------------------------------- 4 · cromo de slide */
+.s-head{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex:0 0 auto;margin-bottom:34px}
+.s-eyebrow{
+  font-size:19px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--fn-secondary);margin:0 0 12px;display:flex;align-items:center;gap:14px;
+}
+.s-eyebrow::before{content:'';width:38px;height:3px;background:var(--fn-secondary);border-radius:2px}
+.s-title{margin:0;font-size:60px;line-height:1.04;letter-spacing:-.022em;color:var(--fn-primary);font-weight:700}
+.s-sub{margin:16px 0 0;font-size:25px;line-height:1.4;color:var(--ink-soft);max-width:1180px}
+.s-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+
+/* Marca: barra superior + pie */
+.s-brandbar{position:absolute;top:0;left:0;right:0;height:7px;
+  background:linear-gradient(90deg,var(--fn-primary) 0%,var(--fn-secondary) 100%)}
+.s-foot{
+  position:absolute;left:96px;right:96px;bottom:36px;display:flex;
+  justify-content:space-between;align-items:center;
+  font-size:16px;color:var(--ink-faint);border-top:1px solid var(--line-soft);padding-top:16px;
+}
+.s-foot b{color:var(--fn-primary);font-weight:600}
+.s-num{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink-faint)}
+
+/* Notas del ponente: viven en el HTML de la slide pero no se ven nunca en
+   pantalla. El modo presentador lee su innerHTML y lo pinta en su panel. */
+.s-notes{display:none}
+
+/* ------------------------------------------------------- 5 · portada y cierre */
+.slide.cover{
+  padding:0;background:
+    radial-gradient(ellipse 90% 70% at 78% 12%,rgba(13,143,135,.20) 0%,transparent 62%),
+    radial-gradient(ellipse 80% 90% at 8% 92%,rgba(13,79,135,.30) 0%,transparent 60%),
+    linear-gradient(150deg,var(--fn-primary-dk) 0%,var(--fn-primary) 52%,#0a6b7e 100%);
+  color:#fff;justify-content:center;
+}
+.cover-inner{padding:0 130px;position:relative;z-index:2}
+.cover .s-title{color:#fff;font-size:98px;max-width:1420px;letter-spacing:-.03em}
+.cover .s-sub{color:rgba(255,255,255,.86);font-size:31px;max-width:1180px;margin-top:30px}
+.cover-tag{
+  font-size:17px;letter-spacing:.32em;text-transform:uppercase;font-weight:700;
+  color:rgba(255,255,255,.62);margin-bottom:38px;
+}
+.cover-meta{
+  position:absolute;left:130px;right:130px;bottom:76px;display:flex;
+  justify-content:space-between;align-items:flex-end;
+  color:rgba(255,255,255,.72);font-size:19px;z-index:2;
+}
+/* Co-branding: logo Fundanet + separador + logo del cliente, en la misma línea.
+   El logo del cliente va sobre una placa blanca para que cualquier logotipo
+   (oscuro, de color, con fondo transparente) se lea sobre la portada azul.
+   El empaquetador lo embebe como data URI: el deck sigue siendo un solo fichero. */
+.cover-brands{display:flex;align-items:center;gap:40px;margin-bottom:34px}
+.cover-brands .fn-logo{margin-bottom:0}
+.cover-sep{width:2px;height:64px;background:rgba(255,255,255,.34);border-radius:2px;flex:0 0 auto}
+.cover-client{
+  display:inline-flex;align-items:center;justify-content:center;
+  height:84px;padding:0 30px;border-radius:16px;background:#fff;
+  box-shadow:0 14px 40px rgba(0,0,0,.22);
+}
+.cover-client img{max-height:56px;max-width:340px;width:auto;height:auto;display:block;object-fit:contain}
+.cover-client .cc-name{font-size:30px;font-weight:700;color:var(--fn-primary);letter-spacing:-.01em;white-space:nowrap}
+
+/* Créditos de cierre: quién hizo el deck y con qué ayuda. Va en el cierre
+   por defecto; la marca Fundanet sigue mandando y el icono es un acento. */
+.made-with{
+  display:inline-flex;align-items:center;gap:16px;margin-top:48px;
+  padding:14px 26px 14px 18px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.30);background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.90);font-size:20px;font-weight:500;line-height:1.2;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+.made-with b{font-weight:700;color:#fff}
+.made-with .mw-sep{width:1px;height:34px;background:rgba(255,255,255,.34)}
+.made-with .mw-ai{display:inline-flex;align-items:center;gap:10px;color:rgba(255,255,255,.90)}
+/* Autor con foto: retrato circular sobre fondo claro, anillo blanco, y dos
+   líneas (nombre y rol). La foto se embebe en el build como cualquier <img>. */
+.made-with.autor{padding:10px 26px 10px 10px;gap:18px}
+.made-with .mw-avatar{
+  width:72px;height:72px;border-radius:50%;flex:0 0 auto;overflow:hidden;
+  background:linear-gradient(160deg,#eaf3f8 0%,#c9e2ea 100%);
+  box-shadow:0 0 0 3px #fff,0 10px 26px rgba(0,0,0,.28);
+}
+.made-with .mw-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 12%;display:block}
+.made-with .mw-who{display:flex;flex-direction:column;line-height:1.15}
+.made-with .mw-who b{font-size:22px}
+.made-with .mw-who span{font-size:17px;color:rgba(255,255,255,.72);margin-top:3px}
+
+/* Retícula técnica de fondo: textura sin ruido */
+.cover::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:80px 80px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 70% 30%,#000 0%,transparent 75%);
+  mask-image:radial-gradient(ellipse 70% 70% at 70% 30%,#000 0%,transparent 75%);
+}
+
+/* Tarjeta QR en el cierre: enlace a los entregables, generado sin red con
+   scripts/qr.py (segno) y embebido por build.mjs como cualquier imagen. */
+.qr-card{
+  position:absolute;right:130px;bottom:170px;z-index:2;display:flex;align-items:center;gap:22px;
+  padding:16px 24px 16px 16px;border-radius:18px;background:#fff;color:var(--ink);
+  box-shadow:0 24px 60px rgba(0,0,0,.30);
+}
+.qr-card img{width:150px;height:150px;display:block}
+.qr-card .qr-t{display:flex;flex-direction:column;gap:6px;max-width:260px}
+.qr-card .qr-t b{font-size:21px;color:var(--fn-primary);line-height:1.15}
+.qr-card .qr-t span{font-size:16px;color:var(--ink-soft);line-height:1.3}
+.qr-card .qr-t code{font-size:15px;color:var(--fn-secondary)}
+
+/* ----------------------------------------------------- 5b · número héroe
+   Una cifra a pantalla completa para el dato que hay que recordar. */
+.slide.hero{justify-content:center}
+.hero-inner{padding:0 130px;max-width:1560px}
+.hero-val{
+  display:flex;align-items:baseline;gap:30px;line-height:.95;letter-spacing:-.05em;
+  font-size:300px;font-weight:800;
+  background:linear-gradient(92deg,var(--fn-primary) 0%,var(--fn-secondary) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+}
+.hero-val small{
+  font-size:56px;font-weight:600;letter-spacing:-.01em;
+  -webkit-text-fill-color:var(--fn-secondary);color:var(--fn-secondary);
+}
+.hero-t{font-size:58px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.1;margin:34px 0 0;max-width:1400px}
+.hero-sub{font-size:28px;color:var(--ink-soft);line-height:1.4;margin:20px 0 0;max-width:1240px}
+.hero .s-eyebrow{margin-bottom:26px}
+
+/* ----------------------------------------------- 5c · diagrama de secuencia
+   Actores en columnas (--actors), líneas de vida y mensajes que se trazan al
+   entrar su paso. --from/--to son índices de actor (1..N). */
+.seq{display:flex;flex-direction:column;flex:1;min-height:0;position:relative}
+.seq-actors{display:grid;grid-template-columns:repeat(var(--actors),1fr);gap:0;flex:0 0 auto}
+.seq-actor{
+  margin:0 28px;text-align:center;padding:16px 18px;border-radius:14px;
+  border:1.5px solid var(--fn-primary);background:var(--panel);color:var(--fn-primary);
+  font-size:22px;font-weight:700;line-height:1.2;box-shadow:var(--shadow);
+}
+.seq-actor small{display:block;font-size:16px;font-weight:500;color:var(--ink-soft);margin-top:4px}
+.seq-body{position:relative;flex:1;display:flex;flex-direction:column;gap:18px;padding:28px 0 12px;min-height:0}
+.seq-lines{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--actors),1fr);pointer-events:none}
+.seq-lines i{justify-self:center;width:0;border-left:2px dashed var(--line);height:100%}
+.seq-msg{position:relative;height:48px;flex:0 0 auto}
+.seq-msg .seq-arrow{
+  position:absolute;top:50%;height:3px;background:var(--fn-primary-lt);border-radius:2px;
+  left:calc((var(--from) - .5) * 100% / var(--actors));
+  width:calc((var(--to) - var(--from)) * 100% / var(--actors));
+  transform-origin:left center;
+}
+.seq-msg .seq-arrow::after{
+  content:'';position:absolute;right:-1px;top:-7px;border:8.5px solid transparent;
+  border-left:14px solid var(--fn-primary-lt);border-right:0;
+}
+.seq-msg.back .seq-arrow{
+  left:calc((var(--to) - .5) * 100% / var(--actors));
+  width:calc((var(--from) - var(--to)) * 100% / var(--actors));
+  transform-origin:right center;background:var(--fn-secondary);
+}
+.seq-msg.back .seq-arrow::after{
+  right:auto;left:-1px;border-left:0;border-right:14px solid var(--fn-secondary);
+}
+.seq-msg .seq-lab{
+  position:absolute;bottom:calc(50% + 8px);text-align:center;
+  left:calc((min(var(--from),var(--to)) - .5) * 100% / var(--actors));
+  width:calc((max(var(--from),var(--to)) - min(var(--from),var(--to))) * 100% / var(--actors));
+  font:600 19px/1.2 var(--mono);color:var(--ink);white-space:nowrap;
+}
+.seq-msg .seq-lab.ok{color:var(--ok)}.seq-msg .seq-lab.bad{color:var(--bad)}
+.seq-msg .seq-lab small{display:block;font:500 15px/1.2 var(--font);color:var(--ink-soft);margin-top:3px;white-space:normal}
+.seq-msg:has(.seq-lab small){height:60px}
+.seq-note{
+  position:relative;flex:0 0 auto;align-self:flex-start;
+  left:calc((var(--at) - .5) * 100% / var(--actors));transform:translateX(-50%);
+  padding:8px 14px;border-radius:10px;background:var(--warn-bg);border:1px solid var(--warn);
+  color:var(--ink);font-size:17px;line-height:1.25;text-align:center;
+  max-width:calc(100% / var(--actors) - 16px);   /* nunca se sale de su columna */
+}
+.motion-ready .seq-msg[data-motion-item] .seq-arrow{transform:scaleX(0);transition:transform 560ms var(--ease-out) 120ms}
+.motion-ready .seq-msg[data-motion-item].is-in .seq-arrow{transform:scaleX(1)}
+
+/* ---------------------------------------------- 5d · comparador antes/después
+   Dos capas superpuestas; la de la derecha se descubre con clip-path según
+   --pos. El tirador se arrastra con el ratón o se mueve con ← → al tener foco. */
+.compare{
+  position:relative;flex:1;min-height:0;border-radius:20px;overflow:hidden;
+  border:1px solid var(--line);box-shadow:var(--shadow);background:var(--panel);
+  --pos:50%;touch-action:none;user-select:none;
+}
+.compare .cmp-a,.compare .cmp-b{position:absolute;inset:0;padding:30px 34px;overflow:hidden;display:flex;flex-direction:column}
+.compare .cmp-b{clip-path:inset(0 0 0 var(--pos));background:var(--panel)}
+.compare .cmp-a{background:var(--bg-soft)}
+.compare .cmp-handle{
+  position:absolute;top:0;bottom:0;left:var(--pos);width:3px;margin-left:-1.5px;
+  background:var(--fn-secondary);cursor:ew-resize;z-index:2;
+}
+.compare .cmp-handle::after{
+  content:'⇆';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:56px;height:56px;border-radius:50%;background:var(--fn-secondary);color:#fff;
+  display:grid;place-items:center;font-size:26px;font-weight:700;box-shadow:0 10px 26px rgba(13,143,135,.45);
+}
+.compare .cmp-handle:focus-visible{outline:none}
+.compare .cmp-handle:focus-visible::after{box-shadow:0 0 0 4px rgba(126,224,214,.7),0 10px 26px rgba(13,143,135,.45)}
+.compare .cmp-lab{
+  position:absolute;top:18px;z-index:3;padding:6px 14px;border-radius:999px;
+  font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;pointer-events:none;
+}
+.compare .cmp-lab.a{left:18px;background:var(--ink-soft)}
+.compare .cmp-lab.b{right:18px;background:var(--fn-secondary)}
+.compare .cmp-a h3,.compare .cmp-b h3{margin-top:28px}
+
+/* --------------------------------------------------------- 6 · layouts base */
+.l-cols{display:grid;gap:34px;flex:1;min-height:0}
+.l-cols[data-cols="2"]{grid-template-columns:1fr 1fr}
+.l-cols[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+.l-cols[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+.l-cols[data-cols="2-1"]{grid-template-columns:2fr 1fr}
+.l-cols[data-cols="1-2"]{grid-template-columns:1fr 2fr}
+.l-rows{display:grid;gap:28px;flex:1;min-height:0}
+.l-rows[data-rows="2"]{grid-template-rows:1fr 1fr}
+.l-rows[data-rows="auto-1"]{grid-template-rows:auto 1fr}
+
+/* Panel: la unidad de contenido */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:32px 34px;box-shadow:var(--shadow);min-width:0;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+.panel > h3{
+  margin:0 0 18px;font-size:27px;color:var(--fn-primary);font-weight:700;
+  display:flex;align-items:center;gap:13px;letter-spacing:-.01em;
+}
+.panel p{margin:0 0 14px;font-size:22px;line-height:1.5;color:var(--ink-soft)}
+.panel p:last-child{margin-bottom:0}
+.panel.ok{background:var(--ok-bg);border-color:color-mix(in srgb,var(--ok) 34%,transparent)}
+.panel.warn{background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 34%,transparent)}
+.panel.bad{background:var(--bad-bg);border-color:color-mix(in srgb,var(--bad) 34%,transparent)}
+.panel.flat{box-shadow:none;background:var(--bg-soft)}
+.panel.accent{border-left:5px solid var(--fn-secondary)}
+
+/* Listas técnicas */
+.tlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:15px}
+.tlist li{
+  font-size:22px;line-height:1.45;color:var(--ink-soft);
+  padding-left:36px;position:relative;
+}
+.tlist li::before{
+  content:'';position:absolute;left:0;top:11px;width:11px;height:11px;
+  border-radius:3px;background:var(--fn-secondary);
+}
+.tlist li b{color:var(--ink);font-weight:650}
+.tlist.num{counter-reset:t}
+.tlist.num li{counter-increment:t;padding-left:52px}
+.tlist.num li::before{
+  content:counter(t);width:34px;height:34px;border-radius:10px;top:0;
+  background:var(--fn-primary);color:#fff;font-size:18px;font-weight:700;
+  display:grid;place-items:center;
+}
+
+/* KPI */
+.kpi-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:26px}
+.kpi{
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:30px 32px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--fn-secondary)}
+.kpi .k-val{
+  font-size:76px;font-weight:800;line-height:1;color:var(--fn-primary);
+  letter-spacing:-.035em;font-variant-numeric:tabular-nums;display:block;
+}
+.kpi .k-lab{font-size:19px;color:var(--ink-soft);margin-top:12px;display:block;line-height:1.3}
+.kpi .k-delta{font-size:20px;font-weight:700;margin-top:10px;display:inline-block}
+.kpi .k-delta.up{color:var(--ok)} .kpi .k-delta.down{color:var(--bad)}
+.kpi.hero .k-val{font-size:104px;color:var(--fn-secondary)}
+
+/* Consola + traducción llana (doble pista: técnico y humano a la vez) */
+.tracks{display:grid;grid-template-columns:1.08fr 1fr;gap:26px}
+.console{
+  background:var(--code-bg);color:var(--code-ink);border-radius:18px;
+  font-family:var(--mono);font-size:19px;line-height:1.62;padding:26px 30px;
+  overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;
+}
+.console .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.console .k{color:#7db4ff}.console .ok{color:#6fe3a4}.console .no{color:#ff9b9b}
+.console .wa{color:#ffd291}.console .dim{color:#7488a8}
+.plain{
+  border-radius:18px;border:1px solid color-mix(in srgb,var(--fn-secondary) 30%,transparent);
+  background:var(--ok-bg);padding:26px 30px;display:flex;gap:20px;align-items:flex-start;
+}
+.plain .bulb{
+  flex:0 0 auto;width:50px;height:50px;border-radius:14px;background:var(--fn-secondary);
+  color:#fff;display:grid;place-items:center;font-size:26px;font-weight:700;
+}
+.plain .p-top{
+  font-size:16px;font-weight:800;color:var(--fn-secondary);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:8px;
+}
+.plain .p-body{font-size:22px;line-height:1.48;color:var(--ink)}
+
+/* Código */
+.code{
+  background:var(--code-bg);border-radius:18px;padding:28px 32px;overflow:hidden;
+  font-family:var(--mono);font-size:20px;line-height:1.62;color:var(--code-ink);
+  counter-reset:cl;flex:1;min-height:0;
+}
+.code .ln{display:block;counter-increment:cl;padding-left:58px;position:relative;white-space:pre}
+.code .ln::before{
+  content:counter(cl);position:absolute;left:0;width:38px;text-align:right;
+  color:rgba(125,150,190,.45);font-size:17px;
+}
+.code .ln.hl{background:rgba(13,143,135,.16);margin:0 -32px;padding-left:90px;
+  box-shadow:inset 4px 0 0 var(--fn-secondary)}
+.code .ln.del{background:rgba(198,40,40,.14);margin:0 -32px;padding-left:90px}
+.code .kw{color:#79b8ff;font-weight:600}.code .st{color:#9fe8a8}
+.code .cm{color:#6b81a3;font-style:italic}.code .fn{color:#ffd291}.code .nm{color:#f0a4c8}
+
+/* Tabla técnica */
+.ttable{width:100%;border-collapse:collapse;font-size:21px}
+.ttable th{
+  text-align:left;padding:16px 20px;background:var(--bg-sunk);color:var(--fn-primary);
+  font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.07em;
+  border-bottom:2px solid var(--line);
+}
+.ttable td{padding:16px 20px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft)}
+.ttable tr:last-child td{border-bottom:none}
+.ttable td b{color:var(--ink)}
+.ttable .n{font-variant-numeric:tabular-nums;text-align:right}
+
+/* Variante para tablas de 7 filas o más: aprieta el interlineado sin bajar el
+   cuerpo de letra, que es lo que de verdad estropea la lectura desde el fondo. */
+.ttable.compact th{padding:10px 16px}
+.ttable.compact td{padding:9px 16px;line-height:1.32}
+.ttable.compact .tag{padding:3px 10px;font-size:15px}
+/* Una fila más y la tabla ya no cabe: .xs aprieta el interlineado sin tocar el
+   cuerpo de letra, que es lo que se lee de lejos en una sala. */
+.ttable.compact.xs th{padding:7px 14px}
+.ttable.compact.xs td{padding:6px 14px;line-height:1.26}
+
+/* Densidad: para slides con mucho contenido. Baja tamaños y aires de forma
+   coherente en vez de dejar que cada uno improvise un font-size a mano. */
+.dense .panel{padding:24px 26px}
+.dense .panel > h3{font-size:23px;margin-bottom:13px}
+.dense .panel p{font-size:19px;line-height:1.44}
+.dense .tlist{gap:11px}
+.dense .tlist li{font-size:19px;padding-left:31px}
+.dense .tlist li::before{top:8px;width:9px;height:9px}
+.dense .ttable{font-size:18px}
+.dense .ttable th{padding:11px 16px;font-size:15px}
+.dense .ttable td{padding:11px 16px}
+.dense .tag{font-size:14px;padding:4px 11px}
+.dense .flow-node{padding:20px 18px}
+.dense .flow-node .n-t{font-size:21px;margin-bottom:6px}
+.dense .flow-node .n-d{font-size:16px;line-height:1.32}
+.dense .l-cols{gap:26px}
+.dense .stepbar{margin-top:18px;padding-top:14px}
+
+/* Etiquetas de estado — nunca solo color, siempre con texto */
+.tag{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 15px;border-radius:9px;
+  font-size:17px;font-weight:700;letter-spacing:.02em;
+}
+.tag.ok{background:var(--ok-bg);color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent)}
+.tag.warn{background:var(--warn-bg);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.tag.bad{background:var(--bad-bg);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 40%,transparent)}
+.tag.info{background:var(--info-bg);color:var(--info);border:1px solid color-mix(in srgb,var(--info) 40%,transparent)}
+
+/* ------------------------------------------- 7 · primitivas de movimiento
+   Contrato: sin .motion-ready todo está visible. El JS añade esa clase solo
+   cuando ha podido inicializarse. Si falla, el deck se ve completo. */
+.motion-ready [data-motion-item]{
+  opacity:.10;transform:translateY(14px);
+  transition:opacity var(--motion-step) var(--ease),transform var(--motion-step) var(--ease);
+}
+.motion-ready [data-motion-item].is-in,
+.motion-ready .slide[data-frame="end"] [data-motion-item]{opacity:1;transform:none}
+
+/* Realce del elemento del paso actual */
+.motion-ready [data-motion-item].is-now{
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--fn-secondary) 55%,transparent),var(--shadow-lg);
+}
+
+/* Trazado de conexiones: duplicado decorativo sobre el conector real */
+.conn-draw{
+  stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset 900ms var(--ease);
+}
+.motion-ready [data-motion-item].is-in .conn-draw,
+.motion-ready .slide[data-frame="end"] .conn-draw{stroke-dashoffset:0}
+
+/* Barras y líneas de gráfica: crecen desde su base */
+.motion-ready .bar-grow{transform:scaleY(0);transform-origin:bottom;
+  transition:transform 780ms var(--ease-out)}
+.motion-ready [data-motion-item].is-in .bar-grow,
+.motion-ready .slide[data-frame="end"] .bar-grow{transform:scaleY(1)}
+.motion-ready .line-draw{stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset 1100ms var(--ease-out)}
+.motion-ready [data-motion-item].is-in .line-draw,
+.motion-ready .slide[data-frame="end"] .line-draw{stroke-dashoffset:0}
+
+/* -------------------------------------------------- 8 · diagrama de proceso */
+.flow{display:flex;align-items:stretch;gap:0;flex:1;min-height:0}
+.flow-node{
+  flex:1;background:var(--panel);border:2px solid var(--line);border-radius:18px;
+  padding:26px 24px;display:flex;flex-direction:column;justify-content:center;
+  text-align:center;position:relative;min-width:0;
+}
+.flow-node .n-num{
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:34px;height:34px;border-radius:50%;background:var(--fn-primary);color:#fff;
+  display:grid;place-items:center;font-size:17px;font-weight:800;
+}
+.flow-node .n-t{font-size:24px;font-weight:700;color:var(--fn-primary);margin-bottom:9px;line-height:1.2}
+.flow-node .n-d{font-size:18px;color:var(--ink-soft);line-height:1.38}
+.flow-node.is-now{border-color:var(--fn-secondary);box-shadow:0 0 0 4px color-mix(in srgb,var(--fn-secondary) 22%,transparent)}
+.flow-node.done{background:var(--bg-soft);border-color:color-mix(in srgb,var(--fn-primary) 32%,transparent)}
+.flow-arrow{flex:0 0 54px;display:grid;place-items:center;color:var(--ink-faint);font-size:32px}
+
+/* Carriles (swimlane) para procedimientos con responsables */
+.lanes{display:grid;gap:3px;flex:1;min-height:0;background:var(--line);border-radius:16px;overflow:hidden}
+.lane{display:grid;grid-template-columns:230px 1fr;background:var(--panel);min-height:0}
+.lane-h{
+  background:var(--bg-sunk);padding:22px 24px;display:flex;align-items:center;
+  font-size:20px;font-weight:700;color:var(--fn-primary);border-right:1px solid var(--line);
+}
+.lane-b{padding:20px 24px;display:flex;align-items:center;gap:18px;overflow:hidden}
+.lane-step{
+  background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;
+  padding:14px 20px;font-size:19px;color:var(--ink);white-space:nowrap;
+}
+.lane-step.is-now{background:var(--fn-secondary);color:#fff;border-color:var(--fn-secondary);font-weight:700}
+
+/* --------------------------------------------------------- 9 · barra de pasos */
+.stepbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:12px;margin-top:26px;
+  padding-top:20px;border-top:1px solid var(--line-soft);
+}
+.stepbar .sb-dot{width:11px;height:11px;border-radius:50%;background:var(--line);transition:.3s var(--ease)}
+.stepbar .sb-dot.done{background:var(--fn-primary-lt)}
+.stepbar .sb-dot.now{background:var(--fn-secondary);transform:scale(1.75)}
+.stepbar .sb-lab{margin-left:16px;font-size:18px;color:var(--ink-soft)}
+.stepbar .sb-lab b{color:var(--fn-primary)}
+
+/* --------------------------------------------------- 10 · cromo del deck */
+.deck-controls{
+  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:900;
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  background:rgba(10,21,38,.86);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14);border-radius:16px;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.deck-viewport:hover .deck-controls,.deck-controls:focus-within{opacity:1;pointer-events:auto}
+.deck-controls button{
+  background:transparent;border:1px solid rgba(255,255,255,.18);color:#dce8f8;
+  min-width:44px;height:44px;padding:0 14px;border-radius:11px;cursor:pointer;
+  font-size:15px;font-weight:600;font-family:var(--font);transition:.18s;
+}
+.deck-controls button:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.deck-controls button:focus-visible{outline:2px solid var(--fn-secondary);outline-offset:2px}
+.deck-controls button:disabled{opacity:.32;cursor:not-allowed}
+.deck-controls button[aria-pressed="true"]{background:var(--fn-secondary);border-color:var(--fn-secondary);color:#fff}
+.deck-controls .dc-pos{color:#93a9c6;font-size:15px;padding:0 12px;font-variant-numeric:tabular-nums}
+
+.deck-progress{
+  position:fixed;left:0;top:0;height:4px;z-index:950;width:0;
+  background:linear-gradient(90deg,var(--fn-primary),var(--fn-secondary));
+  transition:width .45s var(--ease);
+}
+
+/* Región de estado accesible, fuera de los controles para que nunca se oculte */
+.deck-status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Vista general (tecla O) */
+/* ------------------------------------------- 8a · progreso por capítulos
+   La barra superior se divide en tramos, uno por capítulo, proporcionales a
+   sus slides. El tramo actual es más alto y muestra su nombre; los demás lo
+   muestran al pasar el ratón. Los extremos (portada, cierre) van sin nombre. */
+.deck-progress.has-chapters{
+  width:100%;background:transparent;box-shadow:none;transition:none;
+  display:flex;gap:3px;height:8px;align-items:flex-start;padding:0 2px;
+}
+.dp-seg{
+  position:relative;flex:0 0 var(--w);min-width:6px;height:4px;
+  background:color-mix(in srgb,var(--fn-primary) 16%,transparent);
+  border-radius:0 3px 3px 0;cursor:pointer;transition:height .25s var(--ease);
+}
+[data-theme="dark"] .dp-seg{background:rgba(255,255,255,.14)}
+.dp-seg:first-child{border-radius:0 3px 3px 0}
+.dp-seg.dp-end{opacity:.7}
+.dp-seg i{
+  display:block;height:100%;width:0;border-radius:inherit;
+  background:linear-gradient(90deg,var(--fn-primary),var(--fn-secondary));
+  transition:width .45s var(--ease);
+}
+.dp-seg.is-now{height:7px}
+.dp-seg.is-now i{box-shadow:0 0 16px color-mix(in srgb,var(--fn-secondary) 70%,transparent)}
+/* Zona de clic generosa sin cambiar la geometría visible */
+.dp-seg::after{content:'';position:absolute;left:0;right:0;top:-4px;bottom:-26px}
+.dp-seg b{
+  position:absolute;left:0;top:12px;white-space:nowrap;pointer-events:none;
+  font:700 12px/1 var(--font);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-faint);opacity:0;transform:translateY(-3px);
+  transition:opacity .2s var(--ease),transform .2s var(--ease);
+}
+.dp-seg.is-now b{opacity:1;transform:none;color:var(--fn-secondary)}
+.deck-progress.has-chapters:hover .dp-seg b{opacity:1;transform:none}
+.dp-seg:hover{height:7px}
+.dp-seg.dp-end b{display:none}
+
+/* Botón de icono en la barra de controles (índice) */
+.deck-controls button.dc-icon{display:inline-grid;place-items:center;padding:0 12px;min-width:44px}
+.deck-controls button.dc-icon svg{display:block}
+
+/* ------------------------------------------ 8b · índice: recorrido por capítulos
+   Superposición fija (no escala con el escenario): tamaños en px reales con
+   clamp() para que quepa igual en un portátil que en un proyector. */
+.deck-overview{
+  position:fixed;inset:0;z-index:980;display:none;color:#fff;
+  background:
+    radial-gradient(ellipse 60% 50% at 12% 0%,rgba(13,143,135,.34) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 60% at 95% 100%,rgba(43,116,180,.30) 0%,transparent 60%),
+    linear-gradient(160deg,#061426 0%,#0b2a4a 100%);
+  padding:clamp(20px,3vh,40px) clamp(28px,3.5vw,72px);
+  flex-direction:column;gap:clamp(18px,3vh,36px);
+}
+.deck-overview.is-open{display:flex;animation:ovIn 320ms var(--ease-out) both}
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
+
+.ov-head{display:flex;align-items:center;gap:22px;flex:0 0 auto}
+.ov-head .fn-logo{flex:0 0 auto}
+.ov-title{font-size:clamp(15px,1.15vw,21px);font-weight:600;color:rgba(255,255,255,.80);
+  padding-left:22px;border-left:1px solid rgba(255,255,255,.22);line-height:1.2}
+.ov-pos{margin-left:auto;font-size:clamp(13px,1vw,18px);color:rgba(255,255,255,.62);font-variant-numeric:tabular-nums}
+.ov-pos b{color:#fff}
+.ov-close{
+  width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.06);color:#fff;font-size:16px;cursor:pointer;
+}
+.ov-close:hover{background:rgba(255,255,255,.16)}
+
+.ov-journey{flex:1;min-height:0;display:flex;align-items:stretch}
+.ov-cols{
+  position:relative;flex:1;min-height:0;display:grid;
+  grid-template-columns:clamp(70px,6vw,110px) repeat(var(--n),minmax(0,1fr)) clamp(70px,6vw,110px);
+  gap:clamp(10px,1vw,20px);align-items:start;
+}
+/* Línea del recorrido: pasa por detrás de las cabeceras de capítulo */
+.ov-line{
+  position:absolute;left:0;right:0;top:calc(var(--ov-head-h,86px)/2);height:3px;
+  background:rgba(255,255,255,.14);border-radius:3px;z-index:0;
+}
+.ov-line i{display:block;height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--fn-secondary),#7ee0d6);
+  box-shadow:0 0 18px rgba(126,224,214,.55);transition:width 600ms var(--ease-out)}
+
+/* Extremos: portada y cierre */
+.ov-end{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding-top:calc(var(--ov-head-h,86px)/2 - 11px);background:none;border:0;color:#fff;cursor:pointer;
+}
+.ov-end.ghost{visibility:hidden}
+.ov-end .ov-dot{width:22px;height:22px;border-radius:50%;background:#0b2a4a;border:3px solid rgba(255,255,255,.55);box-sizing:border-box}
+.ov-end.past .ov-dot,.ov-end.is-active .ov-dot{background:var(--fn-secondary);border-color:#7ee0d6;box-shadow:0 0 16px rgba(126,224,214,.6)}
+.ov-end-t{font-size:clamp(11px,.85vw,15px);color:rgba(255,255,255,.62);text-align:center;line-height:1.2}
+.ov-end:hover .ov-end-t{color:#fff}
+
+/* Capítulo */
+.ov-ch{
+  position:relative;z-index:1;display:flex;flex-direction:column;gap:12px;min-height:0;max-height:100%;
+  animation:ovCol 460ms var(--ease-out) both;animation-delay:calc(var(--i)*60ms + 80ms);
+}
+@keyframes ovCol{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.ov-ch-head{
+  display:flex;flex-direction:column;gap:5px;text-align:left;cursor:pointer;
+  min-height:var(--ov-head-h,86px);padding:clamp(10px,1.2vh,16px) clamp(12px,1.2vw,20px);
+  border-radius:16px;border:1.5px solid rgba(255,255,255,.18);background:#0b2a4a;color:#fff;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.ov-ch-head:hover{border-color:rgba(255,255,255,.5);transform:translateY(-2px)}
+.ov-ch-n{font-size:clamp(11px,.8vw,13px);letter-spacing:.22em;color:#7ee0d6;font-weight:700}
+.ov-ch-name{font-size:clamp(16px,1.3vw,25px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.ov-ch-meta{font-size:clamp(11px,.85vw,14px);color:rgba(255,255,255,.58);font-variant-numeric:tabular-nums}
+.ov-ch.is-now .ov-ch-head{
+  border-color:var(--fn-secondary);
+  background:linear-gradient(160deg,rgba(13,143,135,.55),rgba(13,79,135,.55)),#0b2a4a;
+  box-shadow:0 0 0 1px rgba(126,224,214,.35),0 18px 44px rgba(13,143,135,.35);
+}
+.ov-ch.done{opacity:.55}
+.ov-ch.done:hover{opacity:.9}
+.ov-ch.todo .ov-ch-head{background:rgba(255,255,255,.03)}
+
+.ov-ch-list{list-style:none;margin:0;padding:0 2px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0}
+.ov-s{
+  display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;
+  padding:clamp(7px,.9vh,11px) clamp(9px,.9vw,13px);border-radius:11px;border:1px solid transparent;
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.88);
+  font-size:clamp(12px,.95vw,17px);line-height:1.28;transition:background .18s,border-color .18s,transform .18s;
+}
+.ov-s:hover,.ov-s:focus-visible{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.28);transform:translateX(3px);outline:none}
+.ov-s.past{color:rgba(255,255,255,.55)}
+.ov-s.is-active{background:rgba(13,143,135,.30);border-color:var(--fn-secondary);color:#fff;font-weight:600}
+.ov-s-n{flex:0 0 auto;font-variant-numeric:tabular-nums;color:#7ee0d6;font-weight:700;font-size:.85em;padding-top:.1em}
+.ov-s.past .ov-s-n{color:rgba(126,224,214,.5)}
+
+/* Miniatura al pasar el ratón */
+.ov-preview{
+  position:fixed;right:clamp(28px,3.5vw,72px);bottom:clamp(58px,8vh,96px);z-index:2;
+  width:clamp(280px,26vw,520px);border-radius:14px;overflow:hidden;
+  background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.25);
+  animation:ovIn 240ms var(--ease-out) both;pointer-events:none;
+}
+.ov-pv-screen{position:relative;aspect-ratio:16/9;overflow:hidden;background:#fff}
+.ov-pv-cap{padding:9px 14px;font-size:clamp(12px,.9vw,15px);color:var(--ink);background:var(--bg-soft);border-top:1px solid var(--line)}
+.ov-pv-cap b{color:var(--fn-secondary);margin-right:6px}
+
+.ov-hint{flex:0 0 auto;font-size:clamp(12px,.9vw,15px);color:rgba(255,255,255,.5)}
+.ov-hint b{color:rgba(255,255,255,.85);font-weight:700;padding:1px 7px;border:1px solid rgba(255,255,255,.3);border-radius:6px}
+
+/* Transición de capítulo: mismo mapa, sin controles, con rótulo grande */
+.deck-overview.is-intro{cursor:pointer}
+.deck-overview.is-intro .ov-s,.deck-overview.is-intro .ov-ch-head,.deck-overview.is-intro .ov-end{pointer-events:none}
+.ov-intro-cap{
+  flex:0 0 auto;display:flex;align-items:baseline;gap:22px;
+  animation:ovCol 600ms 380ms var(--ease-out) both;
+}
+.ov-intro-k{font-size:clamp(13px,1vw,18px);letter-spacing:.26em;text-transform:uppercase;color:#7ee0d6;font-weight:700}
+.ov-intro-t{font-size:clamp(28px,3vw,58px);font-weight:800;letter-spacing:-.02em;line-height:1}
+
+@media (prefers-reduced-motion:reduce){
+  .deck-overview.is-open,.ov-ch,.ov-preview,.ov-intro-cap{animation:none !important}
+  .ov-line i{transition:none}
+}
+
+/* ------------------------------------------------------ 11 · modo presentador */
+body.is-presenter{overflow:auto;background:#0a1526}
+.pv{display:none;grid-template-columns:1.35fr 1fr;gap:20px;padding:20px;height:100vh;box-sizing:border-box}
+body.is-presenter .pv{display:grid}
+body.is-presenter .deck-viewport,body.is-presenter .deck-controls,body.is-presenter .deck-progress{display:none}
+.pv-main,.pv-side{display:flex;flex-direction:column;gap:16px;min-height:0}
+.pv-screen{
+  position:relative;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;
+  border:1px solid #1e3355;flex:0 0 auto;
+}
+.pv-screen iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.pv-lab{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#6a7f9e;font-weight:700}
+.pv-notes{
+  flex:1;background:#0f1e35;border:1px solid #1e3355;border-radius:14px;padding:24px 26px;
+  color:#c8d8ee;font-size:19px;line-height:1.6;overflow-y:auto;min-height:0;
+}
+.pv-notes h4{margin:0 0 14px;color:var(--fn-secondary);font-size:16px;text-transform:uppercase;letter-spacing:.1em}
+.pv-notes ul{margin:0;padding-left:22px}.pv-notes li{margin-bottom:10px}
+.pv-warn{
+  background:#2a1f0c;border:1px solid #6b5216;border-radius:12px;padding:14px 18px;
+  color:#ffd291;font-size:15px;line-height:1.45;
+}
+.pv-clock{display:flex;gap:14px;background:#0f1e35;border:1px solid #1e3355;border-radius:14px;padding:18px 22px}
+.pv-clock div{flex:1}
+.pv-clock .c-lab{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6a7f9e;font-weight:700}
+.pv-clock .c-val{font-size:34px;font-weight:800;color:#e8f0fb;font-variant-numeric:tabular-nums;line-height:1.15}
+.pv-clock .c-val.over{color:#ff9b9b}
+
+/* ----------------------------------------------------- 12 · accesibilidad */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  [data-motion-item]{opacity:1 !important;transform:none !important}
+  .conn-draw,.line-draw{stroke-dashoffset:0 !important}
+  .bar-grow{transform:scaleY(1) !important}
+}
+
+/* ---------------------------------------------------------- 13 · impresión */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  /* Los fondos (portada, paneles, consola) forman parte del contenido: imprimirlos siempre */
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none !important}
+  .slide{
+    position:relative;visibility:visible !important;opacity:1 !important;
+    display:flex !important;break-after:page;page-break-after:always;box-shadow:none;
+    animation:none !important;
+  }
+  .slide:last-child{break-after:auto}
+  [data-motion-item]{opacity:1 !important;transform:none !important}
+  .conn-draw,.line-draw{stroke-dashoffset:0 !important}
+  .bar-grow{transform:scaleY(1) !important}
+  .deck-controls,.deck-progress,.deck-overview,.pv{display:none !important}
+  /* El degradado recortado a texto deja un recuadro al imprimir: color plano */
+  .hero-val{background:none !important;color:var(--fn-primary) !important;-webkit-text-fill-color:var(--fn-primary) !important}
+}

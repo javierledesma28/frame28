@@ -1,0 +1,2789 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Frame28 · Guía de instalación y uso</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<style>
+/* =============================================================================
+   FUNDANET DECK ENGINE · hoja de estilo
+   Escenario fijo 1920x1080 escalado en bloque. El deck se ve idéntico en
+   cualquier pantalla o proyector, y al imprimir sale una slide por página.
+
+   Contrato "estático primero": todo el contenido semántico existe en el HTML.
+   Las clases de movimiento solo lo revelan. Sin JavaScript se ve todo.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------- 1 · marca */
+:root{
+  /* Marca Fundanet — constantes, no cambian con el tema */
+  --fn-primary:#0d4f87;
+  --fn-secondary:#0d8f87;
+  --fn-primary-lt:#2b74b4;
+  --fn-primary-dk:#08355c;
+
+  /* Semánticos */
+  --ok:#1f8a4c; --warn:#b26a00; --bad:#c62828; --info:#0074e4;
+  --ok-bg:#eefaf2; --warn-bg:#fdf6ea; --bad-bg:#fdf1f1; --info-bg:#eef5fe;
+
+  /* Tema claro (por defecto: es el que se lee en un proyector de sala) */
+  --bg:#ffffff;
+  --bg-soft:#f4f7fb;
+  --bg-sunk:#eaf0f8;
+  --ink:#12233f;
+  --ink-soft:#4a5b76;
+  --ink-faint:#8494ad;
+  --line:#d8e2ef;
+  --line-soft:#e9eff7;
+  --panel:#ffffff;
+  --code-bg:#0c1a30;
+  --code-ink:#d6e6ff;
+  --shadow:0 18px 48px rgba(13,79,135,.10);
+  --shadow-lg:0 32px 80px rgba(13,79,135,.16);
+
+  /* Un solo reloj para todo el movimiento */
+  --motion-fast:160ms;
+  --motion-step:480ms;
+  --motion-hold:720ms;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+
+  /* Tipografía */
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Cascadia Code',ui-monospace,Consolas,'SF Mono',monospace;
+}
+
+[data-theme="dark"]{
+  --bg:#0a1526;
+  --bg-soft:#101f38;
+  --bg-sunk:#0c1a2e;
+  --ink:#e8f0fb;
+  --ink-soft:#a3b6d1;
+  --ink-faint:#6a7f9e;
+  --line:#1e3355;
+  --line-soft:#16273f;
+  --panel:#0f1e35;
+  --code-bg:#060f1e;
+  --shadow:0 18px 48px rgba(0,0,0,.4);
+  --shadow-lg:0 32px 80px rgba(0,0,0,.55);
+  --fn-primary-lt:#4d94d6;
+  --ok-bg:#0d2419; --warn-bg:#2a1f0c; --bad-bg:#2a1111; --info-bg:#0d1f38;
+}
+
+/* ------------------------------------------------- 2 · escenario 1920x1080 */
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#06101f}
+body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:#06101f}
+.deck-stage{
+  position:absolute;left:0;top:0;width:1920px;height:1080px;
+  transform-origin:0 0;overflow:hidden;background:var(--bg);
+
+  /* Escalado SIN JavaScript.
+     CSS no sabe dividir dos longitudes, pero tan(atan2(a,b)) devuelve a/b como
+     número puro — es el truco estándar para esto. El motor lo recalcula luego
+     con clientWidth, que es más exacto; esto es la red de seguridad para cuando
+     el JS no llega a correr: vista previa estática, JS bloqueado, o el primer
+     fotograma antes de init(). Sin esto el escenario se queda a 1920x1080
+     reales dentro de una ventana pequeña y parece que el deck está ampliado. */
+  --fit:min(tan(atan2(100vw,1920px)),tan(atan2(100vh,1080px)));
+  transform:translate(calc((100vw - 1920px * var(--fit)) / 2),
+                      calc((100vh - 1080px * var(--fit)) / 2))
+            scale(var(--fit));
+}
+
+/* Cada slide ocupa el escenario entero. Se apilan. */
+.slide{
+  position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;
+  background:var(--bg);padding:78px 96px 96px;
+  visibility:hidden;opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;
+}
+.slide.is-active{visibility:visible;opacity:1;pointer-events:auto;z-index:2}
+
+/* --------------------------------------------- 3 · transiciones entre slides
+   Cuatro tipos, elegibles por slide con data-transition.
+   La entrante lleva .is-enter; la saliente .is-exit durante el cruce. */
+.slide.is-enter{animation:slideIn var(--t-dur,620ms) var(--ease-out) both}
+.slide.is-exit{animation:slideOut var(--t-dur,620ms) var(--ease) both;z-index:1;visibility:visible;opacity:1}
+
+@keyframes slideIn{from{opacity:0;transform:translateX(56px)}to{opacity:1;transform:none}}
+@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-40px)}}
+
+.slide[data-transition="fade"].is-enter{animation-name:fadeIn}
+.slide[data-transition="fade"].is-exit{animation-name:fadeOut}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+
+.slide[data-transition="rise"].is-enter{animation-name:riseIn}
+.slide[data-transition="rise"].is-exit{animation-name:riseOut}
+@keyframes riseIn{from{opacity:0;transform:translateY(52px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes riseOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-28px) scale(.99)}}
+
+/* "zoom" da sensación de profundizar en un detalle de la slide anterior */
+.slide[data-transition="zoom"].is-enter{animation-name:zoomIn}
+.slide[data-transition="zoom"].is-exit{animation-name:zoomOut}
+@keyframes zoomIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:none}}
+@keyframes zoomOut{from{opacity:1;transform:none}to{opacity:0;transform:scale(1.08)}}
+
+@media (prefers-reduced-motion:no-preference){
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:520ms}
+}
+
+/* -------------------------------------------------------- 4 · cromo de slide */
+.s-head{display:flex;justify-content:space-between;align-items:flex-start;gap:40px;flex:0 0 auto;margin-bottom:34px}
+.s-eyebrow{
+  font-size:19px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--fn-secondary);margin:0 0 12px;display:flex;align-items:center;gap:14px;
+}
+.s-eyebrow::before{content:'';width:38px;height:3px;background:var(--fn-secondary);border-radius:2px}
+.s-title{margin:0;font-size:60px;line-height:1.04;letter-spacing:-.022em;color:var(--fn-primary);font-weight:700}
+.s-sub{margin:16px 0 0;font-size:25px;line-height:1.4;color:var(--ink-soft);max-width:1180px}
+.s-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+
+/* Marca: barra superior + pie */
+.s-brandbar{position:absolute;top:0;left:0;right:0;height:7px;
+  background:linear-gradient(90deg,var(--fn-primary) 0%,var(--fn-secondary) 100%)}
+.s-foot{
+  position:absolute;left:96px;right:96px;bottom:36px;display:flex;
+  justify-content:space-between;align-items:center;
+  font-size:16px;color:var(--ink-faint);border-top:1px solid var(--line-soft);padding-top:16px;
+}
+.s-foot b{color:var(--fn-primary);font-weight:600}
+.s-num{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink-faint)}
+
+/* Notas del ponente: viven en el HTML de la slide pero no se ven nunca en
+   pantalla. El modo presentador lee su innerHTML y lo pinta en su panel. */
+.s-notes{display:none}
+
+/* ------------------------------------------------------- 5 · portada y cierre */
+.slide.cover{
+  padding:0;background:
+    radial-gradient(ellipse 90% 70% at 78% 12%,rgba(13,143,135,.20) 0%,transparent 62%),
+    radial-gradient(ellipse 80% 90% at 8% 92%,rgba(13,79,135,.30) 0%,transparent 60%),
+    linear-gradient(150deg,var(--fn-primary-dk) 0%,var(--fn-primary) 52%,#0a6b7e 100%);
+  color:#fff;justify-content:center;
+}
+.cover-inner{padding:0 130px;position:relative;z-index:2}
+.cover .s-title{color:#fff;font-size:98px;max-width:1420px;letter-spacing:-.03em}
+.cover .s-sub{color:rgba(255,255,255,.86);font-size:31px;max-width:1180px;margin-top:30px}
+.cover-tag{
+  font-size:17px;letter-spacing:.32em;text-transform:uppercase;font-weight:700;
+  color:rgba(255,255,255,.62);margin-bottom:38px;
+}
+.cover-meta{
+  position:absolute;left:130px;right:130px;bottom:76px;display:flex;
+  justify-content:space-between;align-items:flex-end;
+  color:rgba(255,255,255,.72);font-size:19px;z-index:2;
+}
+/* Co-branding: logo Fundanet + separador + logo del cliente, en la misma línea.
+   El logo del cliente va sobre una placa blanca para que cualquier logotipo
+   (oscuro, de color, con fondo transparente) se lea sobre la portada azul.
+   El empaquetador lo embebe como data URI: el deck sigue siendo un solo fichero. */
+.cover-brands{display:flex;align-items:center;gap:40px;margin-bottom:34px}
+.cover-brands .fn-logo{margin-bottom:0}
+.cover-sep{width:2px;height:64px;background:rgba(255,255,255,.34);border-radius:2px;flex:0 0 auto}
+.cover-client{
+  display:inline-flex;align-items:center;justify-content:center;
+  height:84px;padding:0 30px;border-radius:16px;background:#fff;
+  box-shadow:0 14px 40px rgba(0,0,0,.22);
+}
+.cover-client img{max-height:56px;max-width:340px;width:auto;height:auto;display:block;object-fit:contain}
+.cover-client .cc-name{font-size:30px;font-weight:700;color:var(--fn-primary);letter-spacing:-.01em;white-space:nowrap}
+
+/* Créditos de cierre: quién hizo el deck y con qué ayuda. Va en el cierre
+   por defecto; la marca Fundanet sigue mandando y el icono es un acento. */
+.made-with{
+  display:inline-flex;align-items:center;gap:16px;margin-top:48px;
+  padding:14px 26px 14px 18px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.30);background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.90);font-size:20px;font-weight:500;line-height:1.2;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+}
+.made-with b{font-weight:700;color:#fff}
+.made-with .mw-sep{width:1px;height:34px;background:rgba(255,255,255,.34)}
+.made-with .mw-ai{display:inline-flex;align-items:center;gap:10px;color:rgba(255,255,255,.90)}
+/* Autor con foto: retrato circular sobre fondo claro, anillo blanco, y dos
+   líneas (nombre y rol). La foto se embebe en el build como cualquier <img>. */
+.made-with.autor{padding:10px 26px 10px 10px;gap:18px}
+.made-with .mw-avatar{
+  width:72px;height:72px;border-radius:50%;flex:0 0 auto;overflow:hidden;
+  background:linear-gradient(160deg,#eaf3f8 0%,#c9e2ea 100%);
+  box-shadow:0 0 0 3px #fff,0 10px 26px rgba(0,0,0,.28);
+}
+.made-with .mw-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 12%;display:block}
+.made-with .mw-who{display:flex;flex-direction:column;line-height:1.15}
+.made-with .mw-who b{font-size:22px}
+.made-with .mw-who span{font-size:17px;color:rgba(255,255,255,.72);margin-top:3px}
+
+/* Retícula técnica de fondo: textura sin ruido */
+.cover::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:80px 80px;
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 70% 30%,#000 0%,transparent 75%);
+  mask-image:radial-gradient(ellipse 70% 70% at 70% 30%,#000 0%,transparent 75%);
+}
+
+/* Tarjeta QR en el cierre: enlace a los entregables, generado sin red con
+   scripts/qr.py (segno) y embebido por build.mjs como cualquier imagen. */
+.qr-card{
+  position:absolute;right:130px;bottom:170px;z-index:2;display:flex;align-items:center;gap:22px;
+  padding:16px 24px 16px 16px;border-radius:18px;background:#fff;color:var(--ink);
+  box-shadow:0 24px 60px rgba(0,0,0,.30);
+}
+.qr-card img{width:150px;height:150px;display:block}
+.qr-card .qr-t{display:flex;flex-direction:column;gap:6px;max-width:260px}
+.qr-card .qr-t b{font-size:21px;color:var(--fn-primary);line-height:1.15}
+.qr-card .qr-t span{font-size:16px;color:var(--ink-soft);line-height:1.3}
+.qr-card .qr-t code{font-size:15px;color:var(--fn-secondary)}
+
+/* ----------------------------------------------------- 5b · número héroe
+   Una cifra a pantalla completa para el dato que hay que recordar. */
+.slide.hero{justify-content:center}
+.hero-inner{padding:0 130px;max-width:1560px}
+.hero-val{
+  display:flex;align-items:baseline;gap:30px;line-height:.95;letter-spacing:-.05em;
+  font-size:300px;font-weight:800;
+  background:linear-gradient(92deg,var(--fn-primary) 0%,var(--fn-secondary) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+}
+.hero-val small{
+  font-size:56px;font-weight:600;letter-spacing:-.01em;
+  -webkit-text-fill-color:var(--fn-secondary);color:var(--fn-secondary);
+}
+.hero-t{font-size:58px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.1;margin:34px 0 0;max-width:1400px}
+.hero-sub{font-size:28px;color:var(--ink-soft);line-height:1.4;margin:20px 0 0;max-width:1240px}
+.hero .s-eyebrow{margin-bottom:26px}
+
+/* ----------------------------------------------- 5c · diagrama de secuencia
+   Actores en columnas (--actors), líneas de vida y mensajes que se trazan al
+   entrar su paso. --from/--to son índices de actor (1..N). */
+.seq{display:flex;flex-direction:column;flex:1;min-height:0;position:relative}
+.seq-actors{display:grid;grid-template-columns:repeat(var(--actors),1fr);gap:0;flex:0 0 auto}
+.seq-actor{
+  margin:0 28px;text-align:center;padding:16px 18px;border-radius:14px;
+  border:1.5px solid var(--fn-primary);background:var(--panel);color:var(--fn-primary);
+  font-size:22px;font-weight:700;line-height:1.2;box-shadow:var(--shadow);
+}
+.seq-actor small{display:block;font-size:16px;font-weight:500;color:var(--ink-soft);margin-top:4px}
+.seq-body{position:relative;flex:1;display:flex;flex-direction:column;gap:18px;padding:28px 0 12px;min-height:0}
+.seq-lines{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--actors),1fr);pointer-events:none}
+.seq-lines i{justify-self:center;width:0;border-left:2px dashed var(--line);height:100%}
+.seq-msg{position:relative;height:48px;flex:0 0 auto}
+.seq-msg .seq-arrow{
+  position:absolute;top:50%;height:3px;background:var(--fn-primary-lt);border-radius:2px;
+  left:calc((var(--from) - .5) * 100% / var(--actors));
+  width:calc((var(--to) - var(--from)) * 100% / var(--actors));
+  transform-origin:left center;
+}
+.seq-msg .seq-arrow::after{
+  content:'';position:absolute;right:-1px;top:-7px;border:8.5px solid transparent;
+  border-left:14px solid var(--fn-primary-lt);border-right:0;
+}
+.seq-msg.back .seq-arrow{
+  left:calc((var(--to) - .5) * 100% / var(--actors));
+  width:calc((var(--from) - var(--to)) * 100% / var(--actors));
+  transform-origin:right center;background:var(--fn-secondary);
+}
+.seq-msg.back .seq-arrow::after{
+  right:auto;left:-1px;border-left:0;border-right:14px solid var(--fn-secondary);
+}
+.seq-msg .seq-lab{
+  position:absolute;bottom:calc(50% + 8px);text-align:center;
+  left:calc((min(var(--from),var(--to)) - .5) * 100% / var(--actors));
+  width:calc((max(var(--from),var(--to)) - min(var(--from),var(--to))) * 100% / var(--actors));
+  font:600 19px/1.2 var(--mono);color:var(--ink);white-space:nowrap;
+}
+.seq-msg .seq-lab.ok{color:var(--ok)}.seq-msg .seq-lab.bad{color:var(--bad)}
+.seq-msg .seq-lab small{display:block;font:500 15px/1.2 var(--font);color:var(--ink-soft);margin-top:3px;white-space:normal}
+.seq-msg:has(.seq-lab small){height:60px}
+.seq-note{
+  position:relative;flex:0 0 auto;align-self:flex-start;
+  left:calc((var(--at) - .5) * 100% / var(--actors));transform:translateX(-50%);
+  padding:8px 14px;border-radius:10px;background:var(--warn-bg);border:1px solid var(--warn);
+  color:var(--ink);font-size:17px;line-height:1.25;text-align:center;
+  max-width:calc(100% / var(--actors) - 16px);   /* nunca se sale de su columna */
+}
+.motion-ready .seq-msg[data-motion-item] .seq-arrow{transform:scaleX(0);transition:transform 560ms var(--ease-out) 120ms}
+.motion-ready .seq-msg[data-motion-item].is-in .seq-arrow{transform:scaleX(1)}
+
+/* ---------------------------------------------- 5d · comparador antes/después
+   Dos capas superpuestas; la de la derecha se descubre con clip-path según
+   --pos. El tirador se arrastra con el ratón o se mueve con ← → al tener foco. */
+.compare{
+  position:relative;flex:1;min-height:0;border-radius:20px;overflow:hidden;
+  border:1px solid var(--line);box-shadow:var(--shadow);background:var(--panel);
+  --pos:50%;touch-action:none;user-select:none;
+}
+.compare .cmp-a,.compare .cmp-b{position:absolute;inset:0;padding:30px 34px;overflow:hidden;display:flex;flex-direction:column}
+.compare .cmp-b{clip-path:inset(0 0 0 var(--pos));background:var(--panel)}
+.compare .cmp-a{background:var(--bg-soft)}
+.compare .cmp-handle{
+  position:absolute;top:0;bottom:0;left:var(--pos);width:3px;margin-left:-1.5px;
+  background:var(--fn-secondary);cursor:ew-resize;z-index:2;
+}
+.compare .cmp-handle::after{
+  content:'⇆';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:56px;height:56px;border-radius:50%;background:var(--fn-secondary);color:#fff;
+  display:grid;place-items:center;font-size:26px;font-weight:700;box-shadow:0 10px 26px rgba(13,143,135,.45);
+}
+.compare .cmp-handle:focus-visible{outline:none}
+.compare .cmp-handle:focus-visible::after{box-shadow:0 0 0 4px rgba(126,224,214,.7),0 10px 26px rgba(13,143,135,.45)}
+.compare .cmp-lab{
+  position:absolute;top:18px;z-index:3;padding:6px 14px;border-radius:999px;
+  font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;pointer-events:none;
+}
+.compare .cmp-lab.a{left:18px;background:var(--ink-soft)}
+.compare .cmp-lab.b{right:18px;background:var(--fn-secondary)}
+.compare .cmp-a h3,.compare .cmp-b h3{margin-top:28px}
+
+/* --------------------------------------------------------- 6 · layouts base */
+.l-cols{display:grid;gap:34px;flex:1;min-height:0}
+.l-cols[data-cols="2"]{grid-template-columns:1fr 1fr}
+.l-cols[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+.l-cols[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+.l-cols[data-cols="2-1"]{grid-template-columns:2fr 1fr}
+.l-cols[data-cols="1-2"]{grid-template-columns:1fr 2fr}
+.l-rows{display:grid;gap:28px;flex:1;min-height:0}
+.l-rows[data-rows="2"]{grid-template-rows:1fr 1fr}
+.l-rows[data-rows="auto-1"]{grid-template-rows:auto 1fr}
+
+/* Panel: la unidad de contenido */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:32px 34px;box-shadow:var(--shadow);min-width:0;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+.panel > h3{
+  margin:0 0 18px;font-size:27px;color:var(--fn-primary);font-weight:700;
+  display:flex;align-items:center;gap:13px;letter-spacing:-.01em;
+}
+.panel p{margin:0 0 14px;font-size:22px;line-height:1.5;color:var(--ink-soft)}
+.panel p:last-child{margin-bottom:0}
+.panel.ok{background:var(--ok-bg);border-color:color-mix(in srgb,var(--ok) 34%,transparent)}
+.panel.warn{background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 34%,transparent)}
+.panel.bad{background:var(--bad-bg);border-color:color-mix(in srgb,var(--bad) 34%,transparent)}
+.panel.flat{box-shadow:none;background:var(--bg-soft)}
+.panel.accent{border-left:5px solid var(--fn-secondary)}
+
+/* Listas técnicas */
+.tlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:15px}
+.tlist li{
+  font-size:22px;line-height:1.45;color:var(--ink-soft);
+  padding-left:36px;position:relative;
+}
+.tlist li::before{
+  content:'';position:absolute;left:0;top:11px;width:11px;height:11px;
+  border-radius:3px;background:var(--fn-secondary);
+}
+.tlist li b{color:var(--ink);font-weight:650}
+.tlist.num{counter-reset:t}
+.tlist.num li{counter-increment:t;padding-left:52px}
+.tlist.num li::before{
+  content:counter(t);width:34px;height:34px;border-radius:10px;top:0;
+  background:var(--fn-primary);color:#fff;font-size:18px;font-weight:700;
+  display:grid;place-items:center;
+}
+
+/* KPI */
+.kpi-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:26px}
+.kpi{
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:30px 32px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--fn-secondary)}
+.kpi .k-val{
+  font-size:76px;font-weight:800;line-height:1;color:var(--fn-primary);
+  letter-spacing:-.035em;font-variant-numeric:tabular-nums;display:block;
+}
+.kpi .k-lab{font-size:19px;color:var(--ink-soft);margin-top:12px;display:block;line-height:1.3}
+.kpi .k-delta{font-size:20px;font-weight:700;margin-top:10px;display:inline-block}
+.kpi .k-delta.up{color:var(--ok)} .kpi .k-delta.down{color:var(--bad)}
+.kpi.hero .k-val{font-size:104px;color:var(--fn-secondary)}
+
+/* Consola + traducción llana (doble pista: técnico y humano a la vez) */
+.tracks{display:grid;grid-template-columns:1.08fr 1fr;gap:26px}
+.console{
+  background:var(--code-bg);color:var(--code-ink);border-radius:18px;
+  font-family:var(--mono);font-size:19px;line-height:1.62;padding:26px 30px;
+  overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;
+}
+.console .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.console .k{color:#7db4ff}.console .ok{color:#6fe3a4}.console .no{color:#ff9b9b}
+.console .wa{color:#ffd291}.console .dim{color:#7488a8}
+.plain{
+  border-radius:18px;border:1px solid color-mix(in srgb,var(--fn-secondary) 30%,transparent);
+  background:var(--ok-bg);padding:26px 30px;display:flex;gap:20px;align-items:flex-start;
+}
+.plain .bulb{
+  flex:0 0 auto;width:50px;height:50px;border-radius:14px;background:var(--fn-secondary);
+  color:#fff;display:grid;place-items:center;font-size:26px;font-weight:700;
+}
+.plain .p-top{
+  font-size:16px;font-weight:800;color:var(--fn-secondary);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:8px;
+}
+.plain .p-body{font-size:22px;line-height:1.48;color:var(--ink)}
+
+/* Código */
+.code{
+  background:var(--code-bg);border-radius:18px;padding:28px 32px;overflow:hidden;
+  font-family:var(--mono);font-size:20px;line-height:1.62;color:var(--code-ink);
+  counter-reset:cl;flex:1;min-height:0;
+}
+.code .ln{display:block;counter-increment:cl;padding-left:58px;position:relative;white-space:pre}
+.code .ln::before{
+  content:counter(cl);position:absolute;left:0;width:38px;text-align:right;
+  color:rgba(125,150,190,.45);font-size:17px;
+}
+.code .ln.hl{background:rgba(13,143,135,.16);margin:0 -32px;padding-left:90px;
+  box-shadow:inset 4px 0 0 var(--fn-secondary)}
+.code .ln.del{background:rgba(198,40,40,.14);margin:0 -32px;padding-left:90px}
+.code .kw{color:#79b8ff;font-weight:600}.code .st{color:#9fe8a8}
+.code .cm{color:#6b81a3;font-style:italic}.code .fn{color:#ffd291}.code .nm{color:#f0a4c8}
+
+/* Tabla técnica */
+.ttable{width:100%;border-collapse:collapse;font-size:21px}
+.ttable th{
+  text-align:left;padding:16px 20px;background:var(--bg-sunk);color:var(--fn-primary);
+  font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.07em;
+  border-bottom:2px solid var(--line);
+}
+.ttable td{padding:16px 20px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft)}
+.ttable tr:last-child td{border-bottom:none}
+.ttable td b{color:var(--ink)}
+.ttable .n{font-variant-numeric:tabular-nums;text-align:right}
+
+/* Variante para tablas de 7 filas o más: aprieta el interlineado sin bajar el
+   cuerpo de letra, que es lo que de verdad estropea la lectura desde el fondo. */
+.ttable.compact th{padding:10px 16px}
+.ttable.compact td{padding:9px 16px;line-height:1.32}
+.ttable.compact .tag{padding:3px 10px;font-size:15px}
+/* Una fila más y la tabla ya no cabe: .xs aprieta el interlineado sin tocar el
+   cuerpo de letra, que es lo que se lee de lejos en una sala. */
+.ttable.compact.xs th{padding:7px 14px}
+.ttable.compact.xs td{padding:6px 14px;line-height:1.26}
+
+/* Densidad: para slides con mucho contenido. Baja tamaños y aires de forma
+   coherente en vez de dejar que cada uno improvise un font-size a mano. */
+.dense .panel{padding:24px 26px}
+.dense .panel > h3{font-size:23px;margin-bottom:13px}
+.dense .panel p{font-size:19px;line-height:1.44}
+.dense .tlist{gap:11px}
+.dense .tlist li{font-size:19px;padding-left:31px}
+.dense .tlist li::before{top:8px;width:9px;height:9px}
+.dense .ttable{font-size:18px}
+.dense .ttable th{padding:11px 16px;font-size:15px}
+.dense .ttable td{padding:11px 16px}
+.dense .tag{font-size:14px;padding:4px 11px}
+.dense .flow-node{padding:20px 18px}
+.dense .flow-node .n-t{font-size:21px;margin-bottom:6px}
+.dense .flow-node .n-d{font-size:16px;line-height:1.32}
+.dense .l-cols{gap:26px}
+.dense .stepbar{margin-top:18px;padding-top:14px}
+
+/* Etiquetas de estado — nunca solo color, siempre con texto */
+.tag{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 15px;border-radius:9px;
+  font-size:17px;font-weight:700;letter-spacing:.02em;
+}
+.tag.ok{background:var(--ok-bg);color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent)}
+.tag.warn{background:var(--warn-bg);color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.tag.bad{background:var(--bad-bg);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 40%,transparent)}
+.tag.info{background:var(--info-bg);color:var(--info);border:1px solid color-mix(in srgb,var(--info) 40%,transparent)}
+
+/* ------------------------------------------- 7 · primitivas de movimiento
+   Contrato: sin .motion-ready todo está visible. El JS añade esa clase solo
+   cuando ha podido inicializarse. Si falla, el deck se ve completo. */
+.motion-ready [data-motion-item]{
+  opacity:.10;transform:translateY(14px);
+  transition:opacity var(--motion-step) var(--ease),transform var(--motion-step) var(--ease);
+}
+.motion-ready [data-motion-item].is-in,
+.motion-ready .slide[data-frame="end"] [data-motion-item]{opacity:1;transform:none}
+
+/* Realce del elemento del paso actual */
+.motion-ready [data-motion-item].is-now{
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--fn-secondary) 55%,transparent),var(--shadow-lg);
+}
+
+/* Trazado de conexiones: duplicado decorativo sobre el conector real */
+.conn-draw{
+  stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset 900ms var(--ease);
+}
+.motion-ready [data-motion-item].is-in .conn-draw,
+.motion-ready .slide[data-frame="end"] .conn-draw{stroke-dashoffset:0}
+
+/* Barras y líneas de gráfica: crecen desde su base */
+.motion-ready .bar-grow{transform:scaleY(0);transform-origin:bottom;
+  transition:transform 780ms var(--ease-out)}
+.motion-ready [data-motion-item].is-in .bar-grow,
+.motion-ready .slide[data-frame="end"] .bar-grow{transform:scaleY(1)}
+.motion-ready .line-draw{stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset 1100ms var(--ease-out)}
+.motion-ready [data-motion-item].is-in .line-draw,
+.motion-ready .slide[data-frame="end"] .line-draw{stroke-dashoffset:0}
+
+/* -------------------------------------------------- 8 · diagrama de proceso */
+.flow{display:flex;align-items:stretch;gap:0;flex:1;min-height:0}
+.flow-node{
+  flex:1;background:var(--panel);border:2px solid var(--line);border-radius:18px;
+  padding:26px 24px;display:flex;flex-direction:column;justify-content:center;
+  text-align:center;position:relative;min-width:0;
+}
+.flow-node .n-num{
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:34px;height:34px;border-radius:50%;background:var(--fn-primary);color:#fff;
+  display:grid;place-items:center;font-size:17px;font-weight:800;
+}
+.flow-node .n-t{font-size:24px;font-weight:700;color:var(--fn-primary);margin-bottom:9px;line-height:1.2}
+.flow-node .n-d{font-size:18px;color:var(--ink-soft);line-height:1.38}
+.flow-node.is-now{border-color:var(--fn-secondary);box-shadow:0 0 0 4px color-mix(in srgb,var(--fn-secondary) 22%,transparent)}
+.flow-node.done{background:var(--bg-soft);border-color:color-mix(in srgb,var(--fn-primary) 32%,transparent)}
+.flow-arrow{flex:0 0 54px;display:grid;place-items:center;color:var(--ink-faint);font-size:32px}
+
+/* Carriles (swimlane) para procedimientos con responsables */
+.lanes{display:grid;gap:3px;flex:1;min-height:0;background:var(--line);border-radius:16px;overflow:hidden}
+.lane{display:grid;grid-template-columns:230px 1fr;background:var(--panel);min-height:0}
+.lane-h{
+  background:var(--bg-sunk);padding:22px 24px;display:flex;align-items:center;
+  font-size:20px;font-weight:700;color:var(--fn-primary);border-right:1px solid var(--line);
+}
+.lane-b{padding:20px 24px;display:flex;align-items:center;gap:18px;overflow:hidden}
+.lane-step{
+  background:var(--bg-soft);border:1px solid var(--line);border-radius:12px;
+  padding:14px 20px;font-size:19px;color:var(--ink);white-space:nowrap;
+}
+.lane-step.is-now{background:var(--fn-secondary);color:#fff;border-color:var(--fn-secondary);font-weight:700}
+
+/* --------------------------------------------------------- 9 · barra de pasos */
+.stepbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:12px;margin-top:26px;
+  padding-top:20px;border-top:1px solid var(--line-soft);
+}
+.stepbar .sb-dot{width:11px;height:11px;border-radius:50%;background:var(--line);transition:.3s var(--ease)}
+.stepbar .sb-dot.done{background:var(--fn-primary-lt)}
+.stepbar .sb-dot.now{background:var(--fn-secondary);transform:scale(1.75)}
+.stepbar .sb-lab{margin-left:16px;font-size:18px;color:var(--ink-soft)}
+.stepbar .sb-lab b{color:var(--fn-primary)}
+
+/* --------------------------------------------------- 10 · cromo del deck */
+.deck-controls{
+  position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:900;
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  background:rgba(10,21,38,.86);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14);border-radius:16px;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.deck-viewport:hover .deck-controls,.deck-controls:focus-within{opacity:1;pointer-events:auto}
+.deck-controls button{
+  background:transparent;border:1px solid rgba(255,255,255,.18);color:#dce8f8;
+  min-width:44px;height:44px;padding:0 14px;border-radius:11px;cursor:pointer;
+  font-size:15px;font-weight:600;font-family:var(--font);transition:.18s;
+}
+.deck-controls button:hover:not(:disabled){background:rgba(255,255,255,.14)}
+.deck-controls button:focus-visible{outline:2px solid var(--fn-secondary);outline-offset:2px}
+.deck-controls button:disabled{opacity:.32;cursor:not-allowed}
+.deck-controls button[aria-pressed="true"]{background:var(--fn-secondary);border-color:var(--fn-secondary);color:#fff}
+.deck-controls .dc-pos{color:#93a9c6;font-size:15px;padding:0 12px;font-variant-numeric:tabular-nums}
+
+.deck-progress{
+  position:fixed;left:0;top:0;height:4px;z-index:950;width:0;
+  background:linear-gradient(90deg,var(--fn-primary),var(--fn-secondary));
+  transition:width .45s var(--ease);
+}
+
+/* Región de estado accesible, fuera de los controles para que nunca se oculte */
+.deck-status{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Vista general (tecla O) */
+/* ------------------------------------------- 8a · progreso por capítulos
+   La barra superior se divide en tramos, uno por capítulo, proporcionales a
+   sus slides. El tramo actual es más alto y muestra su nombre; los demás lo
+   muestran al pasar el ratón. Los extremos (portada, cierre) van sin nombre. */
+.deck-progress.has-chapters{
+  width:100%;background:transparent;box-shadow:none;transition:none;
+  display:flex;gap:3px;height:8px;align-items:flex-start;padding:0 2px;
+}
+.dp-seg{
+  position:relative;flex:0 0 var(--w);min-width:6px;height:4px;
+  background:color-mix(in srgb,var(--fn-primary) 16%,transparent);
+  border-radius:0 3px 3px 0;cursor:pointer;transition:height .25s var(--ease);
+}
+[data-theme="dark"] .dp-seg{background:rgba(255,255,255,.14)}
+.dp-seg:first-child{border-radius:0 3px 3px 0}
+.dp-seg.dp-end{opacity:.7}
+.dp-seg i{
+  display:block;height:100%;width:0;border-radius:inherit;
+  background:linear-gradient(90deg,var(--fn-primary),var(--fn-secondary));
+  transition:width .45s var(--ease);
+}
+.dp-seg.is-now{height:7px}
+.dp-seg.is-now i{box-shadow:0 0 16px color-mix(in srgb,var(--fn-secondary) 70%,transparent)}
+/* Zona de clic generosa sin cambiar la geometría visible */
+.dp-seg::after{content:'';position:absolute;left:0;right:0;top:-4px;bottom:-26px}
+.dp-seg b{
+  position:absolute;left:0;top:12px;white-space:nowrap;pointer-events:none;
+  font:700 12px/1 var(--font);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-faint);opacity:0;transform:translateY(-3px);
+  transition:opacity .2s var(--ease),transform .2s var(--ease);
+}
+.dp-seg.is-now b{opacity:1;transform:none;color:var(--fn-secondary)}
+.deck-progress.has-chapters:hover .dp-seg b{opacity:1;transform:none}
+.dp-seg:hover{height:7px}
+.dp-seg.dp-end b{display:none}
+
+/* Botón de icono en la barra de controles (índice) */
+.deck-controls button.dc-icon{display:inline-grid;place-items:center;padding:0 12px;min-width:44px}
+.deck-controls button.dc-icon svg{display:block}
+
+/* ------------------------------------------ 8b · índice: recorrido por capítulos
+   Superposición fija (no escala con el escenario): tamaños en px reales con
+   clamp() para que quepa igual en un portátil que en un proyector. */
+.deck-overview{
+  position:fixed;inset:0;z-index:980;display:none;color:#fff;
+  background:
+    radial-gradient(ellipse 60% 50% at 12% 0%,rgba(13,143,135,.34) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 60% at 95% 100%,rgba(43,116,180,.30) 0%,transparent 60%),
+    linear-gradient(160deg,#061426 0%,#0b2a4a 100%);
+  padding:clamp(20px,3vh,40px) clamp(28px,3.5vw,72px);
+  flex-direction:column;gap:clamp(18px,3vh,36px);
+}
+.deck-overview.is-open{display:flex;animation:ovIn 320ms var(--ease-out) both}
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
+
+.ov-head{display:flex;align-items:center;gap:22px;flex:0 0 auto}
+.ov-head .fn-logo{flex:0 0 auto}
+.ov-title{font-size:clamp(15px,1.15vw,21px);font-weight:600;color:rgba(255,255,255,.80);
+  padding-left:22px;border-left:1px solid rgba(255,255,255,.22);line-height:1.2}
+.ov-pos{margin-left:auto;font-size:clamp(13px,1vw,18px);color:rgba(255,255,255,.62);font-variant-numeric:tabular-nums}
+.ov-pos b{color:#fff}
+.ov-close{
+  width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.06);color:#fff;font-size:16px;cursor:pointer;
+}
+.ov-close:hover{background:rgba(255,255,255,.16)}
+
+.ov-journey{flex:1;min-height:0;display:flex;align-items:stretch}
+.ov-cols{
+  position:relative;flex:1;min-height:0;display:grid;
+  grid-template-columns:clamp(70px,6vw,110px) repeat(var(--n),minmax(0,1fr)) clamp(70px,6vw,110px);
+  gap:clamp(10px,1vw,20px);align-items:start;
+}
+/* Línea del recorrido: pasa por detrás de las cabeceras de capítulo */
+.ov-line{
+  position:absolute;left:0;right:0;top:calc(var(--ov-head-h,86px)/2);height:3px;
+  background:rgba(255,255,255,.14);border-radius:3px;z-index:0;
+}
+.ov-line i{display:block;height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--fn-secondary),#7ee0d6);
+  box-shadow:0 0 18px rgba(126,224,214,.55);transition:width 600ms var(--ease-out)}
+
+/* Extremos: portada y cierre */
+.ov-end{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding-top:calc(var(--ov-head-h,86px)/2 - 11px);background:none;border:0;color:#fff;cursor:pointer;
+}
+.ov-end.ghost{visibility:hidden}
+.ov-end .ov-dot{width:22px;height:22px;border-radius:50%;background:#0b2a4a;border:3px solid rgba(255,255,255,.55);box-sizing:border-box}
+.ov-end.past .ov-dot,.ov-end.is-active .ov-dot{background:var(--fn-secondary);border-color:#7ee0d6;box-shadow:0 0 16px rgba(126,224,214,.6)}
+.ov-end-t{font-size:clamp(11px,.85vw,15px);color:rgba(255,255,255,.62);text-align:center;line-height:1.2}
+.ov-end:hover .ov-end-t{color:#fff}
+
+/* Capítulo */
+.ov-ch{
+  position:relative;z-index:1;display:flex;flex-direction:column;gap:12px;min-height:0;max-height:100%;
+  animation:ovCol 460ms var(--ease-out) both;animation-delay:calc(var(--i)*60ms + 80ms);
+}
+@keyframes ovCol{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.ov-ch-head{
+  display:flex;flex-direction:column;gap:5px;text-align:left;cursor:pointer;
+  min-height:var(--ov-head-h,86px);padding:clamp(10px,1.2vh,16px) clamp(12px,1.2vw,20px);
+  border-radius:16px;border:1.5px solid rgba(255,255,255,.18);background:#0b2a4a;color:#fff;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.ov-ch-head:hover{border-color:rgba(255,255,255,.5);transform:translateY(-2px)}
+.ov-ch-n{font-size:clamp(11px,.8vw,13px);letter-spacing:.22em;color:#7ee0d6;font-weight:700}
+.ov-ch-name{font-size:clamp(16px,1.3vw,25px);font-weight:700;letter-spacing:-.01em;line-height:1.15}
+.ov-ch-meta{font-size:clamp(11px,.85vw,14px);color:rgba(255,255,255,.58);font-variant-numeric:tabular-nums}
+.ov-ch.is-now .ov-ch-head{
+  border-color:var(--fn-secondary);
+  background:linear-gradient(160deg,rgba(13,143,135,.55),rgba(13,79,135,.55)),#0b2a4a;
+  box-shadow:0 0 0 1px rgba(126,224,214,.35),0 18px 44px rgba(13,143,135,.35);
+}
+.ov-ch.done{opacity:.55}
+.ov-ch.done:hover{opacity:.9}
+.ov-ch.todo .ov-ch-head{background:rgba(255,255,255,.03)}
+
+.ov-ch-list{list-style:none;margin:0;padding:0 2px;display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0}
+.ov-s{
+  display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;
+  padding:clamp(7px,.9vh,11px) clamp(9px,.9vw,13px);border-radius:11px;border:1px solid transparent;
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.88);
+  font-size:clamp(12px,.95vw,17px);line-height:1.28;transition:background .18s,border-color .18s,transform .18s;
+}
+.ov-s:hover,.ov-s:focus-visible{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.28);transform:translateX(3px);outline:none}
+.ov-s.past{color:rgba(255,255,255,.55)}
+.ov-s.is-active{background:rgba(13,143,135,.30);border-color:var(--fn-secondary);color:#fff;font-weight:600}
+.ov-s-n{flex:0 0 auto;font-variant-numeric:tabular-nums;color:#7ee0d6;font-weight:700;font-size:.85em;padding-top:.1em}
+.ov-s.past .ov-s-n{color:rgba(126,224,214,.5)}
+
+/* Miniatura al pasar el ratón */
+.ov-preview{
+  position:fixed;right:clamp(28px,3.5vw,72px);bottom:clamp(58px,8vh,96px);z-index:2;
+  width:clamp(280px,26vw,520px);border-radius:14px;overflow:hidden;
+  background:#fff;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.25);
+  animation:ovIn 240ms var(--ease-out) both;pointer-events:none;
+}
+.ov-pv-screen{position:relative;aspect-ratio:16/9;overflow:hidden;background:#fff}
+.ov-pv-cap{padding:9px 14px;font-size:clamp(12px,.9vw,15px);color:var(--ink);background:var(--bg-soft);border-top:1px solid var(--line)}
+.ov-pv-cap b{color:var(--fn-secondary);margin-right:6px}
+
+.ov-hint{flex:0 0 auto;font-size:clamp(12px,.9vw,15px);color:rgba(255,255,255,.5)}
+.ov-hint b{color:rgba(255,255,255,.85);font-weight:700;padding:1px 7px;border:1px solid rgba(255,255,255,.3);border-radius:6px}
+
+/* Transición de capítulo: mismo mapa, sin controles, con rótulo grande */
+.deck-overview.is-intro{cursor:pointer}
+.deck-overview.is-intro .ov-s,.deck-overview.is-intro .ov-ch-head,.deck-overview.is-intro .ov-end{pointer-events:none}
+.ov-intro-cap{
+  flex:0 0 auto;display:flex;align-items:baseline;gap:22px;
+  animation:ovCol 600ms 380ms var(--ease-out) both;
+}
+.ov-intro-k{font-size:clamp(13px,1vw,18px);letter-spacing:.26em;text-transform:uppercase;color:#7ee0d6;font-weight:700}
+.ov-intro-t{font-size:clamp(28px,3vw,58px);font-weight:800;letter-spacing:-.02em;line-height:1}
+
+@media (prefers-reduced-motion:reduce){
+  .deck-overview.is-open,.ov-ch,.ov-preview,.ov-intro-cap{animation:none !important}
+  .ov-line i{transition:none}
+}
+
+/* ------------------------------------------------------ 11 · modo presentador */
+body.is-presenter{overflow:auto;background:#0a1526}
+.pv{display:none;grid-template-columns:1.35fr 1fr;gap:20px;padding:20px;height:100vh;box-sizing:border-box}
+body.is-presenter .pv{display:grid}
+body.is-presenter .deck-viewport,body.is-presenter .deck-controls,body.is-presenter .deck-progress{display:none}
+.pv-main,.pv-side{display:flex;flex-direction:column;gap:16px;min-height:0}
+.pv-screen{
+  position:relative;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;
+  border:1px solid #1e3355;flex:0 0 auto;
+}
+.pv-screen iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.pv-lab{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#6a7f9e;font-weight:700}
+.pv-notes{
+  flex:1;background:#0f1e35;border:1px solid #1e3355;border-radius:14px;padding:24px 26px;
+  color:#c8d8ee;font-size:19px;line-height:1.6;overflow-y:auto;min-height:0;
+}
+.pv-notes h4{margin:0 0 14px;color:var(--fn-secondary);font-size:16px;text-transform:uppercase;letter-spacing:.1em}
+.pv-notes ul{margin:0;padding-left:22px}.pv-notes li{margin-bottom:10px}
+.pv-warn{
+  background:#2a1f0c;border:1px solid #6b5216;border-radius:12px;padding:14px 18px;
+  color:#ffd291;font-size:15px;line-height:1.45;
+}
+.pv-clock{display:flex;gap:14px;background:#0f1e35;border:1px solid #1e3355;border-radius:14px;padding:18px 22px}
+.pv-clock div{flex:1}
+.pv-clock .c-lab{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6a7f9e;font-weight:700}
+.pv-clock .c-val{font-size:34px;font-weight:800;color:#e8f0fb;font-variant-numeric:tabular-nums;line-height:1.15}
+.pv-clock .c-val.over{color:#ff9b9b}
+
+/* ----------------------------------------------------- 12 · accesibilidad */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  [data-motion-item]{opacity:1 !important;transform:none !important}
+  .conn-draw,.line-draw{stroke-dashoffset:0 !important}
+  .bar-grow{transform:scaleY(1) !important}
+}
+
+/* ---------------------------------------------------------- 13 · impresión */
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  /* Los fondos (portada, paneles, consola) forman parte del contenido: imprimirlos siempre */
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff}
+  .deck-viewport{position:static;overflow:visible}
+  .deck-stage{position:static;width:auto;height:auto;transform:none !important}
+  .slide{
+    position:relative;visibility:visible !important;opacity:1 !important;
+    display:flex !important;break-after:page;page-break-after:always;box-shadow:none;
+    animation:none !important;
+  }
+  .slide:last-child{break-after:auto}
+  [data-motion-item]{opacity:1 !important;transform:none !important}
+  .conn-draw,.line-draw{stroke-dashoffset:0 !important}
+  .bar-grow{transform:scaleY(1) !important}
+  .deck-controls,.deck-progress,.deck-overview,.pv{display:none !important}
+  /* El degradado recortado a texto deja un recuadro al imprimir: color plano */
+  .hero-val{background:none !important;color:var(--fn-primary) !important;-webkit-text-fill-color:var(--fn-primary) !important}
+}
+</style>
+<style>
+/* =============================================================================
+   FUNDANET DECK · PAQUETE DE EFECTOS
+   Va después de fundanet-deck.css. Todo cuelga de .motion-ready: sin
+   JavaScript, en impresión y con prefers-reduced-motion nada de esto se
+   aplica y el deck se ve completo y legible.
+   ============================================================================= */
+
+/* ------------------------------------------------------ 1 · transiciones ricas */
+
+/* wipe · barrido diagonal con máscara. La slide no se mueve: se descubre. */
+.slide[data-transition="wipe"].is-enter{animation:wipeIn 820ms var(--ease-out) both}
+.slide[data-transition="wipe"].is-exit{animation:wipeOut 620ms var(--ease) both}
+@keyframes wipeIn{
+  from{clip-path:polygon(0 0,0 0,-22% 100%,0 100%)}
+  to{clip-path:polygon(0 0,122% 0,100% 100%,0 100%)}
+}
+@keyframes wipeOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-6%) scale(.97)}}
+
+/* curtain · una cortina en bandas verticales se sube y descubre la slide.
+   Va en ::after y NO en ::before a propósito: los fondos data-bg usan ::before,
+   y un elemento sólo tiene uno. Al compartirlo, las dos reglas se fusionaban y
+   quedaba una cortina opaca con la animación del fondo, que no se retiraba.
+   Se excluye .cover porque su retícula ya ocupa el ::after. */
+.slide[data-transition="curtain"]:not(.cover).is-enter{animation:fadeIn 240ms linear both}
+.slide[data-transition="curtain"]:not(.cover).is-enter::after{
+  content:'';position:absolute;inset:0;z-index:60;pointer-events:none;background:var(--bg);
+  transform-origin:top;
+  animation:curtainWipe 950ms var(--ease-out) both;
+  -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 11%,transparent 11% 12.5%);
+  mask-image:repeating-linear-gradient(90deg,#000 0 11%,transparent 11% 12.5%);
+}
+@keyframes curtainWipe{from{transform:scaleY(1)}to{transform:scaleY(0)}}
+
+/* depth · entra desde el fondo con desenfoque. El más cinematográfico. */
+.slide[data-transition="depth"].is-enter{animation:depthIn 880ms var(--ease-out) both}
+.slide[data-transition="depth"].is-exit{animation:depthOut 620ms var(--ease) both}
+@keyframes depthIn{
+  from{opacity:0;transform:scale(1.14);filter:blur(22px)}
+  60%{opacity:1}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+@keyframes depthOut{
+  from{opacity:1;transform:none;filter:blur(0)}
+  to{opacity:0;transform:scale(.93);filter:blur(14px)}
+}
+
+/* push · las dos slides se mueven juntas, como una cinta */
+.slide[data-transition="push"].is-enter{animation:pushIn 720ms var(--ease-out) both}
+.slide[data-transition="push"].is-exit{animation:pushOut 720ms var(--ease-out) both}
+@keyframes pushIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes pushOut{from{transform:none}to{transform:translateX(-100%)}}
+
+/* ------------------------------------------- 2 · entrada escalonada (stagger)
+   El motor pone --i (orden dentro del paso). Los elementos de un mismo paso
+   no entran de golpe: se encadenan cada 90 ms. */
+.motion-ready [data-motion-item]{transition-delay:calc(var(--i,0) * 90ms)}
+.motion-ready [data-motion-item]:not(.is-in){transition-delay:0ms}
+
+/* Entradas alternativas por elemento, con data-fx */
+.motion-ready [data-motion-item][data-fx]{
+  transition:opacity var(--motion-step) var(--ease),
+             transform 720ms var(--ease-out),
+             filter 720ms var(--ease-out);
+  transition-delay:calc(var(--i,0) * 90ms);
+}
+.motion-ready [data-motion-item][data-fx="left"]{transform:translateX(-46px)}
+.motion-ready [data-motion-item][data-fx="right"]{transform:translateX(46px)}
+.motion-ready [data-motion-item][data-fx="scale"]{transform:scale(.9)}
+.motion-ready [data-motion-item][data-fx="rise"]{transform:translateY(44px)}
+.motion-ready [data-motion-item][data-fx="blur"]{transform:scale(1.04);filter:blur(14px)}
+.motion-ready [data-motion-item][data-fx].is-in{transform:none;filter:blur(0)}
+
+/* ------------------------------------------------------ 3 · foco (spotlight)
+   Con data-spotlight="on" en la slide, lo que ya salió se atenúa y la vista
+   va sola al paso actual sin que nadie tenga que señalar con el ratón. */
+.motion-ready .slide[data-spotlight="on"] [data-motion-item].is-in:not(.is-now){
+  opacity:.32;filter:saturate(.5);
+  transition:opacity 420ms var(--ease),filter 420ms var(--ease);
+}
+.motion-ready .slide[data-spotlight="on"] [data-motion-item].is-now{
+  opacity:1;filter:none;transform:scale(1.014);
+}
+.motion-ready .slide[data-frame="end"][data-spotlight="on"] [data-motion-item]{
+  opacity:1 !important;filter:none !important;transform:none !important;
+}
+
+/* ------------------------------------------------- 4 · revelado de texto */
+.motion-ready .fx-line{
+  display:block;opacity:0;transform:translateY(26px);
+  transition:opacity 640ms var(--ease-out),transform 760ms var(--ease-out);
+  transition-delay:calc(var(--l,0) * 130ms);
+}
+.motion-ready .is-in .fx-line,
+.motion-ready .slide.is-active .fx-line,
+.motion-ready .slide[data-frame="end"] .fx-line{opacity:1;transform:none}
+
+/* Subrayado que se traza bajo una palabra clave */
+.fx-mark{position:relative;white-space:nowrap;font-weight:700;color:var(--fn-primary)}
+.fx-mark::after{
+  content:'';position:absolute;left:0;right:0;bottom:-5px;height:5px;border-radius:3px;
+  background:var(--fn-secondary);transform:scaleX(0);transform-origin:left;opacity:.55;
+}
+.motion-ready .is-in .fx-mark::after,
+.motion-ready .slide.is-active .fx-mark::after,
+.motion-ready .slide[data-frame="end"] .fx-mark::after{
+  transform:scaleX(1);transition:transform 760ms var(--ease-out) 300ms;
+}
+
+/* Cifra que aterriza: acompaña al contador del motor */
+.motion-ready [data-count-to]{display:inline-block}
+.motion-ready [data-motion-item].is-in [data-count-to]{animation:numLand 780ms var(--ease-out) both}
+@keyframes numLand{
+  from{transform:translateY(18px) scale(.9);opacity:0;filter:blur(6px)}
+  to{transform:none;opacity:1;filter:blur(0)}
+}
+
+/* --------------------------------------------------------- 5 · fondo vivo */
+/* z-index:-1 mete el lienzo entre el fondo de la slide y su contenido, sin
+   tocar el posicionamiento de ningún hijo. Reposicionar los hijos (por ejemplo
+   dando position:relative a todos) descoloca el pie y la barra de marca, que
+   son absolutos. */
+.fx-canvas{
+  position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;
+  opacity:0;transition:opacity 1000ms var(--ease);
+}
+.slide.is-active .fx-canvas{opacity:1}
+
+/* Aurora: dos manchas de marca que respiran.
+   Se mueve con background-position, NO con transform ni inset negativo: esos
+   dos generan overflow desplazable y el detector los cuenta como desborde
+   aunque el overflow:hidden los tape. Los gradientes ya son difusos de suyo,
+   así que tampoco hace falta filter:blur. */
+.slide[data-bg="aurora"]::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 54% 50% at 24% 28%,color-mix(in srgb,var(--fn-secondary) 26%,transparent) 0%,transparent 70%),
+    radial-gradient(ellipse 58% 52% at 76% 72%,color-mix(in srgb,var(--fn-primary) 24%,transparent) 0%,transparent 68%);
+  background-size:132% 132%,138% 138%;
+  background-position:0% 0%,100% 100%;
+  background-repeat:no-repeat;
+}
+.motion-ready .slide[data-bg="aurora"].is-active::before{animation:aurora 26s ease-in-out infinite alternate}
+@keyframes aurora{
+  0%  {background-position:0% 0%,100% 100%}
+  50% {background-position:16% 10%,84% 90%}
+  100%{background-position:5% 18%,95% 82%}
+}
+
+/* Retícula técnica que se dibuja al entrar */
+.slide[data-bg="grid"]::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--fn-primary) 9%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--fn-primary) 9%,transparent) 1px,transparent 1px);
+  background-size:64px 64px;
+}
+.motion-ready .slide[data-bg="grid"].is-active::before{animation:gridIn 1500ms var(--ease-out) both}
+@keyframes gridIn{from{opacity:0;background-size:230px 230px}to{opacity:1;background-size:64px 64px}}
+
+/* ------------------------------------------------ 6 · portada cinematográfica */
+.motion-ready .slide.cover.is-active .cover-tag{animation:covUp 900ms var(--ease-out) both}
+.motion-ready .slide.cover.is-active .s-sub{animation:covUp 1000ms var(--ease-out) 560ms both}
+.motion-ready .slide.cover.is-active .cover-meta{animation:covUp 900ms var(--ease-out) 820ms both}
+@keyframes covUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
+
+/* El título entra desenfocado desde abajo y luego lo cruza un barrido de luz */
+.motion-ready .slide.cover.is-active .s-title{
+  background:linear-gradient(100deg,#fff 32%,#a9ece2 47%,#fff 62%);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:covTitle 1250ms var(--ease-out) 180ms both,
+            covShine 2800ms var(--ease) 1250ms 1;
+}
+@keyframes covTitle{
+  from{opacity:0;transform:translateY(60px) scale(.97);filter:blur(16px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+@keyframes covShine{from{background-position:190% 0}to{background-position:-90% 0}}
+
+/* La retícula de la portada se dibuja al entrar */
+.motion-ready .slide.cover.is-active::after{animation:covGrid 2100ms var(--ease-out) both}
+@keyframes covGrid{from{opacity:0;background-size:210px 210px}to{opacity:1;background-size:80px 80px}}
+
+/* ------------------------------------------------------- 7 · KPI con anillo */
+.kpi{transition:transform 420ms var(--ease-out),box-shadow 420ms var(--ease-out)}
+.kpi-ring{position:absolute;right:20px;top:20px;width:62px;height:62px}
+.kpi-ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.kpi-ring .r-bg{stroke:color-mix(in srgb,var(--fn-primary) 14%,transparent)}
+.kpi-ring .r-fg{
+  stroke:var(--fn-secondary);transform:rotate(-90deg);transform-origin:50% 50%;
+  stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset 1200ms var(--ease-out) 260ms;
+}
+.motion-ready [data-motion-item].is-in .kpi-ring .r-fg,
+.motion-ready .slide[data-frame="end"] .kpi-ring .r-fg{stroke-dashoffset:var(--ring,0)}
+
+/* Brillo que recorre el KPI al entrar, una sola pasada */
+.motion-ready [data-motion-item].is-in .kpi::after{
+  content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:linear-gradient(115deg,transparent 38%,color-mix(in srgb,var(--fn-secondary) 30%,transparent) 50%,transparent 62%);
+  background-size:300% 100%;animation:kpiShine 1600ms var(--ease-out) 1;
+}
+@keyframes kpiShine{from{background-position:200% 0}to{background-position:-100% 0}}
+
+/* ------------------------------------------------------- 8 · relieve y tilt */
+.panel,.flow-node{transition:transform 380ms var(--ease-out),box-shadow 380ms var(--ease-out)}
+.motion-ready .slide.is-active .panel:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.motion-ready .slide.is-active .flow-node:hover{transform:translateY(-4px)}
+
+/* Tilt 3D: el motor escribe --rx / --ry al mover el ratón sobre .fx-tilt */
+.motion-ready .fx-tilt{
+  transform-style:preserve-3d;will-change:transform;
+  transform:perspective(1200px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:transform 240ms var(--ease-out);
+}
+
+/* --------------------------------------------------- 9 · consola escribiendo
+   Se descubre con clip-path, NO con max-width: max-width es una propiedad de
+   layout y dentro del flex de la consola colapsa las líneas y rompe la slide. */
+.motion-ready .console .ln.fx-type.is-in{
+  animation:typeIn 620ms steps(34,end) both;
+}
+@keyframes typeIn{
+  from{clip-path:inset(0 100% 0 0)}
+  to{clip-path:inset(0 0 0 0)}
+}
+.console .caret{
+  display:inline-block;width:10px;height:1.05em;vertical-align:-2px;margin-left:4px;
+  background:var(--fn-secondary);
+}
+.motion-ready .console .caret{animation:caretBlink 1.05s steps(1) infinite}
+@keyframes caretBlink{50%{opacity:0}}
+
+/* ------------------------------------------------ 10 · cromo con más presencia */
+.deck-progress{height:5px;box-shadow:0 0 20px color-mix(in srgb,var(--fn-secondary) 70%,transparent)}
+.stepbar .sb-dot{position:relative}
+.stepbar .sb-dot.now{box-shadow:0 0 0 6px color-mix(in srgb,var(--fn-secondary) 20%,transparent)}
+.motion-ready .stepbar .sb-dot.now::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid var(--fn-secondary);animation:dotPulse 1.9s var(--ease-out) infinite;
+}
+@keyframes dotPulse{from{transform:scale(1);opacity:.85}to{transform:scale(2.8);opacity:0}}
+
+/* Anillo que late en el nodo de proceso activo */
+.motion-ready .flow-node.is-now::before{
+  content:'';position:absolute;inset:-2px;border-radius:18px;pointer-events:none;
+  border:2px solid var(--fn-secondary);animation:nodePulse 2s var(--ease-out) infinite;
+}
+@keyframes nodePulse{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(1.055)}}
+
+/* El índice entra en cascada */
+.deck-overview.is-open .ov-item{animation:ovIn 480ms var(--ease-out) both;animation-delay:calc(var(--i,0) * 38ms)}
+@keyframes ovIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+
+/* ------------------------------------------------ 10b · puntero de foco (L) */
+.fx-pointer{
+  position:fixed;inset:0;z-index:940;pointer-events:none;opacity:0;transition:opacity .25s var(--ease);
+  --px:50vw;--py:50vh;
+  background:radial-gradient(circle at var(--px) var(--py),transparent 0,transparent 120px,rgba(6,16,31,.14) 150px,rgba(6,16,31,.62) 300px);
+}
+body.is-pointer .fx-pointer{opacity:1}
+body.is-pointer .fx-pointer::after{
+  content:'';position:absolute;left:var(--px);top:var(--py);width:250px;height:250px;margin:-125px 0 0 -125px;
+  border-radius:50%;border:2px solid rgba(126,224,214,.85);box-shadow:0 0 34px rgba(13,143,135,.55),inset 0 0 40px rgba(126,224,214,.12);
+}
+body.is-pointer{cursor:none}
+
+/* -------------------------------------------- 10c · reproductor de terminal */
+.termplay{
+  display:flex;flex-direction:column;min-height:0;border-radius:20px;overflow:hidden;
+  background:var(--code-bg);color:var(--code-ink);box-shadow:var(--shadow-lg);
+  font:21px/1.55 var(--mono);
+}
+.tp-bar{
+  display:flex;align-items:center;gap:8px;padding:12px 18px;flex:0 0 auto;
+  background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.08);
+  font:600 15px/1 var(--font);color:#93a9c6;
+}
+.tp-dot{width:12px;height:12px;border-radius:50%;background:#ff5f57}
+.tp-dot:nth-child(2){background:#febc2e}.tp-dot:nth-child(3){background:#28c840}
+.tp-title{margin-left:10px;letter-spacing:.04em}
+.tp-state{margin-left:auto;color:#ffd291;font-weight:600}
+.tp-btn{
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#d6e6ff;
+  border-radius:8px;padding:4px 10px;font-size:15px;cursor:pointer;line-height:1.2;
+}
+.tp-btn:hover{background:rgba(255,255,255,.14)}
+.tp-screen{flex:1;min-height:0;overflow:auto;padding:22px 28px;display:flex;flex-direction:column;gap:4px}
+.tp-screen .ln{white-space:pre-wrap;word-break:break-word;position:relative}
+.tp-screen .ln.cmd::before{content:'$ ';color:#7488a8}
+.tp-screen .ln.pause{display:none}
+.tp-screen .ln.ok{color:#6fe3a4}.tp-screen .ln.no{color:#ff9b9b}.tp-screen .ln.wa{color:#ffd291}.tp-screen .ln.dim{color:#7488a8}
+.tp-screen .k{color:#7db4ff}.tp-screen .ok{color:#6fe3a4}.tp-screen .no{color:#ff9b9b}.tp-screen .wa{color:#ffd291}.tp-screen .dim{color:#7488a8}
+/* Con JS: las líneas se ocultan y se van revelando */
+.termplay.is-live .ln:not(.tp-on){display:none}
+.termplay.is-live .ln.tp-typing{animation:tpType var(--dur,900ms) steps(40,end) both}
+@keyframes tpType{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.termplay.is-live .ln.tp-typing::after{
+  content:'';display:inline-block;width:10px;height:1.05em;vertical-align:-2px;margin-left:4px;
+  background:var(--fn-secondary);animation:caretBlink .9s steps(1) infinite;
+}
+.termplay.is-paused .tp-screen{box-shadow:inset 0 0 0 2px rgba(255,210,145,.35)}
+
+/* ------------------------------------- 11 · desactivación total del paquete */
+@media (prefers-reduced-motion:reduce){
+  .fx-pointer{display:none !important}
+  .termplay.is-live .ln{display:block !important;animation:none !important;clip-path:none !important}
+  .termplay.is-live .ln.pause{display:none !important}
+  .motion-ready .seq-msg[data-motion-item] .seq-arrow{transform:none !important;transition:none !important}
+  .fx-canvas{display:none !important}
+  .slide[data-bg="aurora"]::before,.slide[data-bg="grid"]::before{animation:none !important}
+  .fx-line{opacity:1 !important;transform:none !important}
+  .fx-mark::after{transform:scaleX(1) !important}
+  .motion-ready .slide[data-spotlight="on"] [data-motion-item].is-in:not(.is-now){opacity:1;filter:none}
+  .motion-ready .slide.cover.is-active .s-title{
+    -webkit-text-fill-color:#fff;color:#fff;background:none;animation:none !important;
+  }
+  .kpi-ring .r-fg{stroke-dashoffset:var(--ring,0) !important}
+  .motion-ready [data-motion-item][data-fx]{transform:none !important;filter:none !important}
+}
+@media print{
+  .fx-canvas,.fx-pointer{display:none !important}
+  .termplay.is-live .ln{display:block !important;animation:none !important;clip-path:none !important}
+  .termplay.is-live .ln.pause{display:none !important}
+  .tp-bar .tp-btn,.tp-state{display:none !important}
+  .motion-ready .seq-msg[data-motion-item] .seq-arrow{transform:none !important}
+  .compare{--pos:50% !important}
+  .fx-line{opacity:1 !important;transform:none !important}
+  .fx-mark::after{transform:scaleX(1) !important}
+  .kpi-ring .r-fg{stroke-dashoffset:var(--ring,0) !important}
+  .slide.cover .s-title{-webkit-text-fill-color:#fff !important;color:#fff !important;background:none !important;animation:none !important}
+  .motion-ready .slide[data-spotlight="on"] [data-motion-item]{opacity:1 !important;filter:none !important}
+  .motion-ready [data-motion-item][data-fx]{transform:none !important;filter:none !important}
+  .slide[data-bg="aurora"]::before,.slide[data-bg="grid"]::before{animation:none !important}
+}
+</style>
+<style>
+/* Logo Fundanet embebido como data URI: el deck sigue siendo un fichero
+   autocontenido, sin peticiones de red al abrirlo. */
+:root{
+  --fn-logo:url('data:image/png;base64,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');
+  --fn-logo-blanco:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAU4AAAA8CAYAAAAJzlMXAAADL0lEQVR42u3dwW4rIQyFYRzN+7+yu+rmSulNZobBwPdL3bUJNXCwDYbIzDaQK18eDQAGcEwomAAwlBfRBIDawkk0AQjVgclJuXRU9jh5m5hNNIEyOU4AEKrzOpojVACPE0JDADxOALhpU5DHCQBCdQAgnDZZABBOAGg2h5aGdwvgI+GsfN0bIQNQSjidMwSA9nmOM4XNAPC5x5kEE61fNVQUqMaKolViMUk1WxSpqIvdNoeI33NXmp0Vs2/akyfbE4NKV/OhcZg3tevs2Pj073Kw/fLi38VD3/M2VJfXxLcDKgfW6+fg9ve0S05wZ0IWubPhSXs5x4kSl5RkgYmyw2dVE74eYpeEE0R4vlulsu15i1YW+p+ScIJ47i2aKy5+uVpfEE6AaPa0Q57cSP79KdknSi7ROpyW+DYMj5smQhTNQ0ZhAY4i7Yp2z0mOf8dT9DjRcky8ajveVPdsbTy8extf/E61p1JioID+rw+z2BnfqOLpH8Kcx9q6ktBHoYEeJ34/Cx4Yj6KinhejhrvnRAnxfA3oDLkhjC6qiM0r5OKBNuXA9udqm0NEcz+xOrOY5sZXEYZx1La6yFjOETNNvJiwLn+U3YLw9hFOITqA3ncwlIluD54mJuzr2MDOKzsaufubQ0QTJhXajvdxEj+Lw859S6ih5BIACCcAEE6gyaeieVe9yTsC2Gf+8jgx46TiKYJwgkBgq37PVUP1yte9CdMxavLGhxf37j5Glz/mdUy2EhBN3srqAiXKmKC080U0TaSJ+zoXe0kyN+rDnLke/kU0PYq12cKSRUVd301kq4P4TZMLykLvw8xkm5F2ys1PCfTICT91td+f7TrkVITtC9qm9zs+cSEKCH351kZPPmoXF17oDK9c2oFc0TbeYp83cpgisnWOE6pMmtTThm8pXWoX4TQJ2Ue/rWCrUDlkYKG/feKmzwxjYfj/FU+PA8JZb2CFSTed2N3ZrjDGh/Rl7HA7koT6mLeyq+Wmsmi4mBa7brZ6ynP9s12RmdmEGG3Co0hsPZeNUt+tM855nPJDbKRt7NTkOAFgGuG0ogIgnEQTAPoIJ9EE0DzWRjAB4C0/JkrHmOtkwyYAAAAASUVORK5CYII=');
+}
+
+/* Uso del logo. Relación de aspecto real 334x60 (5.567:1) — el alto manda y
+   el ancho se deduce, así nunca se deforma. */
+.fn-logo{
+  display:inline-block;background-repeat:no-repeat;background-position:left center;
+  background-size:contain;background-image:var(--fn-logo);
+  height:44px;width:245px;flex:0 0 auto;
+}
+.fn-logo.blanco{background-image:var(--fn-logo-blanco)}
+.fn-logo.sm{height:30px;width:167px}
+.fn-logo.lg{height:66px;width:367px}
+.fn-logo.xl{height:88px;width:490px}
+
+/* En tema oscuro el wordmark negro no se lee: se usa la variante blanca */
+[data-theme="dark"] .fn-logo:not(.blanco){background-image:var(--fn-logo-blanco)}
+
+/* Pie de slide: el logo sustituye al texto "Fundanet" */
+.s-foot .fn-logo{margin-right:10px;vertical-align:middle}
+.s-foot{gap:14px}
+
+/* Portada: el logo entra antes que el título */
+.cover .fn-logo{margin-bottom:34px;display:block}
+.motion-ready .slide.cover.is-active .fn-logo{animation:logoIn 1000ms var(--ease-out) both}
+@keyframes logoIn{
+  from{opacity:0;transform:translateY(24px) scale(.96);filter:blur(8px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+/* Logo del cliente (co-branding) y créditos: entran detrás del logo Fundanet */
+.motion-ready .slide.cover.is-active .cover-client{animation:logoIn 1000ms 260ms var(--ease-out) both}
+.motion-ready .slide.cover.is-active .made-with{animation:logoIn 900ms 900ms var(--ease-out) both}
+
+/* Icono de Claude Code (Anthropic): trazo vectorial del "spark" en su naranja
+   #D97757. Se usa sólo en los créditos de cierre, como acento; la marca del
+   deck sigue siendo Fundanet. Sustituir por el activo oficial si se dispone de él. */
+:root{
+  --cc-logo:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg stroke='%23D97757' stroke-width='9' stroke-linecap='round' fill='none'%3E%3Cpath d='M50 50L90 50M50 50L72.5 63M50 50L68 81.2M50 50L50 78M50 50L30 84.6M50 50L27.5 63M50 50L14 50M50 50L25.8 36M50 50L30 15.4M50 50L50 24M50 50L68 18.8M50 50L74.2 36'/%3E%3C/g%3E%3C/svg%3E");
+}
+.cc-logo{
+  display:inline-block;width:30px;height:30px;flex:0 0 auto;
+  background:var(--cc-logo) center/contain no-repeat;
+}
+.cc-logo.lg{width:44px;height:44px}
+
+@media (prefers-reduced-motion:reduce){
+  .motion-ready .slide.cover.is-active .fn-logo,
+  .motion-ready .slide.cover.is-active .cover-client,
+  .motion-ready .slide.cover.is-active .made-with{animation:none !important}
+}
+@media print{
+  .motion-ready .slide.cover.is-active .cover-client,
+  .motion-ready .slide.cover.is-active .made-with{animation:none !important}
+}
+</style>
+<style>
+:root{
+  /* Marca Think28 sobre el motor de decks: negro profundo + amarillo Think, Inter y Space Mono */
+  --fn-primary:#0A0A0A;
+  --fn-secondary:#F5C500;
+  --fn-primary-lt:#2b2b2b;
+  --fn-primary-dk:#000000;
+  --font:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Space Mono','Cascadia Code',ui-monospace,Consolas,monospace;
+  --fn-logo:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0NCiAgVGhpbmsyOCDigJQgTG9nbyBuZWdhdGl2byAoZm9uZG8gYmxhbmNvKQ0KICBWZXJzacOzbjogdjEuMCDCtyAyMDI2DQogIFVzbzogRG9jdW1lbnRvcyBpbXByZXNvcywgcGFwZWxlcsOtYSBlbiBibGFuY28sIGZvbmRvcyBjbGFyb3MNCiAgU3BlY3M6IDQ4MMOXMTIwIHB4IMK3IHZpZXdCb3ggMCAwIDQ4MCAxMjAgwrcgSW50ZXIgODAwIMK3IGFjZW50byAjQzlBMDAwIChnb2xkIGRhcmspDQotLT4NCjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDQ4MCAxMjAiPg0KICA8cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2ZmZmZmZiIvPg0KICA8dGV4dCB4PSIzMiIgeT0iNzgiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iODAwIiBmb250LXNpemU9IjY0IiBmaWxsPSIjMTExMTExIiBsZXR0ZXItc3BhY2luZz0iLTIiPlRoaW5rPC90ZXh0Pg0KICA8dGV4dCB4PSIyNDgiIHk9Ijc4IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI2NCIgZmlsbD0iI0M5QTAwMCIgbGV0dGVyLXNwYWNpbmc9Ii0zIj4yODwvdGV4dD4NCiAgPHJlY3QgeD0iMzIiIHk9Ijg4IiB3aWR0aD0iMjQiIGhlaWdodD0iMS41IiBmaWxsPSIjQzlBMDAwIiBvcGFjaXR5PSIwLjQ1Ii8+DQogIDx0ZXh0IHg9IjMyIiB5PSIxMDYiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iMzAwIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNTU1NTU1IiBsZXR0ZXItc3BhY2luZz0iMiI+RElHSVRBTCBHUk9XVEggUEFSVE5FUjwvdGV4dD4NCjwvc3ZnPg0K');
+  --fn-logo-blanco:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0NCiAgVGhpbmsyOCDigJQgTG9nbyBwcmltYXJpbyAoZm9uZG8gb3NjdXJvKQ0KICBUYWdsaW5lOiBEaWdpdGFsIEdyb3d0aCBQYXJ0bmVyDQogIFZlcnNpw7NuOiB2MS4wIMK3IDIwMjYNCiAgVXNvOiBXZWIsIHByZXNlbnRhY2lvbmVzLCBkb2N1bWVudG9zIGVuIGZvbmRvIG9zY3Vybw0KICBTcGVjczogNDgww5cxMjAgcHggwrcgdmlld0JveCAwIDAgNDgwIDEyMCDCtyBJbnRlciA4MDAgwrcgI0Y1QzUwMA0KLS0+DQo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA0ODAgMTIwIj4NCiAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMwYTBhMGEiLz4NCiAgPHRleHQgeD0iMzIiIHk9Ijc4IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI2NCIgZmlsbD0iI2ZmZmZmZiIgbGV0dGVyLXNwYWNpbmc9Ii0yIj5UaGluazwvdGV4dD4NCiAgPHRleHQgeD0iMjQ4IiB5PSI3OCIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI4MDAiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNGNUM1MDAiIGxldHRlci1zcGFjaW5nPSItMyI+Mjg8L3RleHQ+DQogIDxyZWN0IHg9IjMyIiB5PSI4OCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjEuNSIgZmlsbD0iI0Y1QzUwMCIgb3BhY2l0eT0iMC40NSIvPg0KICA8dGV4dCB4PSIzMiIgeT0iMTA2IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjMwMCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzY2NjY2NiIgbGV0dGVyLXNwYWNpbmc9IjIiPkRJR0lUQUwgR1JPV1RIIFBBUlRORVI8L3RleHQ+DQo8L3N2Zz4NCg==');
+  --t28-yellow:#F5C500;
+}
+/* Logo 480×120 (4:1): el alto manda */
+.fn-logo{height:44px;width:176px;border-radius:6px}
+.fn-logo.sm{height:30px;width:120px}
+.fn-logo.lg{height:66px;width:264px}
+.fn-logo.xl{height:88px;width:352px}
+/* Acentos amarillos donde el motor usa el secundario ya vienen por variable; refuerzos puntuales */
+.s-eyebrow{color:#8a6f00}
+[data-theme="dark"] .s-eyebrow{color:var(--t28-yellow)}
+.cover .cover-tag{color:var(--t28-yellow);letter-spacing:.22em}
+.t28-y{color:var(--t28-yellow)}
+.cover .s-title .t28-y{color:var(--t28-yellow)}
+.bulb{background:var(--t28-yellow)!important;color:#0A0A0A!important}
+.chip{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--t28-yellow);color:#0A0A0A;font-weight:700;font-size:20px;margin-right:8px;vertical-align:middle}
+.say{font-size:30px;line-height:1.35;padding:22px 28px;border-left:6px solid var(--t28-yellow);background:var(--bg-soft);border-radius:0 14px 14px 0;font-style:italic}
+.say b{font-style:normal}
+.qr-card img{border-radius:12px}
+</style>
+</head>
+<body>
+
+<div class="deck-progress"></div>
+<div class="deck-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<div class="deck-viewport">
+  <div class="deck-stage">
+
+  <!-- ====================== PORTADA ====================== -->
+  <section class="slide cover" data-transition="fade" data-bg="net" data-net-nodes="52" data-title="Portada" data-seconds="30">
+    <div class="cover-inner">
+      <span class="fn-logo blanco lg" role="img" aria-label="Think28"></span>
+      <div class="cover-tag">Digital Growth Partner</div>
+      <h1 class="s-title">Frame<span class="t28-y">28</span></h1>
+      <p class="s-sub">Graba hablando a cámara. Frame28 monta el resto.<br>Guía para instalarlo, usarlo y sacarle partido, sin ser informático.</p>
+    </div>
+    <div class="cover-meta">
+      <div><b>Think28 · t28.io</b><br>Guía de instalación y uso · v0.1</div>
+      <div style="text-align:right">A Think28 product</div>
+    </div>
+    <div class="s-notes"><ul><li>Esta guía se puede leer sola: avanza con la flecha derecha o la barra espaciadora.</li></ul></div>
+  </section>
+
+  <!-- ====================== QUÉ ES ====================== -->
+  <section class="slide" data-transition="depth" data-bg="aurora" data-spotlight="on" data-title="Qué hace" data-chapter="Qué es" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Qué es Frame28</p>
+      <h2 class="s-title">Tú hablas a la cámara. El video se monta solo.</h2>
+      <p class="s-sub">Frame28 escucha lo que dices, entiende cuándo dices cada palabra y decide qué merece aparecer en pantalla.</p>
+    </div></header>
+    <div class="s-body">
+      <table class="ttable" style="font-size:26px">
+        <thead><tr><th style="width:44%">Lo que dices</th><th>Lo que aparece en el video</th></tr></thead>
+        <tbody>
+          <tr data-motion-item data-step="1"><td>«Soy Javier, de Think28»</td><td>Una tarjeta con tu nombre que se escribe sola</td></tr>
+          <tr data-motion-item data-step="2"><td>«y esto cambia <b>todo</b>»</td><td>La palabra clave, gigante, pasando <b>por detrás</b> de tu cabeza</td></tr>
+          <tr data-motion-item data-step="3"><td>«por aquí tenemos la consola…»</td><td>Un rótulo con línea justo donde apunta tu dedo</td></tr>
+          <tr data-motion-item data-step="4"><td>«tres cosas: rápido, barato, fiable»</td><td>Una lista en la que se ilumina cada punto al decirlo</td></tr>
+          <tr data-motion-item data-step="5"><td>«somos veinte veces más rápidos»</td><td>Una cifra que cuenta hasta 20× o una gráfica con tu fila destacada</td></tr>
+          <tr data-motion-item data-step="6"><td>todo el rato</td><td>Subtítulos limpios, frase a frase, y tu marca al cerrar</td></tr>
+        </tbody>
+      </table>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>No hay que rellenar plantillas ni tocar un editor de video.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Cómo funciona" data-chapter="Qué es" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Por dentro, en cuatro pasos</p>
+      <h2 class="s-title">Escucha, entiende, decide y monta.</h2>
+      <p class="s-sub">Todo ocurre en tu ordenador. Tu video no sale de él.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="flow" style="flex:0 0 auto">
+        <div class="flow-node" data-motion-item data-step="1" data-flow-step="1"><span class="n-num">1</span><span class="n-t">Escucha</span><span class="n-d">Transcribe tu voz y sabe en qué segundo dices cada palabra</span></div>
+        <div class="flow-arrow" data-motion-item data-step="2">→</div>
+        <div class="flow-node" data-motion-item data-step="2" data-flow-step="2"><span class="n-num">2</span><span class="n-t">Entiende</span><span class="n-d">Ve dónde estás en el encuadre y cuándo señalas con la mano</span></div>
+        <div class="flow-arrow" data-motion-item data-step="3">→</div>
+        <div class="flow-node" data-motion-item data-step="3" data-flow-step="3"><span class="n-num">3</span><span class="n-t">Decide</span><span class="n-d">Claude escribe un guion de montaje: qué poner, cuándo y dónde</span></div>
+        <div class="flow-arrow" data-motion-item data-step="4">→</div>
+        <div class="flow-node" data-motion-item data-step="4" data-flow-step="4"><span class="n-num">4</span><span class="n-t">Monta</span><span class="n-d">Renderiza el video final en alta definición y te lo entrega</span></div>
+      </div>
+      <div class="panel flat" data-motion-item data-step="5" style="margin-top:34px">
+        <p style="font-size:26px;margin:0">Ese guion de montaje es un fichero de texto. Si quieres cambiar algo («ese título más pequeño y a la derecha»), se lo pides a Claude con tus palabras y se vuelve a montar. Nunca tocas nada técnico.</p>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Frame28 es un plugin de Claude Code: Claude dirige, un motor local ejecuta.</li></ul></div>
+  </section>
+
+  <!-- ====================== ANTES DE EMPEZAR ====================== -->
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Qué necesitas" data-chapter="Antes de empezar" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Antes de empezar</p>
+      <h2 class="s-title">Necesitas cuatro cosas. Ninguna es complicada.</h2>
+      <p class="s-sub">Instalarlo todo lleva unos veinte minutos la primera vez. Después no hay que repetirlo.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="4">
+        <div class="panel fx-tilt" data-motion-item data-step="1" data-fx="rise"><h3><span class="chip">1</span>Un ordenador</h3><p>Windows 10/11 o Mac. Con una tarjeta gráfica va más rápido, pero no es obligatorio.</p></div>
+        <div class="panel fx-tilt" data-motion-item data-step="2" data-fx="rise"><h3><span class="chip">2</span>Claude Code</h3><p>La aplicación de escritorio de Claude para trabajar con ficheros. Necesita una cuenta de Claude de pago (plan Pro o superior).</p></div>
+        <div class="panel fx-tilt" data-motion-item data-step="3" data-fx="rise"><h3><span class="chip">3</span>Tres programas de apoyo</h3><p>Gratuitos y de instalación única: <b>ffmpeg</b> (trabaja con video), <b>Node.js</b> (el motor de render) y <b>uv</b> (instala Frame28).</p></div>
+        <div class="panel fx-tilt" data-motion-item data-step="4" data-fx="rise"><h3><span class="chip">4</span>Una cámara</h3><p>La webcam del portátil o el móvil. Y buena luz de frente. Lo demás lo pone Frame28.</p></div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Si algo falta, Frame28 lo dice con un comando: frame28 doctor.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Qué es una terminal" data-chapter="Antes de empezar" data-seconds="50">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Un concepto, y ya</p>
+      <h2 class="s-title">Vas a copiar y pegar unas pocas líneas en una «terminal».</h2>
+      <p class="s-sub">Es una ventana donde se escriben órdenes al ordenador. Da un poco de respeto la primera vez y luego es aburridísima.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="2">
+        <div class="panel" data-motion-item data-step="1" data-fx="left">
+          <h3>En Windows</h3>
+          <p>Pulsa la tecla <b>Windows</b>, escribe <b>Terminal</b> y ábrela. Aparece una ventana oscura con un cursor parpadeando. Ahí se pega cada línea y se pulsa <b>Enter</b>.</p>
+        </div>
+        <div class="panel" data-motion-item data-step="2" data-fx="right">
+          <h3>En Mac</h3>
+          <p>Pulsa <b>⌘ + espacio</b>, escribe <b>Terminal</b> y ábrela. Mismo funcionamiento: pegar la línea, pulsar <b>Enter</b>, esperar a que termine.</p>
+        </div>
+      </div>
+      <div class="panel accent" data-motion-item data-step="3" style="margin-top:28px">
+        <h3>La regla de oro</h3>
+        <p>Una línea cada vez. Espera a que vuelva a aparecer el cursor antes de pegar la siguiente. Si algo sale en rojo, no pasa nada: copia el texto y pégaselo a Claude, que te dirá qué hacer.</p>
+      </div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Desmitificar la terminal antes de la instalación evita el 80 % de los abandonos.</li></ul></div>
+  </section>
+
+  <!-- ====================== INSTALAR ====================== -->
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Paso 1 · Claude Code" data-chapter="Instalar" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Instalar · paso 1 de 4</p>
+      <h2 class="s-title">Instala Claude Code y abre una carpeta para tus videos.</h2>
+      <p class="s-sub">Claude Code es donde vas a hablar con Frame28. Todo lo demás son piezas que él usa.</p>
+    </div></header>
+    <div class="s-body">
+      <ul class="tlist num" style="font-size:28px">
+        <li data-motion-item data-step="1"><b>Descarga Claude Code</b> desde <b>claude.com/claude-code</b> e instálalo como cualquier programa.</li>
+        <li data-motion-item data-step="2"><b>Inicia sesión</b> con tu cuenta de Claude (la misma que usas en claude.ai).</li>
+        <li data-motion-item data-step="3"><b>Crea una carpeta</b> en tu ordenador para tus videos, por ejemplo <b>Documentos › Mis videos</b>.</li>
+        <li data-motion-item data-step="4"><b>Abre esa carpeta en Claude Code</b> («Abrir carpeta» o «Open folder»). A partir de ahora, ese es tu estudio.</li>
+      </ul>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Claude Code también existe como programa de terminal; para esta guía usamos la app de escritorio.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Paso 2 · programas de apoyo" data-chapter="Instalar" data-seconds="90">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Instalar · paso 2 de 4</p>
+      <h2 class="s-title">Instala los tres programas de apoyo. Una línea cada uno.</h2>
+      <p class="s-sub">Abre la terminal y pega estas líneas, de una en una. Cada una tarda entre unos segundos y un par de minutos.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="tracks">
+        <div class="console">
+          <div class="ln dim" data-motion-item data-step="1">Windows (Terminal / PowerShell)</div>
+          <div class="ln fx-type" data-motion-item data-step="1"><span class="k">winget</span> install --id Gyan.FFmpeg -e</div>
+          <div class="ln fx-type" data-motion-item data-step="2"><span class="k">winget</span> install --id OpenJS.NodeJS.LTS -e</div>
+          <div class="ln fx-type" data-motion-item data-step="3"><span class="k">winget</span> install --id astral-sh.uv -e</div>
+          <div class="ln dim" data-motion-item data-step="4" style="margin-top:14px">Mac (Terminal, con Homebrew)</div>
+          <div class="ln fx-type" data-motion-item data-step="4"><span class="k">brew</span> install ffmpeg node uv</div>
+        </div>
+        <div class="l-rows" data-rows="2" style="gap:18px">
+          <div class="plain" data-motion-item data-step="1"><div class="bulb">1</div><div><div class="p-top">ffmpeg</div><div class="p-body">La navaja suiza del video. Convierte, corta y mezcla imagen y sonido.</div></div></div>
+          <div class="plain" data-motion-item data-step="2"><div class="bulb">2</div><div><div class="p-top">Node.js</div><div class="p-body">Hace funcionar el motor que dibuja los textos y gráficas sobre tu video.</div></div></div>
+          <div class="plain" data-motion-item data-step="3"><div class="bulb">3</div><div><div class="p-top">uv</div><div class="p-body">Instala y actualiza Frame28 con un solo comando. Trae su propio Python.</div></div></div>
+          <div class="plain" data-motion-item data-step="4"><div class="bulb">✓</div><div><div class="p-top">Al terminar</div><div class="p-body">Cierra la terminal y ábrela de nuevo: así reconoce los programas nuevos.</div></div></div>
+        </div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>winget viene con Windows 10/11. Homebrew se instala desde brew.sh si el Mac no lo tiene.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Paso 3 · el plugin" data-chapter="Instalar" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Instalar · paso 3 de 4</p>
+      <h2 class="s-title">Dile a Claude Code dónde vive Frame28 e instálalo.</h2>
+      <p class="s-sub">Esto se escribe dentro de Claude Code, en la caja de chat, empezando por una barra.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="tracks">
+        <div class="console">
+          <div class="ln fx-type" data-motion-item data-step="1"><span class="k">/plugin</span> marketplace add javierledesma28/frame28</div>
+          <div class="ln ok" data-motion-item data-step="1">✔ Successfully added marketplace: think28</div>
+          <div class="ln fx-type" data-motion-item data-step="2" style="margin-top:14px"><span class="k">/plugin</span> install frame28@think28</div>
+          <div class="ln ok" data-motion-item data-step="2">✔ Successfully installed plugin: frame28@think28</div>
+        </div>
+        <div class="l-rows" data-rows="2" style="gap:18px">
+          <div class="plain" data-motion-item data-step="1"><div class="bulb">1</div><div><div class="p-top">Registrar el catálogo</div><div class="p-body">Le dices a Claude Code en qué sitio de internet está Frame28. Solo se hace una vez.</div></div></div>
+          <div class="plain" data-motion-item data-step="2"><div class="bulb">2</div><div><div class="p-top">Instalar el plugin</div><div class="p-body">Claude Code descarga las instrucciones de Frame28. Ocupan menos que una foto.</div></div></div>
+          <div class="plain" data-motion-item data-step="3"><div class="bulb">3</div><div><div class="p-top">Reinicia Claude Code</div><div class="p-body">Cierra y abre la aplicación. Los plugins se cargan al arrancar.</div></div></div>
+        </div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Si prefieres la terminal: claude plugin marketplace add javierledesma28/frame28 y claude plugin install frame28@think28.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Paso 4 · el motor" data-chapter="Instalar" data-seconds="75">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Instalar · paso 4 de 4</p>
+      <h2 class="s-title">Instala el motor y comprueba que todo está en su sitio.</h2>
+      <p class="s-sub">De vuelta a la terminal. La última línea te dice si falta algo y cómo arreglarlo.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="termplay" data-motion-item data-step="1" data-title="Terminal · instalar el motor de Frame28" data-speed="1.3">
+        <div class="tp-screen">
+          <div class="ln cmd"><span class="k">uv</span> tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli</div>
+          <div class="ln ok" data-wait="900">Installed 1 executable: frame28</div>
+          <div class="ln cmd" data-wait="500"><span class="k">uv</span> tool update-shell</div>
+          <div class="ln dim" data-wait="400">Updated PATH · Restart your shell to apply changes</div>
+          <div class="ln cmd" data-wait="700"><span class="k">frame28</span> doctor</div>
+          <div class="ln ok" data-wait="600">  ✓ ffmpeg      ✓ ffprobe      ✓ node v24      ✓ npx</div>
+          <div class="ln ok">  ✓ faster_whisper      ✓ onnxruntime      ✓ cv2</div>
+          <div class="ln dim">  ✗ modelo RVM   → se descarga solo la primera vez que se use</div>
+          <div class="ln ok" data-wait="400">Todo listo.</div>
+        </div>
+      </div>
+      <div class="l-cols" data-cols="2" style="margin-top:22px;flex:0 0 auto">
+        <div class="plain" data-motion-item data-step="2"><div class="bulb">✓</div><div><div class="p-top">«Todo listo.»</div><div class="p-body">Ya está. Cierra la terminal; no la necesitas para hacer videos.</div></div></div>
+        <div class="plain" data-motion-item data-step="3"><div class="bulb">✗</div><div><div class="p-top">Si algo sale con ✗</div><div class="p-body">Debajo de cada aspa viene la orden que lo arregla. Cópiala y pégala. O pásale la pantalla a Claude.</div></div></div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Atajo: también puedes pedirle a Claude Code «instala el motor de Frame28 siguiendo el README» y lo hace él.</li></ul></div>
+  </section>
+
+  <!-- ====================== USAR ====================== -->
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Tu primer video" data-chapter="Usar" data-seconds="75">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Usar</p>
+      <h2 class="s-title">Tu primer video, en tres pasos.</h2>
+      <p class="s-sub">A partir de aquí no hay terminal: solo tu cámara y una frase a Claude.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="flow" style="flex:0 0 auto">
+        <div class="flow-node" data-motion-item data-step="1" data-flow-step="1"><span class="n-num">1</span><span class="n-t">Graba</span><span class="n-d">Entre 30 segundos y 5 minutos hablando a cámara. Guarda el fichero en tu carpeta «Mis videos».</span></div>
+        <div class="flow-arrow" data-motion-item data-step="2">→</div>
+        <div class="flow-node" data-motion-item data-step="2" data-flow-step="2"><span class="n-num">2</span><span class="n-t">Pídeselo a Claude</span><span class="n-d">Abre Claude Code en esa carpeta y escribe una frase. Con eso basta.</span></div>
+        <div class="flow-arrow" data-motion-item data-step="3">→</div>
+        <div class="flow-node" data-motion-item data-step="3" data-flow-step="3"><span class="n-num">3</span><span class="n-t">Revisa y pide cambios</span><span class="n-d">Claude te enseña una hoja con fotogramas del resultado y te entrega el MP4.</span></div>
+      </div>
+      <div class="say" data-motion-item data-step="2" style="margin-top:34px">«Aquí está mi clip <b>charla.mp4</b>. Móntamelo estilo video de presentación.»</div>
+      <div class="say" data-motion-item data-step="3" style="margin-top:16px">«El título de los 12 segundos, más pequeño y a la derecha. Y cierra con mi marca.»</div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>El video final queda en la subcarpeta out, junto a una imagen con todos los fotogramas clave.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Qué pasa mientras esperas" data-chapter="Usar" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Usar</p>
+      <h2 class="s-title">Mientras esperas, Claude te va contando lo que hace.</h2>
+      <p class="s-sub">Tiempos orientativos para un clip de un minuto en un portátil normal. La primera vez tarda más porque descarga sus modelos.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="kpi-row" style="flex:0 0 auto">
+        <div class="kpi fx-tilt" data-ring="20" data-motion-item data-step="1" data-fx="rise"><span class="k-val" data-count-to="30" data-count-suf=" s">0</span><span class="k-lab">Transcribir tu voz</span><span class="k-delta">palabra a palabra</span></div>
+        <div class="kpi fx-tilt" data-ring="15" data-motion-item data-step="2" data-fx="rise"><span class="k-val" data-count-to="20" data-count-suf=" s">0</span><span class="k-lab">Detectar tus gestos</span><span class="k-delta">dónde señalas</span></div>
+        <div class="kpi fx-tilt" data-ring="40" data-motion-item data-step="3" data-fx="rise"><span class="k-val" data-count-to="1" data-count-suf=" min">0</span><span class="k-lab">Decidir el montaje</span><span class="k-delta">Claude escribe el guion</span></div>
+        <div class="kpi fx-tilt hero" data-ring="90" data-motion-item data-step="4" data-fx="rise"><span class="k-val" data-count-to="4" data-count-suf=" min">0</span><span class="k-lab">Renderizar en HD</span><span class="k-delta">1 a 2 min por cada 20 s de video</span></div>
+      </div>
+      <div class="panel flat" data-motion-item data-step="5" style="margin-top:30px">
+        <p style="font-size:26px;margin:0">Cuando termina, verás un mensaje con lo que lleva el video (qué rótulos, qué títulos, qué gráficas) y la ruta del fichero. Si algo no te convence, dilo con tus palabras y se vuelve a montar en unos minutos.</p>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Un ordenador sin tarjeta gráfica tarda más en el recorte del hablante; el resto es parecido.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="aurora" data-spotlight="on" data-title="Pedir cambios" data-chapter="Usar" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Usar</p>
+      <h2 class="s-title">Háblale como a un editor de video. Entiende esto y más.</h2>
+      <p class="s-sub">No hay menús que aprender. Cada frase de abajo es una petición real que Frame28 sabe resolver.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="2">
+        <div class="l-rows" data-rows="2" style="gap:14px">
+          <div class="say" data-motion-item data-step="1">«Pon mi nombre y mi empresa al principio.»</div>
+          <div class="say" data-motion-item data-step="2">«La palabra <b>AUTOMATIZACIÓN</b> que pase por detrás de mí cuando la digo.»</div>
+          <div class="say" data-motion-item data-step="3">«Cuando señalo a la derecha, un rótulo que diga <b>panel de control</b>.»</div>
+        </div>
+        <div class="l-rows" data-rows="2" style="gap:14px">
+          <div class="say" data-motion-item data-step="4">«Añade una gráfica de barras con estos datos: manual 90, plantilla 35, Frame28 4.»</div>
+          <div class="say" data-motion-item data-step="5">«Al final, una cifra grande: <b>22×</b> más rápido.»</div>
+          <div class="say" data-motion-item data-step="6">«Cierra con la tarjeta de mi marca y quita los subtítulos.»</div>
+        </div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Claude edita el guion de montaje y vuelve a renderizar; el video original no se toca.</li></ul></div>
+  </section>
+
+  <!-- ====================== GRABAR BIEN ====================== -->
+  <section class="slide dense" data-transition="wipe" data-bg="grid" data-spotlight="on" data-title="Cómo grabar" data-chapter="Grabar bien" data-seconds="90">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Grabar bien</p>
+      <h2 class="s-title">El montaje sale tan bien como el material. Diez consejos.</h2>
+      <p class="s-sub">Ninguno necesita equipo: son decisiones de dónde te pones y cómo hablas.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="2">
+        <ul class="tlist num" style="font-size:24px">
+          <li data-motion-item data-step="1"><b>Cámara y fondo fijos.</b> Sin moverla ni hacer zoom: los textos detrás de ti dependen de eso.</li>
+          <li data-motion-item data-step="1"><b>Luz de frente y abundante.</b> Con poca luz las manos salen borrosas al recortarte.</li>
+          <li data-motion-item data-step="2"><b>Deja aire a un lado.</b> Colócate en un tercio del encuadre; en el otro irán los textos.</li>
+          <li data-motion-item data-step="2"><b>Micro cerca de la boca.</b> Aunque suene bajo se arregla; el ruido de fondo no.</li>
+          <li data-motion-item data-step="3"><b>Frases cortas, una idea cada una.</b> Pausa breve entre ideas: cada frase será un subtítulo.</li>
+        </ul>
+        <ul class="tlist num" style="font-size:24px" start="6">
+          <li data-motion-item data-step="3"><b>Señala despacio y aguanta.</b> Medio segundo quieto y el rótulo aparece donde apuntas.</li>
+          <li data-motion-item data-step="4"><b>Di los nombres claros.</b> Marcas y nombres propios: dáselos a Claude por escrito.</li>
+          <li data-motion-item data-step="4"><b>Cambia de camiseta por capítulo.</b> Marca los bloques sin necesidad de transiciones.</li>
+          <li data-motion-item data-step="5"><b>1080p a 30 fotogramas basta.</b> Más resolución solo tarda más.</li>
+          <li data-motion-item data-step="5"><b>Sin editar antes.</b> Nada de cortes, textos ni música: todo se añade en el montaje.</li>
+        </ul>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>La guía completa de grabación viene con el plugin y Claude la conoce.</li></ul></div>
+  </section>
+
+  <!-- ====================== SACARLE EL JUGO ====================== -->
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Tu marca" data-chapter="Sacarle el jugo" data-seconds="60">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Sacarle el jugo</p>
+      <h2 class="s-title">Tu marca en cada video, desde el primer segundo.</h2>
+      <p class="s-sub">Frame28 sale con la marca Think28. Con una frase, usa la tuya.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="2-1">
+        <div class="panel" data-motion-item data-step="1" data-fx="left">
+          <h3>Pídeselo así</h3>
+          <div class="say" style="margin-top:10px">«Crea mi marca para Frame28: se llama <b>Acme</b>, el color es <b>#0D4F87</b> y el logo es este fichero.»</div>
+          <p style="margin-top:18px">Claude crea el kit y a partir de ahí todos tus videos llevan tu color en los textos, tu logo en la tarjeta de presentación y una tarjeta de cierre con tu nombre y tu web.</p>
+        </div>
+        <div class="l-rows" data-rows="2" style="gap:16px">
+          <div class="plain" data-motion-item data-step="2"><div class="bulb">◆</div><div><div class="p-top">Color de acento</div><div class="p-body">Palabras destacadas, barras de las gráficas, cursor del rótulo.</div></div></div>
+          <div class="plain" data-motion-item data-step="3"><div class="bulb">◆</div><div><div class="p-top">Logo</div><div class="p-body">Junto a tu nombre al empezar y en la tarjeta final.</div></div></div>
+          <div class="plain" data-motion-item data-step="4"><div class="bulb">◆</div><div><div class="p-top">Fuentes</div><div class="p-body">Las de tu identidad, si las tienes; si no, las de Frame28.</div></div></div>
+        </div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Técnicamente es un fichero brand.json; el usuario no necesita saberlo.</li></ul></div>
+  </section>
+
+  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="A tener en cuenta" data-chapter="Sacarle el jugo" data-seconds="75">
+    <div class="s-brandbar"></div>
+    <header class="s-head"><div>
+      <p class="s-eyebrow">Sacarle el jugo</p>
+      <h2 class="s-title">Cinco cosas que conviene saber antes del primer video.</h2>
+      <p class="s-sub">Ninguna es un problema si la conoces de antemano.</p>
+    </div></header>
+    <div class="s-body">
+      <div class="l-cols" data-cols="3">
+        <div class="panel" data-motion-item data-step="1"><h3><span class="chip">1</span>La primera vez tarda</h3><p>Descarga un navegador de render y dos modelos pequeños (unos 100 MB). Solo ocurre una vez.</p></div>
+        <div class="panel" data-motion-item data-step="2"><h3><span class="chip">2</span>Revisa los nombres</h3><p>La transcripción acierta casi todo, pero las marcas y los apellidos se los tienes que dar por escrito.</p></div>
+        <div class="panel" data-motion-item data-step="3"><h3><span class="chip">3</span>Todo se queda en tu ordenador</h3><p>Tu video no se sube a ningún sitio. Claude solo lee el texto de lo que dijiste y las imágenes de revisión.</p></div>
+      </div>
+      <div class="l-cols" data-cols="2" style="margin-top:22px">
+        <div class="panel" data-motion-item data-step="4"><h3><span class="chip">4</span>Si algo falla</h3><p>Escribe <b>frame28 doctor</b> en la terminal y pégale el resultado a Claude. O simplemente cuéntale qué ha pasado: el mensaje de error es información, no un problema tuyo.</p></div>
+        <div class="panel accent" data-motion-item data-step="5"><h3><span class="chip">5</span>Empieza corto</h3><p>Tu primer video: 30 segundos, un tema, dos gestos. Verás qué hace Frame28 con cada cosa que dices y sabrás qué pedirle en el siguiente.</p></div>
+      </div>
+      <div class="stepbar"><span class="sb-lab" data-auto></span></div>
+    </div>
+    <footer class="s-foot"><span><span class="fn-logo sm" role="img" aria-label="Think28"></span><span style="vertical-align:middle">A Think28 product · t28.io</span></span></footer>
+    <div class="s-notes"><ul><li>Cerrar expectativas: es una herramienta nueva; cada versión añade técnicas.</li></ul></div>
+  </section>
+
+  <!-- ====================== CIERRE ====================== -->
+  <section class="slide cover" data-transition="depth" data-bg="net" data-net-nodes="60" data-title="Cierre" data-seconds="30">
+    <div class="cover-inner">
+      <span class="fn-logo blanco" role="img" aria-label="Think28"></span>
+      <div class="cover-tag">Gracias</div>
+      <h2 class="s-title" style="font-size:62px;max-width:60%">Graba y habla.<br><span class="t28-y">Frame28</span> monta el resto.</h2>
+      <p class="s-sub" style="max-width:60%">Todo lo que necesitas está en el repositorio: la guía, el plugin y el motor. Escanea o entra en el enlace.</p>
+      <div class="qr-card">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNjQiIGhlaWdodD0iMjY0IiBjbGFzcz0ic2Vnbm8iPjxwYXRoIHRyYW5zZm9ybT0ic2NhbGUoOCkiIGNsYXNzPSJxcmxpbmUiIHN0cm9rZT0iIzBhMGEwYSIgZD0iTTIgMi41aDdtMSAwaDNtMSAwaDJtNCAwaDFtMyAwaDdtLTI5IDFoMW01IDBoMW0xIDBoMW0zIDBoMW0xIDBoMW0zIDBoM20xIDBoMW01IDBoMW0tMjkgMWgxbTEgMGgzbTEgMGgxbTEgMGg2bTYgMGgxbTEgMGgxbTEgMGgzbTEgMGgxbS0yOSAxaDFtMSAwaDNtMSAwaDFtMiAwaDFtMyAwaDFtMiAwaDJtNCAwaDFtMSAwaDNtMSAwaDFtLTI5IDFoMW0xIDBoM20xIDBoMW0xIDBoMW0yIDBoMm0xIDBoMW0xIDBoNG0yIDBoMW0xIDBoM20xIDBoMW0tMjkgMWgxbTUgMGgxbTQgMGgxbTUgMGgxbTIgMGgxbTEgMGgxbTUgMGgxbS0yOSAxaDdtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDdtLTIwIDFoMm0xIDBoMm0xIDBoMm0yIDBoMm0tMjEgMWgxbTIgMGg2bTEgMGgzbTEgMGgxbTEgMGgybTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgzbS0yNyAxaDJtMSAwaDFtMSAwaDNtMyAwaDRtMiAwaDFtMSAwaDFtMSAwaDJtMSAwaDJtLTI1IDFoMm0xIDBoMW0xIDBoMW0xIDBoM20yIDBoMW0yIDBoMW0xIDBoMW0yIDBoMm0xIDBoMW0tMjYgMWgxbTIgMGgxbTMgMGgxbTIgMGgybTEgMGgxbTEgMGg0bTEgMGgzbTEgMGgxbTIgMGgxbS0yOSAxaDFtMSAwaDFtMyAwaDdtNyAwaDFtMSAwaDJtNCAwaDFtLTI3IDFoM20yIDBoMW0zIDBoMW0xIDBoM20xIDBoMm0zIDBoN20tMjUgMWgxbTEgMGgybTUgMGg0bTIgMGg0bTEgMGgxbTEgMGgxbTEgMGgxbS0yOCAxaDJtMSAwaDFtMiAwaDFtMSAwaDFtMSAwaDFtMyAwaDJtMSAwaDJtMyAwaDJtMSAwaDFtMSAwaDFtLTI5IDFoM20yIDBoMm00IDBoNm0yIDBoM20zIDBoMW0tMjYgMWgxbTEgMGgybTEgMGgxbTEgMGgybTEgMGgybTIgMGg2bTQgMGgxbTEgMGgybS0yOCAxaDVtMSAwaDFtMiAwaDFtMSAwaDJtMSAwaDJtMSAwaDFtMSAwaDFtNCAwaDJtMiAwaDFtLTI5IDFoMm0xIDBoMW0xIDBoMW0yIDBoMW0yIDBoNG00IDBoMW0yIDBoMW0yIDBoMm0tMjcgMWgzbTEgMGgxbTEgMGgxbTEgMGgxbTYgMGgzbTIgMGg4bS0yMCAxaDFtNCAwaDFtMSAwaDFtMiAwaDFtMSAwaDFtMyAwaDJtLTI2IDFoN20xIDBoM20xIDBoMW0xIDBoNG0xIDBoMm0xIDBoMW0xIDBoMm0tMjYgMWgxbTUgMGgxbTEgMGg0bTUgMGg0bTMgMGgxbS0yNSAxaDFtMSAwaDNtMSAwaDFtMSAwaDFtMiAwaDFtMSAwaDJtMSAwaDFtMiAwaDdtMSAwaDFtLTI4IDFoMW0xIDBoM20xIDBoMW0xIDBoMW0xIDBoMW0xIDBoNW0xIDBoMW0yIDBoMW02IDBoMW0tMjkgMWgxbTEgMGgzbTEgMGgxbTIgMGgxbTEgMGgxbTMgMGgxbTQgMGgybTEgMGgybTEgMGgzbS0yOSAxaDFtNSAwaDFtNiAwaDFtMSAwaDJtNSAwaDJtMSAwaDJtMSAwaDFtLTI5IDFoN20xIDBoMW0xIDBoMW0xIDBoNW0yIDBoMm0xIDBoMW0xIDBoMSIvPjwvc3ZnPg0K" alt="Código QR con el enlace al repositorio de Frame28 en GitHub">
+        <div class="qr-t"><b>Frame28 en GitHub</b><span>Instalación, guía de uso y novedades de cada versión.</span><code>github.com/javierledesma28/frame28</code></div>
+      </div>
+      <div class="made-with">
+        <span class="mw-who"><b>Javier Ledesma</b><span>Think28 · t28.io</span></span>
+        <span class="mw-sep"></span>
+        <span class="mw-ai"><span class="cc-logo" role="img" aria-label="Claude Code"></span>con ayuda de la IA · <b>Claude Code</b></span>
+      </div>
+    </div>
+    <div class="cover-meta">
+      <div><b>Think28 · t28.io</b><br>hola@t28.io</div>
+      <div style="text-align:right">A Think28 product</div>
+    </div>
+    <div class="s-notes"><ul><li>Cierre: el enlace lleva al repositorio con esta misma guía.</li></ul></div>
+  </section>
+
+  </div>
+
+  <nav class="deck-controls" aria-label="Controles de la presentación">
+    <button type="button" data-deck-action="prev" aria-label="Anterior">&lsaquo;</button>
+    <button type="button" data-deck-action="play" aria-pressed="false" aria-label="Reproducción automática">&#9654;</button>
+    <button type="button" data-deck-action="next" aria-label="Siguiente">&rsaquo;</button>
+    <span class="dc-pos"></span>
+    <button type="button" data-deck-action="overview" class="dc-icon" aria-label="Índice · recorrido por capítulos (O)" title="Índice (O)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3" y="4" width="4" height="16" rx="1.2" fill="currentColor"/><rect x="10" y="4" width="4" height="10" rx="1.2" fill="currentColor" opacity=".75"/><rect x="17" y="4" width="4" height="13" rx="1.2" fill="currentColor" opacity=".5"/></svg></button>
+    <button type="button" data-deck-action="presenter">Presentador</button>
+    <button type="button" data-deck-action="full" aria-label="Pantalla completa">&#9974;</button>
+  </nav>
+</div>
+
+<div class="deck-overview" aria-label="Índice de slides"><div class="ov-grid"></div></div>
+
+<script>
+/* =============================================================================
+   FUNDANET DECK ENGINE · motor
+   -----------------------------------------------------------------------------
+   Principio de diseño: el estado se APLICA POR ÍNDICE, nunca se encadena con
+   temporizadores. Ir al paso 4 no es "ejecutar 1,2,3,4": es pintar el estado 4.
+   Eso hace el rebobinado determinista por construcción — no hay forma de que
+   avanzar y retroceder dejen la slide distinta.
+
+   Contrato "estático primero": este script añade `.motion-ready` al documento
+   sólo cuando ha terminado de inicializarse sin errores. Si algo falla antes,
+   el CSS deja todo el contenido visible y el deck sigue siendo utilizable.
+   ============================================================================= */
+(function () {
+  'use strict';
+
+  var W = 1920, H = 1080;
+  var $  = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var deck = {
+    slides: [], i: 0, step: 0, steps: 0,
+    playing: false, timer: null, audience: null, isAudience: false,
+    t0: Date.now(), slideT0: Date.now()
+  };
+
+  /* ------------------------------------------------------------- 1 · escalado
+     Se escala el escenario entero, no cada elemento. Todo se autora a 1920x1080
+     y el deck se ve idéntico en cualquier pantalla o proyector. */
+  function fit() {
+    var vp = $('.deck-viewport'), st = $('.deck-stage');
+    if (!vp || !st) return;
+    var s = Math.min(vp.clientWidth / W, vp.clientHeight / H);
+    var x = (vp.clientWidth - W * s) / 2, y = (vp.clientHeight - H * s) / 2;
+    st.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+  }
+
+  /* ------------------------------------------------------- 2 · pasos de slide
+     Un paso agrupa los [data-motion-item] con el mismo data-step (1..N).
+     Estado 0 = nada revelado. Estado N = slide completa. */
+  function stepsOf(sl) {
+    var n = 0;
+    $$('[data-motion-item]', sl).forEach(function (el) {
+      n = Math.max(n, parseInt(el.getAttribute('data-step') || '1', 10) || 1);
+    });
+    return n;
+  }
+
+  function applyStep(sl, k) {
+    var total = stepsOf(sl);
+    $$('[data-motion-item]', sl).forEach(function (el) {
+      var s = parseInt(el.getAttribute('data-step') || '1', 10) || 1;
+      el.classList.toggle('is-in', s <= k);
+      el.classList.toggle('is-now', s === k && k < total);
+    });
+    // Nodos de proceso y carriles: marcan hecho / en curso por su propio índice
+    $$('[data-flow-step]', sl).forEach(function (el) {
+      var s = parseInt(el.getAttribute('data-flow-step'), 10);
+      el.classList.toggle('done', s < k);
+      el.classList.toggle('is-now', s === k);
+    });
+    sl.setAttribute('data-frame', k >= total ? 'end' : (k === 0 ? 'static' : 'step'));
+    sl.setAttribute('data-step-count', String(total));
+    paintStepbar(sl, k, total);
+    countUp(sl, k);
+  }
+
+  function paintStepbar(sl, k, total) {
+    var bar = $('.stepbar', sl);
+    if (!bar) return;
+    var dots = $$('.sb-dot', bar);
+    if (dots.length !== total) {
+      bar.querySelectorAll('.sb-dot').forEach(function (d) { d.remove(); });
+      var lab = $('.sb-lab', bar);
+      for (var j = 1; j <= total; j++) {
+        var d = document.createElement('span');
+        d.className = 'sb-dot';
+        bar.insertBefore(d, lab || null);
+      }
+      dots = $$('.sb-dot', bar);
+    }
+    dots.forEach(function (d, j) {
+      d.classList.toggle('done', j + 1 < k);
+      d.classList.toggle('now', j + 1 === k);
+    });
+    var lab = $('.sb-lab', bar);
+    if (lab && lab.hasAttribute('data-auto')) {
+      lab.innerHTML = 'Paso <b>' + Math.max(k, 1) + '</b> de <b>' + total + '</b>';
+    }
+  }
+
+  /* Contadores: se animan una vez, cuando su paso entra. Idempotente. */
+  function countUp(sl, k) {
+    $$('[data-count-to]', sl).forEach(function (el) {
+      var host = el.closest('[data-motion-item]');
+      var s = host ? (parseInt(host.getAttribute('data-step') || '1', 10) || 1) : 1;
+      var target = parseFloat(el.getAttribute('data-count-to'));
+      var dec = parseInt(el.getAttribute('data-count-dec') || '0', 10);
+      var pre = el.getAttribute('data-count-pre') || '';
+      var suf = el.getAttribute('data-count-suf') || '';
+      if (s > k) {
+        el.textContent = pre + (0).toFixed(dec) + suf;
+        el.removeAttribute('data-counted');
+        el.removeAttribute('data-counting');
+        return;
+      }
+      if (el.getAttribute('data-counted') === '1') return;
+      el.setAttribute('data-counted', '1');
+      if (reduced()) { el.textContent = pre + target.toFixed(dec) + suf; return; }
+      var t0 = performance.now(), dur = 820;
+      el.setAttribute('data-counting', '1');
+      (function tick(now) {
+        // Si la pestaña se oculta a mitad de la cuenta, el navegador deja de
+        // llamar a rAF y este tick no vuelve: se cierra aquí mismo.
+        if (document.hidden) { cierraContadores(); return; }
+        var p = Math.min(1, (now - t0) / dur);
+        var e = 1 - Math.pow(1 - p, 3);
+        el.textContent = pre + (target * e).toFixed(dec) + suf;
+        if (p < 1) { requestAnimationFrame(tick); return; }
+        el.removeAttribute('data-counting');
+      })(t0);
+    });
+  }
+
+  /* Un contador a medias que se queda congelado para siempre
+     ---------------------------------------------------------------------------
+     `requestAnimationFrame` NO se ejecuta mientras la pestaña está oculta. Un
+     contador al que le pillan a mitad se queda con el número que llevara —y
+     como ya tiene `data-counted`, no vuelve a arrancar nunca—. El ponente que
+     cambia de ventana durante una slide de KPIs vuelve y lee «3.334 €» donde
+     su deck dice 4.118 €, sin ningún indicio de que eso esté mal.
+
+     Se cierran todos en su valor final. La animación ya no se puede enseñar
+     —ocurrió mientras nadie miraba— y al volver lo único que importa es que la
+     cifra sea la de verdad.
+
+     Se escucha en los DOS sentidos a propósito: al ocultarse, para cerrar lo
+     que estuviera en vuelo; y al volver, porque si la cuenta arrancó con la
+     pestaña ya oculta el tick no llegó a correr ni una vez y el número se
+     habría quedado en cero. Medido el 18/09/2026 con el deck del CTO. */
+  function cierraContadores() {
+    $$('[data-count-to][data-counting="1"]').forEach(function (el) {
+      el.removeAttribute('data-counting');
+      var dec = parseInt(el.getAttribute('data-count-dec') || '0', 10);
+      el.textContent = (el.getAttribute('data-count-pre') || '')
+        + parseFloat(el.getAttribute('data-count-to')).toFixed(dec)
+        + (el.getAttribute('data-count-suf') || '');
+    });
+  }
+  document.addEventListener('visibilitychange', cierraContadores);
+
+  function reduced() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /* Al imprimir (o exportar a PDF) los contadores deben mostrar su valor final
+     en todas las slides, no el cero del estado inicial. */
+  function printCounters() {
+    $$('[data-count-to]').forEach(function (el) {
+      var target = parseFloat(el.getAttribute('data-count-to'));
+      var dec = parseInt(el.getAttribute('data-count-dec') || '0', 10);
+      el.textContent = (el.getAttribute('data-count-pre') || '') + target.toFixed(dec) + (el.getAttribute('data-count-suf') || '');
+      el.setAttribute('data-counted', '1');
+    });
+  }
+  window.addEventListener('beforeprint', printCounters);
+  if (window.matchMedia) {
+    var mqPrint = window.matchMedia('print');
+    if (mqPrint.addEventListener) mqPrint.addEventListener('change', function (e) { if (e.matches) printCounters(); });
+    else if (mqPrint.addListener) mqPrint.addListener(function (e) { if (e.matches) printCounters(); });
+  }
+
+  /* ------------------------------------------------------- 3 · ir a una slide */
+  function show(n, opts) {
+    opts = opts || {};
+    n = Math.max(0, Math.min(deck.slides.length - 1, n));
+    var prevI = deck.i;
+    var prev = deck.slides[deck.i], next = deck.slides[n];
+    var back = n < deck.i;
+
+    if (prev && prev !== next) {
+      prev.classList.remove('is-active', 'is-enter');
+      prev.classList.add('is-exit');
+      (function (p) { setTimeout(function () { p.classList.remove('is-exit'); }, 700); })(prev);
+    }
+
+    deck.i = n;
+    deck.steps = stepsOf(next);
+    // Al entrar hacia delante la slide muestra ya su primer bloque: llegar y no
+    // ver nada parece un fallo, y obliga al ponente a pulsar dos veces.
+    // data-start-step="0" fuerza la entrada en vacío cuando eso es lo buscado.
+    var inicio = next.getAttribute('data-start-step');
+    inicio = (inicio == null) ? Math.min(1, deck.steps) : (parseInt(inicio, 10) || 0);
+    deck.step = (opts.step != null) ? opts.step : (back ? deck.steps : inicio);
+
+    next.classList.add('is-active');
+    if (prev !== next) {
+      next.classList.remove('is-enter');
+      void next.offsetWidth;                 // reinicia la animación de entrada
+      next.classList.add('is-enter');
+      // Se retira al terminar: si se queda, los pseudo-elementos de la
+      // transición (cortinas, máscaras) siguen montados sobre el contenido.
+      clearTimeout(next._enterT);
+      next._enterT = setTimeout(function () { next.classList.remove('is-enter'); }, 1100);
+    }
+    applyStep(next, deck.step);
+
+    deck.slideT0 = Date.now();
+    paintChrome();
+    announce();
+    sync();
+    if (!opts.init && prev !== next) maybeIntro(prevI, n);
+  }
+
+  /* Barra de progreso por capítulos: un tramo por capítulo, proporcional a sus
+     slides, con su relleno propio. El tramo actual muestra el nombre; el resto
+     al pasar el ratón. Clic en un tramo salta a su primera slide. Sin capítulos
+     declarados (ni eyebrows) la barra sigue siendo la línea continua de siempre. */
+  function buildProgress() {
+    var pr = $('.deck-progress'); if (!pr) return;
+    var ch = chapters(), list = ch.list, N = deck.slides.length;
+    if (!list.length) return;
+    var seg = function (cls, slides, label) {
+      return '<span class="dp-seg ' + cls + '" style="--w:' + (100 * slides.length / N).toFixed(3) + '%"' +
+        ' data-first="' + slides[0] + '" data-last="' + slides[slides.length - 1] + '" data-go="' + slides[0] + '"' +
+        (label ? ' title="' + esc(label) + '"' : '') + '><i></i>' + (label ? '<b>' + esc(label) + '</b>' : '') + '</span>';
+    };
+    var h = '';
+    if (ch.start.length) h += seg('dp-end', ch.start, '');
+    list.forEach(function (c) { h += seg('dp-ch', c.slides, c.name); });
+    if (ch.end.length) h += seg('dp-end', ch.end, '');
+    pr.innerHTML = h;
+    pr.classList.add('has-chapters');
+    pr.style.width = '';
+    if (!deck.isAudience) {
+      pr.addEventListener('click', function (e) {
+        var s = e.target.closest('[data-go]');
+        if (s) { stop(); show(parseInt(s.getAttribute('data-go'), 10)); }
+      });
+    }
+  }
+  function paintProgress() {
+    var pr = $('.deck-progress'); if (!pr) return;
+    var frac = deck.steps ? deck.step / deck.steps : 1;
+    if (!pr.classList.contains('has-chapters')) {
+      pr.style.width = (100 * (deck.i + frac) / deck.slides.length) + '%';
+      return;
+    }
+    $$('.dp-seg', pr).forEach(function (s) {
+      var a = parseInt(s.getAttribute('data-first'), 10), b = parseInt(s.getAttribute('data-last'), 10), n = b - a + 1;
+      var f = deck.i > b ? 1 : (deck.i < a ? 0 : (deck.i - a + frac) / n);
+      var fill = $('i', s); if (fill) fill.style.width = (100 * f).toFixed(2) + '%';
+      s.classList.toggle('is-now', deck.i >= a && deck.i <= b);
+      s.classList.toggle('done', deck.i > b);
+    });
+  }
+
+  function paintChrome() {
+    var pos = $('.dc-pos');
+    if (pos) pos.textContent = (deck.i + 1) + ' / ' + deck.slides.length;
+    paintProgress();
+    var b = $('[data-deck-action="prev"]'), f = $('[data-deck-action="next"]');
+    if (b) b.disabled = (deck.i === 0 && deck.step === 0);
+    if (f) f.disabled = (deck.i === deck.slides.length - 1 && deck.step >= deck.steps);
+    var pl = $('[data-deck-action="play"]');
+    if (pl) pl.setAttribute('aria-pressed', deck.playing ? 'true' : 'false');
+    if (overviewOpen() && !deck.introOpen) buildOverview(false);
+    if (deck.presenterOn) paintPresenter();
+  }
+
+  function announce() {
+    var st = $('.deck-status');
+    if (!st) return;
+    var sl = deck.slides[deck.i];
+    var t = (sl.getAttribute('data-title') || ($('.s-title', sl) || {}).textContent || '').trim();
+    st.textContent = 'Slide ' + (deck.i + 1) + ' de ' + deck.slides.length +
+      (deck.steps ? ', paso ' + deck.step + ' de ' + deck.steps : '') + '. ' + t;
+  }
+
+  /* -------------------------------------------------------- 4 · avanzar/atrás */
+  function next() {
+    if (deck.step < deck.steps) { deck.step++; applyStep(deck.slides[deck.i], deck.step); paintChrome(); announce(); sync(); return true; }
+    if (deck.i < deck.slides.length - 1) { show(deck.i + 1); return true; }
+    stop(); return false;
+  }
+  function prev() {
+    if (deck.step > 0) { deck.step--; applyStep(deck.slides[deck.i], deck.step); paintChrome(); announce(); sync(); return; }
+    if (deck.i > 0) show(deck.i - 1);
+  }
+
+  /* ------------------------------------------------------------ 5 · autoplay */
+  function play() {
+    if (deck.playing) return;
+    deck.playing = true; paintChrome();
+    var hold = parseInt(getComputedStyle(document.documentElement)
+      .getPropertyValue('--motion-hold'), 10) || 720;
+    (function beat() {
+      deck.timer = setTimeout(function () {
+        if (!deck.playing) return;
+        if (next()) beat(); else stop();
+      }, Math.max(hold, 900));
+    })();
+  }
+  function stop() {
+    deck.playing = false;
+    if (deck.timer) { clearTimeout(deck.timer); deck.timer = null; }
+    paintChrome();
+  }
+  function toggle() { deck.playing ? stop() : play(); }
+
+  /* ------------------------------------------------ 6 · recorrido por capítulos
+     El índice no es una rejilla de slides: es el mapa de la historia. Cada slide
+     declara su capítulo con data-chapter (si no, hereda el de la anterior; si
+     ningún deck lo declara, se agrupa por el .s-eyebrow). Las portadas sin
+     capítulo son los extremos del recorrido. El capítulo actual va iluminado,
+     los pasados atenuados y los futuros perfilados. Al pasar el ratón por una
+     slide se ve su miniatura real; al hacer clic se va a ella.
+     El mismo mapa se abre solo, un par de segundos, al entrar en cada capítulo:
+     hace de agenda sin gastar una slide. */
+  function titleOf(sl, j) {
+    return (sl.getAttribute('data-title') || ($('.s-title', sl) || {}).textContent || 'Slide ' + (j + 1)).trim();
+  }
+  function chapters() {
+    if (deck._chapters) return deck._chapters;
+    var chs = [], cur = null, start = [], end = [];
+    var declared = deck.slides.some(function (s) { return s.hasAttribute('data-chapter'); });
+    var last = deck.slides.length - 1;
+    deck.slides.forEach(function (sl, j) {
+      var name = sl.getAttribute('data-chapter');
+      if (name == null && !declared) name = (($('.s-eyebrow', sl) || {}).textContent || '').trim() || null;
+      var cover = sl.classList.contains('cover');
+      if (name == null && cover) {
+        if (!chs.length) { start.push(j); return; }
+        if (j === last) { end.push(j); return; }
+      }
+      if (name != null && (!cur || cur.name !== name)) { cur = { name: name, slides: [], first: j, seconds: 0 }; chs.push(cur); }
+      if (!cur) { cur = { name: 'Contenido', slides: [], first: j, seconds: 0 }; chs.push(cur); }
+      cur.slides.push(j);
+      cur.seconds += parseInt(sl.getAttribute('data-seconds') || '0', 10) || 0;
+    });
+    deck._chapters = { list: chs, start: start, end: end };
+    return deck._chapters;
+  }
+  function chapterIndex(j) {
+    var list = chapters().list;
+    for (var c = 0; c < list.length; c++) if (list[c].slides.indexOf(j) >= 0) return c;
+    return -1;
+  }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function mins(sec) { return sec ? '≈ ' + Math.max(1, Math.round(sec / 60)) + ' min' : ''; }
+
+  function buildOverview(intro) {
+    var ov = $('.deck-overview'); if (!ov) return;
+    var ch = chapters(), list = ch.list, n = list.length;
+    var ci = chapterIndex(deck.i);
+    var title = (document.title || '').split('·')[0].trim();
+    var pos = ci >= 0 ? 'Capítulo <b>' + (ci + 1) + '</b> de ' + n : '';
+    var frac = ci < 0 ? (deck.i > (ch.start[0] || -1) ? 1 : 0)
+                      : (ci + (list[ci].slides.indexOf(deck.i) + 1) / list[ci].slides.length) / n;
+
+    var h = '<div class="ov-head">' +
+      '<span class="fn-logo blanco sm" role="img" aria-label="Think28"></span>' +
+      '<span class="ov-title">' + esc(title) + '</span>' +
+      '<span class="ov-pos">' + pos + ' · slide <b>' + (deck.i + 1) + '</b> de ' + deck.slides.length + '</span>' +
+      (intro ? '' : '<button type="button" class="ov-close" data-ov="close" aria-label="Cerrar índice">✕</button>') +
+      '</div>';
+
+    h += '<div class="ov-journey"><div class="ov-cols" style="--n:' + n + '">';
+    h += '<div class="ov-line"><i style="width:' + (100 * frac).toFixed(1) + '%"></i></div>';
+
+    var endpoint = function (j, cls) {
+      return '<button type="button" class="ov-end ' + cls + (j === deck.i ? ' is-active' : (j < deck.i ? ' past' : '')) +
+        '" data-go="' + j + '" data-preview="' + j + '"><span class="ov-dot"></span><span class="ov-end-t">' +
+        esc(titleOf(deck.slides[j], j)) + '</span></button>';
+    };
+    h += ch.start.length ? endpoint(ch.start[0], 'start') : '<span class="ov-end start ghost"></span>';
+
+    list.forEach(function (c, k) {
+      var st = k < ci ? 'done' : (k === ci ? 'is-now' : 'todo');
+      h += '<section class="ov-ch ' + st + '" style="--i:' + k + '">' +
+        '<button type="button" class="ov-ch-head" data-go="' + c.first + '">' +
+          '<span class="ov-ch-n">' + String(k + 1).padStart(2, '0') + '</span>' +
+          '<span class="ov-ch-name">' + esc(c.name) + '</span>' +
+          '<span class="ov-ch-meta">' + c.slides.length + (c.slides.length === 1 ? ' slide' : ' slides') +
+            (c.seconds ? ' · ' + mins(c.seconds) : '') + '</span>' +
+        '</button><ol class="ov-ch-list">';
+      c.slides.forEach(function (j) {
+        var cls = j === deck.i ? ' is-active' : (j < deck.i ? ' past' : '');
+        h += '<li><button type="button" class="ov-s' + cls + '" data-go="' + j + '" data-preview="' + j + '">' +
+          '<span class="ov-s-n">' + String(j + 1).padStart(2, '0') + '</span>' +
+          '<span class="ov-s-t">' + esc(titleOf(deck.slides[j], j)) + '</span></button></li>';
+      });
+      h += '</ol></section>';
+    });
+
+    h += ch.end.length ? endpoint(ch.end[0], 'end') : '<span class="ov-end end ghost"></span>';
+    h += '</div></div>';
+
+    if (intro && ci >= 0) {
+      h += '<div class="ov-intro-cap"><span class="ov-intro-k">Capítulo ' + (ci + 1) + ' de ' + n + '</span>' +
+           '<span class="ov-intro-t">' + esc(list[ci].name) + '</span></div>';
+    } else {
+      h += '<div class="ov-preview" hidden><div class="ov-pv-screen"></div><div class="ov-pv-cap"></div></div>' +
+           '<div class="ov-hint">Clic en una slide para ir · <b>O</b> o <b>Esc</b> cierra</div>';
+    }
+    ov.innerHTML = h;
+    ov.classList.toggle('is-intro', !!intro);
+
+    if (!intro) {
+      $$('[data-preview]', ov).forEach(function (b) {
+        b.addEventListener('mouseenter', function () { preview(parseInt(b.getAttribute('data-preview'), 10)); });
+        b.addEventListener('focus', function () { preview(parseInt(b.getAttribute('data-preview'), 10)); });
+      });
+    }
+  }
+  function preview(j) {
+    var pv = $('.ov-preview'); if (!pv) return;
+    pv.hidden = false;
+    thumb($('.ov-pv-screen', pv), deck.slides[j]);
+    var cap = $('.ov-pv-cap', pv);
+    if (cap) cap.innerHTML = '<b>' + String(j + 1).padStart(2, '0') + '</b> ' + esc(titleOf(deck.slides[j], j));
+  }
+  function openOverview(opts) {
+    opts = opts || {};
+    var ov = $('.deck-overview'); if (!ov) return;
+    clearTimeout(deck.introT);
+    buildOverview(!!opts.intro);
+    deck.introOpen = !!opts.intro;
+    ov.classList.add('is-open');
+    if (opts.intro) {
+      deck.introT = setTimeout(closeOverview, opts.ms || 2400);
+    } else {
+      var act = $('.ov-s.is-active, .ov-end.is-active', ov);
+      if (act) preview(parseInt(act.getAttribute('data-go'), 10));
+    }
+  }
+  function closeOverview() {
+    var o = $('.deck-overview'); if (!o) return;
+    clearTimeout(deck.introT);
+    deck.introOpen = false;
+    o.classList.remove('is-open', 'is-intro');
+    var pv = $('.ov-pv-screen', o); if (pv && pv._ro) { pv._ro.disconnect(); pv._ro = null; }
+  }
+  function overviewOpen() { var o = $('.deck-overview'); return !!(o && o.classList.contains('is-open')); }
+  function toggleOverview() { overviewOpen() ? closeOverview() : openOverview(); }
+
+  /* El índice sólo aparece y desaparece cuando lo pide el ponente (tecla O,
+     icono o FundanetDeck.overview()). Nunca se abre ni se cierra solo mientras
+     se presenta. La única excepción es opt-in: con data-chapter-intro="on" en
+     <html>, al cruzar hacia delante la frontera de un capítulo el recorrido se
+     muestra 2,4 s con el capítulo nuevo encendido y se cierra solo. */
+  function maybeIntro(fromI, toI) {
+    if (document.documentElement.getAttribute('data-chapter-intro') !== 'on') return;
+    if (reduced() || toI <= fromI) return;
+    var a = chapterIndex(fromI), b = chapterIndex(toI);
+    if (b < 0 || a === b || chapters().list.length < 2) return;
+    if (chapters().list[b].first !== toI) return;        // sólo al entrar por la primera slide
+    openOverview({ intro: true });
+  }
+
+  /* ------------------------------------------------------ 7 · modo presentador
+     Dos ventanas reales sincronizadas por postMessage directo entre opener y
+     popup. Se eligió postMessage y no BroadcastChannel/localStorage porque son
+     los únicos que funcionan con file:// (origen opaco), que es como se abre
+     un deck que mandas por correo. */
+  function openPresenter() {
+    if (deck.isAudience) return;                 // la ventana del público sólo obedece
+    if (deck.presenterOn) { closePresenter(); return; }
+
+    var url = location.href.split('#')[0];
+    url += (url.indexOf('?') < 0 ? '?' : '&') + 'screen=audience';
+    // popup=yes obliga a ventana real en Chrome/Edge/Firefox. Sin él, algunos
+    // contextos embebidos navegan la pestaña actual y el ponente pierde el deck.
+    var win = null;
+    try { win = window.open(url, 'fnDeckAudience', 'popup=yes,width=1280,height=720'); } catch (e) {}
+    if (win === window) win = null;
+
+    // Sin segunda ventana el modo sigue siendo útil para ensayar: notas,
+    // siguiente slide y cronómetro en una sola pantalla.
+    deck.audience = win || null;
+    document.body.classList.add('is-presenter');
+    deck.presenterOn = true;
+    buildPresenter();
+    var w = $('[data-pv="warn"]');
+    if (w) w.hidden = !!win;
+    paintPresenter();
+    if (!deck.clockTimer) deck.clockTimer = setInterval(paintClock, 1000);
+    if (win) setTimeout(sync, 700);
+  }
+
+  function closePresenter() {
+    document.body.classList.remove('is-presenter');
+    deck.presenterOn = false;
+    if (deck.audience && !deck.audience.closed) deck.audience.close();
+    deck.audience = null;
+    if (deck.clockTimer) { clearInterval(deck.clockTimer); deck.clockTimer = null; }
+    fit();
+  }
+
+  function buildPresenter() {
+    if ($('.pv')) return;
+    var pv = document.createElement('div');
+    pv.className = 'pv';
+    pv.innerHTML =
+      '<div class="pv-main">' +
+        '<div class="pv-lab">En pantalla</div>' +
+        '<div class="pv-screen" data-pv="now"></div>' +
+        '<div class="pv-clock">' +
+          '<div><div class="c-lab">Total</div><div class="c-val" data-pv="tTotal">0:00</div></div>' +
+          '<div><div class="c-lab">En esta slide</div><div class="c-val" data-pv="tSlide">0:00</div></div>' +
+          '<div><div class="c-lab">Posición</div><div class="c-val" data-pv="tPos">1 / 1</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="pv-side">' +
+        '<div class="pv-lab">Siguiente</div>' +
+        '<div class="pv-screen" data-pv="next"></div>' +
+        '<div class="pv-warn" data-pv="warn" hidden>Sin ventana de público: el navegador la ha ' +
+          'bloqueado. Esto sirve igual para ensayar. Permite las ventanas emergentes y pulsa P otra vez.</div>' +
+        '<div class="pv-notes" data-pv="notes"></div>' +
+      '</div>';
+    document.body.appendChild(pv);
+  }
+
+  /* Miniatura por clonado del DOM y escalado. Sin iframes: es lo único que
+     funciona con file:// sin permisos extra.
+     El escalado se reajusta con ResizeObserver porque en el primer frame el
+     contenedor del grid todavía no tiene su ancho definitivo. */
+  function thumb(host, sl) {
+    if (!host) return;
+    host.innerHTML = '';
+    if (host._ro) { host._ro.disconnect(); host._ro = null; }
+    if (!sl) return;
+
+    var box = document.createElement('div');
+    box.style.cssText = 'position:absolute;inset:0;overflow:hidden';
+    var c = sl.cloneNode(true);
+    c.classList.remove('is-enter', 'is-exit');
+    c.classList.add('is-active');
+    c.style.cssText = 'position:absolute;left:0;top:0;transform-origin:0 0;visibility:visible;opacity:1';
+    box.appendChild(c);
+    host.appendChild(box);
+
+    var rescale = function () {
+      var w = host.clientWidth;
+      if (!w) return;
+      c.style.transform = 'scale(' + (w / W) + ')';
+    };
+    rescale();
+    if (window.ResizeObserver) {
+      host._ro = new ResizeObserver(rescale);
+      host._ro.observe(host);
+    } else {
+      requestAnimationFrame(function () { requestAnimationFrame(rescale); });
+    }
+  }
+
+  function paintPresenter() {
+    if (!deck.presenterOn) return;
+    var cur = deck.slides[deck.i], nx = deck.slides[deck.i + 1];
+    thumb($('[data-pv="now"]'), cur);
+    thumb($('[data-pv="next"]'), nx);
+    var n = $('[data-pv="notes"]');
+    if (n) {
+      var src = $('.s-notes', cur);
+      n.innerHTML = '<h4>Notas · slide ' + (deck.i + 1) + '</h4>' +
+        (src ? src.innerHTML : '<p style="color:#6a7f9e">Sin notas para esta slide.</p>');
+    }
+    var p = $('[data-pv="tPos"]');
+    if (p) p.textContent = (deck.i + 1) + ' / ' + deck.slides.length +
+      (deck.steps ? '  ·  paso ' + deck.step + '/' + deck.steps : '');
+  }
+
+  function mmss(ms) {
+    var s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function paintClock() {
+    var a = $('[data-pv="tTotal"]'), b = $('[data-pv="tSlide"]');
+    if (a) a.textContent = mmss(Date.now() - deck.t0);
+    if (b) {
+      var el = Date.now() - deck.slideT0;
+      b.textContent = mmss(el);
+      var budget = parseInt(deck.slides[deck.i].getAttribute('data-seconds') || '0', 10);
+      b.classList.toggle('over', budget > 0 && el > budget * 1000);
+    }
+  }
+
+  /* Sincronización presentador -> público */
+  function sync() {
+    if (deck.audience && !deck.audience.closed) {
+      try { deck.audience.postMessage({ fnDeck: 1, i: deck.i, step: deck.step }, '*'); } catch (e) {}
+    }
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data;
+    if (!d || d.fnDeck !== 1) return;
+    if (d.i !== deck.i) show(d.i, { step: d.step });
+    else if (d.step !== deck.step) { deck.step = d.step; applyStep(deck.slides[deck.i], deck.step); paintChrome(); }
+  });
+
+  /* ------------------------------------------------------------- 8 · teclado */
+  function keys(e) {
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || '')) || e.target.isContentEditable) return;
+    var k = e.key;
+    // La transición de capítulo se cierra con cualquier tecla, sin efecto adicional
+    if (deck.introOpen && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); closeOverview(); return; }
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ' || k === 'Enter') {
+      if (k === ' ' && /^(BUTTON|A)$/.test(e.target.tagName)) return;
+      e.preventDefault(); stop(); next(); return;
+    }
+    if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); stop(); prev(); return; }
+    if (k === 'ArrowDown') { e.preventDefault(); stop(); show(deck.i + 1); return; }
+    if (k === 'ArrowUp')   { e.preventDefault(); stop(); show(deck.i - 1); return; }
+    if (k === 'Home')      { e.preventDefault(); stop(); show(0); return; }
+    if (k === 'End')       { e.preventDefault(); stop(); show(deck.slides.length - 1); return; }
+    if (k === 'Escape')    { closeOverview(); return; }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;      // no secuestrar atajos
+    var lk = k.toLowerCase();
+    if (lk === 'o') { e.preventDefault(); toggleOverview(); }
+    if (lk === 'p') { e.preventDefault(); openPresenter(); }
+    if (lk === 'r') { e.preventDefault(); stop(); show(deck.i, { step: 0 }); }
+    if (lk === 'f') { e.preventDefault(); toggleFull(); }
+    if (lk === 'a') { e.preventDefault(); toggle(); }
+    if (lk === 't') {
+      e.preventDefault();
+      var r = document.documentElement;
+      r.setAttribute('data-theme', r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    }
+  }
+  function toggleFull() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+  }
+
+  /* ---------------------------------------------------------------- 9 · init */
+  function init() {
+    deck.slides = $$('.slide');
+    if (!deck.slides.length) return;                 // sin slides no tocamos nada
+
+    var q = new URLSearchParams(location.search);
+    deck.isAudience = q.get('screen') === 'audience';
+
+    // Longitud real de trazo para cada conector: pathLength=1 lo normaliza,
+    // así una sola regla CSS sirve para cualquier geometría.
+    $$('.conn-draw, .line-draw').forEach(function (p) { p.setAttribute('pathLength', '1'); });
+
+    // Numeración y pie de marca automáticos
+    deck.slides.forEach(function (sl, j) {
+      var f = $('.s-foot', sl);
+      if (f && !$('.s-num', f)) {
+        var n = document.createElement('span');
+        n.className = 's-num';
+        n.textContent = String(j + 1).padStart(2, '0') + ' / ' + String(deck.slides.length).padStart(2, '0');
+        f.appendChild(n);
+      }
+    });
+
+    window.addEventListener('resize', fit);
+    document.addEventListener('keydown', keys);
+    fit();
+    buildProgress();
+
+    $$('[data-deck-action]').forEach(function (b) {
+      var a = b.getAttribute('data-deck-action');
+      b.addEventListener('click', function () {
+        if (a === 'next') { stop(); next(); }
+        if (a === 'prev') { stop(); prev(); }
+        if (a === 'play') { toggle(); }
+        if (a === 'overview') { toggleOverview(); }
+        if (a === 'presenter') { openPresenter(); }
+        if (a === 'full') { toggleFull(); }
+      });
+    });
+
+    // Índice: clic en una slide o capítulo navega; en el fondo o en ✕ cierra
+    var ovEl = $('.deck-overview');
+    if (ovEl) {
+      ovEl.addEventListener('click', function (e) {
+        if (deck.introOpen) { closeOverview(); return; }
+        var go = e.target.closest('[data-go]');
+        if (go) { closeOverview(); stop(); show(parseInt(go.getAttribute('data-go'), 10)); return; }
+        if (e.target.closest('[data-ov="close"]') || e.target === ovEl || e.target.classList.contains('ov-journey')) closeOverview();
+      });
+    }
+
+    // Clic y rueda sobre el escenario (no en el modo público, que sólo obedece)
+    if (!deck.isAudience) {
+      var vp = $('.deck-viewport');
+      if (vp) {
+        vp.addEventListener('click', function (e) {
+          // Los widgets interactivos (comparador, terminal, inputs) se quedan el clic
+          if (e.target.closest('.deck-controls, .deck-overview, a, button, input, .compare, .termplay, [data-no-advance]')) return;
+          stop(); next();
+        });
+        var wheelLock = 0;
+        vp.addEventListener('wheel', function (e) {
+          var now = Date.now();
+          if (now - wheelLock < 420) return;
+          wheelLock = now; stop();
+          e.deltaY > 0 ? next() : prev();
+        }, { passive: true });
+      }
+    }
+
+    // A partir de aquí el movimiento es seguro: si algo hubiera fallado antes,
+    // el CSS habría dejado el deck completo y legible.
+    document.documentElement.classList.add('motion-ready');
+
+    var start = parseInt(q.get('slide') || '1', 10) - 1;
+    show(isNaN(start) ? 0 : start, { step: q.get('step') != null ? parseInt(q.get('step'), 10) : 0, init: true });
+
+    // El chequeo necesita las fuentes cargadas para medir de verdad
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(check, 60); });
+    else setTimeout(check, 400);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  /* ------------------------------------------------- 10 · control de desborde
+     El error más caro de un deck es descubrir en la sala que una tabla se
+     cortaba. Las slides usan visibility:hidden, no display:none, así que el
+     layout de todas está calculado y se pueden medir sin mostrarlas. */
+  function check() {
+    var bad = [];
+    deck.slides.forEach(function (sl, j) {
+      var t = (sl.getAttribute('data-title') || 'slide ' + (j + 1)).trim();
+
+      // Conflictos de pseudo-elemento: un elemento sólo tiene un ::before y un
+      // ::after. Si dos efectos se pelean por el mismo, uno pisa al otro y el
+      // resultado es una capa opaca que no se retira.
+      if (sl.classList.contains('cover') && sl.getAttribute('data-transition') === 'curtain') {
+        bad.push({ slide: j + 1, titulo: t,
+                   problema: 'transición "curtain" no vale en una portada: su retícula ya usa ::after',
+                   sobra: 'usar depth o fade' });
+      }
+      if (sl.classList.contains('cover') && sl.getAttribute('data-bg') &&
+          sl.getAttribute('data-bg') !== 'net') {
+        bad.push({ slide: j + 1, titulo: t,
+                   problema: 'data-bg="' + sl.getAttribute('data-bg') + '" choca con la retícula de la portada (::before)',
+                   sobra: 'en portada sólo data-bg="net", que usa canvas' });
+      }
+      // Un [data-scroll] declara que ahí se scrollea a propósito (una tabla larga, un anexo).
+      // Sin esto el detector canta el alto entero de la tabla como si fuera un fallo.
+      var libre = !!sl.querySelector('[data-scroll]');
+      if (!libre && sl.scrollHeight > sl.clientHeight + 2) {
+        bad.push({ slide: j + 1, titulo: t, problema: 'desborda en vertical',
+                   sobra: sl.scrollHeight - sl.clientHeight + ' px' });
+      }
+      if (sl.scrollWidth > sl.clientWidth + 2) {
+        bad.push({ slide: j + 1, titulo: t, problema: 'desborda en horizontal',
+                   sobra: sl.scrollWidth - sl.clientWidth + ' px' });
+      }
+      $$('.panel, .code, .console, .lane-b', sl).forEach(function (el) {
+        if (el.hasAttribute('data-scroll') || el.closest('[data-scroll]')) return;
+        if (el.scrollHeight > el.clientHeight + 2) {
+          bad.push({ slide: j + 1, titulo: t,
+                     problema: 'contenido cortado en .' + el.className.split(' ')[0],
+                     sobra: el.scrollHeight - el.clientHeight + ' px' });
+        }
+      });
+    });
+    if (bad.length) {
+      console.warn('[Think28 Deck] ' + bad.length + ' aviso(s) de desborde:');
+      console.table(bad);
+    } else {
+      console.log('[Think28 Deck] ' + deck.slides.length + ' slides, ningún desborde.');
+    }
+    return bad;
+  }
+
+  window.FundanetDeck = {
+    go: function (n) { stop(); show(n - 1); },
+    next: next, prev: prev, play: play, stop: stop,
+    presenter: openPresenter, overview: toggleOverview,
+    intro: function () { openOverview({ intro: true }); },
+    chapters: function () { return chapters().list.map(function (c) { return { nombre: c.name, slides: c.slides.map(function (j) { return j + 1; }), segundos: c.seconds }; }); },
+    check: check,
+    state: function () { return { slide: deck.i + 1, step: deck.step, of: deck.slides.length }; }
+  };
+})();
+</script>
+<script>
+/* =============================================================================
+   FUNDANET DECK · EFECTOS
+   Se carga después de fundanet-deck.js. Es puramente aditivo: si este fichero
+   no está, o falla, el deck funciona igual. No toca el motor ni su estado.
+   ============================================================================= */
+(function () {
+  'use strict';
+
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------------------------------------- 1 · orden dentro del paso
+     --i escalona la entrada de los elementos que comparten data-step, para que
+     no aparezcan todos a la vez. Se calcula una vez: no cambia nunca. */
+  function stagger() {
+    $$('.slide').forEach(function (sl) {
+      var porPaso = {};
+      $$('[data-motion-item]', sl).forEach(function (el) {
+        var s = el.getAttribute('data-step') || '1';
+        porPaso[s] = (porPaso[s] || 0);
+        el.style.setProperty('--i', porPaso[s]);
+        porPaso[s]++;
+      });
+      // Líneas de texto que se revelan una tras otra
+      $$('.fx-lines', sl).forEach(function (host) {
+        $$('.fx-line', host).forEach(function (l, j) { l.style.setProperty('--l', j); });
+      });
+    });
+    $$('.ov-item').forEach(function (el, j) { el.style.setProperty('--i', j); });
+  }
+
+  /* ------------------------------------------------------ 2 · anillos de KPI
+     data-ring="0..100" dibuja un arco de progreso alrededor de la cifra.
+     pathLength no aplica a <circle>, así que se calcula la circunferencia. */
+  function rings() {
+    $$('[data-ring]').forEach(function (kpi) {
+      if (kpi.querySelector('.kpi-ring')) return;
+      var pct = Math.max(0, Math.min(100, parseFloat(kpi.getAttribute('data-ring')) || 0));
+      var r = 26, c = 2 * Math.PI * r;
+      var ns = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('class', 'kpi-ring');
+      svg.setAttribute('viewBox', '0 0 62 62');
+      svg.setAttribute('aria-hidden', 'true');
+      ['r-bg', 'r-fg'].forEach(function (cls) {
+        var ci = document.createElementNS(ns, 'circle');
+        ci.setAttribute('cx', 31); ci.setAttribute('cy', 31); ci.setAttribute('r', r);
+        ci.setAttribute('class', cls);
+        if (cls === 'r-fg') {
+          ci.style.strokeDasharray = c;
+          ci.style.strokeDashoffset = c;
+          // --ring es el desplazamiento final: cuánto arco queda sin pintar
+          kpi.style.setProperty('--ring', (c * (1 - pct / 100)).toFixed(2));
+        }
+        svg.appendChild(ci);
+      });
+      kpi.appendChild(svg);
+    });
+  }
+
+  /* --------------------------------------------------------- 3 · tilt 3D
+     Sólo con ratón fino: en táctil no aporta y estorba. */
+  function tilt() {
+    if (reduced) return;
+    if (window.matchMedia && !window.matchMedia('(pointer: fine)').matches) return;
+    $$('.fx-tilt').forEach(function (el) {
+      el.addEventListener('mousemove', function (e) {
+        var b = el.getBoundingClientRect();
+        var x = (e.clientX - b.left) / b.width - .5;
+        var y = (e.clientY - b.top) / b.height - .5;
+        el.style.setProperty('--ry', (x * 9).toFixed(2) + 'deg');
+        el.style.setProperty('--rx', (-y * 9).toFixed(2) + 'deg');
+      });
+      el.addEventListener('mouseleave', function () {
+        el.style.setProperty('--ry', '0deg');
+        el.style.setProperty('--rx', '0deg');
+      });
+    });
+  }
+
+  /* -------------------------------------------------- 4 · fondo de red viva
+     data-bg="net" en una slide dibuja nodos que derivan y se enlazan cuando
+     se acercan. Un solo rAF para todas: sólo pinta la slide activa, así que
+     el coste es constante aunque el deck tenga cincuenta slides. */
+  function net() {
+    if (reduced) return;
+    var hosts = $$('.slide[data-bg="net"]');
+    if (!hosts.length) return;
+
+    var W = 1920, H = 1080;
+    var capas = hosts.map(function (sl) {
+      var cv = document.createElement('canvas');
+      cv.className = 'fx-canvas';
+      cv.width = W; cv.height = H;
+      cv.setAttribute('aria-hidden', 'true');
+      sl.insertBefore(cv, sl.firstChild);
+
+      var n = parseInt(sl.getAttribute('data-net-nodes') || '46', 10);
+      var pts = [];
+      for (var i = 0; i < n; i++) {
+        pts.push({
+          x: Math.random() * W, y: Math.random() * H,
+          vx: (Math.random() - .5) * .22, vy: (Math.random() - .5) * .22,
+          r: 1.6 + Math.random() * 2.2
+        });
+      }
+      return { sl: sl, ctx: cv.getContext('2d'), pts: pts };
+    });
+
+    // Colores de marca leídos del tema, no escritos a mano
+    function color(v, fb) {
+      var c = getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+      return c || fb;
+    }
+
+    var DIST = 190, DIST2 = DIST * DIST;
+    function frame() {
+      var pri = color('--fn-primary', '#F5C500');
+      var sec = color('--fn-secondary', '#8a6f00');
+      capas.forEach(function (c) {
+        if (!c.sl.classList.contains('is-active')) return;   // sólo la visible
+        var g = c.ctx;
+        g.clearRect(0, 0, W, H);
+
+        for (var i = 0; i < c.pts.length; i++) {
+          var p = c.pts[i];
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > W) p.vx *= -1;
+          if (p.y < 0 || p.y > H) p.vy *= -1;
+        }
+        g.lineWidth = 1;
+        for (var a = 0; a < c.pts.length; a++) {
+          for (var b = a + 1; b < c.pts.length; b++) {
+            var dx = c.pts[a].x - c.pts[b].x, dy = c.pts[a].y - c.pts[b].y;
+            var d2 = dx * dx + dy * dy;
+            if (d2 > DIST2) continue;
+            g.globalAlpha = (1 - d2 / DIST2) * 0.16;
+            g.strokeStyle = pri;
+            g.beginPath();
+            g.moveTo(c.pts[a].x, c.pts[a].y);
+            g.lineTo(c.pts[b].x, c.pts[b].y);
+            g.stroke();
+          }
+        }
+        for (var k = 0; k < c.pts.length; k++) {
+          g.globalAlpha = .30;
+          g.fillStyle = k % 4 === 0 ? sec : pri;
+          g.beginPath();
+          g.arc(c.pts[k].x, c.pts[k].y, c.pts[k].r, 0, 6.2832);
+          g.fill();
+        }
+        g.globalAlpha = 1;
+      });
+      raf = requestAnimationFrame(frame);
+    }
+
+    var raf = requestAnimationFrame(frame);
+    // No gastar batería con la pestaña oculta
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
+      else if (!raf) raf = requestAnimationFrame(frame);
+    });
+  }
+
+  /* --------------------------------------- 5 · líneas sueltas fuera de .fx-lines */
+  function loseLines() {
+    $$('.fx-line').forEach(function (l) {
+      if (l.style.getPropertyValue('--l')) return;
+      var hermanos = Array.prototype.filter.call(l.parentNode.children, function (c) {
+        return c.classList && c.classList.contains('fx-line');
+      });
+      l.style.setProperty('--l', hermanos.indexOf(l));
+    });
+  }
+
+  /* ------------------------------------------------- 6 · puntero de foco
+     Tecla L: el cursor se convierte en un foco que atenúa el resto de la slide.
+     Sustituye al ratón perdido en el proyector. Es una capa fija sobre todo,
+     sin eventos: no interfiere con clics ni con el motor. */
+  function pointer() {
+    var layer = document.createElement('div');
+    layer.className = 'fx-pointer'; layer.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(layer);
+    var on = false, raf = 0, x = innerWidth / 2, y = innerHeight / 2;
+    function paint() { raf = 0; layer.style.setProperty('--px', x + 'px'); layer.style.setProperty('--py', y + 'px'); }
+    document.addEventListener('mousemove', function (e) {
+      if (!on) return; x = e.clientX; y = e.clientY;
+      if (!raf) raf = requestAnimationFrame(paint);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName || '')) return;
+      if (e.key.toLowerCase() === 'l') { on = !on; document.body.classList.toggle('is-pointer', on); paint(); }
+      if (e.key === 'Escape' && on) { on = false; document.body.classList.remove('is-pointer'); }
+    });
+  }
+
+  /* --------------------------------------------- 7 · comparador antes/después
+     Arrastrar el tirador (o el propio panel) mueve --pos; ← → con el tirador
+     enfocado lo mueve un 5 %. El estado vive en el elemento: rebobinar la
+     slide no lo toca, y eso es lo esperado en una comparación manual. */
+  function compare() {
+    $$('.compare').forEach(function (c) {
+      var h = c.querySelector('.cmp-handle');
+      if (!h) { h = document.createElement('div'); h.className = 'cmp-handle'; c.appendChild(h); }
+      h.setAttribute('tabindex', '0'); h.setAttribute('role', 'slider');
+      h.setAttribute('aria-label', 'Comparar antes y después'); h.setAttribute('aria-valuemin', '0'); h.setAttribute('aria-valuemax', '100');
+      var set = function (pct) {
+        pct = Math.max(2, Math.min(98, pct));
+        c.style.setProperty('--pos', pct.toFixed(1) + '%');
+        h.setAttribute('aria-valuenow', String(Math.round(pct)));
+      };
+      var fromEvent = function (e) {
+        var r = c.getBoundingClientRect();
+        set(100 * (e.clientX - r.left) / r.width);
+      };
+      var drag = false;
+      c.addEventListener('pointerdown', function (e) { drag = true; c.setPointerCapture && c.setPointerCapture(e.pointerId); fromEvent(e); e.preventDefault(); });
+      c.addEventListener('pointermove', function (e) { if (drag) fromEvent(e); });
+      c.addEventListener('pointerup', function () { drag = false; });
+      c.addEventListener('pointercancel', function () { drag = false; });
+      h.addEventListener('keydown', function (e) {
+        var cur = parseFloat(getComputedStyle(c).getPropertyValue('--pos')) || 50;
+        if (e.key === 'ArrowLeft') { set(cur - 5); e.preventDefault(); e.stopPropagation(); }
+        if (e.key === 'ArrowRight') { set(cur + 5); e.preventDefault(); e.stopPropagation(); }
+      });
+      set(parseFloat(getComputedStyle(c).getPropertyValue('--pos')) || 50);
+    });
+  }
+
+  /* -------------------------------------------- 8 · reproductor de terminal
+     Las líneas están en el HTML (estático primero: sin JS se ve el resultado
+     final). Con JS se ocultan y se reproducen en orden: las .cmd se teclean,
+     las demás aparecen; data-wait="ms" espera antes de una línea y una línea
+     .pause detiene hasta que el ponente pulsa. Arranca cuando su paso entra
+     y se reinicia por completo si la slide se rebobina. */
+  function termplay() {
+    $$('.termplay').forEach(function (tp) {
+      var screen = tp.querySelector('.tp-screen'); if (!screen) return;
+      var lines = $$('.ln', screen);
+      var speed = parseFloat(tp.getAttribute('data-speed') || '1') || 1;
+      var bar = tp.querySelector('.tp-bar');
+      if (!bar) {
+        bar = document.createElement('div'); bar.className = 'tp-bar';
+        bar.innerHTML = '<span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span>' +
+          '<span class="tp-title">' + (tp.getAttribute('data-title') || 'terminal') + '</span>' +
+          '<span class="tp-state"></span>' +
+          '<button type="button" class="tp-btn" data-tp="toggle" aria-label="Reproducir o pausar">⏯</button>' +
+          '<button type="button" class="tp-btn" data-tp="restart" aria-label="Reiniciar">↺</button>';
+        tp.insertBefore(bar, screen);
+      }
+      var st = bar.querySelector('.tp-state');
+      var i = 0, t = 0, paused = false, started = false, done = false;
+      function status(s) { if (st) st.textContent = s || ''; }
+      function reset() {
+        clearTimeout(t); i = 0; paused = false; started = false; done = false;
+        lines.forEach(function (l) { l.classList.remove('tp-on', 'tp-typing'); l.style.removeProperty('--dur'); });
+        tp.classList.remove('is-paused', 'is-done'); status('');
+      }
+      function finish() { done = true; tp.classList.add('is-done'); status('fin'); }
+      function step() {
+        if (paused) return;
+        if (i >= lines.length) { finish(); return; }
+        var l = lines[i++];
+        if (l.classList.contains('pause')) { l.classList.add('tp-on'); paused = true; tp.classList.add('is-paused'); status('en pausa · pulsa ⏯'); return; }
+        var wait = (parseInt(l.getAttribute('data-wait') || '0', 10) || 0) / speed;
+        var typing = l.classList.contains('cmd');
+        var dur = typing ? Math.min(2800, 26 * l.textContent.length) / speed : 0;
+        t = setTimeout(function () {
+          l.style.setProperty('--dur', Math.round(dur) + 'ms');
+          l.classList.add('tp-on'); if (typing) l.classList.add('tp-typing');
+          screen.scrollTop = screen.scrollHeight;
+          t = setTimeout(function () { l.classList.remove('tp-typing'); step(); }, dur + (typing ? 240 : 110) / speed);
+        }, wait);
+      }
+      function play() {
+        if (reduced) { lines.forEach(function (l) { l.classList.add('tp-on'); }); finish(); return; }
+        started = true; paused = false; tp.classList.remove('is-paused'); status('');
+        step();
+      }
+      function pause() { paused = true; clearTimeout(t); tp.classList.add('is-paused'); status('en pausa · pulsa ⏯'); }
+      tp.classList.add('is-live');
+      bar.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-tp]'); if (!b) return;
+        var a = b.getAttribute('data-tp');
+        if (a === 'restart') { reset(); play(); }
+        else if (done) { reset(); play(); }
+        else if (paused || !started) { play(); }
+        else { pause(); }
+      });
+      // Arranque ligado al paso del motor: cuando el item entra, se reproduce;
+      // si el ponente rebobina y el item sale, se reinicia del todo.
+      var host = tp.closest('[data-motion-item]') || tp;
+      var obs = new MutationObserver(function () {
+        var inn = host.classList.contains('is-in');
+        if (inn && !started && !done) play();
+        if (!inn && (started || done)) reset();
+      });
+      obs.observe(host, { attributes: true, attributeFilter: ['class'] });
+      if (host.classList.contains('is-in')) play();
+    });
+  }
+
+  function init() {
+    try {
+      stagger();
+      rings();
+      loseLines();
+      tilt();
+      net();
+      pointer();
+      compare();
+      termplay();
+    } catch (e) {
+      // Los efectos nunca deben tumbar el deck
+      console.warn('[Think28 FX] efecto omitido:', e && e.message);
+    }
+  }
+
+  // Después del motor, que es quien construye el índice y pone .motion-ready
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 0); });
+  else setTimeout(init, 0);
+})();
+</script>
+</body>
+</html>

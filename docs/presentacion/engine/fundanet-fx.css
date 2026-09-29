@@ -1,0 +1,336 @@
+/* =============================================================================
+   FUNDANET DECK · PAQUETE DE EFECTOS
+   Va después de fundanet-deck.css. Todo cuelga de .motion-ready: sin
+   JavaScript, en impresión y con prefers-reduced-motion nada de esto se
+   aplica y el deck se ve completo y legible.
+   ============================================================================= */
+
+/* ------------------------------------------------------ 1 · transiciones ricas */
+
+/* wipe · barrido diagonal con máscara. La slide no se mueve: se descubre. */
+.slide[data-transition="wipe"].is-enter{animation:wipeIn 820ms var(--ease-out) both}
+.slide[data-transition="wipe"].is-exit{animation:wipeOut 620ms var(--ease) both}
+@keyframes wipeIn{
+  from{clip-path:polygon(0 0,0 0,-22% 100%,0 100%)}
+  to{clip-path:polygon(0 0,122% 0,100% 100%,0 100%)}
+}
+@keyframes wipeOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-6%) scale(.97)}}
+
+/* curtain · una cortina en bandas verticales se sube y descubre la slide.
+   Va en ::after y NO en ::before a propósito: los fondos data-bg usan ::before,
+   y un elemento sólo tiene uno. Al compartirlo, las dos reglas se fusionaban y
+   quedaba una cortina opaca con la animación del fondo, que no se retiraba.
+   Se excluye .cover porque su retícula ya ocupa el ::after. */
+.slide[data-transition="curtain"]:not(.cover).is-enter{animation:fadeIn 240ms linear both}
+.slide[data-transition="curtain"]:not(.cover).is-enter::after{
+  content:'';position:absolute;inset:0;z-index:60;pointer-events:none;background:var(--bg);
+  transform-origin:top;
+  animation:curtainWipe 950ms var(--ease-out) both;
+  -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 11%,transparent 11% 12.5%);
+  mask-image:repeating-linear-gradient(90deg,#000 0 11%,transparent 11% 12.5%);
+}
+@keyframes curtainWipe{from{transform:scaleY(1)}to{transform:scaleY(0)}}
+
+/* depth · entra desde el fondo con desenfoque. El más cinematográfico. */
+.slide[data-transition="depth"].is-enter{animation:depthIn 880ms var(--ease-out) both}
+.slide[data-transition="depth"].is-exit{animation:depthOut 620ms var(--ease) both}
+@keyframes depthIn{
+  from{opacity:0;transform:scale(1.14);filter:blur(22px)}
+  60%{opacity:1}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+@keyframes depthOut{
+  from{opacity:1;transform:none;filter:blur(0)}
+  to{opacity:0;transform:scale(.93);filter:blur(14px)}
+}
+
+/* push · las dos slides se mueven juntas, como una cinta */
+.slide[data-transition="push"].is-enter{animation:pushIn 720ms var(--ease-out) both}
+.slide[data-transition="push"].is-exit{animation:pushOut 720ms var(--ease-out) both}
+@keyframes pushIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes pushOut{from{transform:none}to{transform:translateX(-100%)}}
+
+/* ------------------------------------------- 2 · entrada escalonada (stagger)
+   El motor pone --i (orden dentro del paso). Los elementos de un mismo paso
+   no entran de golpe: se encadenan cada 90 ms. */
+.motion-ready [data-motion-item]{transition-delay:calc(var(--i,0) * 90ms)}
+.motion-ready [data-motion-item]:not(.is-in){transition-delay:0ms}
+
+/* Entradas alternativas por elemento, con data-fx */
+.motion-ready [data-motion-item][data-fx]{
+  transition:opacity var(--motion-step) var(--ease),
+             transform 720ms var(--ease-out),
+             filter 720ms var(--ease-out);
+  transition-delay:calc(var(--i,0) * 90ms);
+}
+.motion-ready [data-motion-item][data-fx="left"]{transform:translateX(-46px)}
+.motion-ready [data-motion-item][data-fx="right"]{transform:translateX(46px)}
+.motion-ready [data-motion-item][data-fx="scale"]{transform:scale(.9)}
+.motion-ready [data-motion-item][data-fx="rise"]{transform:translateY(44px)}
+.motion-ready [data-motion-item][data-fx="blur"]{transform:scale(1.04);filter:blur(14px)}
+.motion-ready [data-motion-item][data-fx].is-in{transform:none;filter:blur(0)}
+
+/* ------------------------------------------------------ 3 · foco (spotlight)
+   Con data-spotlight="on" en la slide, lo que ya salió se atenúa y la vista
+   va sola al paso actual sin que nadie tenga que señalar con el ratón. */
+.motion-ready .slide[data-spotlight="on"] [data-motion-item].is-in:not(.is-now){
+  opacity:.32;filter:saturate(.5);
+  transition:opacity 420ms var(--ease),filter 420ms var(--ease);
+}
+.motion-ready .slide[data-spotlight="on"] [data-motion-item].is-now{
+  opacity:1;filter:none;transform:scale(1.014);
+}
+.motion-ready .slide[data-frame="end"][data-spotlight="on"] [data-motion-item]{
+  opacity:1 !important;filter:none !important;transform:none !important;
+}
+
+/* ------------------------------------------------- 4 · revelado de texto */
+.motion-ready .fx-line{
+  display:block;opacity:0;transform:translateY(26px);
+  transition:opacity 640ms var(--ease-out),transform 760ms var(--ease-out);
+  transition-delay:calc(var(--l,0) * 130ms);
+}
+.motion-ready .is-in .fx-line,
+.motion-ready .slide.is-active .fx-line,
+.motion-ready .slide[data-frame="end"] .fx-line{opacity:1;transform:none}
+
+/* Subrayado que se traza bajo una palabra clave */
+.fx-mark{position:relative;white-space:nowrap;font-weight:700;color:var(--fn-primary)}
+.fx-mark::after{
+  content:'';position:absolute;left:0;right:0;bottom:-5px;height:5px;border-radius:3px;
+  background:var(--fn-secondary);transform:scaleX(0);transform-origin:left;opacity:.55;
+}
+.motion-ready .is-in .fx-mark::after,
+.motion-ready .slide.is-active .fx-mark::after,
+.motion-ready .slide[data-frame="end"] .fx-mark::after{
+  transform:scaleX(1);transition:transform 760ms var(--ease-out) 300ms;
+}
+
+/* Cifra que aterriza: acompaña al contador del motor */
+.motion-ready [data-count-to]{display:inline-block}
+.motion-ready [data-motion-item].is-in [data-count-to]{animation:numLand 780ms var(--ease-out) both}
+@keyframes numLand{
+  from{transform:translateY(18px) scale(.9);opacity:0;filter:blur(6px)}
+  to{transform:none;opacity:1;filter:blur(0)}
+}
+
+/* --------------------------------------------------------- 5 · fondo vivo */
+/* z-index:-1 mete el lienzo entre el fondo de la slide y su contenido, sin
+   tocar el posicionamiento de ningún hijo. Reposicionar los hijos (por ejemplo
+   dando position:relative a todos) descoloca el pie y la barra de marca, que
+   son absolutos. */
+.fx-canvas{
+  position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;
+  opacity:0;transition:opacity 1000ms var(--ease);
+}
+.slide.is-active .fx-canvas{opacity:1}
+
+/* Aurora: dos manchas de marca que respiran.
+   Se mueve con background-position, NO con transform ni inset negativo: esos
+   dos generan overflow desplazable y el detector los cuenta como desborde
+   aunque el overflow:hidden los tape. Los gradientes ya son difusos de suyo,
+   así que tampoco hace falta filter:blur. */
+.slide[data-bg="aurora"]::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 54% 50% at 24% 28%,color-mix(in srgb,var(--fn-secondary) 26%,transparent) 0%,transparent 70%),
+    radial-gradient(ellipse 58% 52% at 76% 72%,color-mix(in srgb,var(--fn-primary) 24%,transparent) 0%,transparent 68%);
+  background-size:132% 132%,138% 138%;
+  background-position:0% 0%,100% 100%;
+  background-repeat:no-repeat;
+}
+.motion-ready .slide[data-bg="aurora"].is-active::before{animation:aurora 26s ease-in-out infinite alternate}
+@keyframes aurora{
+  0%  {background-position:0% 0%,100% 100%}
+  50% {background-position:16% 10%,84% 90%}
+  100%{background-position:5% 18%,95% 82%}
+}
+
+/* Retícula técnica que se dibuja al entrar */
+.slide[data-bg="grid"]::before{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--fn-primary) 9%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--fn-primary) 9%,transparent) 1px,transparent 1px);
+  background-size:64px 64px;
+}
+.motion-ready .slide[data-bg="grid"].is-active::before{animation:gridIn 1500ms var(--ease-out) both}
+@keyframes gridIn{from{opacity:0;background-size:230px 230px}to{opacity:1;background-size:64px 64px}}
+
+/* ------------------------------------------------ 6 · portada cinematográfica */
+.motion-ready .slide.cover.is-active .cover-tag{animation:covUp 900ms var(--ease-out) both}
+.motion-ready .slide.cover.is-active .s-sub{animation:covUp 1000ms var(--ease-out) 560ms both}
+.motion-ready .slide.cover.is-active .cover-meta{animation:covUp 900ms var(--ease-out) 820ms both}
+@keyframes covUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
+
+/* El título entra desenfocado desde abajo y luego lo cruza un barrido de luz */
+.motion-ready .slide.cover.is-active .s-title{
+  background:linear-gradient(100deg,#fff 32%,#a9ece2 47%,#fff 62%);
+  background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:covTitle 1250ms var(--ease-out) 180ms both,
+            covShine 2800ms var(--ease) 1250ms 1;
+}
+@keyframes covTitle{
+  from{opacity:0;transform:translateY(60px) scale(.97);filter:blur(16px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+@keyframes covShine{from{background-position:190% 0}to{background-position:-90% 0}}
+
+/* La retícula de la portada se dibuja al entrar */
+.motion-ready .slide.cover.is-active::after{animation:covGrid 2100ms var(--ease-out) both}
+@keyframes covGrid{from{opacity:0;background-size:210px 210px}to{opacity:1;background-size:80px 80px}}
+
+/* ------------------------------------------------------- 7 · KPI con anillo */
+.kpi{transition:transform 420ms var(--ease-out),box-shadow 420ms var(--ease-out)}
+.kpi-ring{position:absolute;right:20px;top:20px;width:62px;height:62px}
+.kpi-ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.kpi-ring .r-bg{stroke:color-mix(in srgb,var(--fn-primary) 14%,transparent)}
+.kpi-ring .r-fg{
+  stroke:var(--fn-secondary);transform:rotate(-90deg);transform-origin:50% 50%;
+  stroke-dasharray:1;stroke-dashoffset:1;
+  transition:stroke-dashoffset 1200ms var(--ease-out) 260ms;
+}
+.motion-ready [data-motion-item].is-in .kpi-ring .r-fg,
+.motion-ready .slide[data-frame="end"] .kpi-ring .r-fg{stroke-dashoffset:var(--ring,0)}
+
+/* Brillo que recorre el KPI al entrar, una sola pasada */
+.motion-ready [data-motion-item].is-in .kpi::after{
+  content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:linear-gradient(115deg,transparent 38%,color-mix(in srgb,var(--fn-secondary) 30%,transparent) 50%,transparent 62%);
+  background-size:300% 100%;animation:kpiShine 1600ms var(--ease-out) 1;
+}
+@keyframes kpiShine{from{background-position:200% 0}to{background-position:-100% 0}}
+
+/* ------------------------------------------------------- 8 · relieve y tilt */
+.panel,.flow-node{transition:transform 380ms var(--ease-out),box-shadow 380ms var(--ease-out)}
+.motion-ready .slide.is-active .panel:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg)}
+.motion-ready .slide.is-active .flow-node:hover{transform:translateY(-4px)}
+
+/* Tilt 3D: el motor escribe --rx / --ry al mover el ratón sobre .fx-tilt */
+.motion-ready .fx-tilt{
+  transform-style:preserve-3d;will-change:transform;
+  transform:perspective(1200px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  transition:transform 240ms var(--ease-out);
+}
+
+/* --------------------------------------------------- 9 · consola escribiendo
+   Se descubre con clip-path, NO con max-width: max-width es una propiedad de
+   layout y dentro del flex de la consola colapsa las líneas y rompe la slide. */
+.motion-ready .console .ln.fx-type.is-in{
+  animation:typeIn 620ms steps(34,end) both;
+}
+@keyframes typeIn{
+  from{clip-path:inset(0 100% 0 0)}
+  to{clip-path:inset(0 0 0 0)}
+}
+.console .caret{
+  display:inline-block;width:10px;height:1.05em;vertical-align:-2px;margin-left:4px;
+  background:var(--fn-secondary);
+}
+.motion-ready .console .caret{animation:caretBlink 1.05s steps(1) infinite}
+@keyframes caretBlink{50%{opacity:0}}
+
+/* ------------------------------------------------ 10 · cromo con más presencia */
+.deck-progress{height:5px;box-shadow:0 0 20px color-mix(in srgb,var(--fn-secondary) 70%,transparent)}
+.stepbar .sb-dot{position:relative}
+.stepbar .sb-dot.now{box-shadow:0 0 0 6px color-mix(in srgb,var(--fn-secondary) 20%,transparent)}
+.motion-ready .stepbar .sb-dot.now::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  border:1.5px solid var(--fn-secondary);animation:dotPulse 1.9s var(--ease-out) infinite;
+}
+@keyframes dotPulse{from{transform:scale(1);opacity:.85}to{transform:scale(2.8);opacity:0}}
+
+/* Anillo que late en el nodo de proceso activo */
+.motion-ready .flow-node.is-now::before{
+  content:'';position:absolute;inset:-2px;border-radius:18px;pointer-events:none;
+  border:2px solid var(--fn-secondary);animation:nodePulse 2s var(--ease-out) infinite;
+}
+@keyframes nodePulse{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(1.055)}}
+
+/* El índice entra en cascada */
+.deck-overview.is-open .ov-item{animation:ovIn 480ms var(--ease-out) both;animation-delay:calc(var(--i,0) * 38ms)}
+@keyframes ovIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+
+/* ------------------------------------------------ 10b · puntero de foco (L) */
+.fx-pointer{
+  position:fixed;inset:0;z-index:940;pointer-events:none;opacity:0;transition:opacity .25s var(--ease);
+  --px:50vw;--py:50vh;
+  background:radial-gradient(circle at var(--px) var(--py),transparent 0,transparent 120px,rgba(6,16,31,.14) 150px,rgba(6,16,31,.62) 300px);
+}
+body.is-pointer .fx-pointer{opacity:1}
+body.is-pointer .fx-pointer::after{
+  content:'';position:absolute;left:var(--px);top:var(--py);width:250px;height:250px;margin:-125px 0 0 -125px;
+  border-radius:50%;border:2px solid rgba(126,224,214,.85);box-shadow:0 0 34px rgba(13,143,135,.55),inset 0 0 40px rgba(126,224,214,.12);
+}
+body.is-pointer{cursor:none}
+
+/* -------------------------------------------- 10c · reproductor de terminal */
+.termplay{
+  display:flex;flex-direction:column;min-height:0;border-radius:20px;overflow:hidden;
+  background:var(--code-bg);color:var(--code-ink);box-shadow:var(--shadow-lg);
+  font:21px/1.55 var(--mono);
+}
+.tp-bar{
+  display:flex;align-items:center;gap:8px;padding:12px 18px;flex:0 0 auto;
+  background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.08);
+  font:600 15px/1 var(--font);color:#93a9c6;
+}
+.tp-dot{width:12px;height:12px;border-radius:50%;background:#ff5f57}
+.tp-dot:nth-child(2){background:#febc2e}.tp-dot:nth-child(3){background:#28c840}
+.tp-title{margin-left:10px;letter-spacing:.04em}
+.tp-state{margin-left:auto;color:#ffd291;font-weight:600}
+.tp-btn{
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#d6e6ff;
+  border-radius:8px;padding:4px 10px;font-size:15px;cursor:pointer;line-height:1.2;
+}
+.tp-btn:hover{background:rgba(255,255,255,.14)}
+.tp-screen{flex:1;min-height:0;overflow:auto;padding:22px 28px;display:flex;flex-direction:column;gap:4px}
+.tp-screen .ln{white-space:pre-wrap;word-break:break-word;position:relative}
+.tp-screen .ln.cmd::before{content:'$ ';color:#7488a8}
+.tp-screen .ln.pause{display:none}
+.tp-screen .ln.ok{color:#6fe3a4}.tp-screen .ln.no{color:#ff9b9b}.tp-screen .ln.wa{color:#ffd291}.tp-screen .ln.dim{color:#7488a8}
+.tp-screen .k{color:#7db4ff}.tp-screen .ok{color:#6fe3a4}.tp-screen .no{color:#ff9b9b}.tp-screen .wa{color:#ffd291}.tp-screen .dim{color:#7488a8}
+/* Con JS: las líneas se ocultan y se van revelando */
+.termplay.is-live .ln:not(.tp-on){display:none}
+.termplay.is-live .ln.tp-typing{animation:tpType var(--dur,900ms) steps(40,end) both}
+@keyframes tpType{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.termplay.is-live .ln.tp-typing::after{
+  content:'';display:inline-block;width:10px;height:1.05em;vertical-align:-2px;margin-left:4px;
+  background:var(--fn-secondary);animation:caretBlink .9s steps(1) infinite;
+}
+.termplay.is-paused .tp-screen{box-shadow:inset 0 0 0 2px rgba(255,210,145,.35)}
+
+/* ------------------------------------- 11 · desactivación total del paquete */
+@media (prefers-reduced-motion:reduce){
+  .fx-pointer{display:none !important}
+  .termplay.is-live .ln{display:block !important;animation:none !important;clip-path:none !important}
+  .termplay.is-live .ln.pause{display:none !important}
+  .motion-ready .seq-msg[data-motion-item] .seq-arrow{transform:none !important;transition:none !important}
+  .fx-canvas{display:none !important}
+  .slide[data-bg="aurora"]::before,.slide[data-bg="grid"]::before{animation:none !important}
+  .fx-line{opacity:1 !important;transform:none !important}
+  .fx-mark::after{transform:scaleX(1) !important}
+  .motion-ready .slide[data-spotlight="on"] [data-motion-item].is-in:not(.is-now){opacity:1;filter:none}
+  .motion-ready .slide.cover.is-active .s-title{
+    -webkit-text-fill-color:#fff;color:#fff;background:none;animation:none !important;
+  }
+  .kpi-ring .r-fg{stroke-dashoffset:var(--ring,0) !important}
+  .motion-ready [data-motion-item][data-fx]{transform:none !important;filter:none !important}
+}
+@media print{
+  .fx-canvas,.fx-pointer{display:none !important}
+  .termplay.is-live .ln{display:block !important;animation:none !important;clip-path:none !important}
+  .termplay.is-live .ln.pause{display:none !important}
+  .tp-bar .tp-btn,.tp-state{display:none !important}
+  .motion-ready .seq-msg[data-motion-item] .seq-arrow{transform:none !important}
+  .compare{--pos:50% !important}
+  .fx-line{opacity:1 !important;transform:none !important}
+  .fx-mark::after{transform:scaleX(1) !important}
+  .kpi-ring .r-fg{stroke-dashoffset:var(--ring,0) !important}
+  .slide.cover .s-title{-webkit-text-fill-color:#fff !important;color:#fff !important;background:none !important;animation:none !important}
+  .motion-ready .slide[data-spotlight="on"] [data-motion-item]{opacity:1 !important;filter:none !important}
+  .motion-ready [data-motion-item][data-fx]{transform:none !important;filter:none !important}
+  .slide[data-bg="aurora"]::before,.slide[data-bg="grid"]::before{animation:none !important}
+}
