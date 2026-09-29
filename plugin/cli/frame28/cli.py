@@ -114,11 +114,15 @@ def matte(video, out_webm, start, end, ratio, fps, keep_png, as_json):
 @main.command()
 @click.argument("video", type=click.Path(exists=True))
 @click.option("--samples", default=6, show_default=True)
+@click.option("--canvas", default="auto", show_default=True, help="lienzo del storyboard, p. ej. 1920x1080 o 1080x1920 (auto: según el formato del clip)")
 @click.option("--json", "as_json", is_flag=True)
-def speaker(video, samples, as_json):
-    """Dónde está el hablante (bbox en coordenadas 1080p) y qué lado queda libre para overlays."""
+def speaker(video, samples, canvas, as_json):
+    """Dónde está el hablante (bbox en coordenadas del lienzo) y qué lado queda libre para overlays."""
     from .matte import speaker_layout
-    out(speaker_layout(video, samples), as_json or True)
+    from .media import probe
+    from .captions import parse_canvas
+    v = probe(video).get("video") or {}
+    out(speaker_layout(video, samples, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0))), as_json or True)
 
 
 @main.command()
@@ -151,12 +155,16 @@ def frames(video, times, out_dir, width):
 @click.option("--words", type=click.Path(exists=True), default=None, help="words.json para cruzar gestos con palabras")
 @click.option("--sample-fps", default=10.0, show_default=True)
 @click.option("--annotate", type=click.Path(), default=None, help="PNG con un fotograma por gesto para revisar")
+@click.option("--canvas", default="auto", show_default=True, help="lienzo del storyboard, p. ej. 1920x1080 o 1080x1920 (auto: según el formato del clip)")
 @click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar el resultado en JSON")
 @click.option("--json", "as_json", is_flag=True)
-def gestures(video, words, sample_fps, annotate, out_json, as_json):
-    """Detecta cuándo el hablante señala (MediaPipe Pose) y propone los overlays `pointer` ya colocados."""
+def gestures(video, words, sample_fps, annotate, canvas, out_json, as_json):
+    """Detecta cuándo el hablante señala (MediaPipe Pose) y propone los overlays `pointer` ya colocados (coordenadas del lienzo)."""
     from .pose import analyze
-    r = analyze(video, words, sample_fps, annotate)
+    from .media import probe
+    from .captions import parse_canvas
+    v = probe(video).get("video") or {}
+    r = analyze(video, words, sample_fps, annotate, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0)))
     if out_json:
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
         r["saved"] = out_json
@@ -249,6 +257,42 @@ def cut_apply(video, cuts, audio, words, captions, storyboard, out_dir, as_json)
     """Aplica cuts.json: clip.mp4 y voice.wav cortados (fundidos de 30 ms) + words/captions/storyboard remapeados."""
     from .cut import apply as _apply
     out(_apply(video, audio, cuts, out_dir, words, captions, storyboard), as_json or True)
+
+
+@main.group()
+def captions():
+    """Subtítulos: exportar SRT/VTT legibles a partir de words.json."""
+
+
+@captions.command("export")
+@click.argument("words", type=click.Path(exists=True))
+@click.option("-o", "--out", "out_path", required=True, type=click.Path(), help="fichero .srt o .vtt")
+@click.option("--max-chars", default=42, show_default=True, help="caracteres por línea")
+@click.option("--max-lines", default=2, show_default=True)
+@click.option("--max-dur", default=7.0, show_default=True, help="segundos por cue")
+@click.option("--max-gap", default=0.7, show_default=True, help="pausa (s) que fuerza un cue nuevo")
+@click.option("--max-cps", default=17.0, show_default=True, help="caracteres por segundo tolerados (aviso si se supera)")
+@click.option("--json", "as_json", is_flag=True)
+def captions_export(words, out_path, max_chars, max_lines, max_dur, max_gap, max_cps, as_json):
+    """words.json → .srt/.vtt con cortes en puntuación y pausas, ≤ 42 caracteres por línea, 1–7 s por cue."""
+    from .captions import export
+    out(export(words, out_path, max_chars=max_chars, max_lines=max_lines, max_dur=max_dur, max_gap=max_gap, max_cps=max_cps), as_json or True)
+
+
+@captions.command("pages")
+@click.argument("words", type=click.Path(exists=True))
+@click.option("--max-words", default=4, show_default=True)
+@click.option("--max-chars", default=22, show_default=True)
+@click.option("--json", "as_json", is_flag=True)
+def captions_pages(words, max_words, max_chars, as_json):
+    """Muestra cómo quedarían las páginas de los presets `pages`/`karaoke` (para revisar antes de renderizar)."""
+    from .captions import load_words, pages
+    pgs = pages(load_words(words), max_words=max_words, max_chars=max_chars)
+    if as_json:
+        out(pgs, True)
+    else:
+        for p in pgs:
+            click.echo(f"{p['start']:7.2f}–{p['end']:6.2f}  {p['text']}")
 
 
 @main.group()

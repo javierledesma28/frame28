@@ -20,7 +20,7 @@ ffmpeg o Node, di exactamente qué instalar (el `doctor` lo imprime) y para.
 
 ```bash
 frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav (limpia y a −14 LUFS), audio16k.wav, probe.json
-frame28 speaker work/clip.mp4          # side: left|center|right, free_side, bbox_1080p
+frame28 speaker work/clip.mp4          # side: left|center|right, free_side, bbox_canvas (píxeles del lienzo)
 frame28 sheet work/clip.mp4 -o work/sheet.png --every 1
 ```
 Tras transcribir (paso 2), detecta los gestos de señalar y sus palabras:
@@ -29,7 +29,10 @@ frame28 gestures work/clip.mp4 --words work/words.json -o work/gestures.json --a
 ```
 `pointer_suggestions` trae los overlays `pointer` ya colocados (dot en la punta del dedo, box fuera de la cara,
 `at` en la palabra "aquí/esto/este"). Usa los de `confidence: high` tal cual; los `low` solo si al mirar
-`work/gestos.png` el gesto es realmente de señalar. `face_box_1080p` es la zona que ningún overlay debe tapar.
+`work/gestos.png` el gesto es realmente de señalar. `face_box` es la zona que ningún overlay debe tapar.
+**Lienzo**: `speaker` y `gestures` devuelven coordenadas en el lienzo que toca por formato (clip apaisado →
+1920×1080, vertical → 1080×1920, cuadrado → 1080×1080; `canvas` en la salida). Si quieres otro, `--canvas 1080x1920`
+en ambos y el mismo `canvas` en el storyboard. Un clip vertical de móvil se monta en vertical: no lo apaises.
 `prep` limpia la voz por defecto (graves fuera, reducción de ruido `afftdn`, sonoridad a −14 LUFS) y deja el
 original en `voice_raw.wav`; el JSON de salida trae las medidas antes/después. Si el ruido es fuerte (ventilador,
 calle) repite con `frame28 audio clean work/voice_raw.wav -o work/voice.wav --denoise rnnoise` y compara con
@@ -57,7 +60,8 @@ tras una pausa). Lee la lista con el usuario si hay dudas: cada tramo lleva su m
 frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
 ```
 Deja en `work/cut/` el clip y la voz cortados (fundidos de 30 ms, sin clics) y `words.json`/`captions.json`
-con los tiempos ya reajustados. **A partir de aquí trabaja sobre `work/cut/`** (speaker, gestures, matte,
+con los tiempos ya reajustados. Si el plan sale vacío por ruido de fondo y aun así hay un silencio largo, tápalo
+con una `card` o un `counter` a pantalla completa en el storyboard. **A partir de aquí trabaja sobre `work/cut/`** (speaker, gestures, matte,
 storyboard). Si ya existía un storyboard, `--storyboard` lo remapea; si un corte cae dentro de un `behind`,
 regenera su máscara sobre el clip cortado.
 
@@ -87,6 +91,11 @@ frame28 render work/project -o out/<nombre>.mp4
 ```
 `check` separa errores reales, avisos de contraste y el falso positivo `text_occluded` (el texto detrás del hablante
 siempre lo dispara; ignóralo). Corrige solo los errores reales y los contrastes que afecten a texto importante.
+
+Si el video va a una plataforma con subtítulos propios (YouTube, LinkedIn), exporta además el fichero:
+```bash
+frame28 captions export work/words.json -o out/<nombre>.srt     # o .vtt; ≤ 42 caracteres/línea, 1–7 s, avisa si > 17 cps
+```
 
 ## 5. Revisar como un director
 

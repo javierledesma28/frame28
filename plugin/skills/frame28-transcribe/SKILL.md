@@ -20,6 +20,10 @@ Salidas en `work/`:
 | `transcript.json` | `[{text, start, end, id}]` | el formato nativo de HyperFrames |
 | `transcript.txt` | texto plano | para leer el discurso de un vistazo |
 
+Derivados: `frame28 captions export work/words.json -o out/video.srt` (o `.vtt`) genera subtítulos legibles para la
+plataforma (≤ 42 caracteres por línea, 1–7 s, corte en puntuación y pausas); `frame28 captions pages` muestra el paginado
+por palabras que usan los presets `pages`/`karaoke` del storyboard.
+
 ## Reglas que aprendimos a golpes
 
 - **Limpia y normaliza siempre el audio antes** (`prep` lo hace: graves, ruido y −14 LUFS): las capturas de webcam

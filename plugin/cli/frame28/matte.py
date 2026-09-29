@@ -79,8 +79,10 @@ def matte(video: str | Path, out_webm: str | Path, start: float | None = None, e
     return stats
 
 
-def speaker_layout(video: str | Path, samples: int = 6, duration: float | None = None) -> dict:
-    """Dónde está el hablante: bbox unión de `samples` fotogramas (alfa > 0.5) y lado libre para overlays."""
+def speaker_layout(video: str | Path, samples: int = 6, duration: float | None = None, canvas: tuple[int, int] | None = None) -> dict:
+    """Dónde está el hablante: bbox unión de `samples` fotogramas (alfa > 0.5) y lado libre para overlays.
+    Coordenadas en el lienzo del storyboard (`canvas`; por defecto según el formato del clip: 1920×1080, 1080×1920 o 1080×1080)."""
+    from .captions import default_canvas
     sess, _ = _session()
     cap = cv2.VideoCapture(str(video))
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)); fps = cap.get(cv2.CAP_PROP_FPS) or 30
@@ -104,9 +106,11 @@ def speaker_layout(video: str | Path, samples: int = 6, duration: float | None =
     cx = (x0 + x1) / 2 / w
     side = "left" if cx < 0.4 else "right" if cx > 0.6 else "center"
     free = "right" if side == "left" else "left" if side == "right" else "sides"
-    # escala a lienzo 1920x1080 para que el storyboard trabaje siempre en las mismas coordenadas
-    sx, sy = 1920 / w, 1080 / h
-    return {"found": True, "frame": [w, h], "bbox": [x0, y0, x1, y1],
-            "bbox_1080p": [round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy)],
+    # escala al lienzo del storyboard (el clip se ajusta con object-fit: cover, así que el eje de menor recorte manda)
+    cw, ch = canvas or default_canvas(w, h)
+    sx, sy = cw / w, ch / h
+    bbox_c = [round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy)]
+    return {"found": True, "frame": [w, h], "canvas": [cw, ch], "bbox": [x0, y0, x1, y1],
+            "bbox_canvas": bbox_c, "bbox_1080p": bbox_c,  # bbox_1080p: alias antiguo, mismas coordenadas
             "center_x": round(cx, 3), "side": side, "free_side": free,
-            "head_top_1080p": round(y0 * sy), "samples": int(len(idxs))}
+            "head_top": bbox_c[1], "head_top_1080p": bbox_c[1], "samples": int(len(idxs))}
