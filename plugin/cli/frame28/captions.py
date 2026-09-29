@@ -1,0 +1,170 @@
+"""Subtítulos: paginado por palabras (estilo TikTok/karaoke) y exportación SRT/VTT con reglas de legibilidad.
+
+Trabaja siempre sobre `words.json` (tiempos por palabra). Las reglas son las habituales de subtitulado:
+≤ 42 caracteres por línea, 1–7 s por cue, ≤ 17 caracteres por segundo, sin solapes, corte en signos de
+puntuación o en pausas largas. `pages()` es lo que usa `frame28 build` para los presets `pages` y `karaoke`.
+"""
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+END_PUNCT = ".!?…"
+SOFT_PUNCT = ",;:"
+
+
+def default_canvas(width: int, height: int) -> tuple[int, int]:
+    """Lienzo por defecto según el formato del clip: vertical → 1080×1920, cuadrado → 1080×1080, resto → 1920×1080."""
+    if width <= 0 or height <= 0:
+        return (1920, 1080)
+    r = width / height
+    if r < 0.85:
+        return (1080, 1920)
+    if r < 1.2:
+        return (1080, 1080)
+    return (1920, 1080)
+
+
+def parse_canvas(spec: str | None, width: int, height: int) -> tuple[int, int]:
+    """'1080x1920' → (1080, 1920); None o 'auto' → por formato del clip."""
+    if not spec or spec.lower() == "auto":
+        return default_canvas(width, height)
+    w, h = spec.lower().replace("×", "x").split("x")
+    return (int(w), int(h))
+
+
+def load_words(path: str | Path) -> list[dict]:
+    d = json.loads(Path(path).read_text(encoding="utf-8"))
+    ws = d["words"] if isinstance(d, dict) else d
+    out: list[dict] = []
+    for w in ws:
+        t = (w.get("text") or w.get("word") or "").strip()
+        if not t:
+            continue
+        # el ASR separa "30" y "%" (o "€", "$"): van pegados a la palabra anterior
+        if out and t[0] in "%€$" and len(t) <= 2:
+            out[-1]["text"] += t; out[-1]["end"] = float(w["end"]); continue
+        out.append({"text": t, "start": float(w["start"]), "end": float(w["end"])})
+    return out
+
+
+def pages(words: list[dict], max_words: int = 4, max_gap: float = 0.6, hold: float = 0.8, max_chars: int = 22) -> list[dict]:
+    """Agrupa palabras en páginas cortas: corta en puntuación final, en pausas > `max_gap` s, al llegar a
+    `max_words` o a `max_chars`. Cada página dura desde su primera palabra hasta la siguiente página (máx. `hold` s
+    tras la última palabra)."""
+    out: list[dict] = []
+    cur: list[dict] = []
+
+    def flush():
+        if cur:
+            out.append({"start": cur[0]["start"], "end": cur[-1]["end"], "words": list(cur)})
+            cur.clear()
+
+    for w in words:
+        if cur:
+            gap = w["start"] - cur[-1]["end"]
+            chars = sum(len(x["text"]) for x in cur) + len(cur) - 1 + 1 + len(w["text"])
+            if gap > max_gap or len(cur) >= max_words or chars > max_chars or cur[-1]["text"][-1:] in END_PUNCT:
+                flush()
+        cur.append(w)
+    flush()
+    for k, p in enumerate(out):
+        nxt = out[k + 1]["start"] if k + 1 < len(out) else p["end"] + hold
+        p["end"] = round(min(p["end"] + hold, nxt), 3)
+        p["start"] = round(p["start"], 3)
+        p["text"] = " ".join(w["text"] for w in p["words"])
+    return out
+
+
+def cues(words: list[dict], max_chars: int = 42, max_lines: int = 2, max_dur: float = 7.0, min_dur: float = 1.0,
+         max_gap: float = 0.7, max_cps: float = 17.0) -> list[dict]:
+    """Cues de subtítulo legibles a partir de palabras: hasta `max_lines` líneas de `max_chars`, 1–7 s, corte en
+    puntuación o pausa. Devuelve [{start, end, lines: [..], text, cps}]."""
+    out: list[dict] = []
+    cur: list[dict] = []
+    limit = max_chars * max_lines
+
+    def text_of(ws):
+        return " ".join(w["text"] for w in ws)
+
+    def flush():
+        if not cur:
+            return
+        t = text_of(cur)
+        out.append({"start": cur[0]["start"], "end": cur[-1]["end"], "text": t})
+        cur.clear()
+
+    for w in words:
+        if cur:
+            gap = w["start"] - cur[-1]["end"]
+            too_long = len(text_of(cur + [w])) > limit
+            too_slow = (w["end"] - cur[0]["start"]) > max_dur
+            ends = cur[-1]["text"][-1:] in END_PUNCT and len(text_of(cur)) >= max_chars * 0.5
+            if gap > max_gap or too_long or too_slow or ends:
+                flush()
+        cur.append(w)
+    flush()
+    # duración mínima y sin solapes; luego repartir en líneas equilibradas
+    for k, c in enumerate(out):
+        nxt = out[k + 1]["start"] if k + 1 < len(out) else None
+        end = max(c["end"], c["start"] + min_dur)
+        if nxt is not None:
+            end = min(end, nxt - 0.04)
+        c["end"] = round(max(end, c["start"] + 0.3), 3); c["start"] = round(c["start"], 3)
+        c["lines"] = _split_lines(c["text"], max_chars, max_lines)
+        dur = c["end"] - c["start"]
+        c["cps"] = round(len(c["text"].replace(" ", "")) / dur, 1) if dur > 0 else 0.0
+        c["warnings"] = ([f"cps {c['cps']} > {max_cps}"] if c["cps"] > max_cps else []) + \
+                        ([f"línea de {max(map(len, c['lines']))} > {max_chars}"] if max(map(len, c["lines"])) > max_chars else [])
+    return out
+
+
+def _split_lines(text: str, max_chars: int, max_lines: int) -> list[str]:
+    if len(text) <= max_chars:
+        return [text]
+    words = text.split()
+    # dos líneas: buscar el corte más equilibrado, preferiblemente tras una coma
+    best = None
+    for i in range(1, len(words)):
+        a, b = " ".join(words[:i]), " ".join(words[i:])
+        if len(a) > max_chars or len(b) > max_chars * (max_lines - 1):
+            continue
+        score = abs(len(a) - len(b)) - (12 if a[-1:] in SOFT_PUNCT + END_PUNCT else 0)
+        if best is None or score < best[0]:
+            best = (score, a, b)
+    if best is None:
+        return [text]
+    return [best[1]] + (_split_lines(best[2], max_chars, max_lines - 1) if max_lines > 2 else [best[2]])
+
+
+def _ts(sec: float, sep: str = ",") -> str:
+    h = int(sec // 3600); m = int(sec % 3600 // 60); s = sec % 60
+    return f"{h:02d}:{m:02d}:{s:06.3f}".replace(".", sep)
+
+
+def write_srt(cs: list[dict], path: str | Path) -> Path:
+    p = Path(path)
+    with open(p, "w", encoding="utf-8", newline="\n") as f:
+        for i, c in enumerate(cs, 1):
+            f.write(f"{i}\n{_ts(c['start'])} --> {_ts(c['end'])}\n" + "\n".join(c["lines"]) + "\n\n")
+    return p
+
+
+def write_vtt(cs: list[dict], path: str | Path) -> Path:
+    p = Path(path)
+    with open(p, "w", encoding="utf-8", newline="\n") as f:
+        f.write("WEBVTT\n\n")
+        for i, c in enumerate(cs, 1):
+            f.write(f"{i}\n{_ts(c['start'], '.')} --> {_ts(c['end'], '.')}\n" + "\n".join(c["lines"]) + "\n\n")
+    return p
+
+
+def export(words_path: str | Path, out_path: str | Path, **rules) -> dict:
+    """`frame28 captions export`: words.json → .srt o .vtt (por la extensión) con las reglas dadas."""
+    ws = load_words(words_path)
+    cs = cues(ws, **rules)
+    out = Path(out_path)
+    (write_vtt if out.suffix.lower() == ".vtt" else write_srt)(cs, out)
+    warns = [f"cue {k + 1} ({c['start']}s): {'; '.join(c['warnings'])}" for k, c in enumerate(cs) if c["warnings"]]
+    return {"output": str(out), "cues": len(cs), "words": len(ws),
+            "max_cps": max((c["cps"] for c in cs), default=0.0), "warnings": warns}

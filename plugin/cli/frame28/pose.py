@@ -90,11 +90,13 @@ def _hand_out(f: dict, ix: str, sh_key: str, other_sh: str, w: int, h: int) -> b
     return outside and not_hanging
 
 
-def detect_pointing(tr: dict, min_hold: float = 0.25) -> list[dict]:
+def detect_pointing(tr: dict, min_hold: float = 0.25, canvas: tuple[int, int] | None = None) -> list[dict]:
     """Gesto = una mano fuera del torso, visible y dentro del encuadre, mantenida >= `min_hold` s.
-    Si las dos manos están fuera a la vez es énfasis (`kind: both_hands`), no señalar. Punta en coordenadas 1080p."""
+    Si las dos manos están fuera a la vez es énfasis (`kind: both_hands`), no señalar. Punta en coordenadas del lienzo."""
+    from .captions import default_canvas
     w, h = tr["width"], tr["height"]
-    sx, sy = 1920 / w, 1080 / h
+    cw, ch = canvas or default_canvas(w, h)
+    sx, sy = cw / w, ch / h
     hands = (("left", "l_ix", "l_sh", "r_sh"), ("right", "r_ix", "r_sh", "l_sh"))
     events = []
     for hand, ix, sh_key, other_sh in hands:
@@ -108,7 +110,7 @@ def detect_pointing(tr: dict, min_hold: float = 0.25) -> list[dict]:
                 both = sum(1 for f in run if f["both"]) > len(run) / 2
                 events.append({"kind": "both_hands" if both else "point", "hand": hand,
                                "start": run[0]["t"], "end": run[-1]["t"],
-                               "tip_1080p": [round(cx * sx), round(cy * sy)],
+                               "tip": [round(cx * sx), round(cy * sy)], "tip_1080p": [round(cx * sx), round(cy * sy)],
                                "direction": "right" if cx > nose_x + 0.05 * w else "left" if cx < nose_x - 0.05 * w else "center",
                                "frames": len(run)})
             run.clear()
@@ -130,19 +132,25 @@ def detect_pointing(tr: dict, min_hold: float = 0.25) -> list[dict]:
     return merged
 
 
-def face_box_1080p(tr: dict) -> list[int] | None:
-    """Caja aproximada de la cara (nariz ± ancho de hombros × 0.45) en 1080p, mediana de todo el clip."""
+def face_box(tr: dict, canvas: tuple[int, int] | None = None) -> list[int] | None:
+    """Caja aproximada de la cara (nariz ± ancho de hombros × 0.45) en coordenadas del lienzo, mediana de todo el clip."""
+    from .captions import default_canvas
     fr = [f for f in tr["frames"] if "nose" in f]
     if not fr:
         return None
-    w, h = tr["width"], tr["height"]; sx, sy = 1920 / w, 1080 / h
+    w, h = tr["width"], tr["height"]
+    cw, ch = canvas or default_canvas(w, h)
+    sx, sy = cw / w, ch / h
     nx = float(np.median([f["nose"][0] for f in fr])); ny = float(np.median([f["nose"][1] for f in fr]))
     sw = float(np.median([abs(f["l_sh"][0] - f["r_sh"][0]) for f in fr]))
     half = 0.45 * sw
     return [round((nx - half) * sx), round((ny - 1.3 * half) * sy), round((nx + half) * sx), round((ny + 0.9 * half) * sy)]
 
 
-def suggest_pointers(events: list[dict], words: list[dict] | None, face: list[int] | None) -> list[dict]:
+face_box_1080p = face_box  # alias antiguo
+
+
+def suggest_pointers(events: list[dict], words: list[dict] | None, face: list[int] | None, canvas: tuple[int, int] = (1920, 1080)) -> list[dict]:
     """Para cada gesto: palabra que se dice en ese momento (prioridad a deícticos como 'aquí'), texto sugerido
     y una posición de caja en la dirección del gesto, alejada de la mano y fuera de la cara."""
     out = []
@@ -162,10 +170,11 @@ def suggest_pointers(events: list[dict], words: list[dict] | None, face: list[in
                 after = [w for w in words if w["start"] >= anchor["start"]][1:5]
                 content = [w["text"].strip(".,;:!?¿¡") for w in after if w["text"].strip(".,;:!?¿¡").lower() not in POINT_WORDS]
                 text = " ".join(content[:3])
-        tx, ty = e["tip_1080p"]
+        tx, ty = e["tip"]
+        cw, ch = canvas
         dx = 90 if e["direction"] == "right" else -90 if e["direction"] == "left" else 0
         bx = tx + dx + (0 if dx >= 0 else -320); by = ty - 210
-        bx = max(60, min(bx, 1920 - 420)); by = max(80, min(by, 1080 - 200))
+        bx = max(60, min(bx, cw - 420)); by = max(80, min(by, ch - 200))
         if face and face[0] - 40 < bx < face[2] + 40 and face[1] - 40 < by < face[3] + 40:
             by = face[3] + 60 if by < face[3] else face[1] - 140
         out.append({"id": f"p{k + 1}", "type": "pointer", "start": round(max(0, at - 0.05), 2), "end": round(e["end"] + 0.6, 2),
@@ -174,36 +183,40 @@ def suggest_pointers(events: list[dict], words: list[dict] | None, face: list[in
     return out
 
 
-def analyze(video: str | Path, words_path: str | Path | None = None, sample_fps: float = 10.0, annotate: str | Path | None = None) -> dict:
+def analyze(video: str | Path, words_path: str | Path | None = None, sample_fps: float = 10.0, annotate: str | Path | None = None,
+            canvas: tuple[int, int] | None = None) -> dict:
+    from .captions import default_canvas
     tr = track(video, sample_fps)
-    events = detect_pointing(tr)
+    canvas = canvas or default_canvas(tr["width"], tr["height"])
+    events = detect_pointing(tr, canvas=canvas)
     words = json.loads(Path(words_path).read_text(encoding="utf-8")) if words_path else None
-    face = face_box_1080p(tr)
-    sugg = suggest_pointers(events, words, face)
-    result = {"video": str(video), "frames_analyzed": len(tr["frames"]), "sample_fps": tr["sample_fps"],
-              "face_box_1080p": face, "events": events, "pointer_suggestions": sugg}
+    face = face_box(tr, canvas)
+    sugg = suggest_pointers(events, words, face, canvas)
+    result = {"video": str(video), "frames_analyzed": len(tr["frames"]), "sample_fps": tr["sample_fps"], "canvas": list(canvas),
+              "face_box": face, "face_box_1080p": face, "events": events, "pointer_suggestions": sugg}
     if annotate:
-        _annotate(video, tr, events, sugg, annotate)
+        _annotate(video, tr, events, sugg, annotate, canvas)
         result["annotated"] = str(annotate)
     return result
 
 
-def _annotate(video, tr, events, sugg, out_png):
+def _annotate(video, tr, events, sugg, out_png, canvas=(1920, 1080)):
     """Hoja con un fotograma por gesto: punta del dedo (círculo) y caja propuesta (rectángulo)."""
     cap = cv2.VideoCapture(str(video)); fps = tr["fps"]
+    cw, ch = canvas
     tiles = []
     for s in sugg:
         t = (s["at"] + s["end"] - 0.6) / 2
         cap.set(cv2.CAP_PROP_POS_FRAMES, int(t * fps)); ok, fr = cap.read()
         if not ok:
             continue
-        fr = cv2.resize(fr, (1920, 1080))
+        fr = cv2.resize(fr, (cw, ch))
         color = (0, 197, 245) if s["confidence"] == "high" else (140, 140, 140)
         cv2.circle(fr, tuple(s["dot"]), 18, color, 4)
         bx, by = s["box"]; cv2.rectangle(fr, (bx, by), (bx + 300, by + 80), color, 3)
         cv2.putText(fr, f"{s['id']} {s['hand']} -> {s['direction']}  at={s['at']:.2f}s  '{s['text']}'  [{s['confidence']}]",
                     (40, 60), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
-        tiles.append(cv2.resize(fr, (960, 540)))
+        tiles.append(cv2.resize(fr, (cw // 2, ch // 2)))
     if tiles:
         rows = [np.hstack(tiles[i:i + 2]) if i + 1 < len(tiles) else np.hstack([tiles[i], np.zeros_like(tiles[i])]) for i in range(0, len(tiles), 2)]
         cv2.imwrite(str(out_png), np.vstack(rows))

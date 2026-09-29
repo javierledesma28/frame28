@@ -1,8 +1,8 @@
 # Formato del storyboard (v1)
 
 Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre el clip del hablante. Lo escribe el agente
-(o una persona) y `frame28 build` lo convierte en una composición HyperFrames. Coordenadas en píxeles de un lienzo
-1920×1080; tiempos en segundos desde el inicio del clip.
+(o una persona) y `frame28 build` lo convierte en una composición HyperFrames. Coordenadas en píxeles del lienzo
+(`canvas`: 1920×1080 por defecto; 1080×1920 para vertical, 1080×1080 cuadrado); tiempos en segundos desde el inicio del clip.
 
 ```json
 {
@@ -20,7 +20,15 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
 - `duration` (raíz, opcional): duración total si es mayor que la del clip, p. ej. para una `brand_card` de cierre sobre negro.
 - `source.video`: clip a 30 fps **sin audio** (lo produce `frame28 prep`). `source.audio`: voz normalizada. Rutas relativas al storyboard.
 - `brand`: opcional. Un objeto con `accent`, `ink`, `paper`, `grey`, `sans`, `mono`, `caption_font_size`, **o un nombre de marca incluida** (`"brand": "think28"`), o la ruta a tu propio `brand.json`.
-- `captions`: subtítulos por frase (de `captions.json`). Se dibujan en caja negra centrada abajo.
+- `canvas`: tamaño del lienzo. El clip se ajusta con *cover* (se recorta lo que sobre). Con lienzo estrecho (< 1400 px de
+  ancho) el generador compacta gráficas, contadores y tarjetas (`.narrow`). `frame28 speaker` y `frame28 gestures` devuelven
+  sus coordenadas en el lienzo que corresponde al formato del clip (o el que pases con `--canvas 1080x1920`).
+- `captions`: subtítulos por frase (de `captions.json`). Se dibujan en caja negra centrada abajo (preset `phrase`).
+- `caption_style` (opcional): subtítulos **por palabras** en vez de por frase. `{"preset": "pages" | "karaoke", "words":
+  "words.json", "max_words": 4, "max_chars": 22, "size": 72, "bottom": 200, "uppercase": true}`. `pages` = grupos de 2–4
+  palabras que van apareciendo al decirse (estilo TikTok/Shorts); `karaoke` = la página entera visible y la palabra actual
+  en color de acento. `frame28 captions pages work/words.json` muestra el paginado antes de renderizar. Con `caption_style`
+  el bloque `captions` se ignora.
 
 ## Tipos de overlay
 

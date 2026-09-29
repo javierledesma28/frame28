@@ -55,8 +55,8 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 
 1. Asistente de instalación guiado (arriba).
 2. B-roll por palabra clave (Pexels/Pixabay, licencia registrada) → overlay `broll` con Ken Burns.
-3. Subtítulos estilo TikTok/karaoke con presets + exportación SRT/VTT (`@remotion/captions` es MIT).
-4. Reencuadre 9:16 con MediaPipe (ya en el stack) + composición vertical del mismo storyboard.
+3. ~~Subtítulos estilo TikTok/karaoke con presets + exportación SRT/VTT~~ hecho (propio, sin `@remotion/captions`).
+4. Reencuadre 9:16 con MediaPipe (ya en el stack) desde clip apaisado (la composición vertical ya existe).
 5. Demo de pantalla con zoom-pan (Playwright 1.59 `page.screencast` + `clicks.json` → overlay `screen`).
 6. Gráficas ampliadas (line/area/donut/table-reveal) y puertas de calidad (pixelmatch, LUFS, legibilidad).
 7. Alineado forzado con guion (stable-ts / WhisperX) para nombres propios y karaoke exacto.
@@ -65,6 +65,24 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 
 - Segundo clip real, un anuncio de auriculares de 58 s, montado con todo el pipeline (`poc/clip-auriculares/`, README propio). Salió a la primera salvo el sufijo del contador sobre fondo de acento (corregido en `build.py`).
 - `docs/guion-demo.md`: guion de 60 s con qué decir y qué gesto hacer para grabar una demo que luzca todas las técnicas.
+
+## Hecho en la sesión del 30 de septiembre (madrugada): vertical y subtítulos por palabras
+
+- Tercer clip real (`poc/clip-whatsapp/`): vídeo de móvil por WhatsApp, vertical 464×832, voz en inglés, 11,5 s.
+  Primer montaje 9:16 (`canvas` 1080×1920). Destapó que gráficas, subtítulos y cajas de cara asumían 1920×1080.
+- **Lienzo a medida en todo el pipeline**: `captions.default_canvas()` elige 1920×1080 / 1080×1920 / 1080×1080 por el
+  formato del clip; `frame28 speaker` y `frame28 gestures` aceptan `--canvas WxH` y devuelven `bbox_canvas`/`face_box`
+  (las claves `*_1080p` quedan como alias). `build` añade la clase `narrow` (< 1400 px de ancho) que compacta chart,
+  counter, card y brand_card; los subtítulos por frase envuelven a dos líneas y suben a 200 px en vertical.
+- **Subtítulos por palabras**: `caption_style` en el storyboard con presets `pages` (aparecen al decirse, mayúsculas,
+  estilo Shorts) y `karaoke` (palabra actual en acento), paginado por puntuación, pausas y `max_words`/`max_chars`;
+  `frame28 captions pages` lo previsualiza. Probado en vertical (`out/cliente-a_pages.mp4`, `out/cliente-a_karaoke.mp4`).
+- **Exportación SRT/VTT**: `frame28 captions export words.json -o x.srt|.vtt` con ≤ 42 caracteres/línea, 2 líneas,
+  1–7 s, corte en puntuación/pausas, aviso si > 17 cps. Los tokens "%"/"€"/"$" sueltos del ASR se pegan a la cifra.
+- Manifiesto: Claude Code 2.1.150 rechaza `displayName` en `plugin.json` (eliminado); URLs de marca a t28.io.
+- Regresión 16:9 (`poc/clip-javier/storyboard-gsap.json`) construida, comprobada y renderizada sin cambios visibles.
+- Pendiente de este bloque: reencuadre automático 9:16 desde un clip apaisado (seguir la cara con MediaPipe) y
+  `chart bar` en vertical con más de 3 filas (hoy se compacta pero no se reordena en vertical).
 
 ## Problemas conocidos y dudas
 

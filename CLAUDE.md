@@ -33,7 +33,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
   skills/frame28-*/SKILL.md       skills; frame28-storyboard/references/ = técnicas, guía de grabación, ejemplo
   cli/pyproject.toml              paquete Python (uv); pin av>=11,<18 (ver Trampas)
   cli/frame28/                    env, media(prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
-                                  build(generador), render, doctor, cli, STORYBOARD.md, brands/think28.json + SVG
+                                  captions(páginas por palabra, SRT/VTT, lienzo por defecto), build(generador), render,
+                                  doctor, cli, STORYBOARD.md, brands/think28.json + SVG
 docs/                             GitHub Pages: presentacion/ (deck), install.ps1, install.sh, CNAME, .nojekyll,
                                   brand/ (logos oficiales), guia-plugin.md, index.html (redirige a la presentación)
 research/                         01 resumen del análisis (el completo es privado), 02 repos, 03 PoC, 04 roadmap features
@@ -78,6 +79,9 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - Descripciones YAML de las skills entre comillas simples (los `:` rompen el frontmatter y la skill no se dispara).
 - Cada overlay del storyboard tiene `id` único; todo `<video>/<audio>` generado lleva `id` (si no, HyperFrames lo
   congela). Capas con z-index explícito: 1 fondo, 2 texto behind, 3 alfa del hablante, 4 overlays, 5 pizarras, 9 subtítulos.
+- Lienzo: `canvas` del storyboard (1920×1080, 1080×1920 o 1080×1080). `speaker`/`gestures` devuelven coordenadas en el
+  lienzo que corresponde al formato del clip (`captions.default_canvas`); las claves `*_1080p` son alias antiguos. Con
+  ancho < 1400 el generador añade la clase `narrow` (gráficas, contadores y tarjetas compactos).
 - Salidas, medios (`*.mp4 *.wav *.webm`), `work*/`, `node_modules/`, modelos y `_private/` van en `.gitignore`.
   Caras y material de terceros **nunca** entran en el repo (el historial ya se limpió una vez por esto).
 - Acciones persistentes (push, tags, cambios de visibilidad, DNS, instalar cosas en la máquina del usuario) se

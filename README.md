@@ -41,7 +41,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | "así se ve el producto" | La captura entrando en pantalla |
 | «eh… mmm… (silencio)» | Nada: los silencios largos, las muletillas y los falsos arranques desaparecen solos |
 | (grabado bajito, con el ventilador de fondo) | Voz limpia y al volumen estándar de YouTube, sin tocar nada |
-| todo el rato | Subtítulos limpios, frase a frase |
+| todo el rato | Subtítulos limpios, frase a frase, o por palabras estilo Shorts (`pages`, `karaoke`); SRT/VTT para la plataforma |
 
 El estilo es el de los *launch videos* de los laboratorios de IA: tres fondos, dos tipografías, esquinas de
 encuadre, animaciones de un cuarto de segundo. Un evento visual cada dos a cuatro segundos, nunca más de ocho sin
@@ -149,7 +149,7 @@ v0.2.0 funciona de punta a punta en clips reales (probado en Windows con GPU de 
 - B-roll automático desde Pexels y Pixabay a partir de lo que dices.
 - Alineado con guion para nombres propios y karaoke exacto.
 - Asistente de instalación guiado (Claude Code te acompaña paso a paso) y una interfaz sobre el storyboard, para quien no quiere ver una terminal.
-- Subtítulos estilo TikTok y exportación SRT/VTT; reencuadre vertical 9:16 para Reels y Shorts.
+- Reencuadre automático 9:16 de un clip apaisado (hoy el vertical se monta desde un clip vertical: `canvas` 1080×1920).
 
 ## Estructura del repositorio
 

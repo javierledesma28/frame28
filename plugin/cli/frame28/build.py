@@ -108,7 +108,24 @@ CSS = """
       .draw { position: absolute; opacity: 0; }
       .draw svg { width: 100%; height: 100%; overflow: visible; }
       .draw svg * { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
-      .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: {capsize}px; }
+      .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: normal; text-align: center; line-height: 1.25; max-width: calc(100% - 80px); width: max-content; font-size: {capsize}px; }
+      /* subtítulos por palabras (pages: entran al decirse; karaoke: la palabra actual en acento) */
+      .pages { position: absolute; left: 0; right: 0; }
+      .pages .pg { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; width: calc(100% - 100px); text-align: center; font-weight: 800; line-height: 1.08; letter-spacing: -0.02em; text-shadow: 0 3px 0 rgba(0,0,0,.35), 0 6px 28px rgba(0,0,0,.75), 0 0 2px #000; }
+      .pages.upper .pg { text-transform: uppercase; }
+      .pages .pw { display: inline-block; margin: 0 0.16em; }
+      .pages.mode-pages .pw { opacity: 0; }
+      .pages.mode-karaoke .pw { opacity: 1; color: rgba(255,255,255,.92); }
+      /* lienzos estrechos (vertical, cuadrado): tipografías y columnas más compactas */
+      .narrow .chart { padding: 60px 48px; }
+      .narrow .chart .ch-title { font-size: 46px; }
+      .narrow .chart .grp { width: 110px; font-size: 20px; }
+      .narrow .chart .lbl { width: 210px; font-size: 22px; padding-right: 18px; }
+      .narrow .counter .num { font-size: 220px; }
+      .narrow .counter .lab { font-size: 52px; }
+      .narrow .bc .bc-title { font-size: 96px; }
+      .narrow .bc .bc-sub { font-size: 34px; }
+      .narrow .card .big { font-size: 96px; }
 """
 
 
@@ -178,6 +195,7 @@ class Builder:
         self.dur = float(sb.get("duration", sb["source"]["duration"]))
         canvas = sb.get("canvas", {})
         self.W = int(canvas.get("width", 1920)); self.H = int(canvas.get("height", 1080)); self.fps = int(canvas.get("fps", 30))
+        self.narrow = self.W < 1400  # vertical o cuadrado: columnas y tipografías compactas (ver CSS .narrow)
         self.html: list[str] = []
         self.js: list[str] = []
         self.uses_split = False
@@ -416,7 +434,7 @@ class Builder:
         if o.get("panel"):
             scale = max(200, o["panel"]["w"] - 88 - 200 - 320 - 170)
         else:
-            scale = self.W - 280 - 200 - 320 - 170
+            scale = (self.W - 96 - 110 - 210 - 150) if self.narrow else (self.W - 280 - 200 - 320 - 170)
         rows_html = []
         prev_group = None
         for k, r in enumerate(series):
@@ -483,6 +501,50 @@ class Builder:
         self.js.append(f'tl.set("#{i}", {{ opacity: 1 }}, {at}); tl.fromTo("#{i} svg *", {{ drawSVG: "0%" }}, {{ drawSVG: "100%", duration: {dur}, stagger: {round(dur * 0.35, 3)}, ease: "power2.inOut" }}, {at});')
         self.fade_out(f"#{i}", o["end"])
 
+    # ---------- subtítulos ----------
+    def captions(self, sb: dict) -> None:
+        """Por frase (`captions`, preset `phrase`) o por palabras (`caption_style.preset` = `pages` | `karaoke`, a
+        partir de `caption_style.words`, un words.json relativo al storyboard)."""
+        style = sb.get("caption_style") or {}
+        preset = style.get("preset", "phrase")
+        bottom = int(style.get("bottom", 56 if not self.narrow else 200))
+        if preset in ("pages", "karaoke"):
+            from .captions import load_words, pages as make_pages
+            wp = style.get("words", "words.json")
+            src = (Path(self.sb_dir) / wp) if self.sb_dir else Path(wp)
+            if not src.exists():
+                self.warnings.append(f"caption_style.words no encontrado: {src}; sin subtítulos"); return
+            pgs = make_pages(load_words(src), max_words=int(style.get("max_words", 4)),
+                             max_gap=float(style.get("max_gap", 0.6)), hold=float(style.get("hold", 0.8)),
+                             max_chars=int(style.get("max_chars", 22 if self.narrow else 30)))
+            size = int(style.get("size", 72 if self.narrow else 64))
+            upper = " upper" if style.get("uppercase", True) else ""
+            html_pages = []
+            for k, p in enumerate(pgs):
+                ws = "".join(f'<span class="pw" id="pg{k}w{j}">{esc(w["text"])}</span>' for j, w in enumerate(p["words"]))
+                html_pages.append(f'<div class="pg" id="pg{k}">{ws}</div>')
+            self.html.append(f'<div id="caps" class="clip pages mode-{preset}{upper}" data-start="0" data-duration="{self.dur}" data-track-index="8" '
+                             f'style="z-index:9; inset:auto; left:0; right:0; bottom:{bottom}px; height:{round(size * 2.4)}px; font-size:{size}px;">{"".join(html_pages)}</div>')
+            acc = self.brand["accent"]
+            for k, p in enumerate(pgs):
+                self.js.append(f'tl.set("#pg{k}", {{ visibility: "visible" }}, {p["start"]}); tl.set("#pg{k}", {{ visibility: "hidden" }}, {p["end"]});')
+                for j, w in enumerate(p["words"]):
+                    sel = f"#pg{k}w{j}"
+                    if preset == "pages":
+                        self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, scale: 0.7 }}, {{ opacity: 1, scale: 1, duration: 0.14, ease: "back.out(2)" }}, {w["start"]});')
+                    else:
+                        self.js.append(f'tl.set("{sel}", {{ color: "{acc}", scale: 1.08 }}, {w["start"]}); tl.set("{sel}", {{ color: "rgba(255,255,255,.92)", scale: 1 }}, {max(w["end"], w["start"] + 0.08)});')
+            self.caption_count = len(pgs)
+            return
+        caps = sb.get("captions", [])
+        self.caption_count = len(caps)
+        if caps:
+            spans = "".join(f'<span id="cap{k}">{esc(c["text"])}</span>' for k, c in enumerate(caps))
+            self.html.append(f'<div id="caps" class="clip caps" data-start="0" data-duration="{self.dur}" data-track-index="8" '
+                             f'style="z-index:9; inset:auto; left:0; right:0; bottom:{bottom}px; height:70px;">{spans}</div>')
+            for k, c in enumerate(caps):
+                self.js.append(f'tl.set("#cap{k}", {{ visibility: "visible" }}, {c["start"]}); tl.set("#cap{k}", {{ visibility: "hidden" }}, {c["end"]});')
+
     # ---------- documento ----------
     def build(self) -> str:
         sb = self.sb; src = sb["source"]
@@ -497,13 +559,7 @@ class Builder:
             if t not in OVERLAY_TYPES:
                 self.warnings.append(f"overlay {o.get('id')}: tipo desconocido '{t}', ignorado"); continue
             getattr(self, t)(o)
-        caps = sb.get("captions", [])
-        if caps:
-            spans = "".join(f'<span id="cap{k}">{esc(c["text"])}</span>' for k, c in enumerate(caps))
-            self.html.append(f'<div id="caps" class="clip caps" data-start="0" data-duration="{self.dur}" data-track-index="8" '
-                             f'style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;">{spans}</div>')
-            for k, c in enumerate(caps):
-                self.js.append(f'tl.set("#cap{k}", {{ visibility: "visible" }}, {c["start"]}); tl.set("#cap{k}", {{ visibility: "hidden" }}, {c["end"]});')
+        self.captions(sb)
         b = self.brand
         css = (CSS.replace("{W}", str(self.W)).replace("{H}", str(self.H)).replace("{accent}", b["accent"]).replace("{ink}", b["ink"])
                .replace("{paper}", b["paper"]).replace("{grey}", b["grey"]).replace("{sans}", b["sans"]).replace("{mono}", b["mono"])
@@ -525,7 +581,7 @@ class Builder:
         js = (f"gsap.registerPlugin({', '.join(reg)});\n      " if reg else "") + js
         lang = sb.get("meta", {}).get("lang", "es")
         return f"""<!doctype html>
-<html lang="{lang}" data-resolution="landscape">
+<html lang="{lang}" data-resolution="{"portrait" if self.H > self.W else "landscape"}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width={self.W}, height={self.H}" />
@@ -534,7 +590,7 @@ class Builder:
   </head>
   <body>
     <!-- Generado por Frame28 a partir de storyboard.json. Edita el storyboard, no este fichero. -->
-    <div id="root" data-composition-id="main" data-start="0" data-duration="{self.dur}" data-width="{self.W}" data-height="{self.H}">
+    <div id="root" class="{"narrow" if self.narrow else ""}" data-composition-id="main" data-start="0" data-duration="{self.dur}" data-width="{self.W}" data-height="{self.H}">
       {body}
     </div>
     <script>
@@ -591,6 +647,15 @@ def validate(sb: dict) -> list[str]:
         for k in ("start", "end", "text"):
             if k not in c:
                 errs.append(f"captions[{n}]: falta '{k}'")
+    cs = sb.get("caption_style")
+    if cs is not None:
+        if not isinstance(cs, dict):
+            errs.append("caption_style debe ser un objeto {preset, words?, size?, bottom?, max_words?, uppercase?}")
+        elif cs.get("preset", "phrase") not in ("phrase", "pages", "karaoke"):
+            errs.append(f"caption_style.preset desconocido '{cs.get('preset')}' (phrase, pages, karaoke)")
+    cv = sb.get("canvas") or {}
+    if cv and (int(cv.get("width", 1920)) < 480 or int(cv.get("height", 1080)) < 480):
+        errs.append("canvas demasiado pequeño (mínimo 480 px de lado)")
     return errs
 
 
@@ -631,4 +696,5 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
         for pub, srcfile in b.brand_assets.items():
             dst = out / pub; dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(srcfile, dst); copied.append(pub)
     return {"project": str(out), "index": str(out / "index.html"), "overlays": len(sb.get("overlays", [])),
-            "captions": len(sb.get("captions", [])), "assets": copied, "warnings": b.warnings}
+            "captions": getattr(b, "caption_count", len(sb.get("captions", []))), "canvas": [b.W, b.H],
+            "assets": copied, "warnings": b.warnings}

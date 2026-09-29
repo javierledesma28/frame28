@@ -17,6 +17,20 @@ frame28 render work/project -o out/video.mp4           # MP4 + out/video_sheet.p
 Pon `"brand": "think28"` (incluida) o el nombre de una marca creada con `frame28 brand init` en el storyboard: rótulo con
 isotipo, acento de color y `brand_card` de apertura/cierre con logo, tagline y endorsement. `frame28 brand list` las enumera.
 
+## Subtítulos
+
+- Por frase (`captions` del storyboard): caja negra abajo, envuelve a dos líneas si hace falta.
+- Por palabras (`caption_style` en la raíz): `{"preset": "pages", "words": "words.json"}` (2–4 palabras que aparecen al
+  decirse, mayúsculas, estilo Shorts) o `"karaoke"` (página visible y la palabra actual en acento). Revisa el paginado con
+  `frame28 captions pages work/words.json`; ajusta `max_words`, `max_chars`, `size` y `bottom` en el storyboard.
+- Fichero aparte para la plataforma: `frame28 captions export work/words.json -o out/video.srt` (o `.vtt`).
+
+## Lienzo
+
+`canvas` del storyboard manda: 1920×1080 (por defecto), 1080×1920 (vertical) o 1080×1080. El clip se recorta con *cover*.
+En lienzos estrechos el generador compacta gráficas y tarjetas; los subtítulos suben a 200 px del borde inferior para
+librar la interfaz de móvil. Un storyboard no se reutiliza entre lienzos sin recolocar `x`/`y`.
+
 ## Cómo leer `check`
 
 - `errors`: hay que arreglarlos (en el storyboard) antes de renderizar. Típico: asset que no existe.
