@@ -54,8 +54,9 @@ Corrige en `words.json` los nombres propios mal reconocidos antes de seguir (el 
 ```bash
 frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json
 ```
-Propone quitar silencios de más de 0,6 s, muletillas ("eh", "mmm") y falsos arranques (misma frase repetida
-tras una pausa). Lee la lista con el usuario si hay dudas: cada tramo lleva su motivo. Para aplicarlos:
+Propone quitar silencios de más de 0,6 s (también los que Whisper esconde *dentro* de una palabra estirada),
+muletillas ("eh", "mmm"; y "bueno", "pues", "o sea"… solo si les sigue una pausa) y falsos arranques (misma frase
+repetida tras una pausa). Lee la lista con el usuario si hay dudas: cada tramo lleva su motivo. Para aplicarlos:
 ```bash
 frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
 ```

@@ -84,6 +84,13 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 - Pendiente de este bloque: reencuadre automático 9:16 desde un clip apaisado (seguir la cara con MediaPipe) y
   `chart bar` en vertical con más de 3 filas (hoy se compacta pero no se reordena en vertical).
 
+## Hecho después: clip de demo del plugin (`poc/clip-demo/`)
+
+- El guion de `docs/guion-demo.md` grabado (83 s) y montado: 16 overlays, 19 cortes, `out/demo.mp4` (70 s).
+- `cut.py`: silencios dentro de palabras estiradas y muletillas condicionadas por pausa (ver README del PoC).
+  Regresión comprobada sobre `clip-auriculares` (solo cae el "Bueno," inicial).
+- Pendiente B-roll por palabra clave (Pexels/Pixabay): siguiente bloque acordado con el usuario.
+
 ## Problemas conocidos y dudas
 
 - El instalador `install.ps1` **sustituye** una instalación editable del CLI por la de GitHub. En esta máquina se

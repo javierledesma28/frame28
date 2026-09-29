@@ -117,3 +117,6 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - El `.ps1` se sirve como `application/octet-stream` pero `irm` lo devuelve como String en PS 5.1 y 7 (probado).
 - El detector de falsos arranques no debe cortar estructuras paralelas ("por aquí hay X, por aquí hay Y"): solo
   repetición inmediata o tras pausa.
+- Whisper no transcribe "eh" y estira la palabra anterior a una pausa: `cut plan` busca silencio de audio dentro de
+  palabras de > 0,9 s. Las muletillas ambiguas ("bueno", "pues") solo se cortan seguidas de pausa; "este" y "nada"
+  nunca ("este muñeco", "de este a oeste" se cortaban mal).

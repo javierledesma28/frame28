@@ -1,0 +1,174 @@
+{
+ "source_duration": 82.74,
+ "result_duration": 66.48,
+ "removed_seconds": 16.26,
+ "min_gap": 0.6,
+ "pad": 0.12,
+ "keep": [
+  {
+   "start": 1.11,
+   "end": 9.14
+  },
+  {
+   "start": 9.56,
+   "end": 11.08
+  },
+  {
+   "start": 11.82,
+   "end": 15.36
+  },
+  {
+   "start": 15.72,
+   "end": 17.34
+  },
+  {
+   "start": 17.93,
+   "end": 20.14
+  },
+  {
+   "start": 20.52,
+   "end": 22.36
+  },
+  {
+   "start": 23.15,
+   "end": 24.88
+  },
+  {
+   "start": 25.61,
+   "end": 29.18
+  },
+  {
+   "start": 30.42,
+   "end": 32.46
+  },
+  {
+   "start": 33.17,
+   "end": 35.16
+  },
+  {
+   "start": 36.64,
+   "end": 40.18
+  },
+  {
+   "start": 40.95,
+   "end": 43.22
+  },
+  {
+   "start": 44.01,
+   "end": 46.34
+  },
+  {
+   "start": 46.91,
+   "end": 68.87
+  },
+  {
+   "start": 71.01,
+   "end": 72.9
+  },
+  {
+   "start": 73.43,
+   "end": 78.06
+  },
+  {
+   "start": 79.92,
+   "end": 81.69
+  }
+ ],
+ "removed": [
+  {
+   "start": 0.05,
+   "end": 1.11,
+   "reason": "silencio inicio"
+  },
+  {
+   "start": 9.14,
+   "end": 9.56,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 11.08,
+   "end": 11.82,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 15.36,
+   "end": 15.72,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 17.34,
+   "end": 17.93,
+   "reason": "silencio dentro de 'aquí'"
+  },
+  {
+   "start": 20.14,
+   "end": 20.52,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 22.36,
+   "end": 23.15,
+   "reason": "silencio dentro de 'enseño'"
+  },
+  {
+   "start": 24.88,
+   "end": 25.61,
+   "reason": "silencio dentro de 'o'"
+  },
+  {
+   "start": 29.18,
+   "end": 29.73,
+   "reason": "silencio dentro de 'taza'"
+  },
+  {
+   "start": 29.9,
+   "end": 30.42,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 32.46,
+   "end": 33.17,
+   "reason": "silencio dentro de 'muestro'"
+  },
+  {
+   "start": 35.16,
+   "end": 36.64,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 40.18,
+   "end": 40.95,
+   "reason": "silencio dentro de 'cosas'"
+  },
+  {
+   "start": 43.22,
+   "end": 44.01,
+   "reason": "silencio dentro de 'escucha,'"
+  },
+  {
+   "start": 46.34,
+   "end": 46.91,
+   "reason": "silencio dentro de 'y'"
+  },
+  {
+   "start": 68.87,
+   "end": 71.01,
+   "reason": "muletilla 'bueno' (aislada por pausa)"
+  },
+  {
+   "start": 72.9,
+   "end": 73.43,
+   "reason": "silencio dentro de 'ordenador'"
+  },
+  {
+   "start": 78.06,
+   "end": 79.92,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 81.69,
+   "end": 82.69,
+   "reason": "silencio final"
+  }
+ ]
+}
