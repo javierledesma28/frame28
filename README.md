@@ -76,8 +76,9 @@ máquina; tu video no sale de ella.
 
 ## Instalación
 
-**La forma rápida: una sola línea.** Instala lo que falte (ffmpeg, Node.js, uv), el motor de Frame28 y el plugin
-de Claude Code si ya lo tienes. Es seguro repetirla: lo que ya está, lo salta.
+**La forma rápida: una sola línea.** Un instalador interactivo que te dice en qué paso está y por qué, te pregunta
+antes de cada cosa y sabe qué hacer en un equipo recién instalado (en Mac instala Homebrew si falta; en Windows, el
+runtime de Visual C++). Instala ffmpeg, Node.js, uv, Claude Code, el motor de Frame28 y el plugin. Es seguro repetirlo.
 
 Windows (Terminal o PowerShell):
 
@@ -91,8 +92,8 @@ macOS (Terminal, con [Homebrew](https://brew.sh)):
 curl -fsSL https://frame28.t28.io/install.sh | sh
 ```
 
-Antes o después, instala [Claude Code](https://claude.com/claude-code) e inicia sesión. El instalador te dice al
-final qué queda por hacer, si algo.
+Al terminar, abre una terminal nueva, escribe `claude` e inicia sesión con tu cuenta de Claude. El instalador te dice
+al final qué queda por hacer, si algo. Sin preguntas (para automatizar): `bash -s -- -y` en Mac o `$env:FRAME28_YES=1` en Windows.
 
 **La forma manual**, por si quieres ver cada paso. ¿No eres informático? Hay una [presentación paso a paso](https://frame28.t28.io/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
 
@@ -133,7 +134,8 @@ frame28 build work/storyboard.json -o work/project && frame28 render work/projec
 ## Cómo grabar para que salga bien
 
 Cámara fija, fondo fijo, luz de frente, aire a un lado para los textos, frases cortas, gestos lentos. Diez consejos
-concretos en [la guía de grabación](plugin/skills/frame28-storyboard/references/grabacion.md).
+concretos en [la guía de grabación](plugin/skills/frame28-storyboard/references/grabacion.md). Y si quieres grabar una
+demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que decir y qué gesto hacer](docs/guion-demo.md).
 
 ## Estado y roadmap
 
