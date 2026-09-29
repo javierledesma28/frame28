@@ -52,7 +52,7 @@ skills en local: `claude plugin marketplace update think28` o reinstalar.
 Qué puede fallar: que Claude Code no encuentre `frame28` en PATH (el CLI vive en `~/.local/bin`; `uv tool
 update-shell` lo añade), o que una skill no se dispare (afinar su `description`: es lo que Claude lee para decidir).
 
-## 3. Publicar ✅ primer push (2026-09-29) · pendiente: etiqueta v0.1.0
+## 3. Publicar ✅ (2026-09-29): push, etiqueta `v0.1.0` y release en GitHub
 
 Hecho: repo privado `javierledesma28/frame28`, rama `main`, commit inicial (80 ficheros, 5,9 MB). Lo que hubo
 que arreglar antes de subir:
@@ -73,7 +73,14 @@ que arreglar antes de subir:
 4. Opcional: publicar el CLI en PyPI (`uv build && uv publish`) para que `uv tool install frame28` funcione sin
    git. Mientras tanto: `uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`.
 
-## 4. Consumir (lo que hará otra persona)
+## 4. Consumir ✅ probado (2026-09-29)
+
+Probado como lo haría otra persona, sin tocar la instalación local: `uvx --from
+"git+https://github.com/javierledesma28/frame28@v0.1.0#subdirectory=plugin/cli" frame28 --version` construye el
+paquete desde la etiqueta e imprime la versión en 24 s. Mientras el repo sea privado hace falta tener credenciales
+git en la máquina (`gh auth login` las deja configuradas). `uv tool update-shell` dejó `~/.local/bin` en el PATH
+del usuario, así que `frame28` funciona en cualquier terminal nueva.
+
 
 ```bash
 claude plugin marketplace add javierledesma28/frame28
