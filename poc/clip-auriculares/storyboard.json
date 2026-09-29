@@ -1,0 +1,331 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Auriculares · anuncio (demo Frame28)",
+  "lang": "es"
+ },
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30
+ },
+ "duration": 56.0,
+ "source": {
+  "video": "clip.mp4",
+  "audio": "voice.wav",
+  "duration": 51.9
+ },
+ "brand": "think28",
+ "speaker": {
+  "side": "center"
+ },
+ "captions": [
+  {
+   "start": 0.05,
+   "end": 8.67,
+   "text": "Bueno, mi nombre es Javier Ledesma y yo trabajo en un chiringuito. Hoy les voy a presentar"
+  },
+  {
+   "start": 8.67,
+   "end": 17.38,
+   "text": "estos auriculares. Reproducen 10 veces más lo que cualquier otro equipo. Por esta zona"
+  },
+  {
+   "start": 17.38,
+   "end": 23.77,
+   "text": "van a poder identificar el objeto por el cual se está trabajando. Es un equipo que"
+  },
+  {
+   "start": 23.77,
+   "end": 34.29,
+   "text": "funciona muy bien. Es tres veces más rápido y es importado de Sudamérica. Allí es donde"
+  },
+  {
+   "start": 34.29,
+   "end": 44.25,
+   "text": "el producto se vende de la mejor manera posible porque tiene un grupo de personas que es quien"
+  },
+  {
+   "start": 44.25,
+   "end": 51.85,
+   "text": "lo consume. Y se puede ver de este a oeste."
+  }
+ ],
+ "overlays": [
+  {
+   "type": "lower_third",
+   "id": "lt",
+   "start": 0.3,
+   "end": 5.6,
+   "x": 1150,
+   "y": 560,
+   "title": "JAVIER LEDESMA",
+   "subtitle": "Chiringuito · presentación de producto"
+  },
+  {
+   "type": "kinetic",
+   "id": "k1",
+   "start": 5.75,
+   "end": 9.0,
+   "x": 1150,
+   "y": 150,
+   "size": 104,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "Hoy les voy a",
+      "at": 5.83
+     }
+    ],
+    [
+     {
+      "text": "presentar",
+      "at": 7.15,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "pointer",
+   "id": "p1",
+   "start": 8.6,
+   "end": 11.3,
+   "at": 8.67,
+   "dot": [
+    1231,
+    598
+   ],
+   "box": [
+    1290,
+    380
+   ],
+   "text": "estos auriculares"
+  },
+  {
+   "type": "chart",
+   "id": "c10",
+   "kind": "counter",
+   "start": 11.95,
+   "end": 15.5,
+   "at": 12.05,
+   "bg": "accent",
+   "value": 10,
+   "suffix": "×",
+   "decimals": 0,
+   "duration": 0.9,
+   "label": "más que cualquier otro equipo",
+   "subtitle": "reproducción"
+  },
+  {
+   "type": "pointer",
+   "id": "p2",
+   "start": 16.6,
+   "end": 19.4,
+   "at": 16.7,
+   "dot": [
+    299,
+    658
+   ],
+   "box": [
+    60,
+    440
+   ],
+   "text": "esta zona"
+  },
+  {
+   "type": "box",
+   "id": "b1",
+   "start": 18.3,
+   "end": 21.4,
+   "x": 60,
+   "y": 250,
+   "text": "identifica el objeto",
+   "at": 18.34
+  },
+  {
+   "type": "box",
+   "id": "b2",
+   "start": 23.7,
+   "end": 25.4,
+   "x": 1150,
+   "y": 300,
+   "text": "funciona muy bien",
+   "at": 23.77
+  },
+  {
+   "type": "draw",
+   "id": "d1",
+   "start": 24.4,
+   "end": 25.4,
+   "at": 24.45,
+   "icon": "circle-check",
+   "x": 1070,
+   "y": 298,
+   "w": 64,
+   "color": "#F5C500",
+   "duration": 0.45
+  },
+  {
+   "type": "chart",
+   "id": "c3",
+   "kind": "counter",
+   "start": 25.5,
+   "end": 28.5,
+   "at": 25.6,
+   "bg": "black",
+   "value": 3,
+   "suffix": "×",
+   "decimals": 0,
+   "duration": 0.7,
+   "label": "más rápido",
+   "subtitle": "que el resto"
+  },
+  {
+   "type": "kinetic",
+   "id": "k2",
+   "start": 28.65,
+   "end": 32.0,
+   "x": 1150,
+   "y": 150,
+   "size": 104,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "Importado",
+      "at": 30.25
+     }
+    ],
+    [
+     {
+      "text": "de",
+      "at": 31.25
+     }
+    ]
+   ]
+  },
+  {
+   "type": "behind",
+   "id": "bh",
+   "start": 32.1,
+   "end": 34.7,
+   "at": 32.21,
+   "text": "SUDAMÉRICA",
+   "size": 220,
+   "reveal": "chars",
+   "matte": "alpha_31.9.webm",
+   "matte_start": 31.9,
+   "matte_end": 34.8
+  },
+  {
+   "type": "kinetic",
+   "id": "k3",
+   "start": 34.9,
+   "end": 38.6,
+   "x": 1150,
+   "y": 150,
+   "size": 96,
+   "reveal": "fade",
+   "lines": [
+    [
+     {
+      "text": "donde se vende",
+      "at": 35.53
+     }
+    ],
+    [
+     {
+      "text": "de la",
+      "at": 36.03
+     },
+     {
+      "text": "mejor",
+      "at": 36.75,
+      "accent": true
+     },
+     {
+      "text": "manera",
+      "at": 36.99
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "b3",
+   "start": 43.9,
+   "end": 46.6,
+   "x": 1150,
+   "y": 300,
+   "text": "quien lo consume",
+   "at": 43.97
+  },
+  {
+   "type": "kinetic",
+   "id": "k4",
+   "start": 49.5,
+   "end": 51.9,
+   "x": 660,
+   "y": 110,
+   "size": 104,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "de este",
+      "at": 49.61
+     },
+     {
+      "text": "a oeste",
+      "at": 51.33,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "draw",
+   "id": "d2",
+   "start": 49.6,
+   "end": 51.9,
+   "at": 49.7,
+   "icon": "arrow-right",
+   "x": 1400,
+   "y": 118,
+   "w": 96,
+   "color": "#F5C500",
+   "stroke_width": 2.2,
+   "duration": 0.5
+  },
+  {
+   "type": "draw",
+   "id": "d3",
+   "start": 51.3,
+   "end": 51.9,
+   "at": 51.35,
+   "paths": [
+    "M19 12H5",
+    "m12 19-7-7 7-7"
+   ],
+   "x": 430,
+   "y": 118,
+   "w": 96,
+   "color": "#F5C500",
+   "stroke_width": 2.2,
+   "duration": 0.4
+  },
+  {
+   "type": "brand_card",
+   "id": "end",
+   "start": 51.9,
+   "end": 56.0,
+   "at": 52.0,
+   "bg": "black",
+   "reveal": "chars",
+   "title": "Auriculares",
+   "subtitle": "10× más · 3× más rápido · importados de Sudamérica"
+  }
+ ]
+}

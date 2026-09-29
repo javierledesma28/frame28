@@ -100,6 +100,7 @@ CSS = """
       .counter { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
       .counter .num { font-weight: 800; letter-spacing: -0.05em; font-size: 300px; line-height: 1; opacity: 0; }
       .counter .num b { color: var(--accent); font-weight: 800; }
+      .counter.accent .num b { color: var(--ink); opacity: .55; }
       .counter .lab { font-size: 64px; letter-spacing: -0.03em; margin-top: 12px; opacity: 0; }
       .counter .sub { font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 26px; opacity: 0.8; }
       .w .wi { display: inline-block; }

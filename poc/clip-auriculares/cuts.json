@@ -1,0 +1,61 @@
+{
+ "source_duration": 58.0,
+ "result_duration": 51.9,
+ "removed_seconds": 6.1,
+ "min_gap": 0.6,
+ "pad": 0.12,
+ "keep": [
+  {
+   "start": 0.73,
+   "end": 11.02
+  },
+  {
+   "start": 11.46,
+   "end": 16.68
+  },
+  {
+   "start": 17.7,
+   "end": 24.12
+  },
+  {
+   "start": 24.52,
+   "end": 47.84
+  },
+  {
+   "start": 49.64,
+   "end": 56.29
+  }
+ ],
+ "removed": [
+  {
+   "start": 0.05,
+   "end": 0.73,
+   "reason": "silencio inicio"
+  },
+  {
+   "start": 11.02,
+   "end": 11.46,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 16.68,
+   "end": 17.7,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 24.12,
+   "end": 24.52,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 47.84,
+   "end": 49.64,
+   "reason": "silencio pausa"
+  },
+  {
+   "start": 56.29,
+   "end": 57.89,
+   "reason": "silencio final"
+  }
+ ]
+}

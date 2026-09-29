@@ -1,4 +1,4 @@
-# HANDOFF · Frame28 · 2026-09-30
+# HANDOFF · Frame28 · 2026-09-30 (actualizado tras la sesión de la noche)
 
 Traspaso para retomar el proyecto desde otra sesión de Claude Code sin historial de conversación. Lee primero
 `CLAUDE.md` (qué es, estructura, convenciones, trampas). Esto es el estado y lo que toca hacer.
@@ -37,7 +37,11 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 
 1. **Tag y release v0.2.0**: los ficheros ya dicen 0.2.0 pero no hay tag. Hacer `git tag -a v0.2.0 -m "Frame28 v0.2.0"`,
    `git push --tags` y `gh release create v0.2.0 --title "Frame28 v0.2.0" --notes "..."` (proponer al usuario antes).
-2. **Asistente de instalación guiado** (última petición del usuario, sin empezar). Quiere "un instalador
+2. **Asistente de instalación guiado**: HECHA la parte de scripts interactivos (`docs/install.ps1` e `install.sh`:
+   pasos numerados con motivo, prompts reintentar/saltar/salir desde el teclado aunque lleguen por `curl | bash` /
+   `irm | iex`, modo `-y` / `FRAME28_YES=1`, log en `~/frame28-install.log`, Homebrew y Claude Code se instalan
+   si faltan, runtime VC++ en Windows). Probado en Windows en modo silencioso; **install.sh sin probar en Mac real**
+   (un usuario del entorno del autor tenía un Mac sin Homebrew: ese es el caso a validar). Pendiente la parte web: Quiere "un instalador
    interactivo que te acompañe, te diga en qué paso estás y te muestre los prompts para aceptar", sin violar
    políticas de Windows/Mac. Un navegador no puede ejecutar comandos locales, así que la respuesta recomendada es:
    - **Claude Code como asistente**: publicar `docs/instalar.md` con instrucciones para el agente y decirle al
@@ -58,6 +62,11 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 5. Demo de pantalla con zoom-pan (Playwright 1.59 `page.screencast` + `clicks.json` → overlay `screen`).
 6. Gráficas ampliadas (line/area/donut/table-reveal) y puertas de calidad (pixelmatch, LUFS, legibilidad).
 7. Alineado forzado con guion (stable-ts / WhisperX) para nombres propios y karaoke exacto.
+
+## Hecho además en la sesión del 30 de septiembre (noche)
+
+- Segundo clip real, un anuncio de auriculares de 58 s, montado con todo el pipeline (`poc/clip-auriculares/`, README propio). Salió a la primera salvo el sufijo del contador sobre fondo de acento (corregido en `build.py`).
+- `docs/guion-demo.md`: guion de 60 s con qué decir y qué gesto hacer para grabar una demo que luzca todas las técnicas.
 
 ## Problemas conocidos y dudas
 
