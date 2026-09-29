@@ -33,7 +33,7 @@ def probe(video: str | Path) -> dict:
     return out
 
 
-def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | None = None) -> dict:
+def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | None = None, normalize: bool = True) -> dict:
     """Copia de trabajo: vídeo a `fps` sin audio, voz normalizada a -16 LUFS (48k estéreo) y mono 16k para ASR."""
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     info = probe(video)
@@ -45,10 +45,10 @@ def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | Non
         raise SystemExit(r.stderr)
     result = {"clip": str(clip), "probe": info, "fps": fps}
     if info["audio"]:
-        loud = "loudnorm=I=-16:TP=-1.5:LRA=11"
+        af = ["-af", "loudnorm=I=-16:TP=-1.5:LRA=11"] if normalize else []
         voice = out / "voice.wav"; a16 = out / "audio16k.wav"
-        run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "2", "-ar", "48000", "-af", loud, str(voice)])
-        run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", "-af", loud, str(a16)])
+        run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "2", "-ar", "48000", *af, str(voice)])
+        run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", *af, str(a16)])
         result.update({"voice": str(voice), "audio16k": str(a16)})
     (out / "probe.json").write_text(json.dumps(result, indent=1, ensure_ascii=False), encoding="utf-8")
     return result

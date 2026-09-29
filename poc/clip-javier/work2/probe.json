@@ -1,0 +1,24 @@
+{
+ "clip": "work2\\clip.mp4",
+ "probe": {
+  "path": "C:/Users/ledes/OneDrive/Imágenes/Camera Roll/WIN_20260929_18_05_31_Pro.mp4",
+  "duration": 9.985233,
+  "bit_rate": 18235401,
+  "video": {
+   "codec": "h264",
+   "width": 1920,
+   "height": 1080,
+   "fps": 60.0
+  },
+  "audio": {
+   "codec": "aac",
+   "sample_rate": 48000,
+   "channels": 2,
+   "mean_db": -39.3,
+   "max_db": -20.4
+  }
+ },
+ "fps": 30,
+ "voice": "work2\\voice.wav",
+ "audio16k": "work2\\audio16k.wav"
+}

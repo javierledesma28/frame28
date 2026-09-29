@@ -19,7 +19,7 @@ ffmpeg o Node, di exactamente qué instalar (el `doctor` lo imprime) y para.
 ## 1. Preparar y entender el material
 
 ```bash
-frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav, audio16k.wav, probe.json
+frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav (limpia y a −14 LUFS), audio16k.wav, probe.json
 frame28 speaker work/clip.mp4          # side: left|center|right, free_side, bbox_1080p
 frame28 sheet work/clip.mp4 -o work/sheet.png --every 1
 ```
@@ -30,6 +30,11 @@ frame28 gestures work/clip.mp4 --words work/words.json -o work/gestures.json --a
 `pointer_suggestions` trae los overlays `pointer` ya colocados (dot en la punta del dedo, box fuera de la cara,
 `at` en la palabra "aquí/esto/este"). Usa los de `confidence: high` tal cual; los `low` solo si al mirar
 `work/gestos.png` el gesto es realmente de señalar. `face_box_1080p` es la zona que ningún overlay debe tapar.
+`prep` limpia la voz por defecto (graves fuera, reducción de ruido `afftdn`, sonoridad a −14 LUFS) y deja el
+original en `voice_raw.wav`; el JSON de salida trae las medidas antes/después. Si el ruido es fuerte (ventilador,
+calle) repite con `frame28 audio clean work/voice_raw.wav -o work/voice.wav --denoise rnnoise` y compara con
+`frame28 audio compare work/voice_raw.wav work/voice.wav -o work/audio.png`. Para podcast o vertical, `--lufs -16`.
+
 Mira `work/sheet.png` (Read) para conocer encuadre, luz, fondo y gestos. Anota: dónde está el hablante, qué lado
 queda libre, si el fondo es fijo (necesario para `behind`), si hay gestos de señalar (candidatos a `pointer`).
 

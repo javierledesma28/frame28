@@ -1,0 +1,164 @@
+[
+ {
+  "text": "bueno",
+  "start": 0.5,
+  "end": 1.16,
+  "prob": 0.7
+ },
+ {
+  "text": "bueno",
+  "start": 1.16,
+  "end": 1.38,
+  "prob": 0.705
+ },
+ {
+  "text": "bueno",
+  "start": 1.38,
+  "end": 1.78,
+  "prob": 0.969
+ },
+ {
+  "text": "esta",
+  "start": 1.78,
+  "end": 2.22,
+  "prob": 0.697
+ },
+ {
+  "text": "es",
+  "start": 2.22,
+  "end": 2.38,
+  "prob": 0.998
+ },
+ {
+  "text": "una",
+  "start": 2.38,
+  "end": 2.6,
+  "prob": 0.999
+ },
+ {
+  "text": "frase",
+  "start": 2.6,
+  "end": 2.9,
+  "prob": 0.998
+ },
+ {
+  "text": "vamos",
+  "start": 2.9,
+  "end": 3.18,
+  "prob": 0.822
+ },
+ {
+  "text": "a",
+  "start": 3.18,
+  "end": 3.44,
+  "prob": 0.999
+ },
+ {
+  "text": "ver",
+  "start": 3.44,
+  "end": 3.9,
+  "prob": 0.999
+ },
+ {
+  "text": "los",
+  "start": 3.9,
+  "end": 4.26,
+  "prob": 0.996
+ },
+ {
+  "text": "distintos",
+  "start": 4.26,
+  "end": 4.58,
+  "prob": 0.999
+ },
+ {
+  "text": "componentes",
+  "start": 4.58,
+  "end": 5.1,
+  "prob": 0.996
+ },
+ {
+  "text": "que",
+  "start": 5.1,
+  "end": 5.26,
+  "prob": 0.999
+ },
+ {
+  "text": "tenemos",
+  "start": 5.26,
+  "end": 5.62,
+  "prob": 0.999
+ },
+ {
+  "text": "en",
+  "start": 5.62,
+  "end": 6.2,
+  "prob": 0.993
+ },
+ {
+  "text": "esta",
+  "start": 6.2,
+  "end": 6.34,
+  "prob": 0.98
+ },
+ {
+  "text": "parte",
+  "start": 6.34,
+  "end": 6.74,
+  "prob": 0.999
+ },
+ {
+  "text": "por",
+  "start": 6.74,
+  "end": 7.32,
+  "prob": 0.776
+ },
+ {
+  "text": "aquí",
+  "start": 7.32,
+  "end": 7.48,
+  "prob": 0.994
+ },
+ {
+  "text": "hay",
+  "start": 7.48,
+  "end": 7.6,
+  "prob": 0.849
+ },
+ {
+  "text": "una",
+  "start": 7.6,
+  "end": 7.82,
+  "prob": 0.996
+ },
+ {
+  "text": "cosa",
+  "start": 7.82,
+  "end": 8.24,
+  "prob": 0.999
+ },
+ {
+  "text": "por",
+  "start": 8.24,
+  "end": 8.66,
+  "prob": 0.905
+ },
+ {
+  "text": "aquí",
+  "start": 8.66,
+  "end": 8.92,
+  "prob": 0.998
+ },
+ {
+  "text": "hay",
+  "start": 8.92,
+  "end": 9.14,
+  "prob": 0.988
+ },
+ {
+  "text": "otra",
+  "start": 9.14,
+  "end": 9.36,
+  "prob": 0.995
+ }
+]
