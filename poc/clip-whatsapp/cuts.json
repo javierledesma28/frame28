@@ -1,0 +1,14 @@
+{
+ "source_duration": 11.5,
+ "result_duration": 11.5,
+ "removed_seconds": 0.0,
+ "min_gap": 0.6,
+ "pad": 0.12,
+ "keep": [
+  {
+   "start": 0.0,
+   "end": 11.5
+  }
+ ],
+ "removed": []
+}
