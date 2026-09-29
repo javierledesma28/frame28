@@ -1,7 +1,7 @@
 {
  "version": 1,
  "meta": {
-  "title": "Javier · prueba Frame28",
+  "title": "Javier · Frame28 con marca Think28",
   "lang": "es"
  },
  "canvas": {
@@ -9,11 +9,13 @@
   "height": 1080,
   "fps": 30
  },
+ "duration": 13.0,
  "source": {
   "video": "clip.mp4",
   "audio": "voice.wav",
   "duration": 10.0
  },
+ "brand": "think28",
  "speaker": {
   "side": "left"
  },
@@ -43,7 +45,7 @@
    "x": 1150,
    "y": 660,
    "title": "JAVIER LEDESMA",
-   "subtitle": "Frame28 · prueba nº 1"
+   "subtitle": "Think28 · Digital Growth Partner"
   },
   {
    "type": "kinetic",
@@ -161,7 +163,7 @@
    "type": "pointer",
    "id": "p2",
    "start": 8.15,
-   "end": 10.0,
+   "end": 9.9,
    "at": 8.2,
    "dot": [
     470,
@@ -172,7 +174,16 @@
     520
    ],
    "text": "otra"
+  },
+  {
+   "type": "brand_card",
+   "id": "end",
+   "start": 9.9,
+   "end": 13.0,
+   "at": 10.0,
+   "bg": "black",
+   "title": "Frame28",
+   "subtitle": "Graba hablando a cámara. Frame28 monta el resto."
   }
- ],
- "brand": "think28"
+ ]
 }

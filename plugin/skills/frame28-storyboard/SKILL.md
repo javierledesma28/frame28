@@ -25,6 +25,7 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
    | dato corto / matiz | `box` | `at` = primera palabra del dato |
    | frase-lema, cambio de capítulo | `card` (negro o acento) o `card_words` | tapa al hablante 1,5–3 s |
    | mostrar algo | `image` | `at` = cuando lo nombra |
+   | abrir o cerrar con marca | `brand_card` | 2–3 s; al final, con `duration` raíz mayor que el clip |
    | todo el video | `captions` | por frase, de `captions.json` |
 
 3. **Coloca** cada overlay en el lado libre (`free_side` de `frame28 speaker`): con hablante a la izquierda,

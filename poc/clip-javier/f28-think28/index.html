@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;400;600;800&family=Space+Mono:wght@400;700&display=swap">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
@@ -48,15 +49,21 @@
       .cw .w b { color: var(--accent); font-weight: 600; }
       .img { position: absolute; opacity: 0; box-shadow: 0 30px 80px rgba(0,0,0,.45); border-radius: 18px; overflow: hidden; }
       .img img { display: block; width: 100%; height: auto; }
+      .lt-logo { height: 30px; width: auto; vertical-align: -6px; margin-right: 4px; }
+      .bc .bc-logo { opacity: 0; margin-bottom: 40px; }
+      .bc .bc-title { opacity: 0; font-weight: 800; font-size: 120px; letter-spacing: -0.035em; }
+      .bc .bc-sub { opacity: 0; font-size: 44px; font-family: var(--mono); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 18px; color: var(--grey); }
+      .bc .bc-endorse { opacity: 0; position: absolute; bottom: 64px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; color: var(--grey); }
+      .bc.accent .bc-sub, .bc.accent .bc-endorse { color: rgba(10,10,10,.7); }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: 40px; }
     </style>
   </head>
   <body>
     <!-- Generado por Frame28 a partir de storyboard.json. Edita el storyboard, no este fichero. -->
-    <div id="root" data-composition-id="main" data-start="0" data-duration="10.0" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="13.0" data-width="1920" data-height="1080">
       <video id="bg" class="clip cover" data-start="0" data-duration="10.0" data-track-index="0" src="clip.mp4" muted playsinline style="z-index:1"></video>
       <audio id="voice" data-start="0" data-duration="10.0" data-track-index="9" src="voice.wav"></audio>
-      <div id="lt" class="lower" data-start="0.3" data-duration="2.5" data-track-index="3" style="z-index:4;left:1150px; top:660px;"><i class="c tl"></i><i class="c br"></i><div class="line"><span class="mask" id="lt-l1"><span class="cur">◌</span>&nbsp;JAVIER LEDESMA&nbsp;&nbsp;&nbsp;&nbsp;×</span></div><div class="line"><span class="mask" id="lt-l2">Frame28 · prueba nº 1<span class="cur">▌</span></span></div></div>
+      <div id="lt" class="lower" data-start="0.3" data-duration="2.5" data-track-index="3" style="z-index:4;left:1150px; top:660px; width:811px;"><i class="c tl"></i><i class="c br"></i><div class="line"><span class="mask" id="lt-l1"><img class="lt-logo" src="assets/brand/isotipo.svg" alt="">&nbsp;JAVIER LEDESMA&nbsp;&nbsp;&nbsp;&nbsp;×</span></div><div class="line"><span class="mask" id="lt-l2">Think28 · Digital Growth Partner<span class="cur">▌</span></span></div></div>
       <div id="k0" class="kin" data-start="0.45" data-duration="2.05" data-track-index="5" style="z-index:4;left:1150px; top:230px; font-size:124px;"><div><span class="w" id="k0-0-0">Bueno,</span></div><div><span class="w" id="k0-1-0">bueno,</span></div><div><span class="w accent" id="k0-2-0">bueno.</span></div></div>
       <div id="c0" class="box" data-start="2.5" data-duration="1.8" data-track-index="4" style="z-index:4;left:1150px; top:250px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>esta es una frase</div>
       <div id="k1" class="kin" data-start="2.8" data-duration="1.7" data-track-index="5" style="z-index:4;left:1150px; top:420px; font-size:124px;"><div><span class="w" id="k1-0-0">Vamos</span><span class="w" id="k1-0-1">a</span><span class="w" id="k1-0-2">ver</span></div><div><span class="w accent" id="k1-1-0">los</span><span class="w accent" id="k1-1-1">distintos</span></div></div>
@@ -64,14 +71,15 @@
       <video id="bh-fg" class="clip cover" data-start="4.3" data-duration="2.5" data-track-index="2" src="alpha_4.3.webm" muted playsinline style="z-index:3"></video>
       <div id="c1" class="box" data-start="5.55" data-duration="1.2" data-track-index="4" style="z-index:4;left:1150px; top:840px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>en esta parte</div>
       <div id="p1" class="clip" data-start="6.7" data-duration="1.5" data-track-index="6" style="z-index:4;"><div class="dot" id="p1-dot" style="left:1341px; top:761px;"></div><div class="conn" id="p1-line" style="left:1350px; top:769px; transform: rotate(-55.3deg);"></div><div class="box" id="p1-box" style="left:1440px; top:560px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>una cosa</div></div>
-      <div id="p2" class="clip" data-start="8.15" data-duration="1.85" data-track-index="6" style="z-index:4;"><div class="dot" id="p2-dot" style="left:461px; top:731px;"></div><div class="conn" id="p2-line" style="left:470px; top:739px; transform: rotate(-133.76deg);"></div><div class="box" id="p2-box" style="left:150px; top:520px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>otra</div></div>
-      <div id="caps" class="clip caps" data-start="0" data-duration="10.0" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;"><span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span><span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span><span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span></div>
+      <div id="p2" class="clip" data-start="8.15" data-duration="1.75" data-track-index="6" style="z-index:4;"><div class="dot" id="p2-dot" style="left:461px; top:731px;"></div><div class="conn" id="p2-line" style="left:470px; top:739px; transform: rotate(-133.76deg);"></div><div class="box" id="p2-box" style="left:150px; top:520px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>otra</div></div>
+      <div id="end" class="clip card bc black" data-start="9.9" data-duration="3.1" data-track-index="6" style="z-index:5;"><img id="end-logo" class="bc-logo" src="assets/brand/logo-dark.svg" alt="" style="width:520px"><div id="end-t" class="bc-title">Frame28</div><div id="end-s" class="bc-sub">Graba hablando a cámara. Frame28 monta el resto.</div><div id="end-e" class="bc-endorse">A Think28 product · t28.io</div></div>
+      <div id="caps" class="clip caps" data-start="0" data-duration="13.0" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;"><span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span><span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span><span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span></div>
     </div>
     <script>
       const tl = gsap.timeline({ paused: true });
       tl.fromTo("#lt", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.3);
-      tl.fromTo("#lt-l1", { width: 0 }, { width: 464, duration: 0.9, ease: "none" }, 0.4);
-      tl.fromTo("#lt-l2", { width: 0 }, { width: 485, duration: 1.14, ease: "none" }, 1.2);
+      tl.fromTo("#lt-l1", { width: 0 }, { width: 494, duration: 0.9, ease: "none" }, 0.4);
+      tl.fromTo("#lt-l2", { width: 0 }, { width: 763, duration: 1.0, ease: "none" }, 1.05);
       tl.to("#lt", { opacity: 0, duration: 0.25 }, 2.55);
       tl.fromTo("#k0-0-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 0.5);
       tl.fromTo("#k0-1-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 1.14);
@@ -96,7 +104,11 @@
       tl.fromTo("#p2-dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 8.2);
       tl.fromTo("#p2-line", { width: 0 }, { width: 194, duration: 0.3, ease: "power3.out" }, 8.32);
       tl.fromTo("#p2-box", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 8.55);
-      tl.to("#p2", { opacity: 0, duration: 0.2 }, 9.8);
+      tl.to("#p2", { opacity: 0, duration: 0.2 }, 9.7);
+      tl.fromTo("#end-logo", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.0);
+      tl.fromTo("#end-t", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.18);
+      tl.fromTo("#end-s", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.36);
+      tl.fromTo("#end-e", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 10.54);
       tl.set("#cap0", { visibility: "visible" }, 0.5); tl.set("#cap0", { visibility: "hidden" }, 2.86);
       tl.set("#cap1", { visibility: "visible" }, 2.86); tl.set("#cap1", { visibility: "hidden" }, 6.7);
       tl.set("#cap2", { visibility: "visible" }, 6.7); tl.set("#cap2", { visibility: "hidden" }, 10.0);

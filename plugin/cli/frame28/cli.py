@@ -158,6 +158,56 @@ def sb_schema():
     click.echo(ref.read_text(encoding="utf-8"))
 
 
+@main.group()
+def brand():
+    """Marcas: colores, fuentes y logos que usan los overlays (`"brand": "nombre"` en el storyboard)."""
+
+
+@brand.command("list")
+def brand_list():
+    from .build import list_brands
+    for name, path in sorted(list_brands().items()):
+        click.echo(f"  {name:<16} {path}")
+
+
+@brand.command("show")
+@click.argument("name")
+def brand_show(name):
+    from .build import resolve_brand
+    click.echo(Path(resolve_brand(name)).read_text(encoding="utf-8"))
+
+
+@brand.command("init")
+@click.argument("name")
+@click.option("--from", "base", default="think28", show_default=True, help="marca de la que partir")
+@click.option("--user", "to_user", is_flag=True, help="guardar en ~/.config/frame28/brands en vez de ./brands")
+@click.option("--accent", default=None, help="color de acento, p. ej. #0D4F87")
+@click.option("--logo", type=click.Path(exists=True), default=None, help="SVG o PNG del isotipo/logo")
+def brand_init(name, base, to_user, accent, logo):
+    """Crea una marca nueva a partir de otra (por defecto think28) y te dice qué editar."""
+    import shutil
+    from .build import USER_BRANDS, resolve_brand
+    src = resolve_brand(base)
+    d = json.loads(src.read_text(encoding="utf-8"))
+    d.update({"name": name, "tagline": "", "site": "", "endorsement": "", "source": ""})
+    d.pop("logos", None); d.pop("logo_rules", None); d.pop("voice", None)
+    if accent:
+        d["accent"] = accent
+    target_dir = USER_BRANDS if to_user else Path.cwd() / "brands"
+    (target_dir / name).mkdir(parents=True, exist_ok=True)
+    if logo:
+        dst = target_dir / name / ("isotipo" + Path(logo).suffix.lower()); shutil.copy2(logo, dst)
+        d["logo_files"] = {"isotipo": f"{name}/{dst.name}", "on_dark": f"{name}/{dst.name}", "on_light": f"{name}/{dst.name}", "on_accent": f"{name}/{dst.name}"}
+    else:
+        d["logo_files"] = {}
+    out = target_dir / f"{name}.json"
+    out.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    click.echo(f"Marca creada: {out}")
+    click.echo("Edita accent/ink/paper/grey, sans/mono, tagline y endorsement. Logos: pon SVG/PNG en "
+               f"{target_dir / name}/ y referéncialos en logo_files (isotipo, on_dark, on_light, on_accent).")
+    click.echo(f'Úsala en el storyboard con "brand": "{name}".')
+
+
 @main.command()
 @click.argument("storyboard", type=click.Path(exists=True))
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())

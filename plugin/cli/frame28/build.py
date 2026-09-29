@@ -14,7 +14,7 @@ from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
 
-OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image"}
+OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card"}
 
 DEFAULT_BRAND = {
     "accent": "#EA77A1",
@@ -70,8 +70,42 @@ CSS = """
       .cw .w b { color: var(--accent); font-weight: 600; }
       .img { position: absolute; opacity: 0; box-shadow: 0 30px 80px rgba(0,0,0,.45); border-radius: 18px; overflow: hidden; }
       .img img { display: block; width: 100%; height: auto; }
+      .lt-logo { height: 30px; width: auto; vertical-align: -6px; margin-right: 4px; }
+      .bc .bc-logo { opacity: 0; margin-bottom: 40px; }
+      .bc .bc-title { opacity: 0; font-weight: 800; font-size: 120px; letter-spacing: -0.035em; }
+      .bc .bc-sub { opacity: 0; font-size: 44px; font-family: var(--mono); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 18px; color: var(--grey); }
+      .bc .bc-endorse { opacity: 0; position: absolute; bottom: 64px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; color: var(--grey); }
+      .bc.accent .bc-sub, .bc.accent .bc-endorse { color: rgba(10,10,10,.7); }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: {capsize}px; }
 """
+
+
+BUNDLED_BRANDS = Path(__file__).with_name("brands")
+USER_BRANDS = Path.home() / ".config" / "frame28" / "brands"
+
+
+def resolve_brand(name_or_path: str, near: Path | None = None) -> Path:
+    """Orden: ruta explícita -> ./brands/<n>.json junto al proyecto -> ~/.config/frame28/brands -> incluidas."""
+    p = Path(name_or_path)
+    if p.suffix == ".json" and p.exists():
+        return p
+    cands = []
+    if near:
+        cands += [near / "brands" / f"{name_or_path}.json", near.parent / "brands" / f"{name_or_path}.json"]
+    cands += [Path.cwd() / "brands" / f"{name_or_path}.json", USER_BRANDS / f"{name_or_path}.json", BUNDLED_BRANDS / f"{name_or_path}.json"]
+    for c in cands:
+        if c.exists():
+            return c
+    raise SystemExit(f"marca '{name_or_path}' no encontrada. Buscado en: " + ", ".join(str(c) for c in cands))
+
+
+def list_brands() -> dict[str, Path]:
+    found: dict[str, Path] = {}
+    for d in (BUNDLED_BRANDS, USER_BRANDS, Path.cwd() / "brands"):
+        if d.exists():
+            for f in d.glob("*.json"):
+                found[f.stem] = f
+    return found
 
 
 def esc(s: str) -> str:
@@ -83,15 +117,18 @@ class Builder:
         self.sb = sb
         self.dir = project_dir
         brand = sb.get("brand", {})
-        if isinstance(brand, str):  # "think28" → brands/think28.json incluido en el paquete, o ruta a un JSON propio
-            cand = Path(__file__).with_name("brands") / f"{brand}.json"
-            path = cand if cand.exists() else Path(brand)
+        self.brand_dir: Path | None = None
+        if isinstance(brand, str):
+            path = resolve_brand(brand, project_dir)
             brand = json.loads(path.read_text(encoding="utf-8"))
+            self.brand_dir = path.parent
         self.brand = {**DEFAULT_BRAND, **{k: v for k, v in brand.items() if k in DEFAULT_BRAND}}
         self.brand_meta = brand
+        self.brand_assets: dict[str, Path] = {}  # ruta publicada -> fichero origen (logos)
+        # duración total: puede superar la del clip (tarjetas de cierre sobre negro)
+        self.dur = float(sb.get("duration", sb["source"]["duration"]))
         canvas = sb.get("canvas", {})
         self.W = int(canvas.get("width", 1920)); self.H = int(canvas.get("height", 1080)); self.fps = int(canvas.get("fps", 30))
-        self.dur = float(sb["source"]["duration"])
         self.html: list[str] = []
         self.js: list[str] = []
         self.assets: set[str] = set()
@@ -119,19 +156,35 @@ class Builder:
         self.assets.add(rel)
         return rel
 
+    def brand_logo(self, variant: str = "isotipo") -> str | None:
+        """Publica el logo de la marca como assets/brand/<fichero> y devuelve la ruta relativa, o None si no hay."""
+        files = self.brand_meta.get("logo_files") or {}
+        rel = files.get(variant) or files.get("isotipo")
+        if not rel or not self.brand_dir:
+            return None
+        src = self.brand_dir / rel
+        if not src.exists():
+            self.warnings.append(f"logo de marca no encontrado: {src}"); return None
+        pub = f"assets/brand/{src.name}"
+        self.brand_assets[pub] = src
+        return pub
+
     # ---------- overlays ----------
     def lower_third(self, o: dict) -> None:
         i = o["id"]; t = o["start"]
         title = esc(o["title"]); sub = esc(o.get("subtitle", ""))
+        logo = self.brand_logo("isotipo")
+        mark = f'<img class="lt-logo" src="{logo}" alt="">' if logo else '<span class="cur">◌</span>'
         inner = (f'<i class="c tl"></i><i class="c br"></i>'
-                 f'<div class="line"><span class="mask" id="{i}-l1"><span class="cur">◌</span>&nbsp;{title}&nbsp;&nbsp;&nbsp;&nbsp;×</span></div>'
+                 f'<div class="line"><span class="mask" id="{i}-l1">{mark}&nbsp;{title}&nbsp;&nbsp;&nbsp;&nbsp;×</span></div>'
                  + (f'<div class="line"><span class="mask" id="{i}-l2">{sub}<span class="cur">▌</span></span></div>' if sub else ""))
-        self.timed(o, f"left:{o['x']}px; top:{o['y']}px;", cls="lower", inner=inner, z=4, track=3)
-        w1 = 34 * 0.62 * (len(o["title"]) + 8); w2 = 34 * 0.62 * (len(o.get("subtitle", "")) + 2)
+        w1 = 34 * 0.66 * (len(o["title"]) + 8); w2 = 34 * 0.66 * (len(o.get("subtitle", "")) + 2)
+        box_w = round(max(w1, w2) + 48)  # ancho fijo: si no, la segunda línea queda recortada por la primera
+        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; width:{box_w}px;", cls="lower", inner=inner, z=4, track=3)
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.2 }}, {t});')
         self.js.append(f'tl.fromTo("#{i}-l1", {{ width: 0 }}, {{ width: {round(w1)}, duration: {round(min(0.9, 0.05 * len(o["title"]) + 0.3), 2)}, ease: "none" }}, {round(t + 0.1, 3)});')
         if sub:
-            self.js.append(f'tl.fromTo("#{i}-l2", {{ width: 0 }}, {{ width: {round(w2)}, duration: {round(min(1.2, 0.04 * len(sub) + 0.3), 2)}, ease: "none" }}, {round(t + 0.9, 3)});')
+            self.js.append(f'tl.fromTo("#{i}-l2", {{ width: 0 }}, {{ width: {round(w2)}, duration: {round(min(1.0, 0.03 * len(sub) + 0.2), 2)}, ease: "none" }}, {round(t + 0.75, 3)});')
         self.fade_out(f"#{i}", o["end"], 0.25)
 
     def box(self, o: dict) -> None:
@@ -234,14 +287,38 @@ class Builder:
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0, scale: 0.92, y: 20 }}, {{ opacity: 1, scale: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {o.get("at", o["start"])});')
         self.fade_out(f"#{i}", o["end"])
 
+    def brand_card(self, o: dict) -> None:
+        """Tarjeta de marca (apertura o cierre): logo + título + subtítulo + endorsement, sobre negro o acento."""
+        i = o["id"]; bg = o.get("bg", "black"); at = o.get("at", o["start"])
+        variant = o.get("logo", {"black": "on_dark", "accent": "on_accent", "white": "on_light"}.get(bg, "on_dark"))
+        logo = self.brand_logo(variant)
+        title = o.get("title", ""); sub = o.get("subtitle", self.brand_meta.get("tagline", ""))
+        endorse = o.get("endorsement", self.brand_meta.get("endorsement", ""))
+        inner = ""
+        if logo:
+            inner += f'<img id="{i}-logo" class="bc-logo" src="{logo}" alt="" style="width:{o.get("logo_width", 520)}px">'
+        if title:
+            inner += f'<div id="{i}-t" class="bc-title">{esc(title)}</div>'
+        if sub:
+            inner += f'<div id="{i}-s" class="bc-sub">{esc(sub)}</div>'
+        if endorse:
+            inner += f'<div id="{i}-e" class="bc-endorse">{esc(endorse)}</div>'
+        self.timed(o, "", cls=f"clip card bc {bg}", inner=inner, z=5, track=6)
+        step = 0.0
+        for sel, present in ((f"#{i}-logo", bool(logo)), (f"#{i}-t", bool(title)), (f"#{i}-s", bool(sub)), (f"#{i}-e", bool(endorse))):
+            if present:
+                self.js.append(f'tl.fromTo("{sel}", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }}, {round(at + step, 3)});')
+                step += 0.18
+
     # ---------- documento ----------
     def build(self) -> str:
         sb = self.sb; src = sb["source"]
         video = self.asset(src["video"])
-        self.html.append(f'<video id="bg" class="clip cover" data-start="0" data-duration="{self.dur}" data-track-index="0" src="{video}" muted playsinline style="z-index:1"></video>')
+        clip_dur = float(src["duration"])
+        self.html.append(f'<video id="bg" class="clip cover" data-start="0" data-duration="{clip_dur}" data-track-index="0" src="{video}" muted playsinline style="z-index:1"></video>')
         if src.get("audio"):
             audio = self.asset(src["audio"])
-            self.html.append(f'<audio id="voice" data-start="0" data-duration="{self.dur}" data-track-index="9" src="{audio}"></audio>')
+            self.html.append(f'<audio id="voice" data-start="0" data-duration="{clip_dur}" data-track-index="9" src="{audio}"></audio>')
         for o in sb.get("overlays", []):
             t = o["type"]
             if t not in OVERLAY_TYPES:
@@ -259,6 +336,8 @@ class Builder:
                .replace("{paper}", b["paper"]).replace("{grey}", b["grey"]).replace("{sans}", b["sans"]).replace("{mono}", b["mono"])
                .replace("{capsize}", str(b["caption_font_size"])))
         body = "\n      ".join(self.html); js = "\n      ".join(self.js)
+        fl = self.brand_meta.get("font_link")
+        font_link = f'    <link rel="stylesheet" href="{fl}">\n' if fl else ""
         lang = sb.get("meta", {}).get("lang", "es")
         return f"""<!doctype html>
 <html lang="{lang}" data-resolution="landscape">
@@ -266,7 +345,7 @@ class Builder:
     <meta charset="UTF-8" />
     <meta name="viewport" content="width={self.W}, height={self.H}" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
-    <style>{css}    </style>
+{font_link}    <style>{css}    </style>
   </head>
   <body>
     <!-- Generado por Frame28 a partir de storyboard.json. Edita el storyboard, no este fichero. -->
@@ -294,7 +373,7 @@ def validate(sb: dict) -> list[str]:
     for k in ("video", "duration"):
         if k not in src:
             errs.append(f"source.{k} es obligatorio")
-    dur = float(src.get("duration", 0) or 0)
+    dur = float(sb.get("duration", src.get("duration", 0)) or 0)
     ids = set()
     for n, o in enumerate(sb.get("overlays", [])):
         p = f"overlays[{n}]"
@@ -314,7 +393,7 @@ def validate(sb: dict) -> list[str]:
         t = o.get("type")
         req = {"lower_third": ["x", "y", "title"], "box": ["x", "y", "text"], "kinetic": ["x", "y", "lines"],
                "behind": ["text", "matte"], "pointer": ["dot", "box", "text"], "card": ["title"],
-               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"]}.get(t, [])
+               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": []}.get(t, [])
         for k in req:
             if k not in o:
                 errs.append(f"{p} ({t}): falta '{k}'")
@@ -358,5 +437,7 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
                 copied.append(rel)
             else:
                 b.warnings.append(f"asset no encontrado: {src}")
+        for pub, srcfile in b.brand_assets.items():
+            dst = out / pub; dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(srcfile, dst); copied.append(pub)
     return {"project": str(out), "index": str(out / "index.html"), "overlays": len(sb.get("overlays", [])),
             "captions": len(sb.get("captions", [])), "assets": copied, "warnings": b.warnings}

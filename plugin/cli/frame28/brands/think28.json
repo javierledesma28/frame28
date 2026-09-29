@@ -52,5 +52,12 @@
       "empoderamos",
       "mágico"
     ]
-  }
+  },
+  "logo_files": {
+    "isotipo": "think28/isotipo.svg",
+    "on_dark": "think28/logo-dark.svg",
+    "on_light": "think28/logo-white.svg",
+    "on_accent": "think28/logo-yellow.svg"
+  },
+  "font_link": "https://fonts.googleapis.com/css2?family=Inter:wght@100;400;600;800&family=Space+Mono:wght@400;700&display=swap"
 }

@@ -120,9 +120,23 @@ Qué puede hacer un plugin: sus skills ejecutan comandos con **los permisos del 
 - **Revisión antes de cada release**: `claude plugin validate .`, `frame28 doctor`, un render de prueba del clip
   de ejemplo y `git diff` de las skills (son instrucciones para un agente: lo que diga, se hará).
 
-## 6. Brand kit (Think28 y otras marcas)
+## 6. Brand kit ✅ (2026-09-29)
 
-Objetivo: que el mismo pipeline salga con la identidad de quien lo use. Diseño previsto:
+Hecho y probado con el clip propio (`poc/clip-javier/storyboard-think28.json`):
+
+- `plugin/cli/frame28/brands/think28.json`: tokens del brand kit oficial (amarillo `#F5C500`, negro `#0A0A0A`,
+  Inter, Space Mono, tiempos de animación, endorsement) + logos SVG incluidos (`brands/think28/`).
+- El storyboard acepta `"brand": "think28"`, un nombre propio o una ruta a JSON. Orden de búsqueda: `./brands/`
+  junto al proyecto → `~/.config/frame28/brands/` → marcas incluidas.
+- El `lower_third` lleva el isotipo; las `card` con `bg: accent` usan el color de marca; el overlay nuevo
+  `brand_card` (apertura o cierre) pone logo, título, tagline y endorsement, con la variante de logo correcta
+  según el fondo (`on_dark`, `on_light`, `on_accent`).
+- `frame28 brand init mimarca --accent "#0D4F87" --logo logo.svg` crea una marca nueva; `brand list` y
+  `brand show` para consultarlas. Frame28 sale con Think28 por defecto y cada usuario pone la suya.
+- Aprendido: los SVG del press kit llevan fondo propio (oscuro, blanco o amarillo), por eso las variantes se nombran
+  por el fondo sobre el que van y no por su color.
+
+Diseño original (para referencia):
 
 - `brand.json` por usuario o proyecto: `accent`, `ink`, `paper`, fuentes, logo (SVG/PNG), nombre y tagline.
   El storyboard lo referencia con `"brand": "think28"` o ruta.

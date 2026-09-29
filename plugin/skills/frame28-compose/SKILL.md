@@ -12,6 +12,11 @@ frame28 check work/project                             # lint + runtime + layout
 frame28 render work/project -o out/video.mp4           # MP4 + out/video_sheet.png
 ```
 
+## Marca
+
+Pon `"brand": "think28"` (incluida) o el nombre de una marca creada con `frame28 brand init` en el storyboard: rótulo con
+isotipo, acento de color y `brand_card` de apertura/cierre con logo, tagline y endorsement. `frame28 brand list` las enumera.
+
 ## Cómo leer `check`
 
 - `errors`: hay que arreglarlos (en el storyboard) antes de renderizar. Típico: asset que no existe.

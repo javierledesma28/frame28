@@ -17,6 +17,7 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
 }
 ```
 
+- `duration` (raíz, opcional): duración total si es mayor que la del clip, p. ej. para una `brand_card` de cierre sobre negro.
 - `source.video`: clip a 30 fps **sin audio** (lo produce `frame28 prep`). `source.audio`: voz normalizada. Rutas relativas al storyboard.
 - `brand`: opcional. Un objeto con `accent`, `ink`, `paper`, `grey`, `sans`, `mono`, `caption_font_size`, **o un nombre de marca incluida** (`"brand": "think28"`), o la ruta a tu propio `brand.json`.
 - `captions`: subtítulos por frase (de `captions.json`). Se dibujan en caja negra centrada abajo.
@@ -37,6 +38,13 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 | `list_focus` | `bg?`, `label?` ("New"), `size?` (96), `items: [{text, at}]` | Lista donde el foco salta de ítem en ítem al decirse cada uno (T5). |
 | `card_words` | `bg?`, `size?` (118), `lines: [[{text, at, accent?, initial?}]]` | Pizarra con frase palabra a palabra; `initial: true` colorea la inicial (T2/T5). |
 | `image` | `src`, `x`, `y`, `w`, `at?` | Imagen o captura que entra con pop: UI, logo, foto (T8). |
+| `brand_card` | `bg?` (black/accent/white), `logo?` (on_dark/on_light/on_accent/isotipo; por defecto según `bg`), `logo_width?`, `title?`, `subtitle?`, `endorsement?`, `at?` | Tarjeta de marca de apertura o cierre: logo, título, tagline y endorsement (por defecto los de la marca). |
+
+## Marcas
+
+`"brand": "think28"` usa la marca incluida (amarillo `#F5C500`, Inter, Space Mono, isotipo "28" en el rótulo).
+`frame28 brand init mimarca --accent "#0D4F87" --logo logo.svg` crea `./brands/mimarca.json`; `frame28 brand list` las enumera.
+El `lower_third` muestra el isotipo de la marca; las `card` con `bg: accent` usan su color; la `brand_card` usa logo, tagline y endorsement.
 
 ## Capas (z-index) que aplica el generador
 
