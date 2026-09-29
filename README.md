@@ -39,6 +39,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | "tres cosas: rápido, barato, fiable" | Una lista donde el foco salta al decir cada una |
 | "somos veinte veces más rápidos" | Una cifra que cuenta hasta 20× o una gráfica de barras con tu fila destacada |
 | "así se ve el producto" | La captura entrando en pantalla |
+| «eh… mmm… (silencio)» | Nada: los silencios largos, las muletillas y los falsos arranques desaparecen solos |
 | todo el rato | Subtítulos limpios, frase a frase |
 
 El estilo es el de los *launch videos* de los laboratorios de IA: tres fondos, dos tipografías, esquinas de
@@ -56,7 +57,7 @@ nada. Lo estudiamos plano a plano antes de escribir una línea ([qué sacamos de
 Frame28 es un plugin de [Claude Code](https://claude.com/claude-code) más un CLI. El agente dirige; el CLI ejecuta.
 
 ```
-tu clip ──▶ prep ──▶ transcribe (tiempos por palabra) ──▶ speaker (dónde estás) ──▶ gestures (dónde señalas) ──▶ matte
+tu clip ──▶ prep ──▶ transcribe (tiempos por palabra) ──▶ cut (silencios y muletillas fuera) ──▶ speaker ──▶ gestures ──▶ matte
                                                                      │
                                        el agente escribe ──▶ storyboard.json ◀── reglas de dirección
                                                                      │
