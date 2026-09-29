@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      :root {
+        --pink: #EA77A1; --offwhite: #FFFFFC; --grey: #80807D;
+        --sans: "Helvetica Neue", Inter, "Segoe UI", Arial, sans-serif;
+        --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+      }
+      #root { position: relative; width: 1920px; height: 1080px; font-family: var(--sans); }
+      .clip { position: absolute; inset: 0; }
+      video.cover { width: 100%; height: 100%; object-fit: cover; }
+
+      /* Escena A: texto detrás del hablante */
+      #a-text { display: flex; align-items: center; justify-content: center; }
+      #a-word {
+        font-weight: 700; font-size: 215px; color: #fff; letter-spacing: -0.045em; white-space: nowrap;
+        text-shadow: 0 8px 40px rgba(0,0,0,.35);
+      }
+
+      /* Escena B: bar chart */
+      #b { background: var(--pink); padding: 90px 140px; }
+      #b h1 { color: #1a1a1a; font-size: 56px; font-weight: 600; letter-spacing: -0.03em; }
+      #b .sub { color: #3a2530; font-family: var(--mono); font-size: 24px; margin-top: 8px; }
+      #b .rows { margin-top: 48px; position: relative; }
+      #b .row { display: flex; align-items: center; height: 74px; position: relative; }
+      #b .row.hero { isolation: isolate; }
+      #b .grp { width: 200px; font-family: var(--mono); font-size: 24px; }
+      #b .grp span { background: #1a1a1a; color: var(--pink); padding: 2px 8px; }
+      #b .model { width: 300px; font-family: var(--mono); font-size: 26px; color: #1a1a1a; text-align: right; padding-right: 28px; }
+      #b .track { position: relative; height: 34px; width: 1000px; }
+      #b .fill { position: absolute; left: 0; top: 0; height: 34px; background: rgba(26,26,26,.55); transform-origin: left center; }
+      #b .hero .fill { background: #1a1a1a; }
+      #b .val { position: absolute; top: 0; line-height: 34px; font-family: var(--mono); font-size: 26px; color: #1a1a1a; }
+      #hero-box { position: absolute; left: -24px; right: -24px; top: 4px; bottom: 4px; background: var(--offwhite); z-index: -1; }
+      .corner { position: absolute; width: 22px; height: 22px; border: 0 solid #1a1a1a; }
+      .corner.tl { top: -6px; left: -6px; border-top-width: 3px; border-left-width: 3px; }
+      .corner.tr { top: -6px; right: -6px; border-top-width: 3px; border-right-width: 3px; }
+      .corner.bl { bottom: -6px; left: -6px; border-bottom-width: 3px; border-left-width: 3px; }
+      .corner.br { bottom: -6px; right: -6px; border-bottom-width: 3px; border-right-width: 3px; }
+
+      /* Escena C: tipografía cinética */
+      #c { background: #000; display: flex; align-items: center; justify-content: center; }
+      #c .words {
+        width: 1500px; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 34px;
+        font-weight: 500; font-size: 124px; letter-spacing: -0.04em; line-height: 1.05; color: #fff;
+      }
+      #c .w { display: inline-block; opacity: 0; }
+      #c .w.pink { color: var(--pink); }
+      #c .w.join { margin-left: -34px; }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-5g84" id="root" data-composition-id="main" data-start="0" data-duration="13.4" data-width="1920" data-height="1080">
+
+      <!-- ===== Escena A (0 – 2.8 s): fondo = plano completo, texto en medio, hablante recortado encima ===== -->
+      <video style="z-index: 1" data-hf-id="hf-elzc" id="a-bg" class="clip cover" data-start="0" data-duration="2.8" data-track-index="0" src="assets/speaker_a.mp4" muted playsinline></video>
+      <div data-hf-id="hf-89i2" id="a-text" class="clip" data-start="1.53" data-duration="2.8" data-track-index="2">
+        <div data-hf-id="hf-u05d" id="a-word">AUTOMATIZACIÓN</div>
+      </div>
+      <video style="z-index: 1" data-hf-id="hf-76it" id="a-fg" class="clip cover" data-start="2.8" data-duration="2.8" data-track-index="1" src="assets/speaker_a_alpha.webm" muted playsinline></video>
+
+      <!-- ===== Escena B (2.8 – 8.8 s): bar chart que se construye ===== -->
+      <div data-hf-id="hf-ctbk" id="b" class="clip" data-start="4.33" data-duration="6" data-track-index="2">
+        <h1 data-hf-id="hf-n2za" id="b-title">Tasa de error en salida estructurada</h1>
+        <div data-hf-id="hf-g3w9" class="sub" id="b-sub">% de respuestas que rompen el esquema · menor es mejor</div>
+        <div data-hf-id="hf-hnc7" class="rows">
+          <div data-hf-id="hf-5ez0" class="row hero"><div data-hf-id="hf-vi7p" class="grp"><span data-hf-id="hf-5gng">TypeSafe</span></div><div data-hf-id="hf-5w5g" class="model">Jev-1.0</div><div data-hf-id="hf-64lp" class="track"><div data-hf-id="hf-6dw7" class="fill" style="width:6px"></div><div data-hf-id="hf-16er" class="val" style="left:22px">0.00%</div></div>
+            <div data-hf-id="hf-4yml" id="hero-box"><div data-hf-id="hf-9co5" class="corner tl"></div><div data-hf-id="hf-lrp7" class="corner tr"></div><div data-hf-id="hf-2cxv" class="corner bl"></div><div data-hf-id="hf-34pp" class="corner br"></div></div></div>
+          <div data-hf-id="hf-thy4" class="row"><div data-hf-id="hf-3kmh" class="grp"><span data-hf-id="hf-yctz">OpenAI</span></div><div data-hf-id="hf-j0j4" class="model">GPT-5.6 Luna</div><div data-hf-id="hf-gav5" class="track"><div data-hf-id="hf-74kg" class="fill" style="width:37.7px"></div><div data-hf-id="hf-6625" class="val" style="left:53.7px">0.49%</div></div></div>
+          <div data-hf-id="hf-lt04" class="row"><div data-hf-id="hf-4rjk" class="grp"></div><div data-hf-id="hf-79c4" class="model">GPT-5.6 Terra</div><div data-hf-id="hf-hhs8" class="track"><div data-hf-id="hf-xfcj" class="fill" style="width:44.6px"></div><div data-hf-id="hf-9dmq" class="val" style="left:60.6px">0.58%</div></div></div>
+          <div data-hf-id="hf-km31" class="row"><div data-hf-id="hf-4d8j" class="grp"></div><div data-hf-id="hf-rscw" class="model">GPT-5.6 Sol</div><div data-hf-id="hf-h3h7" class="track"><div data-hf-id="hf-p3jv" class="fill" style="width:148.5px"></div><div data-hf-id="hf-zck4" class="val" style="left:164.5px">1.93%</div></div></div>
+          <div data-hf-id="hf-l0e2" class="row"><div data-hf-id="hf-2dpe" class="grp"><span data-hf-id="hf-kxvj">Anthropic</span></div><div data-hf-id="hf-4107" class="model">Claude Sonnet 5</div><div data-hf-id="hf-f3y2" class="track"><div data-hf-id="hf-de4f" class="fill" style="width:969.2px"></div><div data-hf-id="hf-e9je" class="val" style="left:985.2px">12.60%</div></div></div>
+          <div data-hf-id="hf-mzx7" class="row"><div data-hf-id="hf-1zed" class="grp"></div><div data-hf-id="hf-xsdv" class="model">Claude Opus 5</div><div data-hf-id="hf-epn1" class="track"><div data-hf-id="hf-ldsi" class="fill" style="width:289.2px"></div><div data-hf-id="hf-292n" class="val" style="left:305.2px">3.76%</div></div></div>
+          <div data-hf-id="hf-ne88" class="row"><div data-hf-id="hf-36bg" class="grp"></div><div data-hf-id="hf-dak9" class="model">Claude Fable 5.1</div><div data-hf-id="hf-fwk4" class="track"><div data-hf-id="hf-tgdo" class="fill" style="width:614.6px"></div><div data-hf-id="hf-epel" class="val" style="left:630.6px">7.99%</div></div></div>
+          <div data-hf-id="hf-m7b5" class="row"><div data-hf-id="hf-2s0f" class="grp"><span data-hf-id="hf-myoy">Google</span></div><div data-hf-id="hf-u6c1" class="model">Gemini 3.8 Flash</div><div data-hf-id="hf-fi93" class="track"><div data-hf-id="hf-ttrg" class="fill" style="width:183.1px"></div><div data-hf-id="hf-yxz0" class="val" style="left:199.1px">2.38%</div></div></div>
+          <div data-hf-id="hf-mlm6" class="row"><div data-hf-id="hf-0sha" class="grp"></div><div data-hf-id="hf-8tp3" class="model">Gemini 3.1 Pro</div><div data-hf-id="hf-jvme" class="track"><div data-hf-id="hf-f2cy" class="fill" style="width:147.7px"></div><div data-hf-id="hf-sp4u" class="val" style="left:163.7px">1.92%</div></div></div>
+        </div>
+      </div>
+
+      <!-- ===== Escena C (8.8 – 13.4 s): palabras sincronizadas con la voz ===== -->
+      <div data-hf-id="hf-glpx" id="c" class="clip" data-start="8.8" data-duration="4.6" data-track-index="0">
+        <div data-hf-id="hf-m60b" class="words">
+          <span data-hf-id="hf-xfyi" class="w" id="w0">The</span>
+          <span data-hf-id="hf-5748" class="w" id="w1">answer</span>
+          <span data-hf-id="hf-lbbe" class="w" id="w2">was</span>
+          <span data-hf-id="hf-4x3a" class="w" id="w3">obviously</span>
+          <span data-hf-id="hf-1zj8" class="w pink" id="w4">not,</span>
+          <span data-hf-id="hf-8b6x" class="w" id="w5">but</span>
+          <span data-hf-id="hf-k3c8" class="w" id="w6">the</span>
+          <span data-hf-id="hf-dtg9" class="w" id="w7">trillion</span>
+          <span data-hf-id="hf-ft1g" class="w join" id="w8">-dollar</span>
+          <span data-hf-id="hf-8xl2" class="w" id="w9">question</span>
+          <span data-hf-id="hf-izxa" class="w" id="w10">is</span>
+          <span data-hf-id="hf-dzzb" class="w" id="w11">why</span>
+          <span data-hf-id="hf-45cu" class="w pink" id="w12">not?</span>
+        </div>
+      </div>
+      <audio data-hf-id="hf-1kxg" id="c-voice" data-start="4.61" data-duration="4.6" data-track-index="3" src="assets/voice_c.wav" data-fade-in="1.06" data-fade-out="1.09"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+tl.set("#b .row", { x: 0, y: 0, data: "hf-hold" }, 0);
+
+      // Escena A: la palabra entra con escala + opacidad detrás del hablante
+      tl.fromTo("#a-word", { opacity: 0, scale: 1.12 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" }, 0.2);
+
+      // Escena B: título, filas y barras con escalonado; al final, caja blanca sobre la fila ganadora
+      const B = 2.8;
+      tl.fromTo("#b-title, #b-sub", { opacity: 0 }, { opacity: 1, duration: 0.33 }, B);
+            tl.fromTo("#b .fill", { scaleX: 0 }, { scaleX: 1, duration: 0.66, ease: "power3.out", stagger: 0.13 }, B + 0.4);
+      tl.fromTo("#b .val", { opacity: 0 }, { opacity: 1, duration: 0.5, stagger: 0.13 }, B + 0.5);
+      tl.fromTo("#hero-box", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }, B + 4.0);
+
+      // Escena C: cada palabra entra en su marca de tiempo (words_c.json)
+      const C = 8.8;
+      const starts = [90, 290, 650, 1030, 1510, 2130, 2270, 2450, 2750, 2950, 3330, 3850, 4110];
+      starts.forEach((ms, i) => {
+        tl.fromTo("#w" + i, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.14, ease: "power3.out" }, C + ms / 1000);
+tl.to("#b .row", { keyframes: { "0%": { opacity: 0, stagger: 0.13, x: 0, y: 0 }, "17.1%": { opacity: 1, stagger: 0.13, x: 0, y: 0 }, "100%": { x: 475, y: -22 } }, duration: 1.17 }, 3.13);
+      });
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+plugin/cli/dist/
+plugin/cli/*.egg-info/
+# Node / HyperFrames
+node_modules/
+.hyperframes/
+**/.hf-transaction*/
+# Material pesado y salidas de la PoC (se regeneran)
+poc/**/out/
+poc/**/*.mp4
+poc/**/*.wav
+poc/**/*.webm
+poc/**/*_png/
+poc/**/alpha_png/
+poc/tools/*.onnx
+poc/remotion/node_modules/
+poc/e2e/rvm_png/
+poc/clip-javier/rvm_png/
+poc/clip-javier/f28-project/
+# Trabajo local
+work/
+*.log
+
+# Fotogramas del análisis (pesados; las hojas de contacto sí se versionan)
+research/assets/referencia-typesafe/clave/
+
+# Boilerplate de HyperFrames en las PoC
+poc/**/AGENTS.md
+poc/**/CLAUDE.md
+poc/**/.thumbnails/
+
+# Secuencias PNG de alfa de la PoC de Remotion (70 MB)
+poc/remotion/public/alpha/
+
+# Material privado: caras, fotogramas y transcripciones del video de referencia (nunca se publica)
+_private/

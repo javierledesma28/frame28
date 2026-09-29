@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Think28 — Paleta de marca (referencia)
+  Versión: v1.0 · 2026
+  Uso: Referencia rápida de la identidad cromática del ecosistema
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="160" viewBox="0 0 720 160">
+  <rect width="720" height="160" fill="#0a0a0a"/>
+  <text x="20" y="30" font-family="Inter,Arial,sans-serif" font-weight="700" font-size="12" fill="#efefef" letter-spacing="0.5">Think28 — Brand Palette</text>
+  <text x="20" y="46" font-family="Space Mono,Courier,monospace" font-size="9" fill="#707070" letter-spacing="1">FOUNDATION + PRODUCT ACCENTS</text>
+  <!-- Row 1: Foundation -->
+  <g transform="translate(20,64)">
+    <rect width="100" height="60" rx="8" fill="#F5C500"/>
+    <text x="0" y="78" font-family="Inter,Arial" font-size="9" font-weight="600" fill="#efefef">Think Yellow</text>
+    <text x="0" y="90" font-family="Courier,monospace" font-size="8" fill="#707070">#F5C500</text>
+  </g>
+  <g transform="translate(140,64)">
+    <rect width="100" height="60" rx="8" fill="#0a0a0a" stroke="#252525" stroke-width="1"/>
+    <text x="0" y="78" font-family="Inter,Arial" font-size="9" font-weight="600" fill="#efefef">Deep Black</text>
+    <text x="0" y="90" font-family="Courier,monospace" font-size="8" fill="#707070">#0A0A0A</text>
+  </g>
+  <g transform="translate(260,64)">
+    <rect width="100" height="60" rx="8" fill="#111111"/>
+    <text x="0" y="78" font-family="Inter,Arial" font-size="9" font-weight="600" fill="#efefef">Surface</text>
+    <text x="0" y="90" font-family="Courier,monospace" font-size="8" fill="#707070">#111111</text>
+  </g>
+  <!-- Row 2: Product accents -->
+  <g transform="translate(380,64)">
+    <rect width="100" height="60" rx="8" fill="#F5C500"/>
+    <text x="0" y="78" font-family="Inter,Arial" font-size="9" font-weight="600" fill="#efefef">Hub28 · Gold</text>
+    <text x="0" y="90" font-family="Courier,monospace" font-size="8" fill="#707070">#F5C500</text>
+  </g>
+  <g transform="translate(500,64)">
+    <rect width="100" height="60" rx="8" fill="#7C3AED"/>
+    <text x="0" y="78" font-family="Inter,Arial" font-size="9" font-weight="600" fill="#efefef">T28AI · Violet</text>
+    <text x="0" y="90" font-family="Courier,monospace" font-size="8" fill="#707070">#7C3AED</text>
+  </g>
+  <g transform="translate(620,64)">
+    <rect width="80" height="60" rx="8" fill="#2B6CB0"/>
+    <text x="0" y="78" font-family="Inter,Arial" font-size="9" font-weight="600" fill="#efefef">Acimut · Blue</text>
+    <text x="0" y="90" font-family="Courier,monospace" font-size="8" fill="#707070">#2B6CB0</text>
+  </g>
+</svg>

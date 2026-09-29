@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "meta": { "title": "Javier · prueba Frame28", "lang": "es" },
+  "canvas": { "width": 1920, "height": 1080, "fps": 30 },
+  "source": { "video": "clip.mp4", "audio": "voice.wav", "duration": 10.0 },
+  "speaker": { "side": "left" },
+  "captions": [
+    { "start": 0.5, "end": 2.86, "text": "Bueno, bueno, bueno. Esta es una frase." },
+    { "start": 2.86, "end": 6.7, "text": "Vamos a ver los distintos componentes que tenemos en esta parte." },
+    { "start": 6.7, "end": 10.0, "text": "Por aquí hay una cosa, por aquí hay otra." }
+  ],
+  "overlays": [
+    { "type": "lower_third", "id": "lt", "start": 0.3, "end": 2.8, "x": 1150, "y": 660, "title": "JAVIER LEDESMA", "subtitle": "Frame28 · prueba nº 1" },
+    { "type": "kinetic", "id": "k0", "start": 0.45, "end": 2.5, "x": 1150, "y": 230,
+      "lines": [[{ "text": "Bueno,", "at": 0.5 }], [{ "text": "bueno,", "at": 1.14 }], [{ "text": "bueno.", "at": 1.36, "accent": true }]] },
+    { "type": "box", "id": "c0", "start": 2.5, "end": 4.3, "x": 1150, "y": 250, "text": "esta es una frase", "at": 2.56 },
+    { "type": "kinetic", "id": "k1", "start": 2.8, "end": 4.5, "x": 1150, "y": 420,
+      "lines": [[{ "text": "Vamos", "at": 2.86 }, { "text": "a", "at": 3.16 }, { "text": "ver", "at": 3.4 }],
+                [{ "text": "los", "at": 3.9, "accent": true }, { "text": "distintos", "at": 4.26, "accent": true }]] },
+    { "type": "behind", "id": "bh", "start": 4.5, "end": 6.7, "at": 4.58, "text": "COMPONENTES", "matte": "alpha_4.3.webm", "matte_start": 4.3, "matte_end": 6.8 },
+    { "type": "box", "id": "c1", "start": 5.55, "end": 6.75, "x": 1150, "y": 840, "text": "en esta parte", "at": 5.6 },
+    { "type": "pointer", "id": "p1", "start": 6.7, "end": 8.2, "at": 6.76, "dot": [1350, 770], "box": [1440, 560], "text": "una cosa" },
+    { "type": "pointer", "id": "p2", "start": 8.15, "end": 10.0, "at": 8.2, "dot": [470, 740], "box": [150, 520], "text": "otra" }
+  ]
+}

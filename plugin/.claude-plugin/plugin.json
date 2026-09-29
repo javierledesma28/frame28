@@ -1,0 +1,22 @@
+{
+  "name": "frame28",
+  "displayName": "Frame28",
+  "version": "0.1.0",
+  "description": "Frame28 by Think28: de un clip hablando a cámara a un video con rótulos, títulos cinéticos, texto detrás del hablante, callouts y subtítulos sincronizados con la voz. Skills + CLI sobre HyperFrames.",
+  "author": {
+    "name": "Think28",
+    "url": "https://think28.app"
+  },
+  "repository": "https://github.com/javierledesma28/frame28",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "talking-head",
+    "explainer",
+    "hyperframes",
+    "whisper",
+    "matting",
+    "motion-graphics"
+  ],
+  "homepage": "https://think28.app/frame28"
+}

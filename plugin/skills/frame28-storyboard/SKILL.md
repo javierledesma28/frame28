@@ -1,0 +1,52 @@
+---
+name: frame28-storyboard
+description: 'Decide el montaje de un video hablado y lo escribe como storyboard JSON de Frame28: qué técnica (rótulo, título cinético, texto detrás, callout, pizarra, imagen) va con cada frase, en qué instante (tiempos por palabra) y en qué zona del encuadre. Usar cuando haya una transcripción con tiempos y haga falta "decidir qué poner en pantalla", crear o retocar un storyboard, o convertir notas del usuario ("aquí quiero una gráfica") en overlays concretos.'
+---
+
+# Frame28 · Storyboard
+
+Entrada: `work/words.json`, `work/captions.json`, `work/transcript.txt`, salida de `frame28 speaker`, hoja de
+contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json` válido
+(`frame28 storyboard schema` imprime el formato; `references/ejemplo-storyboard.json` es uno real).
+
+## Método (en este orden)
+
+1. **Lee el discurso entero** y márcalo en *beats*: cada frase o grupo de frases con una idea. Para cada beat
+   decide su función: presentar (quién habla), afirmar (una idea fuerte), enumerar (lista), señalar (gesto a
+   algo), contrastar (A vs B), cifra (número), mostrar (una UI o imagen), cerrar.
+2. **Asigna una técnica por función** con esta tabla. No mezcles dos técnicas grandes en el mismo beat.
+
+   | Función | Técnica (type) | Cuándo entra |
+   |---|---|---|
+   | presentar | `lower_third` | 0,3 s tras la primera palabra, dura 2,5–4 s |
+   | afirmar / palabra clave | `kinetic` (2 líneas máx.) o `behind` (una palabra) | cada palabra en su `start` |
+   | enumerar | `list_focus` (3–5 ítems) | el foco salta en el `start` de cada ítem |
+   | señalar con la mano | `pointer` | `at` = palabra "aquí/este/esto"; `dot` donde apunta |
+   | dato corto / matiz | `box` | `at` = primera palabra del dato |
+   | frase-lema, cambio de capítulo | `card` (negro o acento) o `card_words` | tapa al hablante 1,5–3 s |
+   | mostrar algo | `image` | `at` = cuando lo nombra |
+   | todo el video | `captions` | por frase, de `captions.json` |
+
+3. **Coloca** cada overlay en el lado libre (`free_side` de `frame28 speaker`): con hablante a la izquierda,
+   `x` entre 1100 y 1750; a la derecha, `x` entre 90 y 800; centrado, usa esquinas y `behind`. Nunca sobre la
+   cara (`bbox_1080p`). Los `pointer` se colocan mirando el fotograma del gesto (`frame28 frames`).
+4. **Ritmo**: un evento visual cada 2–4 s; ningún tramo de más de 8 s sin nada; máximo un overlay grande a la
+   vez, más subtítulos. Los overlays se solapan solo si están en zonas distintas.
+5. **Tiempos**: `start` = 0,05 s antes del `at`; `end` = fin de la frase o inicio del siguiente overlay en la
+   misma zona. `at` de cada palabra = su `start` en `words.json`, sin redondear.
+6. Escribe el JSON, valida con `frame28 storyboard validate` y haz una pasada de lectura en voz alta: ¿cada
+   overlay dice algo que la voz está diciendo en ese instante? Si no, fuera.
+
+## Reglas de estilo (del análisis del video de referencia)
+
+- Cajas: 2–4 palabras. Cinéticos: hasta 5 palabras por línea, 2 líneas. `behind`: una palabra en mayúsculas.
+- Una palabra de acento por overlay como mucho (`accent: true`), la que lleva la carga.
+- Pizarras: fondo negro para afirmaciones, acento para "producto", blanco para listas.
+- El dato ganador entra el último y destacado; nunca una tabla entera de golpe.
+- Todo en el idioma del hablante; nombres propios tal como los escribe el usuario.
+
+## Referencias
+
+- `references/tecnicas.md`: las 16 técnicas del video de referencia, cómo se logran y cuándo usarlas.
+- `references/grabacion.md`: qué pedirle al usuario para que el material funcione.
+- `references/ejemplo-storyboard.json`: storyboard real de un clip de 10 s (webcam, español).

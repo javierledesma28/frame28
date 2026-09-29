@@ -1,0 +1,56 @@
+{
+  "name": "Think28",
+  "tagline": "Digital Growth Partner",
+  "site": "https://t28.io",
+  "endorsement": "A Think28 product · t28.io",
+  "accent": "#F5C500",
+  "ink": "#0A0A0A",
+  "paper": "#FFFFFF",
+  "grey": "#555555",
+  "border": "#222222",
+  "sans": "Inter, \"Segoe UI\", Arial, sans-serif",
+  "mono": "\"Space Mono\", \"Cascadia Mono\", Consolas, monospace",
+  "display_weight": 800,
+  "display_tracking": "-0.035em",
+  "motion": {
+    "standard_ms": 240,
+    "fast_ms": 120,
+    "slow_ms": 400
+  },
+  "caption_font_size": 40,
+  "source": "https://t28.io/brand-kit.html",
+  "logos": {
+    "primary_dark": "https://t28.io/press-kit/logos/think28-logo-primary-dark.svg",
+    "reversed_white": "https://t28.io/press-kit/logos/think28-logo-reversed-white.svg",
+    "yellow": "https://t28.io/press-kit/logos/think28-logo-yellow.svg",
+    "horizontal": "https://t28.io/press-kit/logos/think28-logo-horizontal.svg",
+    "isotipo": "https://t28.io/press-kit/logos/think28-isotipo.svg"
+  },
+  "logo_rules": {
+    "clear_space": "altura de la T del wordmark",
+    "min_width_px": 80,
+    "isotipo_min_px": 32,
+    "no_all_caps": true,
+    "no_opacity": true
+  },
+  "voice": {
+    "pillars": [
+      "directo",
+      "técnico",
+      "humano"
+    ],
+    "max_words_per_sentence": 15,
+    "avoid": [
+      "innovador",
+      "disruptivo",
+      "revolucionario",
+      "robusto",
+      "integral",
+      "holístico",
+      "best-in-class",
+      "cutting-edge",
+      "empoderamos",
+      "mágico"
+    ]
+  }
+}

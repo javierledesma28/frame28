@@ -1,0 +1,6 @@
+node_modules/
+remotion/out/
+hyperframes/out/
+hyperframes/.hyperframes/
+assets/alpha_png/
+tools/*.onnx

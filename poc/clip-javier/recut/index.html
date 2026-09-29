@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      :root {
+        --pink: #EA77A1; --offwhite: #FFFFFC; --ink: #111;
+        --sans: "Helvetica Neue", Inter, "Segoe UI", Arial, sans-serif;
+        --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+      }
+      #root { position: relative; width: 1920px; height: 1080px; font-family: var(--sans); color: #fff; }
+      .clip { position: absolute; inset: 0; }
+      video.cover { width: 100%; height: 100%; object-fit: cover; }
+
+      .box { position: absolute; padding: 10px 26px; font-size: 54px; font-weight: 500; letter-spacing: -0.03em; color: #fff; background: rgba(0,0,0,.45); white-space: nowrap; }
+      .c { position: absolute; width: 18px; height: 18px; border: 0 solid #fff; }
+      .tl { top: -6px; left: -6px; border-top-width: 3px; border-left-width: 3px; }
+      .tr { top: -6px; right: -6px; border-top-width: 3px; border-right-width: 3px; }
+      .bl { bottom: -6px; left: -6px; border-bottom-width: 3px; border-left-width: 3px; }
+      .br { bottom: -6px; right: -6px; border-bottom-width: 3px; border-right-width: 3px; }
+
+      /* T1 tarjeta de identidad */
+      #lower { font-family: var(--mono); font-size: 34px; }
+      #lower .line { overflow: hidden; white-space: nowrap; border: 1.5px solid rgba(255,255,255,.9); padding: 12px 22px; background: rgba(0,0,0,.45); }
+      #lower .line + .line { border-top: 0; }
+      #lower .mask { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: bottom; }
+      #lower .cur { color: var(--pink); }
+      #lower .c { width: 18px; height: 18px; }
+      #lower .tl { top: -9px; left: -9px; } #lower .br { bottom: -9px; right: -9px; }
+
+      /* T2 tipografía cinética */
+      .kin { position: absolute; font-weight: 600; font-size: 124px; line-height: 1.02; letter-spacing: -0.045em; text-shadow: 0 6px 30px rgba(0,0,0,.55); }
+      .kin .w { display: inline-block; opacity: 0; margin-right: 0.22em; }
+      .kin .pink { color: var(--pink); }
+
+      /* T3 palabra detrás del hablante */
+      #behind { display: flex; align-items: center; justify-content: center; }
+      #behind .w { font-weight: 700; font-size: 240px; letter-spacing: -0.05em; white-space: nowrap; text-shadow: 0 8px 40px rgba(0,0,0,.35); }
+
+      /* T6 callouts con conector: punto + línea que crece hacia la caja */
+      .conn { position: absolute; height: 3px; background: #fff; transform-origin: left center; }
+      .dot { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgba(255,255,255,.25); }
+
+      /* T15 subtítulos */
+      #caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: 40px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1920" data-height="1080">
+
+      <video id="bg" class="clip cover" data-start="0" data-duration="10" data-track-index="0" src="assets/clip.mp4" muted playsinline style="z-index:1"></video>
+      <audio id="voice" data-start="0" data-duration="10" data-track-index="9" src="assets/voice.wav"></audio>
+
+      <!-- T3: "COMPONENTES" detrás de Javier (4.5–6.7) con máscara alfa 4.3–6.8 -->
+      <div id="behind" class="clip" data-start="4.5" data-duration="2.2" data-track-index="1" style="z-index:2"><div class="w" id="behind-w">COMPONENTES</div></div>
+      <video id="fg" class="clip cover" data-start="4.3" data-duration="2.5" data-track-index="2" src="assets/alpha_4.3.webm" muted playsinline style="z-index:3"></video>
+
+      <!-- T1: tarjeta de identidad que se escribe (0.3–2.8), a la derecha porque Javier ocupa la izquierda -->
+      <div id="lower" class="clip" data-start="0.3" data-duration="2.5" data-track-index="3" style="z-index:4; inset:auto; left:1150px; top:660px; width:auto; height:auto;">
+        <i class="c tl"></i><i class="c br"></i>
+        <div class="line"><span class="mask" id="l1"><span class="cur">◌</span>&nbsp;JAVIER LEDESMA&nbsp;&nbsp;&nbsp;&nbsp;×</span></div>
+        <div class="line"><span class="mask" id="l2">Skill-Director · prueba nº 1<span class="cur">▌</span></span></div>
+      </div>
+
+      <!-- T2: "Bueno, bueno, bueno" palabra a palabra (0.5 / 1.14 / 1.36) -->
+      <div id="kin0" class="kin" data-start="0.45" data-duration="2.1" data-track-index="5" style="z-index:4; left:1150px; top:230px;">
+        <div><span class="w" id="b0">Bueno,</span></div>
+        <div><span class="w" id="b1">bueno,</span></div>
+        <div><span class="w pink" id="b2">bueno.</span></div>
+      </div>
+
+      <!-- T7: "esta es una frase" en caja (2.56–4.3) -->
+      <div id="call0" class="box" data-start="2.5" data-duration="1.8" data-track-index="4" style="z-index:4; left:1150px; top:250px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>esta es una frase</div>
+
+      <!-- T2: "Vamos a ver los distintos" (2.86–4.5) -->
+      <div id="kin1" class="kin" data-start="2.8" data-duration="1.75" data-track-index="5" style="z-index:4; left:1150px; top:420px;">
+        <div><span class="w" id="k1a">Vamos</span><span class="w" id="k1b">a</span><span class="w" id="k1c">ver</span></div>
+        <div><span class="w pink" id="k1d">los</span><span class="w pink" id="k1e">distintos</span></div>
+      </div>
+
+      <!-- T7: "en esta parte" (5.6–6.8) -->
+      <div id="call1" class="box" data-start="5.55" data-duration="1.2" data-track-index="4" style="z-index:4; left:1150px; top:840px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>en esta parte</div>
+
+      <!-- T6: "una cosa" donde señala a la derecha (6.76) -->
+      <div id="c2" class="clip" data-start="6.7" data-duration="1.5" data-track-index="6" style="z-index:4">
+        <div class="dot" id="c2dot" style="left:1350px; top:770px;"></div>
+        <div class="conn" id="c2line" style="left:1359px; top:778px; width:0; transform: rotate(-52deg);"></div>
+        <div class="box" id="c2box" style="left:1440px; top:560px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>una cosa</div>
+      </div>
+
+      <!-- T6: "otra" donde señala a la izquierda (8.2) -->
+      <div id="c3" class="clip" data-start="8.15" data-duration="1.85" data-track-index="6" style="z-index:4">
+        <div class="dot" id="c3dot" style="left:470px; top:740px;"></div>
+        <div class="conn" id="c3line" style="left:479px; top:748px; width:0; transform: rotate(-128deg);"></div>
+        <div class="box" id="c3box" style="left:150px; top:520px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>otra</div>
+      </div>
+
+      <!-- T15: subtítulos por frase -->
+      <div id="caps" class="clip" data-start="0" data-duration="10" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;">
+        <span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span>
+        <span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span>
+        <span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      const pop = (sel, t, d = 0.18) => tl.fromTo(sel, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: d, ease: "power3.out" }, t);
+      const boxIn = (sel, t) => tl.fromTo(sel, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, t);
+
+      // T1 tarjeta que se escribe
+      tl.fromTo("#lower", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.3);
+      tl.fromTo("#l1", { width: 0 }, { width: 470, duration: 0.7, ease: "none" }, 0.4);
+      tl.fromTo("#l2", { width: 0 }, { width: 560, duration: 1.0, ease: "none" }, 1.2);
+      tl.to("#lower", { opacity: 0, duration: 0.25 }, 2.5);
+
+      // "Bueno, bueno, bueno" en sus tiempos exactos (words.json)
+      pop("#b0", 0.5); pop("#b1", 1.14); pop("#b2", 1.36);
+      tl.to("#kin0", { opacity: 0, duration: 0.2 }, 2.3);
+
+      boxIn("#call0", 2.56);
+      pop("#k1a", 2.86); pop("#k1b", 3.16); pop("#k1c", 3.40); pop("#k1d", 3.90); pop("#k1e", 4.26);
+      tl.to("#kin1, #call0", { opacity: 0, duration: 0.2 }, 4.3);
+
+      // T3 COMPONENTES detrás de Javier
+      tl.fromTo("#behind-w", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 4.58);
+      tl.to("#behind-w", { opacity: 0, duration: 0.25 }, 6.4);
+
+      boxIn("#call1", 5.6);
+
+      // T6 callouts con conector donde señala
+      tl.fromTo("#c2dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 6.76);
+      tl.fromTo("#c2line", { width: 0 }, { width: 250, duration: 0.3, ease: "power3.out" }, 6.9);
+      boxIn("#c2box", 7.15);
+      tl.fromTo("#c3dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 8.2);
+      tl.fromTo("#c3line", { width: 0 }, { width: 250, duration: 0.3, ease: "power3.out" }, 8.35);
+      boxIn("#c3box", 8.6);
+
+      // T15 subtítulos
+      const caps = [[0.5, 2.86], [2.86, 6.7], [6.7, 10]];
+      caps.forEach(([a, b], i) => { tl.set("#cap" + i, { visibility: "visible" }, a); tl.set("#cap" + i, { visibility: "hidden" }, b); });
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

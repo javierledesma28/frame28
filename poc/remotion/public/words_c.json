@@ -1,0 +1,67 @@
+[
+ {
+  "text": "The",
+  "startMs": 90,
+  "endMs": 290
+ },
+ {
+  "text": "answer",
+  "startMs": 290,
+  "endMs": 650
+ },
+ {
+  "text": "was",
+  "startMs": 650,
+  "endMs": 1030
+ },
+ {
+  "text": "obviously",
+  "startMs": 1030,
+  "endMs": 1510
+ },
+ {
+  "text": "not,",
+  "startMs": 1510,
+  "endMs": 1870
+ },
+ {
+  "text": "but",
+  "startMs": 2130,
+  "endMs": 2270
+ },
+ {
+  "text": "the",
+  "startMs": 2270,
+  "endMs": 2450
+ },
+ {
+  "text": "trillion",
+  "startMs": 2450,
+  "endMs": 2750
+ },
+ {
+  "text": "-dollar",
+  "startMs": 2750,
+  "endMs": 2950
+ },
+ {
+  "text": "question",
+  "startMs": 2950,
+  "endMs": 3330
+ },
+ {
+  "text": "is",
+  "startMs": 3330,
+  "endMs": 3850
+ },
+ {
+  "text": "why",
+  "startMs": 3850,
+  "endMs": 4110
+ },
+ {
+  "text": "not?",
+  "startMs": 4110,
+  "endMs": 4450
+ }
+]

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      :root { --accent: #F5C500; --ink: #0A0A0A; --paper: #FFFFFF; --grey: #555555; --sans: Inter, "Segoe UI", Arial, sans-serif; --mono: "Space Mono", "Cascadia Mono", Consolas, monospace; }
+      #root { position: relative; width: 1920px; height: 1080px; font-family: var(--sans); color: #fff; }
+      .clip { position: absolute; inset: 0; }
+      video.cover { width: 100%; height: 100%; object-fit: cover; }
+      .c { position: absolute; width: 18px; height: 18px; border: 0 solid currentColor; }
+      .tl { top: -6px; left: -6px; border-top-width: 3px; border-left-width: 3px; }
+      .tr { top: -6px; right: -6px; border-top-width: 3px; border-right-width: 3px; }
+      .bl { bottom: -6px; left: -6px; border-bottom-width: 3px; border-left-width: 3px; }
+      .br { bottom: -6px; right: -6px; border-bottom-width: 3px; border-right-width: 3px; }
+      .box { position: absolute; padding: 10px 26px; font-size: 54px; font-weight: 500; letter-spacing: -0.03em; color: #fff; background: rgba(0,0,0,.45); white-space: nowrap; opacity: 0; }
+      .lower { position: absolute; font-family: var(--mono); font-size: 34px; color: #fff; opacity: 0; }
+      .lower .line { overflow: hidden; white-space: nowrap; border: 1.5px solid rgba(255,255,255,.9); padding: 12px 22px; background: rgba(0,0,0,.45); }
+      .lower .line + .line { border-top: 0; }
+      .lower .mask { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: bottom; width: 0; }
+      .lower .cur { color: var(--accent); }
+      .lower .c { width: 18px; height: 18px; } .lower .tl { top: -9px; left: -9px; } .lower .br { bottom: -9px; right: -9px; }
+      .kin { position: absolute; font-weight: 600; line-height: 1.02; letter-spacing: -0.045em; text-shadow: 0 6px 30px rgba(0,0,0,.55); }
+      .kin .w { display: inline-block; opacity: 0; margin-right: 0.22em; }
+      .accent { color: var(--accent); }
+      .behind { display: flex; align-items: center; justify-content: center; }
+      .behind .w { font-weight: 700; letter-spacing: -0.05em; white-space: nowrap; text-shadow: 0 8px 40px rgba(0,0,0,.35); opacity: 0; }
+      .conn { position: absolute; height: 3px; background: #fff; transform-origin: left center; width: 0; }
+      .dot { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgba(255,255,255,.25); transform: scale(0); }
+      .card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .card.black { background: #000; color: #fff; }
+      .card.white { background: var(--paper); color: var(--ink); }
+      .card.accent { background: var(--accent); color: var(--ink); }
+      .card .big { font-weight: 600; letter-spacing: -0.05em; opacity: 0; text-align: center; }
+      .card .small { color: #bdbdb8; letter-spacing: -0.03em; margin-top: 10px; opacity: 0; }
+      .card.white .small { color: var(--grey); }
+      .list { position: relative; display: grid; row-gap: 26px; letter-spacing: -0.04em; align-items: center; }
+      .list .item { color: var(--grey); opacity: 0; }
+      .list .lab { grid-column: 1; }
+      .list .newlabel { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 22px; color: var(--ink); }
+      .list .newlabel .icon { border: 2px solid #c9c9c4; border-radius: 22px; display: flex; align-items: center; justify-content: center; }
+      .list .newlabel .icon i { width: 22px; height: 22px; border: 4px solid var(--ink); border-radius: 50%; }
+      .cw .row { display: flex; gap: 0.28em; font-weight: 600; letter-spacing: -0.045em; justify-content: center; }
+      .cw .w { opacity: 0; }
+      .cw .w b { color: var(--accent); font-weight: 600; }
+      .img { position: absolute; opacity: 0; box-shadow: 0 30px 80px rgba(0,0,0,.45); border-radius: 18px; overflow: hidden; }
+      .img img { display: block; width: 100%; height: auto; }
+      .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: nowrap; font-size: 40px; }
+    </style>
+  </head>
+  <body>
+    <!-- Generado por Frame28 a partir de storyboard.json. Edita el storyboard, no este fichero. -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="10.0" data-width="1920" data-height="1080">
+      <video id="bg" class="clip cover" data-start="0" data-duration="10.0" data-track-index="0" src="clip.mp4" muted playsinline style="z-index:1"></video>
+      <audio id="voice" data-start="0" data-duration="10.0" data-track-index="9" src="voice.wav"></audio>
+      <div id="lt" class="lower" data-start="0.3" data-duration="2.5" data-track-index="3" style="z-index:4;left:1150px; top:660px;"><i class="c tl"></i><i class="c br"></i><div class="line"><span class="mask" id="lt-l1"><span class="cur">◌</span>&nbsp;JAVIER LEDESMA&nbsp;&nbsp;&nbsp;&nbsp;×</span></div><div class="line"><span class="mask" id="lt-l2">Frame28 · prueba nº 1<span class="cur">▌</span></span></div></div>
+      <div id="k0" class="kin" data-start="0.45" data-duration="2.05" data-track-index="5" style="z-index:4;left:1150px; top:230px; font-size:124px;"><div><span class="w" id="k0-0-0">Bueno,</span></div><div><span class="w" id="k0-1-0">bueno,</span></div><div><span class="w accent" id="k0-2-0">bueno.</span></div></div>
+      <div id="c0" class="box" data-start="2.5" data-duration="1.8" data-track-index="4" style="z-index:4;left:1150px; top:250px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>esta es una frase</div>
+      <div id="k1" class="kin" data-start="2.8" data-duration="1.7" data-track-index="5" style="z-index:4;left:1150px; top:420px; font-size:124px;"><div><span class="w" id="k1-0-0">Vamos</span><span class="w" id="k1-0-1">a</span><span class="w" id="k1-0-2">ver</span></div><div><span class="w accent" id="k1-1-0">los</span><span class="w accent" id="k1-1-1">distintos</span></div></div>
+      <div id="bh" class="clip behind" data-start="4.5" data-duration="2.2" data-track-index="1" style="z-index:2;"><div class="w" id="bh-w" style="font-size:240px;">COMPONENTES</div></div>
+      <video id="bh-fg" class="clip cover" data-start="4.3" data-duration="2.5" data-track-index="2" src="alpha_4.3.webm" muted playsinline style="z-index:3"></video>
+      <div id="c1" class="box" data-start="5.55" data-duration="1.2" data-track-index="4" style="z-index:4;left:1150px; top:840px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>en esta parte</div>
+      <div id="p1" class="clip" data-start="6.7" data-duration="1.5" data-track-index="6" style="z-index:4;"><div class="dot" id="p1-dot" style="left:1341px; top:761px;"></div><div class="conn" id="p1-line" style="left:1350px; top:769px; transform: rotate(-55.3deg);"></div><div class="box" id="p1-box" style="left:1440px; top:560px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>una cosa</div></div>
+      <div id="p2" class="clip" data-start="8.15" data-duration="1.85" data-track-index="6" style="z-index:4;"><div class="dot" id="p2-dot" style="left:461px; top:731px;"></div><div class="conn" id="p2-line" style="left:470px; top:739px; transform: rotate(-133.76deg);"></div><div class="box" id="p2-box" style="left:150px; top:520px;"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>otra</div></div>
+      <div id="caps" class="clip caps" data-start="0" data-duration="10.0" data-track-index="8" style="z-index:9; inset:auto; left:0; right:0; bottom:56px; height:70px;"><span id="cap0">Bueno, bueno, bueno. Esta es una frase.</span><span id="cap1">Vamos a ver los distintos componentes que tenemos en esta parte.</span><span id="cap2">Por aquí hay una cosa, por aquí hay otra.</span></div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#lt", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.3);
+      tl.fromTo("#lt-l1", { width: 0 }, { width: 464, duration: 0.9, ease: "none" }, 0.4);
+      tl.fromTo("#lt-l2", { width: 0 }, { width: 485, duration: 1.14, ease: "none" }, 1.2);
+      tl.to("#lt", { opacity: 0, duration: 0.25 }, 2.55);
+      tl.fromTo("#k0-0-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 0.5);
+      tl.fromTo("#k0-1-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 1.14);
+      tl.fromTo("#k0-2-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 1.36);
+      tl.to("#k0", { opacity: 0, duration: 0.2 }, 2.3);
+      tl.fromTo("#c0", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 2.56);
+      tl.to("#c0", { opacity: 0, duration: 0.2 }, 4.1);
+      tl.fromTo("#k1-0-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 2.86);
+      tl.fromTo("#k1-0-1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 3.16);
+      tl.fromTo("#k1-0-2", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 3.4);
+      tl.fromTo("#k1-1-0", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 3.9);
+      tl.fromTo("#k1-1-1", { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, 4.26);
+      tl.to("#k1", { opacity: 0, duration: 0.2 }, 4.3);
+      tl.fromTo("#bh-w", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, 4.58);
+      tl.to("#bh-w", { opacity: 0, duration: 0.25 }, 6.45);
+      tl.fromTo("#c1", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 5.6);
+      tl.to("#c1", { opacity: 0, duration: 0.2 }, 6.55);
+      tl.fromTo("#p1-dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 6.76);
+      tl.fromTo("#p1-line", { width: 0 }, { width: 158, duration: 0.3, ease: "power3.out" }, 6.88);
+      tl.fromTo("#p1-box", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 7.11);
+      tl.to("#p1", { opacity: 0, duration: 0.2 }, 8.0);
+      tl.fromTo("#p2-dot", { scale: 0 }, { scale: 1, duration: 0.2, ease: "back.out(2)" }, 8.2);
+      tl.fromTo("#p2-line", { width: 0 }, { width: 194, duration: 0.3, ease: "power3.out" }, 8.32);
+      tl.fromTo("#p2-box", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power2.out" }, 8.55);
+      tl.to("#p2", { opacity: 0, duration: 0.2 }, 9.8);
+      tl.set("#cap0", { visibility: "visible" }, 0.5); tl.set("#cap0", { visibility: "hidden" }, 2.86);
+      tl.set("#cap1", { visibility: "visible" }, 2.86); tl.set("#cap1", { visibility: "hidden" }, 6.7);
+      tl.set("#cap2", { visibility: "visible" }, 6.7); tl.set("#cap2", { visibility: "hidden" }, 10.0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
