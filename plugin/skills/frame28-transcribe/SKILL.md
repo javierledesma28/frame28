@@ -22,8 +22,8 @@ Salidas en `work/`:
 
 ## Reglas que aprendimos a golpes
 
-- **Normaliza siempre el audio antes** (`prep` lo hace a −16 LUFS): las capturas de webcam vienen a −40 dB y el
-  VAD se come frases enteras.
+- **Limpia y normaliza siempre el audio antes** (`prep` lo hace: graves, ruido y −14 LUFS): las capturas de webcam
+  vienen a −40 dB y el VAD se come frases enteras. `frame28 audio measure` dice en qué estado está un fichero.
 - **Revisa nombres propios y marcas** en `transcript.txt`: es donde falla el ASR ("ChatGBT", "GEV"). Corrige el
   `text` en `words.json`; los tiempos siguen valiendo. Si hay guion, `--script guion.txt` reduce los fallos.
 - **Los tiempos de faster-whisper son aproximados** (100–400 ms): valen para overlays y subtítulos. Para karaoke

@@ -63,11 +63,21 @@ def probe(video, as_json):
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
 @click.option("--fps", default=30, show_default=True)
 @click.option("--width", default=None, type=int, help="Reescalar a este ancho (p. ej. 1920)")
+@click.option("--denoise", default="afftdn", show_default=True, type=click.Choice(["none", "afftdn", "rnnoise", "deepfilter"]), help="limpieza de la voz")
+@click.option("--lufs", default=-14.0, show_default=True)
 @click.option("--json", "as_json", is_flag=True)
-def prep(video, out_dir, fps, width, as_json):
-    """Copia de trabajo: clip.mp4 a 30 fps sin audio + voice.wav normalizada + audio16k.wav para ASR."""
+def prep(video, out_dir, fps, width, denoise, lufs, as_json):
+    """Copia de trabajo: clip.mp4 a 30 fps sin audio + voice.wav limpia y normalizada + audio16k.wav para ASR."""
     from .media import prep as _prep
-    out(_prep(video, out_dir, fps, width), as_json or True)
+    r = _prep(video, out_dir, fps, width, normalize=(denoise == "none"))
+    if r.get("voice") and denoise != "none":
+        from .audio import clean
+        from .env import ffmpeg, run as _run
+        raw = Path(r["voice"]).with_name("voice_raw.wav"); Path(r["voice"]).replace(raw)
+        c = clean(raw, r["voice"], denoise, 12, lufs)
+        _run([ffmpeg(), "-v", "error", "-y", "-i", r["voice"], "-ac", "1", "-ar", "16000", r["audio16k"]])
+        r["audio"] = {"denoise": denoise, "before": c["before"], "after": c["after"], "raw": str(raw)}
+    out(r, as_json or True)
 
 
 @main.command()
@@ -151,6 +161,53 @@ def gestures(video, words, sample_fps, annotate, out_json, as_json):
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
         r["saved"] = out_json
     out(r, as_json or True)
+
+
+@main.group()
+def audio():
+    """Medir y limpiar la voz: graves, ruido y sonoridad normalizada (EBU R128)."""
+
+
+@audio.command("measure")
+@click.argument("path", type=click.Path(exists=True))
+@click.option("--json", "as_json", is_flag=True)
+def audio_measure(path, as_json):
+    """LUFS integrado, rango, pico real, suelo de ruido y relación señal/ruido."""
+    from .audio import measure
+    out(measure(path), as_json or True)
+
+
+@audio.command("clean")
+@click.argument("path", type=click.Path(exists=True))
+@click.option("-o", "--out", "dst", required=True, type=click.Path())
+@click.option("--denoise", default="afftdn", show_default=True, type=click.Choice(["none", "afftdn", "rnnoise", "deepfilter"]))
+@click.option("--strength", default=12, show_default=True, help="dB de reducción para afftdn (6–30)")
+@click.option("--lufs", default=-14.0, show_default=True, help="sonoridad objetivo (-14 YouTube, -16 podcast/vertical)")
+@click.option("--tp", default=-1.5, show_default=True, help="pico real máximo (dBTP)")
+@click.option("--highpass", default=80, show_default=True, help="Hz del filtro de graves (0 = desactivar)")
+@click.option("--deess", is_flag=True, help="suavizar eses silbantes")
+@click.option("--json", "as_json", is_flag=True)
+def audio_clean(path, dst, denoise, strength, lufs, tp, highpass, deess, as_json):
+    """Limpia y normaliza la voz en dos pasadas → WAV 48 kHz estéreo listo para el montaje y la transcripción."""
+    from .audio import clean
+    r = clean(path, dst, denoise, strength, lufs, tp, 11.0, highpass, deess)
+    if as_json:
+        out(r, True); return
+    b, a = r["before"], r["after"]
+    click.echo(f"salida: {r['output']}   (motor de ruido: {r['denoise']})")
+    click.echo(f"  sonoridad   {b['integrated_lufs']:>7} → {a['integrated_lufs']:>7} LUFS   (objetivo {lufs})")
+    click.echo(f"  pico real   {b['true_peak_dbtp']:>7} → {a['true_peak_dbtp']:>7} dBTP")
+    click.echo(f"  suelo ruido {b['noise_floor_dbfs']:>7} → {a['noise_floor_dbfs']:>7} dBFS")
+    click.echo(f"  señal/ruido {b['snr_db']:>7} → {a['snr_db']:>7} dB   ({'+' if r['noise_reduction_db'] >= 0 else ''}{r['noise_reduction_db']} dB)")
+
+
+@audio.command("compare")
+@click.argument("paths", nargs=-1, type=click.Path(exists=True))
+@click.option("-o", "--out", "out_png", required=True, type=click.Path())
+def audio_compare(paths, out_png):
+    """Espectrogramas apilados de varios ficheros (antes / después) en un PNG."""
+    from .audio import spectrogram
+    click.echo(str(spectrogram(list(paths), out_png)))
 
 
 @main.group()

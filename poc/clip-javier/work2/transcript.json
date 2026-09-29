@@ -1,0 +1,164 @@
+[
+ {
+  "text": "bueno",
+  "start": 0.5,
+  "end": 1.16,
+  "id": "w0"
+ },
+ {
+  "text": "bueno",
+  "start": 1.16,
+  "end": 1.38,
+  "id": "w1"
+ },
+ {
+  "text": "bueno",
+  "start": 1.38,
+  "end": 1.78,
+  "id": "w2"
+ },
+ {
+  "text": "esta",
+  "start": 1.78,
+  "end": 2.22,
+  "id": "w3"
+ },
+ {
+  "text": "es",
+  "start": 2.22,
+  "end": 2.38,
+  "id": "w4"
+ },
+ {
+  "text": "una",
+  "start": 2.38,
+  "end": 2.6,
+  "id": "w5"
+ },
+ {
+  "text": "frase",
+  "start": 2.6,
+  "end": 2.9,
+  "id": "w6"
+ },
+ {
+  "text": "vamos",
+  "start": 2.9,
+  "end": 3.18,
+  "id": "w7"
+ },
+ {
+  "text": "a",
+  "start": 3.18,
+  "end": 3.44,
+  "id": "w8"
+ },
+ {
+  "text": "ver",
+  "start": 3.44,
+  "end": 3.9,
+  "id": "w9"
+ },
+ {
+  "text": "los",
+  "start": 3.9,
+  "end": 4.26,
+  "id": "w10"
+ },
+ {
+  "text": "distintos",
+  "start": 4.26,
+  "end": 4.58,
+  "id": "w11"
+ },
+ {
+  "text": "componentes",
+  "start": 4.58,
+  "end": 5.1,
+  "id": "w12"
+ },
+ {
+  "text": "que",
+  "start": 5.1,
+  "end": 5.26,
+  "id": "w13"
+ },
+ {
+  "text": "tenemos",
+  "start": 5.26,
+  "end": 5.62,
+  "id": "w14"
+ },
+ {
+  "text": "en",
+  "start": 5.62,
+  "end": 6.2,
+  "id": "w15"
+ },
+ {
+  "text": "esta",
+  "start": 6.2,
+  "end": 6.34,
+  "id": "w16"
+ },
+ {
+  "text": "parte",
+  "start": 6.34,
+  "end": 6.74,
+  "id": "w17"
+ },
+ {
+  "text": "por",
+  "start": 6.74,
+  "end": 7.32,
+  "id": "w18"
+ },
+ {
+  "text": "aquí",
+  "start": 7.32,
+  "end": 7.48,
+  "id": "w19"
+ },
+ {
+  "text": "hay",
+  "start": 7.48,
+  "end": 7.6,
+  "id": "w20"
+ },
+ {
+  "text": "una",
+  "start": 7.6,
+  "end": 7.82,
+  "id": "w21"
+ },
+ {
+  "text": "cosa",
+  "start": 7.82,
+  "end": 8.24,
+  "id": "w22"
+ },
+ {
+  "text": "por",
+  "start": 8.24,
+  "end": 8.66,
+  "id": "w23"
+ },
+ {
+  "text": "aquí",
+  "start": 8.66,
+  "end": 8.92,
+  "id": "w24"
+ },
+ {
+  "text": "hay",
+  "start": 8.92,
+  "end": 9.14,
+  "id": "w25"
+ },
+ {
+  "text": "otra",
+  "start": 9.14,
+  "end": 9.36,
+  "id": "w26"
+ }
+]
