@@ -84,7 +84,19 @@ frame28 doctor
 Para alguien no técnico esto son demasiados pasos: el roadmap incluye `install.ps1`/`install.sh` que instale
 `uv`, `ffmpeg`, Node y todo lo anterior con un solo comando, y más adelante una interfaz.
 
-## 5. Securizar
+## 5. Securizar · limpieza previa a hacerlo público ✅ (2026-09-29)
+
+Antes de plantear el repo público revisamos qué había versionado y encontramos tres cosas que no debían salir:
+imágenes con la cara del autor (pruebas del clip propio), fotogramas y transcripciones del video de referencia
+(material de un tercero) y el análisis plano a plano que lo cita. Se movieron a `_private/` (ignorado por git),
+se dejó un resumen público en `research/01-…md` y se **reescribió el historial** a un único commit limpio con
+`git checkout --orphan` + `git push --force`. Regla desde ahora: caras, clips y material de terceros nunca entran
+en el repo; `_private/` es su sitio.
+
+Aviso: GitHub conserva un tiempo los objetos de los commits antiguos aunque ya no estén en ninguna rama, y se
+pueden abrir por SHA si alguien lo conoce. Para eliminarlos del todo: borrar y recrear el repo antes de hacerlo
+público, o pedir a soporte de GitHub que ejecute la recolección.
+
 
 Qué puede hacer un plugin: sus skills ejecutan comandos con **los permisos del usuario que lo instala**. Por eso:
 
