@@ -21,7 +21,7 @@ poc/e2e/rvm_png/
 poc/clip-javier/rvm_png/
 poc/clip-javier/f28-project/
 # Trabajo local
-work/
+work*/
 *.log
 
 # Fotogramas del análisis (pesados; las hojas de contacto sí se versionan)
