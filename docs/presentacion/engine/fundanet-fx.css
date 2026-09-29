@@ -262,7 +262,7 @@
 body.is-pointer .fx-pointer{opacity:1}
 body.is-pointer .fx-pointer::after{
   content:'';position:absolute;left:var(--px);top:var(--py);width:250px;height:250px;margin:-125px 0 0 -125px;
-  border-radius:50%;border:2px solid rgba(126,224,214,.85);box-shadow:0 0 34px rgba(13,143,135,.55),inset 0 0 40px rgba(126,224,214,.12);
+  border-radius:50%;border:2px solid rgba(126,224,214,.85);box-shadow:0 0 34px rgba(245,197,0,.55),inset 0 0 40px rgba(126,224,214,.12);
 }
 body.is-pointer{cursor:none}
 
