@@ -76,6 +76,10 @@ máquina; tu video no sale de ella.
 
 ## Instalación
 
+¿Prefieres que te lleven de la mano? Abre el **[asistente de instalación](https://frame28.t28.io/instalar/)**: detecta tu
+sistema, te da la línea con un botón de copiar, te cuenta qué vas a ver y tiene una lista de comprobación. O pídeselo a
+Claude Code: «Instala Frame28 siguiendo https://frame28.t28.io/instalar.md».
+
 **La forma rápida: una sola línea.** Un instalador interactivo que te dice en qué paso está y por qué, te pregunta
 antes de cada cosa y sabe qué hacer en un equipo recién instalado (en Mac instala Homebrew si falta; en Windows, el
 runtime de Visual C++). Instala ffmpeg, Node.js, uv, Claude Code, el motor de Frame28 y el plugin. Es seguro repetirlo.
@@ -156,7 +160,8 @@ v0.2.0 funciona de punta a punta en clips reales (probado en Windows con GPU de 
 | `docs/guia-plugin.md` | el ciclo completo del plugin: crear, probar, publicar, consumir, securizar |
 | `docs/brand/` | logos de Think28 (del [press kit](https://t28.io/press-kit.html)) |
 | `docs/presentacion/` | la guía para personas no técnicas como presentación web (fuente `deck.html`, publicada como `index.html`) |
-| `docs/install.ps1`, `docs/install.sh` | instaladores de una línea para Windows y macOS, servidos en frame28.t28.io |
+| `docs/install.ps1`, `docs/install.sh` | instaladores interactivos para Windows y macOS, servidos en frame28.t28.io |
+| `docs/instalar/`, `docs/instalar.md` | asistente web de instalación y las instrucciones para que Claude Code instale Frame28 por ti |
 | `research/04-roadmap-features.md` | investigación de features y repos a integrar, con roadmap priorizado |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
