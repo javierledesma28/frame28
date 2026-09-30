@@ -98,6 +98,12 @@ un operador de cámara: los gestos hacia los lados se pierden (mira `moving_samp
 aquí todo (speaker, gestures, matte, storyboard con `canvas` 1080×1920, `caption_style` `pages`) va sobre el clip
 vertical. Un clip que ya es vertical no necesita este paso.
 
+Si ya habías pasado `frame28 gestures` sobre el apaisado (p. ej. porque el largo y el vertical salen del mismo
+clip), no repitas la detección: `frame28 reframe-map work/cut/reframe.json --gestures work/cut/gestures.json -o
+work/cut/gestures-vertical.json` devuelve los mismos `pointer` en el lienzo 1080×1920, con `visible: false` en los
+que señalan fuera del encuadre (modo `crop`); esos se quitan o se resuelven con texto. También convierte puntos
+sueltos (`--point x,y,t`, en coordenadas del lienzo apaisado) para recolocar un `box` o un `draw`.
+
 ## 2d. Shorts a partir del vídeo largo → skill `frame28-shorts`
 
 Si el usuario quiere clips para redes además del vídeo entero (o en vez de él): `frame28 clips plan` propone los

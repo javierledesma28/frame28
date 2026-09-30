@@ -233,8 +233,8 @@ const ROADMAP = [
     goal: "Un vídeo para un cliente sale sin sorpresas, con todo lo que vende, y sabemos lo que cuesta producirlo.",
     close: "Suite de pruebas en verde, B-roll real, un vídeo de cliente entregado con el flujo completo y su coste medido.",
     items: [
-      { t: "Suite mínima de pruebas", d: "Módulos puros y rápidos, sin render: cargadores, cortes, subtítulos, shorts, i18n y validación del storyboard.", s: "pendiente", e: "M", val: "alto", next: true },
-      { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4" },
+      { t: "Suite mínima de pruebas", d: "82 pruebas en menos de un segundo, sin render: cargadores, cortes, subtítulos, shorts, i18n, validación y build del storyboard, reencuadre y smoke del CLI; release-check la ejecuta.", s: "hecho", e: "M", val: "alto" },
+      { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
       { t: "Coste y tiempo por vídeo", d: "Registro de duración por paso y de tokens por montaje: la base para fijar precio y detectar cuellos de botella.", s: "pendiente", e: "S", val: "alto" },
       { t: "Página de producto en frame28.app", d: "Oferta para marcas y equipos, precios de early adopters, caso de cliente y formulario; el plugin abierto sigue en frame28.t28.io.", s: "pendiente", e: "M", val: "alto" },
       { t: "Base de conocimiento y mini curso", d: "Ocho artículos desde las referencias del plugin y cinco lecciones grabadas y montadas con Frame28, para clientes y early adopters.", s: "pendiente", e: "M", val: "alto" },
@@ -243,7 +243,7 @@ const ROADMAP = [
       { t: "Ganchos para tramos sin momentos", d: "Hoy salen con una plantilla de curiosidad; deben usar la frase más fuerte del tramo.", s: "pendiente", e: "S", val: "medio" },
       { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
       { t: "Cuadrado 1:1 para ficha de producto", d: "El lienzo ya existe; falta el caso documentado y las reglas de colocación.", s: "medias", why: "soportado por canvas, sin caso ni documentación", e: "S", val: "medio", ref: "R5 #7" },
-      { t: "Callouts del original al vertical", d: "reframe map convierte los pointers detectados en apaisado sin repetir la detección de gestos.", s: "pendiente", e: "S", val: "medio" },
+      { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" },
       { t: "Gráfica de barras en vertical con más de tres filas", d: "El lienzo estrecho compacta la gráfica; con muchas filas se sale.", s: "pendiente", e: "S", val: "bajo" },
       { t: "Reencuadre con hablante en movimiento", d: "Probar el modo crop con alguien que se desplace de verdad por el encuadre.", s: "pendiente", e: "S", val: "medio" },
       { t: "Instalador de macOS en un Mac real", d: "Verificado en sintaxis, no en una máquina sin Homebrew.", s: "pendiente", e: "S", val: "medio" }

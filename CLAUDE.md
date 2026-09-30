@@ -59,7 +59,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     matte.py                      RobustVideoMatting (alfa) y speaker_layout (bbox del hablante en el lienzo)
     pose.py                       MediaPipe Pose: track, gestos de señalar → pointers propuestos, face_box
     graphics.py                   RapidOCR: texto ya presente en el vídeo, marca de agua, tarjetas, zonas libres 3x3, colisiones
-    reframe.py                    apaisado → 9:16/1:1: crop siguiendo la cara (zona muerta, suavizado) o blur
+    reframe.py                    apaisado → 9:16/1:1: crop siguiendo la cara (zona muerta, suavizado) o blur; map_gestures/map_canvas_point
+                                  (`reframe-map`: pointers y puntos del lienzo apaisado al vertical sin repetir la detección)
     captions.py                   default_canvas, paginado por palabras (pages/karaoke), cues SRT/VTT legibles
     broll.py                      Pexels/Pixabay (claves en env o ~/.config/frame28/keys.json), sidecar de licencia, recorte
     clips.py                      fábrica de shorts: tramos por momentos, ganchos con la frase real, cut, scaffold
@@ -69,11 +70,13 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings)
     render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto)
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
+  cli/tests/                      pytest (grupo dev): conftest con fixtures de poc/ y datos sintéticos; test_captions, test_cut,
+                                  test_clips, test_i18n, test_build, test_reframe, test_cli
 docs/                             GitHub Pages: presentacion/ (deck + engine/), instalar/ (asistente web), instalar.md,
                                   install.ps1, install.sh, guion-demo.md, guia-plugin.md, brand/, CNAME, .nojekyll, index.html
   roadmap/index.html              roadmap por versiones (Think28): los datos viven en el array ROADMAP del propio fichero
                                   (estado hecho/medias/pendiente por ítem); marcadores artifact:head/body para publicarlo como artefacto
-scripts/release-check.py          versiones en los cuatro sitios, árbol limpio, tag libre, cuenta gh, plugin validado; --notes: commits desde el último tag
+scripts/release-check.py          versiones en los cuatro sitios, árbol limpio, tag libre, cuenta gh, plugin validado, pytest en verde; --notes: commits desde el último tag
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
                                   06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
@@ -105,7 +108,8 @@ frame28 fetch <url> -o input.mp4           # opcional: YouTube/Vimeo con yt-dlp 
 frame28 prep input.mp4 -o work             # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav
 frame28 transcribe work/audio16k.wav -o work --lang es
 frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json && frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
-frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 [--mode blur]   # solo si el destino es vertical
+frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 --path work/cut/reframe.json [--mode blur]   # solo si el destino es vertical
+frame28 reframe-map work/cut/reframe.json --gestures work/cut/gestures.json -o work/cut/gestures-vertical.json   # pointers del apaisado al vertical
 frame28 speaker work/cut/clip.mp4 ; frame28 gestures work/cut/clip.mp4 --words work/cut/words.json -o work/cut/gestures.json --annotate work/cut/gestos.png
 frame28 graphics work/clip.mp4 -o work/graphics.json --annotate work/graphics.png   # vídeos ya producidos
 frame28 matte work/cut/clip.mp4 --start 4.3 --end 6.8 -o work/cut/alpha.webm       # solo el tramo con `behind`
@@ -114,7 +118,11 @@ frame28 cover out/x.mp4 --at 12.0 -o out/cover.png --title "Línea 1|Línea 2" -
 frame28 clips plan work/captions.json --lang es -o work/clips.json   # shorts: cut, reframe, scaffold, build, render
 frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.json strings.en.json --lang en
 ```
-No hay tests automatizados: la prueba es `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (82 pruebas, < 1 s; módulos puros sin ffmpeg ni
+modelos: captions, cut, clips, i18n, build.validate/platform_warnings/build_project, reframe.map_*, smoke del CLI con
+`CliRunner`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
+`scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
+Lo que no cubre (render, matte, gestos, OCR) se prueba con `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
 Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards reales completos: `poc/clip-demo/`
 (16 overlays, cortes, vertical), `poc/clip-grabado/` (vídeo producido, marca de cliente, shorts, i18n).
 

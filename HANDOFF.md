@@ -3,7 +3,8 @@
 Para retomar Frame28 desde otra cuenta de Claude Code **sin historial de conversación**, sobre este mismo
 repositorio local. Lee primero [CLAUDE.md](CLAUDE.md) (qué es, estructura, cómo se ejecuta, convenciones,
 trampas). Este fichero es el estado verificado, lo hecho por sesiones, lo que quedó a medias, los bloqueos y los
-próximos pasos. Todo lo de abajo está commiteado en `main`; hay **dos commits sin push** (ver §Bloqueos).
+próximos pasos. `main` está sincronizado con `origin/main` (los commits con precios propuestos ya subieron con la
+mudanza a la nube); la sesión en la nube del 2026-09-30 (noche, 2) trabaja en la rama `main-ky21ae` (ver §Sesiones).
 
 ## Qué es esto y por qué
 
@@ -37,10 +38,10 @@ referencias), no se queda en un README ni en este fichero.
 | Storyboards | 11 de 11 versionados válidos (`frame28 storyboard validate`) |
 | Regresión | `poc/clip-javier/storyboard-gsap.json`: build 1 s, check pasa en 88 s, render 111 s (10 s a 1080p en CPU), portada con `frame28 cover` correcta |
 | Smoke de módulos | `cut plan` (fixture nuevo, formato antiguo en ms y fichero roto con error corto), `cut apply`, `gestures`, `captions pages/export`, `clips plan`, `broll suggest`, `i18n extract`: funcionan |
-| Pruebas automatizadas | **0** (deuda principal; primer ítem técnico de la v0.4.0) |
+| Pruebas automatizadas | **82 en verde en 0,3 s** (`cd plugin/cli && uv run --group dev pytest`): captions, cut, clips, i18n, build (validate, platform_warnings, build_project sobre los 11 storyboards versionados), reframe (camera_path, map_*), smoke del CLI; `scripts/release-check.py` las ejecuta como fila bloqueante |
 | Web | https://frame28.t28.io/ `/presentacion/` `/instalar/` `/roadmap/` responden 200; portada, diapositiva de cierre y README enlazan el roadmap |
 | Roadmap visual | `docs/roadmap/index.html`: 6 versiones, 56 ítems (24 hechos, 2 a medias, 30 pendientes), filtro por estado; artefacto privado https://claude.ai/artifact/CxhtKMffGhQRsKUhAqwUS8 (versión 2) |
-| Git | `main`, árbol limpio tras el commit de este traspaso; **2 commits sin push** (`f677913` y el de este traspaso); cuenta activa de `gh`: la corporativa `javierledesmasmc` (push daría 403) |
+| Git | `main` = `origin/main` (`9a086c6`); la sesión en la nube empuja a `main-ky21ae` (rama de trabajo; fusionar en `main` es decisión de Javier). En el PC la cuenta activa de `gh` quedó en `javierledesma28` |
 | Casos reales | `poc/clip-javier`, `clip-auriculares`, `clip-whatsapp`, `clip-demo`, `clip-grabado` (largo, 3 shorts, portada, versión ES en `poc/clip-grabado/out`, no versionados) |
 
 ## Qué se ha hecho, por sesiones
@@ -85,13 +86,28 @@ de ganchos; tres variantes de short; `cover`; `i18n` y skill; ganchos con la fra
    producto (v0.4.0), Frame28 Team (v0.5.0) y Frame28 Cloud (v1.0.0).
 7. Memoria persistente de Claude actualizada (producto frame28.app, regla de capitalizar en el plugin).
 
+### Sesión 2026-09-30 (noche, 2; en la nube, rama `main-ky21ae`) — suite de pruebas y `reframe-map`
+Sin validación de precios todavía, se adelantó lo del día 5 que no depende de Javier:
+1. **Suite de pruebas** `plugin/cli/tests/` (pytest en el grupo `dev` del pyproject; 82 pruebas, 0,3 s, sin ffmpeg ni
+   modelos): cargadores y subtítulos, `cut.plan` con WAV sintético (silencios, muletillas, falsos arranques, estructuras
+   paralelas), remapeo, shorts y ganchos con `poc/clip-grabado/clips.json`, i18n de extremo a extremo, validación de
+   los 11 storyboards versionados y errores típicos, avisos de plataforma, `build_project` de clip-javier (ids, plugins
+   GSAP, sin tweens de left/top), reencuadre y smoke del CLI con `CliRunner`. `release-check` la ejecuta.
+2. **Dos bugs que salieron al escribirlas, arreglados con su regresión**: `cut.remap_storyboard` comparaba los cortes
+   con los tiempos ya remapeados del `behind` (un corte al final de la máscara alfa no avisaba); `i18n extract` no
+   marcaba como residual una frase sin ninguna palabra oída (ahora `note` + `visible: ""`).
+3. **`frame28 reframe-map`** (ítem "Callouts del original al vertical" del roadmap): `reframe.json` (de `reframe --path`)
+   + `gestures.json` del apaisado → los mismos `pointer` en el lienzo vertical, con `visible: false` en los que señalan
+   fuera del encuadre en modo crop; también `--point x,y,t` sueltos. Documentado en las skills director y shorts.
+4. Roadmap: "Suite mínima de pruebas" y "Callouts del original al vertical" en hecho; el siguiente es B-roll real.
+   CLAUDE.md, README y README del CLI al día. El artefacto del roadmap en claude.ai no se republicó desde aquí.
+
 ## Qué quedó a medias o sin hacer
 
 Decisiones conscientes:
 
-1. **Precios y capas de `research/07` sin validar por el usuario.** Por eso el commit `f677913` y el de este
-   traspaso **no se pushearon**: contienen precios y el repo es público. Se pushean cuando el usuario diga que los
-   números son los buenos (o los corrija en `research/07` §2).
+1. **Precios y capas de `research/07` sin validar por el usuario.** Los commits ya están en `origin/main` (repo
+   público): si Javier corrige los números, se edita `research/07` §2 y la landing será la fuente pública.
 2. **Landing frame28.app**: no existe todavía la carpeta `site/`; el dominio está en Cloudflare; la arquitectura y
    las rutas están en `research/07` §5. Es el día 2 del plan.
 3. **Propuesta a Cliente A**: borrador en inglés en `research/07` anexo; no enviada. El caso (largo, shorts,
@@ -103,12 +119,11 @@ Decisiones conscientes:
 
 Deuda técnica, por orden:
 
-6. **Suite mínima de pruebas: 0 tests.** Módulos puros y rápidos: `captions` (normalize_words, load_captions,
-   pages, export), `cut.plan`/`remap_words`, `clips.plan`/`hooks_for`, `i18n.extract/apply/retime_words`,
-   `build.validate`/`platform_warnings`. Fixture: `poc/clip-javier/words.json` y los 11 storyboards.
+6. **Suite de pruebas: hecha** (82, ver §Estado). Fuera de ella: render, `matte`, `gestures`, `graphics` (OCR), `reframe`
+   con vídeo real, `broll` contra la API. Regla: cada bug nuevo entra con su prueba en `plugin/cli/tests/`.
 7. **B-roll sin probar contra la API real**: faltan claves de Pexels/Pixabay (`~/.config/frame28/keys.json` o
    `PEXELS_API_KEY`/`PIXABAY_API_KEY`); `plugin/cli/frame28/broll.py::search`.
-8. **Pendientes pequeños**: orden `reframe map` (existe `reframe.py:139 map_point`, falta el comando en `cli.py`);
+8. **Pendientes pequeños**: `reframe-map` hecho pero sin probar con un `gestures.json` real (solo sintético en tests);
    `clips.py:176 hooks_for` da plantilla de curiosidad en tramos sin momentos; `chart bar` en vertical con más de
    tres filas; `reframe --mode crop` sin probar con hablante en movimiento; cuadrado 1:1 sin caso documentado
    (`research/05` #7); marcadores de resultado (`research/05` #8); `docs/install.sh` sin Mac real.
@@ -146,14 +161,14 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
    `poc/clip-grabado/out` (subirlas a un sitio privado o al artefacto), página del caso.
 4. **Día 4 — base de conocimiento y lección 1.** Ocho artículos desde las referencias del plugin en `site/kb/`
    tras Cloudflare Access (código por email); guion del curso; Javier graba la lección 1 y se monta con Frame28.
-5. **Día 5 — v0.4.0 mínima para el servicio.** Suite de pruebas (punto 6 de a medias), claves de B-roll y prueba
+5. **Día 5 — v0.4.0 mínima para el servicio.** Suite de pruebas hecha (adelantada); quedan claves de B-roll y prueba
    real, registro de coste y tiempo por vídeo, variantes de gancho en lote (`clips scaffold --hook N` para cada
    gancho y render en cadena).
 6. **Día 6 — muestra de acrílico.** `frame28 fetch` del tutorial de acrílico de Cliente A, flujo de vídeo producido
    (`graphics`, marca `cliente-a` regenerada con `brand from-site`), largo, shorts, portada, ES y DE.
 7. **Día 7 — enviar.** Propuesta a [[buzon-partners-cliente]] y a [[fundador]] (fundador) por LinkedIn; abrir Fundadores.
 
-Después de la semana: resto de la v0.4.0 (doblaje/TTS, marcadores de resultado, `reframe map`, `hooks_for`) y
+Después de la semana: resto de la v0.4.0 (doblaje/TTS, marcadores de resultado, `hooks_for`) y
 mantener el roadmap cambiando el estado de cada ítem en el array `ROADMAP` de `docs/roadmap/index.html`, regenerar
 la variante de artefacto (marcadores `artifact:head`/`artifact:body`) y republicarla pasando su URL.
 
@@ -162,11 +177,12 @@ la variante de artefacto (marcadores `artifact:head`/`artifact:body`) y republic
 ```bash
 frame28 doctor                                   # fila frame28: 0.3.0 en código y 0.3.0 instalada (editable); "Todo listo."
 claude plugin validate ./plugin                  # Validation passed
-python scripts/release-check.py --notes          # versiones 0.3.0 coincidentes; tag local, tag remoto y release v0.3.0 "ya existe/ya publicada" (normal hasta subir __version__); commits sin push: 2; aviso de cuenta gh
+python scripts/release-check.py --notes          # versiones 0.3.0 coincidentes; tag local, tag remoto y release v0.3.0 "ya existe/ya publicada" (normal hasta subir __version__); pytest en verde; aviso de cuenta gh
+(cd plugin/cli && uv run --group dev pytest)     # 82 passed en < 1 s
 cd poc/clip-javier && frame28 cut plan words.json --audio voice.wav -o work/cuts.json     # 9.94 s -> 9.49 s, 1 tramo
 cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4   # 13 overlays, check pasa, ~2 min
 curl -sI https://frame28.t28.io/roadmap/ | head -1     # HTTP/2 200
-git status -sb                                    # ## main...origin/main [ahead 2]
+git status -sb                                    # ## main...origin/main (o main-ky21ae si se retoma la rama de la nube)
 ```
 
 Si ffmpeg o uv no están en el PATH de la shell, el CLI los encuentra solo; para la shell, la línea `export PATH`

@@ -180,7 +180,8 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 | `research/04-roadmap-features.md` | investigación de features y repos a integrar, con roadmap priorizado |
 | `research/06-monetizacion.md`, `research/07-producto-frame28-app.md` | cómo se monetiza Frame28 y la definición del producto frame28.app (oferta, precios propuestos, plan) |
 | `docs/roadmap/` | el roadmap por versiones, publicado en [frame28.t28.io/roadmap](https://frame28.t28.io/roadmap/); los datos viven en el propio `index.html` |
-| `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado |
+| `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde |
+| `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, menos de un segundo) |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
 

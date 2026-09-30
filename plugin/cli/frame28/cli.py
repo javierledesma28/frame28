@@ -239,6 +239,45 @@ def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, 
         click.echo(f"  camino: {path_json}")
 
 
+@main.command("reframe-map")
+@click.argument("reframe_json", type=click.Path(exists=True))
+@click.option("--gestures", "gestures_json", type=click.Path(exists=True), default=None, help="gestures.json del clip apaisado: devuelve los pointers en el lienzo vertical")
+@click.option("--point", "points", multiple=True, help="punto del lienzo apaisado 'x,y,t' (repetible), p. ej. --point 1400,600,4.2")
+@click.option("--canvas", default="1920x1080", show_default=True, help="lienzo apaisado en el que están las coordenadas de entrada")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar el resultado en JSON")
+@click.option("--json", "as_json", is_flag=True)
+def reframe_map(reframe_json, gestures_json, points, canvas, out_json, as_json):
+    """Convierte coordenadas del apaisado (gestos, callouts, puntos) al lienzo vertical de `frame28 reframe --path`, sin repetir la detección."""
+    from .reframe import map_canvas_point, map_gestures, point_visible
+    res = json.loads(Path(reframe_json).read_text(encoding="utf-8"))
+    cw, ch = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
+    r: dict = {"mode": res.get("mode"), "canvas": res.get("out")}
+    if gestures_json:
+        r = map_gestures(res, json.loads(Path(gestures_json).read_text(encoding="utf-8")))
+    if points:
+        W, H = res["source"]
+        r["points"] = []
+        for spec in points:
+            x, y, t = (float(v) for v in spec.split(","))
+            r["points"].append({"in": [x, y, t], "out": map_canvas_point(res, x, y, t, (cw, ch)),
+                                "visible": point_visible(res, x * W / cw, y * H / ch, t)})
+    if not gestures_json and not points:
+        raise click.UsageError("indica --gestures gestures.json o al menos un --point x,y,t")
+    if out_json:
+        Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
+        r["saved"] = out_json
+    if as_json:
+        out(r, True); return
+    for p in r.get("points", []):
+        click.echo(f"  ({p['in'][0]:.0f},{p['in'][1]:.0f}) @ {p['in'][2]}s → ({p['out'][0]},{p['out'][1]})" + ("" if p["visible"] else "  fuera del encuadre"))
+    for p in r.get("pointer_suggestions", []):
+        click.echo(f"  {p['id']} at={p['at']}s dot={p['dot']} box={p['box']} '{p['text']}'" + ("" if p["visible"] else "  fuera del encuadre"))
+    for w in r.get("warnings", []):
+        click.echo(f"  ! {w}")
+    if out_json:
+        click.echo(f"  guardado: {out_json}")
+
+
 @main.command()
 @click.argument("video", type=click.Path(exists=True))
 @click.option("--sample-fps", default=1.0, show_default=True, help="muestras por segundo (0.5 = doble de rápido)")
