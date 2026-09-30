@@ -40,8 +40,11 @@ overlay grande a la vez, texto sobre el producto cuando lo están enseñando.
 Frame28 está pensado para un plano de alguien hablando a cámara, pero trabaja igual encima de un vídeo editado:
 
 - Sáltate `speaker`, `gestures` y `behind` (no hay cara ni gestos; el fondo cambia de plano).
-- Mira la hoja de contacto entera (`frame28 sheet --every 4 --cols 6 --rows 9`) y anota **dónde y cuándo** hay
-  gráficos del cliente (marca de agua, títulos, tarjeta final). Tus overlays van a otra zona y a otro momento.
+- `frame28 graphics work/clip.mp4 -o work/graphics.json --annotate work/graphics.png` localiza **dónde y cuándo**
+  hay texto en pantalla (marca de agua, títulos del editor, subtítulos quemados, texto impreso en objetos) y las
+  tarjetas de color plano, y da la ocupación de una rejilla 3×3 con ventanas libres. Complétalo mirando la hoja de
+  contacto entera (`frame28 sheet --every 4 --cols 6 --rows 9`). Tus overlays van a otra zona y a otro momento;
+  `frame28 build --graphics work/graphics.json` avisa si alguno pisa un gráfico existente.
 - Zonas que suelen quedar libres: franja inferior izquierda y derecha (encima de los subtítulos), centro superior.
 - El fondo es claro casi siempre (mesas, telas): `kinetic` con `color` oscuro (la tinta de la marca), nunca blanco
   ni acento claro. `box` lleva fondo oscuro semitransparente y funciona en todas partes.
