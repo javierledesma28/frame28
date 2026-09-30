@@ -1,6 +1,6 @@
 [project]
 name = "frame28"
-version = "0.2.0"
+version = "0.3.0"
 description = "Frame28 by Think28 · CLI: deterministic steps for talking-head explainer videos (prep, transcribe, matte, build, render)."
 readme = "README.md"
 requires-python = ">=3.11"

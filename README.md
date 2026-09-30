@@ -22,7 +22,7 @@
   <a href="https://t28.io">t28.io</a>
 </p>
 
-<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.2.0 · MIT</sub></p>
+<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.3.0 · MIT</sub></p>
 
 ---
 
@@ -152,13 +152,15 @@ demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que de
 
 ## Estado y roadmap
 
-v0.2.0 funciona de punta a punta en clips reales (probado en Windows con GPU de portátil): transcripción, jump cuts, limpieza de audio, gestos, recorte, gráficas, marca y revelados GSAP. Lo siguiente:
+v0.3.0 funciona de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
+recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
+gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts, portada y versión en otro idioma. Probado con un
+tutorial real de una marca DTC (Cliente A) además de los clips del autor. Lo siguiente:
 
-- Gráficas: dispersión y tabla con scroll (barras con fila ganadora y contadores ya están).
-- B-roll automático desde Pexels y Pixabay a partir de lo que dices.
+- Doblaje con voz sintética y demo de pantalla con zoom y paneo.
+- Puertas de calidad automáticas (contraste, legibilidad, sonoridad) y gráficas ampliadas.
 - Alineado con guion para nombres propios y karaoke exacto.
-- Asistente de instalación guiado (Claude Code te acompaña paso a paso) y una interfaz sobre el storyboard, para quien no quiere ver una terminal.
-- Reencuadre automático 9:16 de un clip apaisado (hoy el vertical se monta desde un clip vertical: `canvas` 1080×1920).
+- Una interfaz sobre el storyboard, para quien no quiere ver una terminal, si la decisión de producto lo pide.
 
 ## Estructura del repositorio
 

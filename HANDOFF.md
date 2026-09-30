@@ -1,201 +1,152 @@
-# HANDOFF · Frame28 · 2026-09-30 (actualizado tras la sesión de la noche)
+# HANDOFF · Frame28 · 2026-09-30 (cierre de sesión, tarde)
 
-Traspaso para retomar el proyecto desde otra sesión de Claude Code sin historial de conversación. Lee primero
-`CLAUDE.md` (qué es, estructura, convenciones, trampas). Esto es el estado y lo que toca hacer.
+Traspaso para retomar el proyecto desde otra cuenta de Claude Code **sin historial de conversación**. Lee primero
+`CLAUDE.md` (qué es, estructura, cómo se ejecuta, convenciones, trampas). Este fichero es el estado, lo hecho y lo
+que toca ahora. Todo lo de abajo está commiteado en `main` de `https://github.com/javierledesma28/frame28`.
 
-## En qué estábamos y por qué
+## 1. En qué estábamos exactamente y por qué
 
-Frame28 (Think28) convierte un clip hablando a cámara en un video montado, vía un plugin de Claude Code + CLI
-`frame28` + HyperFrames. El objetivo del usuario (Javier Ledesma) es **iterarlo y compartirlo con otras personas,
-incluidas no técnicas**. Por eso los dos últimos bloques de trabajo fueron: (1) más técnicas de montaje sobre su
-propio clip de prueba, y (2) distribución: repo público, guía como presentación web en dominio propio e
-instaladores de una línea.
+Frame28 (marca Think28 de Javier Ledesma) convierte un clip hablado, o un vídeo ya producido, en un vídeo montado:
+plugin de Claude Code (ocho skills) + CLI `frame28` + HyperFrames. En los últimos dos días el foco pasó de "montar
+el clip de una persona" a **"vídeo que vende un producto DIY"**, usando como cliente tipo a **Cliente A** (kits de
+grabado; tutorial de YouTube de 3 min 17 s, `poc/clip-grabado/`). De ahí salieron: overlays de venta, fábrica de
+shorts, portada, versión en otro idioma, detección de gráficos existentes, reencuadre 9:16, marca desde la web.
 
-Se trabajaba paso a paso: cada feature se prueba con `poc/clip-javier/` (clip real de 10 s del usuario) y se
-documenta en skills/README antes de pasar a la siguiente.
+**La última petición del usuario, interrumpida por falta de tokens** (es lo primero que hay que retomar):
 
-## Completado en las sesiones del 24 al 30 de septiembre de 2026
+> "Ármame un artefacto gráfico para entender en dónde estamos, cuáles son cada uno de los eventos que tenemos en
+> el roadmap, cómo quedarían los versionados en cada uno de ellos y empecemos a trabajar en el primero. Aunque me
+> gustaría primero que dimensionemos bien todo porque quizás me gustaría primero preparar o ver cómo vamos a hacer
+> para que este plugin pueda ser monetizable. Para ello necesito que me ayudes a pensar si es mejor mantenerlo
+> como plugin, montarlo como producto dentro de una plataforma, o ya me dirás tú."
 
-Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (público):
+Es decir, dos entregables antes de seguir con features: (a) un **artefacto visual del roadmap con versiones**
+(hecho / en curso / pendiente, agrupado por versión) y (b) un **análisis de monetización** (plugin vs producto en
+plataforma vs servicio) con recomendación. Ver sección 5.
 
-- Research: análisis del video de referencia (16 técnicas), evaluación de repos, PoC HyperFrames vs Remotion
-  (decisión: HyperFrames), investigación de features con roadmap priorizado (`research/04-roadmap-features.md`).
-- Plugin con 5 skills y CLI `frame28` con: `prep` (30 fps + voz limpia −14 LUFS), `transcribe` (faster-whisper,
-  4 formatos), `cut plan/apply` (silencios, muletillas, falsos arranques; remapea words/captions/storyboard),
-  `audio measure/clean/compare`, `speaker`, `gestures` (MediaPipe → pointers propuestos), `matte` (RVM),
-  `storyboard validate/schema`, `build`, `check`, `render`, `doctor`, `brand init/list/show`, `frames`, `sheet`.
-- Overlays del storyboard: lower_third, box, kinetic, behind, pointer, card, list_focus, card_words, image,
-  brand_card, chart (bar con hero, counter), draw (iconos DrawSVG), broll, hook, cta (QR con segno), steps,
-  before_after; `reveal` fade/rise/chars en textos; marca por nombre con `brands/think28.json` + logos oficiales.
-- Distribución: plugin validado e instalado en local; repo recreado limpio (sin caras ni material de terceros) y
-  público; tags y releases `v0.1.0` y `v0.2.0` (2026-09-30); GitHub Pages sobre `docs/` con dominio `frame28.t28.io` (CNAME en Cloudflare,
-  HTTPS forzado); guía para no técnicos como deck de 17 slides (`docs/presentacion/`); instaladores
-  `docs/install.ps1` (probado en esta máquina, funciona) e `install.sh` (solo sintaxis comprobada; sin Mac a mano).
-- Versión **0.2.0** en manifiestos, pyproject y README, etiquetada y publicada como release en GitHub.
+## 2. Estado actual (qué existe y funciona)
 
-## A medias / pendiente inmediato
+Versión en ficheros: **0.3.0** (manifiesto, marketplace, pyproject, README). Tags/releases publicadas: `v0.1.0`,
+`v0.2.0`. **El tag y la release `v0.3.0` NO están hechos** (proponer al usuario; el bump es solo de ficheros).
 
-1. **Asistente de instalación guiado**: HECHA la parte de scripts interactivos (`docs/install.ps1` e `install.sh`:
-   pasos numerados con motivo, prompts reintentar/saltar/salir desde el teclado aunque lleguen por `curl | bash` /
-   `irm | iex`, modo `-y` / `FRAME28_YES=1`, log en `~/frame28-install.log`, Homebrew y Claude Code se instalan
-   si faltan, runtime VC++ en Windows). Probado en Windows en modo silencioso; **install.sh sin probar en Mac real**
-   (un usuario del entorno del autor tenía un Mac sin Homebrew: ese es el caso a validar). La parte web también está hecha: `docs/instalar/index.html` (asistente: detecta el sistema, línea con copiar, pasos, checklist) y `docs/instalar.md` (instrucciones para que Claude Code instale por ti). Quedaba en el plan original: Quiere "un instalador
-   interactivo que te acompañe, te diga en qué paso estás y te muestre los prompts para aceptar", sin violar
-   políticas de Windows/Mac. Un navegador no puede ejecutar comandos locales, así que la respuesta recomendada es:
-   - **Claude Code como asistente**: publicar `docs/instalar.md` con instrucciones para el agente y decirle al
-     usuario que pegue en Claude Code "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md". Claude
-     ejecuta cada paso, explica y **los prompts de permiso de Claude Code son exactamente el "aceptar y sigue"**.
-   - **Página web asistente** `docs/instalar/index.html`: detecta el sistema, muestra la línea correcta con botón
-     "Copiar", checklist de pasos con lo que se verá en pantalla, enlace a la guía. Sin ejecutar nada.
-   - Los scripts ya son idempotentes y muestran el paso actual; se les puede añadir modo `-Interactive` con
-     confirmación por paso si se quiere.
-3. **Verificar `install.sh` en un Mac real** (Homebrew) y `install.ps1` en un Windows limpio sin winget/Node.
+CLI `frame28` (todo probado en clips reales, Windows 11, CPU):
+`fetch` (yt-dlp vía uvx) · `probe` · `prep` (30 fps, voz limpia −14 LUFS) · `transcribe` (faster-whisper, 4 formatos)
+· `cut plan/apply` (silencios también dentro de palabras estiradas, muletillas condicionadas, falsos arranques;
+remapea words/captions/storyboard) · `audio measure/clean/compare` · `speaker` · `gestures` (MediaPipe → pointers)
+· `matte` (RVM) · `graphics` (RapidOCR: texto en pantalla, marca de agua, tarjetas, zonas libres) · `reframe`
+(crop siguiendo la cara / blur) · `captions pages|export` (SRT/VTT) · `broll providers|suggest|search|fetch`
+(Pexels/Pixabay; sin claves aún) · `clips plan|cut|scaffold` (fábrica de shorts, ganchos con la frase real)
+· `cover` (portada/miniatura) · `i18n extract|apply` · `brand init|list|show|from-site` · `storyboard validate|schema`
+· `build [--graphics]` · `check` · `render` · `sheet` · `frames` · `doctor`.
 
-## Próximos pasos priorizados (del roadmap `research/04-roadmap-features.md`)
+Overlays del storyboard: lower_third, box, kinetic (con `color`), behind, pointer, card, list_focus, card_words,
+image, brand_card, chart (bar/counter), draw, broll, hook, cta (QR), steps, before_after; `reveal` fade/rise/chars;
+`caption_style` pages/karaoke; `canvas` 16:9/9:16/1:1; `platform` con zonas seguras.
 
-1. Asistente de instalación guiado (arriba).
-2. B-roll por palabra clave (Pexels/Pixabay, licencia registrada) → overlay `broll` con Ken Burns.
-3. ~~Subtítulos estilo TikTok/karaoke con presets + exportación SRT/VTT~~ hecho (propio, sin `@remotion/captions`).
-4. Reencuadre 9:16 con MediaPipe (ya en el stack) desde clip apaisado (la composición vertical ya existe).
-5. Demo de pantalla con zoom-pan (Playwright 1.59 `page.screencast` + `clicks.json` → overlay `screen`).
-6. Gráficas ampliadas (line/area/donut/table-reveal) y puertas de calidad (pixelmatch, LUFS, legibilidad).
-7. Alineado forzado con guion (stable-ts / WhisperX) para nombres propios y karaoke exacto.
+Skills: director, transcribe, cutout, storyboard (+ 5 referencias), broll, shorts, i18n, compose.
 
-## Hecho además en la sesión del 30 de septiembre (noche)
+Distribución: repo público, GitHub Pages en `frame28.t28.io` (guía deck, asistente web de instalación,
+instaladores interactivos Windows/macOS, `instalar.md` para que Claude instale), plugin instalado en local desde el
+marketplace local.
 
-- Segundo clip real, un anuncio de auriculares de 58 s, montado con todo el pipeline (`poc/clip-auriculares/`, README propio). Salió a la primera salvo el sufijo del contador sobre fondo de acento (corregido en `build.py`).
-- `docs/guion-demo.md`: guion de 60 s con qué decir y qué gesto hacer para grabar una demo que luzca todas las técnicas.
+Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados; medios en `work/`/`out/` no):
 
-## Hecho en la sesión del 30 de septiembre (madrugada): vertical y subtítulos por palabras
+| Caso | Qué demuestra | Salida |
+|---|---|---|
+| clip-javier | referencia de regresión (10 s), brand kit, GSAP, pointers | `out/*.mp4` |
+| clip-auriculares | anuncio 58 s: cortes, gestos, contadores, behind, marca | `out/auriculares.mp4` |
+| clip-whatsapp | vertical de móvil, inglés, subtítulos por palabras | `out/cliente-a_*.mp4` |
+| clip-demo | guion de demo 83 s → 70 s; versión vertical con `reframe` | `out/demo.mp4`, `out/demo_vertical.mp4` |
+| clip-grabado | vídeo producido de una marca: brief, 29 overlays, `graphics`, shorts (3 ganchos), portada, español | `out/cliente-a-glass.mp4`, `out/shorts/`, `out/cover-*.png` |
 
-- Tercer clip real (`poc/clip-whatsapp/`): vídeo de móvil por WhatsApp, vertical 464×832, voz en inglés, 11,5 s.
-  Primer montaje 9:16 (`canvas` 1080×1920). Destapó que gráficas, subtítulos y cajas de cara asumían 1920×1080.
-- **Lienzo a medida en todo el pipeline**: `captions.default_canvas()` elige 1920×1080 / 1080×1920 / 1080×1080 por el
-  formato del clip; `frame28 speaker` y `frame28 gestures` aceptan `--canvas WxH` y devuelven `bbox_canvas`/`face_box`
-  (las claves `*_1080p` quedan como alias). `build` añade la clase `narrow` (< 1400 px de ancho) que compacta chart,
-  counter, card y brand_card; los subtítulos por frase envuelven a dos líneas y suben a 200 px en vertical.
-- **Subtítulos por palabras**: `caption_style` en el storyboard con presets `pages` (aparecen al decirse, mayúsculas,
-  estilo Shorts) y `karaoke` (palabra actual en acento), paginado por puntuación, pausas y `max_words`/`max_chars`;
-  `frame28 captions pages` lo previsualiza. Probado en vertical (`out/cliente-a_pages.mp4`, `out/cliente-a_karaoke.mp4`).
-- **Exportación SRT/VTT**: `frame28 captions export words.json -o x.srt|.vtt` con ≤ 42 caracteres/línea, 2 líneas,
-  1–7 s, corte en puntuación/pausas, aviso si > 17 cps. Los tokens "%"/"€"/"$" sueltos del ASR se pegan a la cifra.
-- Manifiesto: Claude Code 2.1.150 rechaza `displayName` en `plugin.json` (eliminado); URLs de marca a t28.io.
-- Regresión 16:9 (`poc/clip-javier/storyboard-gsap.json`) construida, comprobada y renderizada sin cambios visibles.
-- Pendiente de este bloque: reencuadre automático 9:16 desde un clip apaisado (seguir la cara con MediaPipe) y
-  `chart bar` en vertical con más de 3 filas (hoy se compacta pero no se reordena en vertical).
+## 3. Completado, por sesiones
 
-## Hecho después: clip de demo del plugin (`poc/clip-demo/`)
+- **24–29 sep**: research (análisis del vídeo de referencia, repos, PoC HyperFrames vs Remotion, roadmap de 18
+  features), plugin con 5 skills y CLI base, brand kit, gráficas, gestos, jump cuts, limpieza de audio, GSAP,
+  repo público limpio, GitHub Pages con dominio, deck de guía, instaladores, releases v0.1.0 y v0.2.0.
+- **30 sep (madrugada)**: anuncio de auriculares; guion de demo; instaladores interactivos y asistente web;
+  lienzo a medida (vertical/cuadrado); subtítulos por palabras (`pages`/`karaoke`) y SRT/VTT; demo del plugin
+  montada; `cut plan` más fino; B-roll (overlay, CLI, skill; sin claves).
+- **30 sep (mañana)**: caso Cliente A: `fetch`, brief de marca, `brand from-site`, dos pasadas del montaje, rótulo
+  sin recortes, `kinetic.color`, avisos de cajas fuera del lienzo, referencia marca-y-promocional; `graphics`
+  (OCR + zonas libres + colisiones); `reframe` (crop/blur) con la demo en vertical.
+- **30 sep (tarde)**: investigación "vídeo que vende DIY" (`research/05`); overlays hook/cta/steps/before_after;
+  zonas seguras por plataforma; fábrica de shorts (`clips`) + skill; referencia de ganchos; tres variantes de short
+  renderizadas; `cover` (16:9, 9:16, 1:1); `i18n` + skill (short en español); descendentes visibles en hook y
+  portada (aviso del usuario); ganchos con la frase real del hablante; bump a 0.3.0 en ficheros.
 
-- El guion de `docs/guion-demo.md` grabado (83 s) y montado: 16 overlays, 19 cortes, `out/demo.mp4` (70 s).
-- `cut.py`: silencios dentro de palabras estiradas y muletillas condicionadas por pausa (ver README del PoC).
-  Regresión comprobada sobre `clip-auriculares` (solo cae el "Bueno," inicial).
-- **B-roll hecho** (commit `ed8bc87`): módulo `broll.py` (sugerencia de palabras clave por frase, búsqueda en Pexels y
-  Pixabay con claves en `PEXELS_API_KEY`/`PIXABAY_API_KEY` o `~/.config/frame28/keys.json`, descarga con sidecar de
-  licencia y recorte con ffmpeg, hoja de candidatos), overlay `broll` en `build.py` (pantalla completa o `pip`,
-  `in` vía `data-media-start`, `loop`, Ken Burns, `caption`, `credit` arriba a la derecha; el contenedor NO lleva
-  `data-start`, HyperFrames no admite vídeo temporizado dentro de otro elemento temporizado), CLI `frame28 broll
-  providers/suggest/search/fetch` y skill `frame28-broll`. Probado el overlay con material sintético (clip-javier);
-  **la búsqueda real no está probada: faltan las claves** (el usuario debe registrarse en Pexels y Pixabay).
-- En curso: `poc/clip-grabado/` (vídeo promocional-tutorial de YouTube de la marca Cliente A, 3 min 17 s,
-  inglés, con música de fondo). Brief de marca en `brief.md`; marca `cliente-a` en `work/brands/` (no versionada:
-  logo de terceros). **Primera pasada renderizada** (`out/cliente-a-glass.mp4`, 26 overlays, 7 min 46 s de render) y
-  entregada al usuario; storyboard versionado. Lecciones: fondos claros → `kinetic` con `color` oscuro (nuevo campo);
-  el rótulo recortaba el título con un wordmark ancho (arreglado: `logo_width`); la segunda línea del rótulo en Space
-  Mono aún se queda corta con textos largos (factor 0,66 por carácter es optimista para esa fuente: subir a ~0,72).
-  **Segunda pasada** (29 overlays: + "Follow the marker lines", "beautiful frosted effect", check dibujado en "That's it!")
-  con el rótulo arreglado de raíz (commit `4e2f8de`).
-- **Conocimiento capturado en el plugin** (commit `4e2f8de`): `frame28 brand from-site <url> --name <marca>`
-  (`brandsite.py`: colores del CSS y variables `--color-button`, fuente, logo con variantes on_dark/on_accent);
-  `lower_third` sin estimar anchos (caja `max-content`, tecleo por `clip-path`); aviso en `build` de `box` fuera del
-  lienzo; `kinetic.color`; referencia `frame28-storyboard/references/marca-y-promocional.md` (investigar la marca,
-  checklist de storytelling promocional, vídeo ya producido, legibilidad); director con brief de marca y modo vídeo
-  producido; trampas nuevas en CLAUDE.md (parches por stdin, vídeo anidado en HyperFrames, no tocar el CLI durante
-  un render en segundo plano).
+## 4. A medias / pendiente inmediato (con ficheros)
 
-## Hecho después: detección de gráficos existentes (`frame28 graphics`)
+1. **Artefacto gráfico del roadmap con versionado** (petición interrumpida; ver sección 5). No hay nada escrito
+   aún; los datos están en `research/04-roadmap-features.md` (18 ítems con valor/esfuerzo), `research/05` (8 mejoras,
+   6 hechas) y la sección 3 de este fichero. Formato: la skill de decks del usuario (`docs/presentacion/engine/`,
+   motor copiado, brand `think28-brand.css`) o un HTML/SVG suelto en `docs/roadmap/`.
+2. **Análisis de monetización** (ver sección 5). Sin empezar.
+3. **Tag y release v0.3.0**: ficheros ya en 0.3.0; falta `git tag -a v0.3.0`, push del tag y `gh release create`
+   con notas (proponerlo; el usuario aprueba las acciones persistentes). Notas: todo lo de la sección 3 desde v0.2.0.
+4. **Claves de Pexels/Pixabay** (las crea el usuario en pexels.com/api y pixabay.com/api/docs; van en
+   `~/.config/frame28/keys.json` o variables `PEXELS_API_KEY`/`PIXABAY_API_KEY`). Hasta entonces `broll search`
+   no está probado contra la API real (`plugin/cli/frame28/broll.py::search`).
+5. **`install.sh` sin probar en un Mac real** sin Homebrew (`docs/install.sh`).
+6. Pequeños pendientes técnicos: `reframe map` para convertir `pointer` del original sin repetir `gestures`
+   (`reframe.py::map_point` existe, falta el comando); probar `reframe --mode crop` con un hablante que se mueva de
+   verdad; `chart bar` en vertical con > 3 filas; `hooks_for` para tramos sin momentos (hoy plantilla de curiosidad).
 
-- `graphics.py`: RapidOCR (dependencia nueva `rapidocr>=3.0`, Apache-2.0, ONNX en CPU, ~1 s por muestra 1080p)
-  sobre muestras a 1 fps; seguimiento de cajas entre muestras (IoU + parecido de texto, huecos de hasta 2,5 s),
-  fusión de eventos partidos, clases `watermark` (≥ 50 % del vídeo, quieto), `text` (estable, recto, ≥ 1 s),
-  `subtitle` (franja inferior centrada), `scene_text` (se mueve, girado o corto); tarjetas de color plano
-  (> 55 % de píxeles al color dominante, pocos bordes); ocupación de rejilla 3×3 con `free_windows`;
-  `annotate` (mapa PNG). `collisions(storyboard, graphics)` → `frame28 build --graphics`.
-- Límite conocido: el OCR no distingue un rótulo del editor del texto impreso en un objeto quieto (la caja del
-  producto sobre la mesa sale como `text`). Para colocar overlays es lo correcto (no tapar texto); la clase es
-  orientativa.
-- Control: el clip de hablante a cámara (`clip-demo`) da 0 textos y 0 tarjetas.
+## 5. Próximos pasos priorizados
 
-## Hecho después: reencuadre automático a 9:16 (`frame28 reframe`)
+1. **Roadmap visual con versiones.** Propuesta de agrupación para el artefacto (ajustar con el usuario):
+   - v0.1.0 (hecho): plugin base, 5 skills, brand kit, gráficas, gestos, release.
+   - v0.2.0 (hecho): jump cuts, audio, GSAP, instaladores, web.
+   - v0.3.0 (hecho en ficheros, sin tag): vertical, subtítulos por palabras, B-roll, `graphics`, `reframe`, venta
+     (hook/cta/steps/before_after), shorts, portada, i18n, `brand from-site`, `fetch`.
+   - v0.4.0 (propuesta): doblaje/TTS (Kokoro/Chatterbox, roadmap 14), demo de pantalla con zoom-pan (roadmap 6),
+     `reframe map`, B-roll probado con claves.
+   - v0.5.0 (propuesta): puertas de calidad (pixelmatch, LUFS, legibilidad; roadmap 11), gráficas ampliadas (9),
+     capítulos y miniaturas por beats (8), alineado forzado con guion (7).
+   - v1.0.0: interfaz sobre el storyboard (Studio o web) si la decisión de producto lo pide.
+2. **Monetización: pensar antes de construir.** Marco para la conversación (no decidido):
+   - *Plugin abierto + valor alrededor*: el plugin y el CLI siguen MIT (ya son públicos; retirar la licencia no cierra
+     lo publicado). Se cobra por marca/plantillas premium (brand packs, ganchos por sector), por servicio de
+     montaje (Think28 monta vídeos para marcas como Cliente A con el plugin como herramienta interna), o por
+     formación. Ventaja: cero infraestructura, coherente con el estado actual. Riesgo: el plugin en sí no factura.
+   - *Producto en plataforma*: una web donde el cliente sube el clip y recibe el vídeo (render en servidor: Chrome
+     headless + ffmpeg + modelos; hoy todo corre en local y tarda 2–14 min por vídeo en CPU). Requiere colas, GPU o
+     paciencia, almacenamiento, cuentas, pagos (Stripe), y una interfaz sobre el storyboard. Ventaja: es lo que una
+     empresa como Cliente A compraría sin instalar nada. Riesgo: obra grande; la dependencia de Claude Code
+     desaparece y el "director" pasaría a ser la API de Claude (coste por vídeo).
+   - *Híbrido por fases*: mantener el plugin como canal de adopción y demo, y montar un servicio gestionado para
+     2–3 clientes de referencia (Cliente A como primero) con el pipeline actual, antes de invertir en plataforma.
+     Es la recomendación por defecto salvo que el usuario quiera producto desde ya.
+   - Preguntas a resolver con el usuario: a quién se vende (marcas DTC, agencias, creadores), precio por vídeo o
+     suscripción, qué parte debe seguir abierta, si Think28 opera el servicio, y si la licencia de HyperFrames
+     (Apache-2.0) y de los modelos (RVM GPL-3 como proceso, RapidOCR Apache, MediaPipe Apache) permiten el uso
+     comercial previsto (sí, con RVM ejecutado como proceso externo y sin enlazarlo).
+3. Tag y release v0.3.0 (tras 1 y 2, o antes si el usuario lo pide).
+4. Roadmap técnico según la agrupación aprobada (v0.4.0 primero).
 
-- `reframe.py`: modo `crop` (ventana 9:16 de altura completa; centro del sujeto = 0,6·nariz + 0,4·hombros de
-  `pose.track` a 10 fps; cámara con zona muerta 10 % del ancho, suavizado exponencial τ 0,8 s, velocidad máxima
-  0,5 anchos/s y media móvil de 0,4 s; recorte por fotograma con OpenCV y codificación por tubería a ffmpeg,
-  `reframe.json` con el camino y `map_point()` para pasar coordenadas del original) y modo `blur` (filtro ffmpeg:
-  fondo escalado y desenfocado + 16:9 centrado; `free_bands`). Probado en `clip-demo` (66 s: 1 min 45 s en crop,
-  47 s en blur; cámara casi quieta porque el hablante está centrado).
-- Pendiente: probar en un clip donde el hablante se desplace de verdad; `reframe map` para convertir los
-  `pointer` del original sin repetir `gestures`.
+## 6. Problemas conocidos y dudas
 
-## Hecho después: enfoque "vídeo que vende" (Cliente A como cliente tipo)
-
-- Investigación en `research/05-video-venta-diy.md`: canal de Cliente A (los tutoriales por material ganan 10× a
-  las listas de regalos; los shorts con gancho de transformación o riesgo multiplican por 5–10 el alcance), práctica
-  del sector (gancho → problema → demo → valor → prueba → CTA; 70 % sin sonido; fatiga a 7–14 días) y una tabla de
-  ocho mejoras priorizadas para Frame28.
-- Overlays nuevos en `build.py`: `hook` (líneas con resaltado), `cta` (precio, anterior tachado, descuento, código,
-  línea, QR local con `segno`), `steps` (píldora de progreso), `before_after` (dos instantes del clip, extraídos en el
-  build, con barrido por `clipPath` y barra por `x`). `platform` en el storyboard → `platform_warnings` (zonas de
-  TikTok/Reels/Shorts). `references/ganchos.md` con los diez tipos y el arco de 30 s.
-- Fábrica de shorts en `clips.py` (`frame28 clips plan/cut/scaffold`): tramos de 15–45 s puntuados por momentos
-  (resultado, promesa, objeción, cifras, producto), tres ganchos por tramo, recorte con `cut.apply`, storyboard de
-  partida con gancho, subtítulos por palabras y CTA.
-- Probado de punta a punta con Cliente A: `clips plan` sobre el tutorial (21 momentos, 5 tramos), tramo s4 (136–171 s)
-  recortado, `reframe --mode blur`, scaffold con marca y CTA, y **tres variantes de gancho renderizadas**
-  (`out/shorts/s4-hook{0,1,2}.mp4`, ~2 min cada una). Lecciones: el QR como SVG inline triplicaba el render (ahora
-  PNG en data URI); `.clip` aplica `inset:0`, así que los overlays con alto propio llevan `inset:auto`; el CTA por
-  defecto se coloca fuera de la columna de iconos y encima de los subtítulos por palabras.
-- Los ganchos de `hooks_for` son plantillas toscas a propósito: la skill `frame28-shorts` manda al agente reescribirlos
-  con las palabras del hablante. Mejora posible: extraer la frase de resultado real como línea del gancho.
-- **Portada y miniatura hechas** (`cover.py`, `frame28 cover`): composición HyperFrames estática de un fotograma
-  (fondo con `object-position`/zoom, sombreado, título con resaltado por línea, subtítulo, insignia, logo `on_dark`
-  de la marca, aro de acento opcional) capturada con `hyperframes snapshot --at 0 --no-end` (~25 s por portada,
-  arranque del navegador incluido). Probado en 1280×720 (Cliente A, YouTube), 1080×1920 (demo, Shorts) y
-  1080×1080 (Cliente A, ficha). Trampa: `hyperframes snapshot` resuelve el DIR relativo a su propio cwd: pasar rutas
-  absolutas.
-- **Otro idioma hecho** (`i18n.py`, `frame28 i18n extract|apply`, skill `frame28-i18n`): extracción de todos los
-  textos visibles con clave estable, tipo, instante y límite orientativo; aplicación con los mismos tiempos y aviso
-  si el texto crece > 35 %; con `caption_style` por palabras, `retime_words` reparte las palabras de cada frase
-  traducida sobre los inicios de las palabras originales (mismas pausas) → `words.<lang>.json`. Probado con el
-  short s4 de Cliente A en español.
-- Corregido tras aviso del usuario: en `hook` y en la portada, la caja de resaltado de la línea siguiente tapaba los
-  descendentes (la "g" de "Engrave"); ahora cada línea va por encima de la siguiente.
-- **Ganchos con la frase real** (`clips.hooks_for`): cláusula del momento (entre signos de puntuación), ventana de 8
-  palabras alrededor del momento si la cláusula es larga, sin relleno inicial ni preposición colgando, partida en dos
-  líneas (≤ 5 palabras / 26 caracteres) por el punto más natural; `quote` y `t` en cada gancho. Ejemplos reales:
-  "Isn't glass too slippery? / Not anymore.", "I just made the perfect / customized gift ever", "Se queda en tu
-  ordenador / no lo dudes más Frame28". El de `curiosity` sigue siendo plantilla de reserva.
-- Pendiente: doblaje (TTS) queda en el roadmap (14); claves de Pexels/Pixabay (usuario).
-
-## Problemas conocidos y dudas
-
-- El instalador `install.ps1` **sustituye** una instalación editable del CLI por la de GitHub. En esta máquina se
-  restauró con `uv tool install --editable ./plugin/cli --python 3.12 --reinstall` y el marketplace local con
-  `claude plugin marketplace remove think28` + `add C:/Workspaces/personal/Skill-Director` + `install`. Si en
-  otra máquina se usa el instalador y luego se desarrolla, repetir esto.
+- El instalador `install.ps1` **sustituye** una instalación editable del CLI por la de GitHub. Se restaura con
+  `uv tool install --editable ./plugin/cli --python 3.12 --reinstall` y el marketplace local con
+  `claude plugin marketplace remove think28` + `add C:/Workspaces/personal/Skill-Director` + `install`.
+- `gh` tiene dos cuentas (personal `javierledesma28`, dueña del repo; corporativa `javierledesmasmc`); si la activa es
+  la corporativa el push da 403. Ver CLAUDE.md, Convenciones.
 - `frame28 doctor` marca la GPU como ausente (onnxruntime CPU) y el modelo RVM como "se descarga solo": normal.
-- La detección de gestos usa umbrales heurísticos (mano fuera del torso, dentro del encuadre); en clips donde el
-  hablante ocupa poco encuadre habrá que revisar `plugin/cli/frame28/pose.py::_hand_out`.
+- Render en CPU: ~2 min por cada 35 s en vertical 1080×1920; ~8–14 min para 3 min 17 s a 1080p.
+- La detección de gestos usa umbrales heurísticos; en clips donde el hablante ocupa poco encuadre revisar
+  `plugin/cli/frame28/pose.py::_hand_out`.
+- `graphics` no distingue rótulos del editor de texto impreso en objetos quietos (clase orientativa).
 - Los `chart` y `brand_card` con fondo de acento dan avisos de contraste en `frame28 check` (informativos).
-- El deck usa el motor de `deck-fundanet` (skill privada del usuario) rebrandeado: no hay dependencia en el repo,
-  los 5 ficheros del motor están copiados en `docs/presentacion/engine/`.
-- Duda abierta del usuario: si Frame28 acaba necesitando una interfaz propia sobre el storyboard ("producto")
-  además de las skills. Postura actual: skills + CLI, con el Studio de HyperFrames como revisión visual.
+- El deck usa el motor de `deck-fundanet` (skill privada del usuario) rebrandeado; los ficheros del motor están
+  copiados en `docs/presentacion/engine/`, no hay dependencia externa.
+- Duda abierta del usuario, ahora central: si Frame28 acaba necesitando interfaz propia ("producto") además de
+  las skills (sección 5.2).
 
-## Cómo verificar que todo sigue vivo (5 minutos)
+## 7. Cómo verificar que todo sigue vivo (5 minutos)
 
 ```bash
 frame28 doctor
 claude plugin validate ./plugin
-cd poc/clip-javier && frame28 build storyboard-gsap.json -o f28-gsap && frame28 check f28-gsap && frame28 render f28-gsap -o out/test.mp4
+cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4
 curl -sI https://frame28.t28.io/presentacion/ | head -1     # HTTP/2 200
 ```

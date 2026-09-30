@@ -1,19 +1,20 @@
 # Frame28 · memoria del proyecto para Claude Code
 
-Lee esto antes de tocar nada. Complementa a `HANDOFF.md` (estado y próximos pasos) y a `docs/guia-plugin.md`
-(ciclo de vida del plugin). Responder siempre en español.
+Lee esto antes de tocar nada. Complementa a `HANDOFF.md` (estado, qué se hizo, qué toca ahora) y a
+`docs/guia-plugin.md` (ciclo de vida del plugin). Responder siempre en español.
 
 ## Qué es
 
 **Frame28** es un producto de **Think28** (marca personal de Javier Ledesma, `https://t28.io`; nada de branding
-Fundanet/Semicrol aquí). Convierte un clip de una persona hablando a cámara en un video montado: rótulo de
-identidad, títulos cinéticos por palabra, texto detrás del hablante, callouts donde señala, pizarras, gráficas,
-subtítulos y tarjeta de marca. Todo generado por código, en local.
+Fundanet/Semicrol aquí). Convierte un clip de una persona hablando a cámara, o un vídeo ya producido, en un vídeo
+montado: rótulos, títulos cinéticos por palabra, texto detrás del hablante, callouts donde señala, pizarras,
+gráficas, subtítulos, B-roll, gancho, pasos, antes/después, llamada a la acción y tarjeta de marca. Y a partir de
+un vídeo largo: shorts verticales, portada y versión en otro idioma. Todo generado por código, en local, en CPU.
 
 Dos piezas:
-- **Plugin de Claude Code** (`plugin/`): ocho skills (`frame28-director` orquesta; `frame28-transcribe`,
-  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-i18n`, `frame28-compose`).
-  Claude dirige el montaje.
+- **Plugin de Claude Code** (`plugin/`): ocho skills. `frame28-director` orquesta; `frame28-transcribe`,
+  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-i18n`, `frame28-compose`.
+  Claude dirige el montaje (decide qué va en pantalla y escribe el storyboard).
 - **CLI Python `frame28`** (`plugin/cli/frame28/`, click): los pasos deterministas. Las skills lo invocan por Bash.
 
 El **contrato** entre ambos es el **storyboard JSON** (`plugin/cli/frame28/STORYBOARD.md` lo documenta;
@@ -22,56 +23,80 @@ composición **HyperFrames** (HTML + GSAP) y `frame28 render` la renderiza a MP4
 generado**: se edita el storyboard y se regenera.
 
 Repo público: `https://github.com/javierledesma28/frame28`. Web (GitHub Pages sobre `docs/`, dominio propio con
-HTTPS forzado): `https://frame28.t28.io/` → guía `https://frame28.t28.io/presentacion/`, instaladores
-`https://frame28.t28.io/install.ps1` y `/install.sh`.
+HTTPS forzado): `https://frame28.t28.io/` → guía `/presentacion/`, asistente de instalación `/instalar/`,
+instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude instale `/instalar.md`.
 
 ## Estructura
 
 ```
 .claude-plugin/marketplace.json   este repo es su propio marketplace ("think28", source ./plugin)
 plugin/                           EL PLUGIN (solo esto se instala; el resto del repo no se copia)
-  .claude-plugin/plugin.json      manifiesto (name frame28)
-  skills/frame28-*/SKILL.md       skills; frame28-storyboard/references/ = técnicas, guía de grabación, ejemplo
-  cli/pyproject.toml              paquete Python (uv); pin av>=11,<18 (ver Trampas)
-  cli/frame28/                    env, media(fetch por yt-dlp vía uvx/prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
-                                  graphics(OCR RapidOCR: texto en pantalla, tarjetas, zonas libres, colisiones),
-                                  reframe(apaisado → 9:16 siguiendo la cara con zona muerta, o fondo desenfocado),
-                                  clips(fábrica de shorts: tramos por momentos, ganchos, recorte, storyboard de partida),
-                                  cover(portada/miniatura: composición estática + hyperframes snapshot),
-                                  i18n(extraer/aplicar textos traducidos; palabras redistribuidas sobre el ritmo original),
-                                  captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
-                                  licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
-                                  doctor, cli, STORYBOARD.md, brands/think28.json + SVG
-docs/                             GitHub Pages: presentacion/ (deck), install.ps1, install.sh, CNAME, .nojekyll,
-                                  brand/ (logos oficiales), guia-plugin.md, index.html (redirige a la presentación)
-research/                         01 resumen del análisis (el completo es privado), 02 repos, 03 PoC, 04 roadmap features
-poc/                              pruebas: hyperframes/ y remotion/ (PoC), clip-javier/ (clip real del usuario,
-                                  storyboards *.json y proyectos f28-*/ generados). Salidas y medios están en .gitignore
-_private/                         NO versionado: caras, fotogramas y transcripción del video de referencia
+  .claude-plugin/plugin.json      manifiesto (name frame28; sin displayName: Claude Code 2.1.150 lo rechaza)
+  skills/frame28-*/SKILL.md       ocho skills; frame28-storyboard/references/ = tecnicas.md, grabacion.md,
+                                  ejemplo-storyboard.json, marca-y-promocional.md, ganchos.md
+  cli/pyproject.toml              paquete Python (uv); deps: click, numpy, opencv-python-headless, onnxruntime,
+                                  faster-whisper, av>=11,<18 (ver Trampas), mediapipe, rapidocr, segno
+  cli/frame28/
+    env.py                        localiza ffmpeg/uv/npx (WinGet), caché ~/.cache/frame28, modelo RVM
+    media.py                      probe, prep (30 fps sin audio + voz limpia), sheet, frame_at, cut, fetch_url (yt-dlp vía uvx)
+    transcribe.py                 faster-whisper → words.json, captions.json, words.srt (LF), transcript.json
+    cut.py                        jump cuts: silencios (también dentro de palabras estiradas), muletillas, falsos arranques; apply remapea
+    audio.py                      measure / clean (highpass, afftdn|rnnoise, loudnorm 2 pasadas) / compare
+    matte.py                      RobustVideoMatting (alfa) y speaker_layout (bbox del hablante en el lienzo)
+    pose.py                       MediaPipe Pose: track, gestos de señalar → pointers propuestos, face_box
+    graphics.py                   RapidOCR: texto ya presente en el vídeo, marca de agua, tarjetas, zonas libres 3x3, colisiones
+    reframe.py                    apaisado → 9:16/1:1: crop siguiendo la cara (zona muerta, suavizado) o blur
+    captions.py                   default_canvas, paginado por palabras (pages/karaoke), cues SRT/VTT legibles
+    broll.py                      Pexels/Pixabay (claves en env o ~/.config/frame28/keys.json), sidecar de licencia, recorte
+    clips.py                      fábrica de shorts: tramos por momentos, ganchos con la frase real, cut, scaffold
+    cover.py                      portada/miniatura: composición estática + hyperframes snapshot
+    i18n.py                       extract/apply de textos traducidos; retime_words sobre el ritmo original
+    brandsite.py                  marca desde la web del cliente (colores CSS, fuente, logo con variantes)
+    build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings)
+    render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto)
+    doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
+docs/                             GitHub Pages: presentacion/ (deck + engine/), instalar/ (asistente web), instalar.md,
+                                  install.ps1, install.sh, guion-demo.md, guia-plugin.md, brand/, CNAME, .nojekyll, index.html
+research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
+                                  04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A)
+poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
+                                  clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
+                                  clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
+                                  clip-grabado (tutorial de YouTube de una marca: brief, storyboard, shorts, i18n)
+_private/                         NO versionado: caras, fotogramas y transcripción del vídeo de referencia
 ```
 
 ## Cómo se ejecuta
 
-Instalación de desarrollo (ya hecha en esta máquina):
+Instalación de desarrollo (hecha en esta máquina, Windows 11, sin CUDA):
 ```bash
 uv tool install --editable ./plugin/cli --python 3.12     # CLI editable → ~/.local/bin/frame28
 claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # marketplace local "think28"
-claude plugin install frame28@think28 --scope user          # tras editar skills: marketplace update + install
+claude plugin install frame28@think28 --scope user
 claude plugin validate ./plugin                             # SIEMPRE antes de commitear skills
 ```
-Pipeline manual (lo que hace la skill directora), sobre `poc/clip-javier/`:
+Tras editar skills: `claude plugin uninstall frame28@think28 && claude plugin install frame28@think28 --scope user`
+(con la misma versión, `update` no refresca el caché). Tras añadir una dependencia al pyproject:
+`uv tool install --editable ./plugin/cli --python 3.12 --reinstall`.
+
+Pipeline manual (lo que hace la skill directora):
 ```bash
-frame28 prep <clip.mp4> -o work            # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav
-frame28 transcribe work/audio16k.wav -o work --lang es   # words.json, captions.json, words.srt (LF), transcript.json
-frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json && frame28 cut apply ... -o work/cut
-frame28 speaker work/clip.mp4              # lado libre y bbox del hablante
-frame28 gestures work/clip.mp4 --words work/words.json -o work/gestures.json   # pointers propuestos (MediaPipe)
-frame28 matte work/clip.mp4 --start 4.3 --end 6.8 -o work/alpha.webm            # solo el tramo con texto detrás
-frame28 build storyboard.json -o project && frame28 check project && frame28 render project -o out/x.mp4
+frame28 fetch <url> -o input.mp4           # opcional: YouTube/Vimeo con yt-dlp (uvx, sin instalar)
+frame28 prep input.mp4 -o work             # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav
+frame28 transcribe work/audio16k.wav -o work --lang es
+frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json && frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
+frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 [--mode blur]   # solo si el destino es vertical
+frame28 speaker work/cut/clip.mp4 ; frame28 gestures work/cut/clip.mp4 --words work/cut/words.json -o work/cut/gestures.json --annotate work/cut/gestos.png
+frame28 graphics work/clip.mp4 -o work/graphics.json --annotate work/graphics.png   # vídeos ya producidos
+frame28 matte work/cut/clip.mp4 --start 4.3 --end 6.8 -o work/cut/alpha.webm       # solo el tramo con `behind`
+frame28 build work/cut/storyboard.json -o work/cut/project [--graphics work/graphics.json] && frame28 check work/cut/project && frame28 render work/cut/project -o out/x.mp4
+frame28 cover out/x.mp4 --at 12.0 -o out/cover.png --title "Línea 1|Línea 2" --brand think28
+frame28 clips plan work/captions.json --lang es -o work/clips.json   # shorts: cut, reframe, scaffold, build, render
+frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.json strings.en.json --lang en
 ```
 No hay tests automatizados: la prueba es `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
-Storyboards de referencia que funcionan: `poc/clip-javier/storyboard-think28.json` (marca + gráficas),
-`storyboard-gsap.json` (reveal rise/chars + draw), `storyboard-auto.json` (pointers de `gestures`).
+Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards reales completos: `poc/clip-demo/`
+(16 overlays, cortes, vertical), `poc/clip-grabado/` (vídeo producido, marca de cliente, shorts, i18n).
 
 Deck de la guía: editar `docs/presentacion/deck.html`, luego `node engine/build.mjs deck.html --out index.html`
 desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` → `[]`.
@@ -81,18 +106,24 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - Idioma: español en docs, skills, mensajes del CLI y commits. Tono Think28: directo, técnico, humano; sin
   "innovador/disruptivo/robusto/holístico".
 - Commits: mensaje descriptivo en español + línea `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- Push: el repo es de la cuenta **javierledesma28**; `gh` tiene también la corporativa `javierledesmasmc` y a veces es
+  la activa (push → 403). `gh auth switch --user javierledesma28`, push, y volver a dejar la que estaba.
 - Finales de línea LF (`.gitattributes`); el `words.srt` que importa HyperFrames **solo funciona con LF**.
 - `docs/install.ps1` **solo ASCII**: Windows PowerShell 5.1 lee la web en Latin-1.
 - Descripciones YAML de las skills entre comillas simples (los `:` rompen el frontmatter y la skill no se dispara).
 - Cada overlay del storyboard tiene `id` único; todo `<video>/<audio>` generado lleva `id` (si no, HyperFrames lo
-  congela). Capas con z-index explícito: 1 fondo, 2 texto behind, 3 alfa del hablante, 4 overlays, 5 pizarras, 9 subtítulos.
+  congela). Capas con z-index explícito: 1 fondo, 2 texto behind, 3 alfa del hablante, 4 overlays, 5 pizarras,
+  6 venta (hook/cta/steps), 9 subtítulos.
 - Lienzo: `canvas` del storyboard (1920×1080, 1080×1920 o 1080×1080). `speaker`/`gestures` devuelven coordenadas en el
   lienzo que corresponde al formato del clip (`captions.default_canvas`); las claves `*_1080p` son alias antiguos. Con
-  ancho < 1400 el generador añade la clase `narrow` (gráficas, contadores y tarjetas compactos).
+  ancho < 1400 el generador añade la clase `narrow` (gráficas, contadores y tarjetas compactos). `platform`
+  (tiktok/reels/shorts) activa avisos de zonas seguras.
 - Salidas, medios (`*.mp4 *.wav *.webm`), `work*/`, `node_modules/`, modelos y `_private/` van en `.gitignore`.
-  Caras y material de terceros **nunca** entran en el repo (el historial ya se limpió una vez por esto).
+  Caras, logos y material de terceros **nunca** entran en el repo (el historial ya se limpió una vez por esto); la
+  marca `cliente-a` vive en `poc/clip-grabado/work/brands/` (no versionada) y se regenera con `frame28 brand from-site`.
 - Acciones persistentes (push, tags, cambios de visibilidad, DNS, instalar cosas en la máquina del usuario) se
-  proponen antes de ejecutarlas; el usuario pidió acompañamiento paso a paso.
+  proponen antes de ejecutarlas; el usuario pidió acompañamiento paso a paso y explicaciones de cada etapa.
+- Parches al CLI: escribir el parche a un `.py` en el scratchpad y ejecutarlo (ver Trampas), luego `ast.parse`.
 
 ## Decisiones técnicas
 
@@ -100,12 +131,16 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
   PoC comparativa en `research/03-poc-compositores.md`.
 - **faster-whisper** (CPU, medium int8) para tiempos por palabra; WhisperX/stable-ts con guion son mejora pendiente.
 - **RobustVideoMatting ONNX** (GPL-3, ejecutado como proceso, modelo descargado a `~/.cache/frame28/`) para el
-  alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos; **RapidOCR** (PaddleOCR en ONNX, Apache-2.0,
-  modelos dentro del wheel) para el texto ya presente en vídeos producidos. Todo en CPU.
+  alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos y reencuadre; **RapidOCR** (PaddleOCR en ONNX,
+  Apache-2.0, modelos dentro del wheel) para el texto ya presente en vídeos producidos; **segno** (BSD) para QR.
 - **GSAP 3.13+** es gratis con plugins: `build.py` carga SplitText/DrawSVG solo cuando el storyboard los usa.
 - Limpieza de audio: `highpass 80` + `afftdn` (o `rnnoise` con modelo BSD en caché) + `loudnorm` en dos pasadas.
-- Marca por nombre (`"brand": "think28"`), orden de búsqueda `./brands/` → `~/.config/frame28/brands/` → incluidas.
-- Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | sh`.
+- Marca por nombre (`"brand": "think28"`) o por ruta (`.json`, también relativa al storyboard); búsqueda `./brands/`
+  → `~/.config/frame28/brands/` → incluidas. `frame28 brand from-site <url>` la propone desde la web del cliente.
+- La traducción a otro idioma la hace el agente (sin API ni modelo local); el CLI solo extrae, aplica y retiming.
+- B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
+- Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
+  o "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md" pegado en Claude Code.
 
 ## Trampas ya sufridas (no repetir)
 
@@ -113,34 +148,42 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - **PyAV**: uv resolvía `av` 19, que rompe faster-whisper (`metadata_errors`); `av` 14 no tiene wheel Windows → pin `<18`.
 - **Sin CUDA** en la máquina: faster-whisper y onnxruntime en CPU. No asumir GPU.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
-- **Parches a `build.py` con heredoc bash fallan** por las comillas: escribir el parche a un `.py` y ejecutarlo.
+- **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
+  escapes se comen; también los heredoc bash con comillas. Escribir el parche a un `.py` (Write) y ejecutarlo.
 - **HyperFrames rechaza tweens de `left/top/width`** (`gsap_non_transform_motion`): animar siempre `x/y/scale/opacity`
   o `clipPath`. El `check` marca `text_occluded` en todo `behind` (falso positivo, `frame28 check` lo separa);
   la previsualización del Studio no respeta el rango de la capa alfa (el render sí); `hyperframes transcribe`
   exige whisper-cpp compilado (no usar; importar `words.srt` con `--preserve-cues` si hace falta).
-- **Plugin**: el caché copia todo el directorio del plugin → por eso vive en `plugin/`; tras editar skills hay que
-  `claude plugin marketplace update think28` + `install`.
-- **GitHub Pages con dominio propio**: registrar el CNAME en Pages **después** de crear el DNS (si no, el
-  certificado no se emite; se arregla quitando y volviendo a poner el cname por API). `docs/.nojekyll` evita
-  fallos de build. Al re-registrar el dominio, GitHub crea commits ("Create CNAME") en `main`: hacer `git pull --rebase`.
-- El `.ps1` se sirve como `application/octet-stream` pero `irm` lo devuelve como String en PS 5.1 y 7 (probado).
-- El detector de falsos arranques no debe cortar estructuras paralelas ("por aquí hay X, por aquí hay Y"): solo
-  repetición inmediata o tras pausa.
-- **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
-  escapes se comen. Escribir el parche a un `.py` en el scratchpad (Write) y ejecutarlo. Ya pasó tres veces.
 - **HyperFrames no admite un `<video data-start>` dentro de otro elemento temporizado** (`video_nested_in_timed_element`):
   el contenedor del `broll` no lleva `data-start`; su visibilidad va por opacidad.
+- **`.clip` aplica `inset: 0`**: un overlay con alto propio (cta, hook) necesita `inset:auto; height:max-content` o se
+  estira hasta el borde del lienzo.
+- **Un SVG inline grande (QR) triplica el tiempo de captura**: el QR va como PNG en data URI.
+- **`hyperframes snapshot` resuelve el DIR relativo a su propio cwd**: pasar rutas absolutas.
 - **No estimar anchos de texto en Python**: el rótulo recortaba títulos según la fuente que cargara el navegador.
   La caja se dimensiona sola (`width: max-content`) y el tecleo es un `clip-path` tweeneado.
 - **Cajas de resaltado por línea (hook, portada)**: la caja de la línea siguiente tapaba los descendentes (g, y, p)
   de la anterior. Cada línea lleva `position:relative; z-index` decreciente y algo más de padding inferior.
 - **Fondos claros**: cinéticos blancos o en acento no se leen (tutoriales cenitales, mesas, telas). `kinetic` tiene
-  `color`; usar la tinta de la marca.
+  `color`; usar la tinta de la marca. Acento sobre acento nunca (texto ámbar sobre tarjeta ámbar).
+- **Plugin**: el caché copia todo el directorio del plugin → por eso vive en `plugin/`; con la misma versión,
+  `claude plugin update` no refresca: desinstalar e instalar.
 - **Añadir una dependencia a `pyproject.toml` no la instala**: la instalación editable no relee dependencias.
   `uv tool install --editable ./plugin/cli --python 3.12 --reinstall` (el Python de la herramienta está en
   `%APPDATA%/uv/tools/frame28/Scripts/python.exe`, no en `~/.local/share`).
-- **No editar el CLI mientras un render corre en segundo plano**: `frame28 render` importa `cli.py` al arrancar y un
-  fichero a medias lo tumba.
-- Whisper no transcribe "eh" y estira la palabra anterior a una pausa: `cut plan` busca silencio de audio dentro de
-  palabras de > 0,9 s. Las muletillas ambiguas ("bueno", "pues") solo se cortan seguidas de pausa; "este" y "nada"
-  nunca ("este muñeco", "de este a oeste" se cortaban mal).
+- **No editar el CLI mientras un render corre en segundo plano**: cada `frame28 …` importa `cli.py` al arrancar y un
+  fichero a medias lo tumba. Tampoco lanzar dos cadenas en segundo plano que escriban los mismos ficheros temporales.
+- **GitHub Pages con dominio propio**: registrar el CNAME en Pages **después** de crear el DNS (si no, el
+  certificado no se emite; se arregla quitando y volviendo a poner el cname por API). `docs/.nojekyll` evita
+  fallos de build. Al re-registrar el dominio, GitHub crea commits ("Create CNAME") en `main`: hacer `git pull --rebase`.
+- El `.ps1` se sirve como `application/octet-stream` pero `irm` lo devuelve como String en PS 5.1 y 7 (probado).
+- El detector de falsos arranques no debe cortar estructuras paralelas ("por aquí hay X, por aquí hay Y"): solo
+  repetición inmediata o tras pausa. Whisper no transcribe "eh" y estira la palabra anterior a una pausa: `cut plan`
+  busca silencio de audio dentro de palabras de > 0,9 s. Las muletillas ambiguas ("bueno", "pues") solo se cortan
+  seguidas de pausa; "este" y "nada" nunca ("este muñeco", "de este a oeste" se cortaban mal).
+- **El OCR no distingue un rótulo del editor del texto impreso en un objeto quieto** (`graphics`): para colocar
+  overlays da igual (no tapar texto); la clase es orientativa.
+- **Un short recortado con `pad` arrastra un residuo de la frase anterior** (0,05–0,15 s): `i18n extract` lo marca
+  con `note`/`visible`; traducir solo lo que se oye.
+- **`frame28 clips scaffold` con marca por ruta**: se guarda relativa al storyboard del short; construir desde
+  cualquier carpeta funciona.
