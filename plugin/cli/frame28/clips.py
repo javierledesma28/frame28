@@ -87,25 +87,126 @@ def plan(captions_path: str | Path, target: float = 30.0, count: int = 5, lang: 
     return {"captions": str(captions_path), "lang": lang, "target": target, "moments": len(moments), "clips": chosen}
 
 
+FILLERS_START = {
+    "en": ["i think", "i mean", "you know", "so", "and", "but", "well", "now", "okay", "ok", "also", "then", "just", "actually", "honestly", "basically"],
+    "es": ["creo que", "o sea", "bueno", "pues", "y", "pero", "entonces", "ahora", "vale", "también", "la verdad", "básicamente", "además", "que", "es decir"],
+}
+TRAILING_STOP = {"en": {"on", "in", "with", "the", "a", "an", "of", "to", "for", "and", "or", "at", "by", "is", "are", "it", "that", "this", "your", "my"},
+                 "es": {"en", "con", "de", "del", "la", "el", "los", "las", "un", "una", "y", "o", "a", "para", "por", "que", "es", "son", "tu", "mi", "unos", "unas"}}
+WINDOW_WORDS = 8
+HEDGES = {"en": [r"\bi think\b", r"\bi guess\b", r"\bkind of\b", r"\bsort of\b", r"\ba little\b", r"\bpretty\b", r"\breally\b"],
+          "es": [r"\bcreo que\b", r"\bun poco\b", r"\bbastante\b", r"\brealmente\b", r"\bla verdad\b"]}
+MAX_LINE_WORDS = 5
+MAX_LINE_CHARS = 26
+
+
+def _clause(text: str, match: str) -> str:
+    """La cláusula (entre signos de puntuación) que contiene el momento."""
+    parts = re.split(r"(?<=[.,;:!?…—])\s+|\s+[-–—]\s+", text)
+    for part in parts:
+        if match.lower() in part.lower():
+            return part.strip()
+    return text.strip()
+
+
+def _window(clause: str, match: str, n: int = WINDOW_WORDS) -> str:
+    """Si la cláusula es larga, quédate con ~n palabras alrededor del momento (el resto es contexto que no cabe)."""
+    words = clause.split()
+    if len(words) <= n + 1:
+        return clause
+    low = [w.lower().strip(".,;:!?\"'") for w in words]
+    mw = match.lower().split()
+    idx = next((i for i in range(len(low)) if low[i:i + len(mw)] == mw), None)
+    if idx is None:
+        idx = next((i for i, w in enumerate(low) if mw[0] in w), 0)
+    start = max(0, min(idx - 1, len(words) - n))  # lo que importa es lo que sigue al momento
+    return " ".join(words[start:start + n])
+
+
+def _trim_trailing(text: str, lang: str) -> str:
+    words = text.split()
+    stop = TRAILING_STOP.get(lang, set()) | TRAILING_STOP["en"]
+    while len(words) > 2 and words[-1].lower().strip(".,;:!?") in stop:
+        words.pop()
+    return " ".join(words)
+
+
+def _clean(clause: str, lang: str) -> str:
+    c = clause.strip().strip("\"'“”‘’")
+    low = c.lower()
+    changed = True
+    while changed:  # quita arranques de relleno encadenados: "and i think just ..."
+        changed = False
+        for f in FILLERS_START.get(lang, []) + (FILLERS_START["en"] if lang != "en" else []):
+            if low.startswith(f + " ") or low.startswith(f + ","):
+                c = c[len(f):].lstrip(" ,"); low = c.lower(); changed = True
+    for h in HEDGES.get(lang, []):
+        c = re.sub(h, "", c, flags=re.I)
+    c = re.sub(r"\s{2,}", " ", c).strip(" ,;:")
+    return c[:1].upper() + c[1:] if c else c
+
+
+def _two_lines(text: str) -> list[str]:
+    """Parte en dos líneas de <= 5 palabras / 26 caracteres en el punto más natural; recorta si no cabe."""
+    words = text.split()
+    if len(words) <= MAX_LINE_WORDS and len(text) <= MAX_LINE_CHARS:
+        return [text]
+    words = words[: 2 * MAX_LINE_WORDS]
+    best = None
+    for i in range(1, len(words)):
+        a, b = " ".join(words[:i]), " ".join(words[i:])
+        if len(a) > MAX_LINE_CHARS or len(b) > MAX_LINE_CHARS or i > MAX_LINE_WORDS or len(words) - i > MAX_LINE_WORDS:
+            continue
+        score = abs(len(a) - len(b)) - (8 if a[-1:] in ",;:" else 0) - (4 if words[i].lower() in ("with", "and", "that", "con", "y", "que", "para", "to", "for", "of") else 0)
+        if words[i - 1].lower().strip(".,;:!?") in TRAILING_STOP["en"] | TRAILING_STOP["es"]:
+            score += 30  # no partir tras "en tu", "with a"...
+        if best is None or score < best[0]:
+            best = (score, a, b)
+    if best is None:  # no hay corte válido: primera línea de 5 palabras, segunda con las palabras enteras que quepan
+        a_words = words[:MAX_LINE_WORDS]
+        while len(" ".join(a_words)) > MAX_LINE_CHARS and len(a_words) > 1:
+            a_words.pop()
+        rest = words[len(a_words):len(a_words) + MAX_LINE_WORDS]
+        while rest and len(" ".join(rest)) > MAX_LINE_CHARS:
+            rest.pop()
+        return [" ".join(a_words)] + ([" ".join(rest)] if rest else [])
+    return [best[1], best[2]]
+
+
 def hooks_for(clip: dict, lang: str, brand: str | None = None) -> list[dict]:
-    """Tres ganchos de tipos distintos a partir de los momentos del tramo (plantillas; el agente los afina)."""
-    res = next((m for m in clip["moments"] if m["kind"] == "result"), None)
-    obj = next((m for m in clip["moments"] if m["kind"] == "objection"), None)
-    pro = next((m for m in clip["moments"] if m["kind"] == "promise"), None)
-    num = next((m for m in clip["moments"] if m["kind"] == "number"), None)
+    """Tres ganchos de tipos distintos con las **palabras reales** del hablante: la cláusula donde ocurre el momento
+    (resultado, objeción, promesa, cifra), sin relleno inicial, en dos líneas. Cada gancho lleva `quote` y `t`."""
     es = lang == "es"
-    hooks = []
+    hooks: list[dict] = []
+    used: set[str] = set()
+
+    def add(kind: str, m: dict, lines: list[str]) -> None:
+        lines = [l for l in lines if l][:2]
+        key = " ".join(lines).lower()
+        if not lines or key in used:
+            return
+        used.add(key)
+        hooks.append({"type": kind, "lines": lines, "quote": m["text"].strip(), "t": m["t"]})
+
+    first = lambda kind: next((m for m in clip["moments"] if m["kind"] == kind), None)
+    obj, res, pro, num = first("objection"), first("result"), first("promise"), first("number")
     if obj:
-        q = obj["text"].rstrip(".!")
-        hooks.append({"type": "objection", "lines": [q[:40], ("Pues no." if es else "Not anymore.")]})
-    if pro:
-        hooks.append({"type": "promise", "lines": [("Lo único que necesitas" if es else "The only thing you need"), pro["match"].capitalize() if len(pro["match"]) < 22 else ("para empezar hoy" if es else "to start today")]})
+        q = _trim_trailing(_clean(_window(_clause(obj["text"], obj["match"]), obj["match"]), lang).rstrip("."), lang)
+        if not q.endswith("?"):
+            q += "?"
+        lines = _two_lines(q)
+        if len(lines) == 1:
+            lines.append("Pues no." if es else "Not anymore.")
+        add("objection", obj, lines)
     if res:
-        hooks.append({"type": "transformation", "lines": [("De cero a esto" if es else "From zero to this"), ("sin práctica" if es else "with zero practice")]})
+        add("result", res, _two_lines(_trim_trailing(_clean(_window(_clause(res["text"], res["match"]), res["match"]), lang).rstrip(".!"), lang)))
+    if pro:
+        add("promise", pro, _two_lines(_trim_trailing(_clean(_window(_clause(pro["text"], pro["match"]), pro["match"]), lang).rstrip(".!"), lang)))
     if num:
-        hooks.append({"type": "number", "lines": [num["match"], (num["text"][:36])]})
+        add("number", num, _two_lines(_trim_trailing(_clean(_window(_clause(num["text"], num["match"]), num["match"]), lang).rstrip(".!"), lang)))
     if len(hooks) < 3:
-        hooks.append({"type": "curiosity", "lines": [("¿Se puede hacer esto" if es else "Can you actually do this"), ("con tus manos?" if es else "with your own hands?")]})
+        hooks.append({"type": "curiosity", "lines": [("¿Se puede hacer esto" if es else "Can you actually do this"), ("con tus manos?" if es else "with your own hands?")],
+                      "quote": "", "t": clip["start"]})
     return hooks[:3]
 
 
