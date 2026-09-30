@@ -102,7 +102,15 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   entregada al usuario; storyboard versionado. Lecciones: fondos claros → `kinetic` con `color` oscuro (nuevo campo);
   el rótulo recortaba el título con un wordmark ancho (arreglado: `logo_width`); la segunda línea del rótulo en Space
   Mono aún se queda corta con textos largos (factor 0,66 por carácter es optimista para esa fuente: subir a ~0,72).
-  Pendiente: segunda pasada con el feedback del usuario; modo "vídeo producido" en el director.
+  **Segunda pasada** (29 overlays: + "Follow the marker lines", "beautiful frosted effect", check dibujado en "That's it!")
+  con el rótulo arreglado de raíz (commit `4e2f8de`).
+- **Conocimiento capturado en el plugin** (commit `4e2f8de`): `frame28 brand from-site <url> --name <marca>`
+  (`brandsite.py`: colores del CSS y variables `--color-button`, fuente, logo con variantes on_dark/on_accent);
+  `lower_third` sin estimar anchos (caja `max-content`, tecleo por `clip-path`); aviso en `build` de `box` fuera del
+  lienzo; `kinetic.color`; referencia `frame28-storyboard/references/marca-y-promocional.md` (investigar la marca,
+  checklist de storytelling promocional, vídeo ya producido, legibilidad); director con brief de marca y modo vídeo
+  producido; trampas nuevas en CLAUDE.md (parches por stdin, vídeo anidado en HyperFrames, no tocar el CLI durante
+  un render en segundo plano).
 
 ## Problemas conocidos y dudas
 
