@@ -70,17 +70,18 @@ def main() -> int:
     add(code == 0 and not st, "árbol de trabajo", "limpio" if not st else f"{len(st.splitlines())} cambio(s) sin commitear")
     code, br = sh("git", "rev-parse", "--abbrev-ref", "HEAD")
     add(br == "main", "rama", br)
+    bump = "ya existe: sube __version__ en plugin/cli/frame28/__init__.py (y plugin.json, marketplace.json, README) antes de etiquetar"
     _, local_tags = sh("git", "tag", "-l", tag)
-    add(not local_tags, f"tag local {tag}", "libre" if not local_tags else "ya existe")
+    add(not local_tags, f"tag local {tag}", "libre" if not local_tags else bump)
     code, remote = sh("git", "ls-remote", "--tags", "origin", tag)
-    add(code == 0 and not remote, f"tag remoto {tag}", "libre" if (code == 0 and not remote) else (remote or "no se pudo consultar"))
+    add(code == 0 and not remote, f"tag remoto {tag}", "libre" if (code == 0 and not remote) else (bump if remote else "no se pudo consultar"))
     code, ahead = sh("git", "rev-list", "--count", "origin/main..HEAD")
     add(True, "commits sin push", ahead if code == 0 else "?", blocking=False)
 
     code, login = sh("gh", "api", "user", "--jq", ".login")
     add(login == OWNER, "cuenta activa de gh", login or "sin sesión", blocking=False)
     code, rel = sh("gh", "release", "view", tag, "--repo", REPO, "--json", "tagName", "--jq", ".tagName")
-    add(code != 0, f"release {tag} en GitHub", "libre" if code != 0 else "ya publicada")
+    add(code != 0, f"release {tag} en GitHub", "libre" if code != 0 else "ya publicada: esta versión está cerrada; el siguiente paso es subir la versión")
 
     code, cliv = sh("frame28", "--version")
     m = re.search(r"(\d+\.\d+\.\d+)", cliv or "")
