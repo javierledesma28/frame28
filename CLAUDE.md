@@ -34,6 +34,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
   cli/pyproject.toml              paquete Python (uv); pin av>=11,<18 (ver Trampas)
   cli/frame28/                    env, media(fetch por yt-dlp vía uvx/prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
                                   graphics(OCR RapidOCR: texto en pantalla, tarjetas, zonas libres, colisiones),
+                                  reframe(apaisado → 9:16 siguiendo la cara con zona muerta, o fondo desenfocado),
                                   captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
                                   licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG

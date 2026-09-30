@@ -43,6 +43,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | (grabado bajito, con el ventilador de fondo) | Voz limpia y al volumen estándar de YouTube, sin tocar nada |
 | todo el rato | Subtítulos limpios, frase a frase, o por palabras estilo Shorts (`pages`, `karaoke`); SRT/VTT para la plataforma |
 | si es de una marca | La marca sale de su web (`frame28 brand from-site`): colores, fuente y logo con variantes; el montaje refuerza promesa, producto, pasos y prueba social |
+| para Reels o Shorts | `frame28 reframe` pasa un clip apaisado a 9:16 siguiendo al hablante (o con fondo desenfocado); el montaje se hace en vertical |
 | si el vídeo ya venía editado | `frame28 graphics` localiza sus rótulos, marca de agua, subtítulos y tarjetas, y los overlays nuevos van a las zonas y momentos libres |
 
 El estilo es el de los *launch videos* de los laboratorios de IA: tres fondos, dos tipografías, esquinas de

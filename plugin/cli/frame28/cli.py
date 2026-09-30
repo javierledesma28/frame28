@@ -184,6 +184,32 @@ def gestures(video, words, sample_fps, annotate, canvas, out_json, as_json):
 
 @main.command()
 @click.argument("video", type=click.Path(exists=True))
+@click.option("-o", "--out", "out_mp4", required=True, type=click.Path())
+@click.option("--mode", type=click.Choice(["crop", "blur"]), default="crop", show_default=True, help="crop: ventana 9:16 que sigue al hablante; blur: 16:9 entero sobre fondo desenfocado")
+@click.option("--size", default="1080x1920", show_default=True, help="salida, p. ej. 1080x1920 o 1080x1080")
+@click.option("--deadzone", default=0.10, show_default=True, help="zona muerta (fracción del ancho de la ventana) antes de mover la cámara")
+@click.option("--smooth", default=0.8, show_default=True, help="constante de tiempo del suavizado (s); más = más lento y suave")
+@click.option("--max-speed", default=0.5, show_default=True, help="velocidad máxima (anchos de ventana por segundo)")
+@click.option("--path", "path_json", type=click.Path(), default=None, help="guardar reframe.json (camino de la cámara, para mapear coordenadas)")
+@click.option("--json", "as_json", is_flag=True)
+def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, as_json):
+    """Reencuadra un clip apaisado a vertical (9:16) siguiendo al hablante (MediaPipe) o con fondo desenfocado."""
+    from .reframe import reframe as _reframe
+    w, h = (int(v) for v in size.lower().replace("×", "x").split("x"))
+    r = _reframe(video, out_mp4, mode, (w, h), deadzone, smooth, max_speed, path_json)
+    if as_json:
+        out(r, True); return
+    click.echo(f"  {r['output']}  modo {r['mode']}  {r['source'][0]}x{r['source'][1]} → {r['out'][0]}x{r['out'][1]}")
+    if mode == "crop":
+        click.echo(f"  ventana {r['crop'][0]}x{r['crop'][1]} (escala x{r['scale']}), {r['frames']} fotogramas, sujeto detectado en {r['detected_samples']}/{r['samples']} muestras, cámara en movimiento en {r['moving_samples']}")
+    else:
+        fg = r["foreground"]; click.echo(f"  vídeo en y {fg['y']}–{fg['y'] + fg['h']}; franjas libres {r['free_bands']}")
+    if path_json:
+        click.echo(f"  camino: {path_json}")
+
+
+@main.command()
+@click.argument("video", type=click.Path(exists=True))
 @click.option("--sample-fps", default=1.0, show_default=True, help="muestras por segundo (0.5 = doble de rápido)")
 @click.option("--canvas", default="auto", show_default=True, help="lienzo del storyboard, p. ej. 1920x1080")
 @click.option("--annotate", type=click.Path(), default=None, help="PNG con el mapa de zonas ocupadas y la lista de gráficos")

@@ -18,3 +18,12 @@ Qué demuestra y qué destapó:
   `counter` 22×. Nombres propios corregidos en `words.json` antes de cortar (Ledesma, Think28, Frame28).
 
 Ficheros: `storyboard.json` (sobre el clip cortado), `cuts.json`. `work/` y `out/` (medios, caras) no se versionan.
+
+## Versión vertical (9:16) con `frame28 reframe`
+
+`storyboard-vertical.json` monta la misma demo sobre `work/cut/vertical.mp4`, el clip apaisado reencuadrado con
+`frame28 reframe --mode crop` (ventana 608×1080 que sigue la cara, escalada ×1,78). Los gestos hacia los lados
+("aquí… o aquí") quedan fuera del recorte, así que en vertical se resuelven con un cinético en la franja superior
+en vez de `pointer`; las cajas y cinéticos van arriba (`y` 90–340) y los subtítulos por palabras (`pages`) abajo.
+Salida: `out/demo_vertical.mp4`.
+
