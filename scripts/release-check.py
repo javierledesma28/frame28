@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Checklist de release de Frame28 (solo biblioteca estándar): la versión en los cuatro sitios, el árbol limpio,
-el tag libre, la cuenta activa de `gh`, el CLI instalado y el manifiesto del plugin.
+el tag libre, la cuenta activa de `gh`, el CLI instalado, el manifiesto del plugin y la suite de pruebas en verde.
 
     python scripts/release-check.py            # comprueba; sale con 1 si algo bloquea
     python scripts/release-check.py --notes    # además lista los commits desde el último tag (punto de partida de las notas)
@@ -88,6 +88,10 @@ def main() -> int:
     add(bool(m) and m.group(1) == ref, "frame28 instalado", (m.group(1) if m else cliv[:60] or "no encontrado") + (" (reinstala el editable con --reinstall)" if m and m.group(1) != ref else ""), blocking=False)
     code, val = sh("claude", "plugin", "validate", str(ROOT / "plugin"))
     add(code == 0 and "passed" in val.lower(), "claude plugin validate", "ok" if code == 0 else val.splitlines()[-1][:80])
+    # el pyproject ya lleva -q en addopts; otro -q (-qq) quitaría la línea "N passed"
+    code, tests = sh("uv", "run", "--group", "dev", "pytest", "--no-header", "-p", "no:cacheprovider", cwd=ROOT / "plugin/cli")
+    summary = next((ln for ln in reversed(tests.splitlines()) if "passed" in ln or "failed" in ln or "error" in ln.lower()), tests[-80:])
+    add(code == 0, "pytest (plugin/cli/tests)", summary.strip()[:80] or "sin salida")
 
     width = max(len(n) for _, _, n, _ in rows) + 2
     for ok, blocking, name, detail in rows:

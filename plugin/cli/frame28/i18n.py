@@ -179,7 +179,10 @@ def extract_with_captions(sb: dict, captions_path: str | Path | None) -> dict:
             inside = [w["text"] for w in words if s - 0.05 <= float(w["start"]) < e + 0.05]
             entry = {"text": c["text"], "type": "caption", "id": f"captions.{i}", "at": s, "duration": round(e - s, 2),
                      "max_words": max(1, int((e - s) / MIN_WORD_S))}
-            if inside and len(inside) < len(_tokens(c["text"])) * 0.6:
+            if words and not inside:
+                entry["note"] = "frase residual del corte: no se oye ninguna palabra; déjala vacía"
+                entry["visible"] = ""
+            elif inside and len(inside) < len(_tokens(c["text"])) * 0.6:
                 entry["note"] = f"frase residual del corte: solo se oye '{' '.join(inside)}'; traduce solo eso"
                 entry["visible"] = " ".join(inside)
             r["strings"][f"captions.{i}.text"] = entry
