@@ -18,6 +18,11 @@ ffmpeg o Node, di exactamente qué instalar (el `doctor` lo imprime) y para.
 
 ## 1. Preparar y entender el material
 
+Si el material es un enlace (YouTube, Vimeo…): `frame28 fetch <url> -o input.mp4` lo descarga a 1080p con yt-dlp
+(sin instalar nada: usa `uvx` si hace falta) y deja `input.source.json` con título y origen. Un vídeo ya producido
+(voz en off, manos, gráficos propios) se monta igual, pero sáltate `speaker`, `gestures` y `behind`, y coloca los
+overlays esquivando los rótulos que ya trae (míralos en la hoja de contacto).
+
 ```bash
 frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav (limpia y a −14 LUFS), audio16k.wav, probe.json
 frame28 speaker work/clip.mp4          # side: left|center|right, free_side, bbox_canvas (píxeles del lienzo)

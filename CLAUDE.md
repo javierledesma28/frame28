@@ -32,7 +32,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
   .claude-plugin/plugin.json      manifiesto (name frame28)
   skills/frame28-*/SKILL.md       skills; frame28-storyboard/references/ = técnicas, guía de grabación, ejemplo
   cli/pyproject.toml              paquete Python (uv); pin av>=11,<18 (ver Trampas)
-  cli/frame28/                    env, media(prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
+  cli/frame28/                    env, media(fetch por yt-dlp vía uvx/prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
                                   captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
                                   licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG
