@@ -98,7 +98,11 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   **la búsqueda real no está probada: faltan las claves** (el usuario debe registrarse en Pexels y Pixabay).
 - En curso: `poc/clip-grabado/` (vídeo promocional-tutorial de YouTube de la marca Cliente A, 3 min 17 s,
   inglés, con música de fondo). Brief de marca en `brief.md`; marca `cliente-a` en `work/brands/` (no versionada:
-  logo de terceros). Primera pasada de montaje pendiente de la transcripción.
+  logo de terceros). **Primera pasada renderizada** (`out/cliente-a-glass.mp4`, 26 overlays, 7 min 46 s de render) y
+  entregada al usuario; storyboard versionado. Lecciones: fondos claros → `kinetic` con `color` oscuro (nuevo campo);
+  el rótulo recortaba el título con un wordmark ancho (arreglado: `logo_width`); la segunda línea del rótulo en Space
+  Mono aún se queda corta con textos largos (factor 0,66 por carácter es optimista para esa fuente: subir a ~0,72).
+  Pendiente: segunda pasada con el feedback del usuario; modo "vídeo producido" en el director.
 
 ## Problemas conocidos y dudas
 
