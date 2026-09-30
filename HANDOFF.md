@@ -12,6 +12,14 @@ el clip de una persona" a **"vídeo que vende un producto DIY"**, usando como cl
 grabado; tutorial de YouTube de 3 min 17 s, `poc/clip-grabado/`). De ahí salieron: overlays de venta, fábrica de
 shorts, portada, versión en otro idioma, detección de gráficos existentes, reencuadre 9:16, marca desde la web.
 
+**Giro de producto (2026-09-30, noche):** Frame28 pasa a ser un **producto monetizable del ecosistema Think28** con
+dominio **frame28.app** (comprado en Cloudflare; el plugin abierto sigue en frame28.t28.io). Primer cliente objetivo:
+**Cliente A**, que solo sabe que existimos; piloto en **una semana**. Definición de producto, capas de oferta
+(Open, Launch, Studio, Team, Cloud), precios early adopter propuestos, programa Fundadores, base de conocimiento y
+mini curso, arquitectura del sitio en Cloudflare Pages, plan de siete días y borrador de propuesta a Cliente A:
+`research/07-producto-frame28-app.md` (**precios pendientes de validar por el usuario**; el documento se commitea en
+local y no se pushea hasta esa validación). El brainstorming previo está en `research/06`.
+
 **Regla de trabajo del usuario (2026-09-30, explícita):** todo lo que se aprende con un caso, un vídeo de ejemplo o
 un diagnóstico se **capitaliza en el plugin** (código del CLI, `doctor`, validaciones, skills y sus referencias), no
 se queda en un README, una PoC o este fichero. Ante cada hallazgo: "¿qué parte del CLI o de qué skill cambia?".
@@ -135,8 +143,11 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 
 ## 5. Próximos pasos priorizados
 
-0. Puntos 1 (higiene, tag y release v0.3.0) y 2 (roadmap visual y monetización) **hechos**. Lo que sigue es el
-   primer ítem de la v0.4.0: la suite mínima de pruebas (4.4), y las decisiones de `research/06` sección 8.
+0. Puntos 1 (higiene, tag y release v0.3.0) y 2 (roadmap visual y monetización) **hechos**. Con el giro de producto,
+   lo que sigue es el **plan de siete días de `research/07` sección 6**: día 1 validar precios y capas, textos de la
+   landing, contrato base; día 2 landing en `site/` desplegada en Cloudflare Pages con frame28.app; día 3 propuesta y
+   caso Cliente A; día 4 base de conocimiento y lección 1 del curso; día 5 v0.4.0 mínimo (pruebas, B-roll, coste por
+   vídeo, variantes en lote); día 6 tutorial de acrílico como muestra; día 7 enviar la propuesta.
 1. **Roadmap visual con versiones.** Agrupación aplicada en `docs/roadmap/index.html` (ajustar con el usuario):
    - v0.1.0 (hecho): plugin base, 5 skills, brand kit, gráficas, gestos, release.
    - v0.2.0 (hecho): jump cuts, audio, GSAP, instaladores, web.
