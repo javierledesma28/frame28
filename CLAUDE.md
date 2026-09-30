@@ -36,6 +36,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   graphics(OCR RapidOCR: texto en pantalla, tarjetas, zonas libres, colisiones),
                                   reframe(apaisado → 9:16 siguiendo la cara con zona muerta, o fondo desenfocado),
                                   clips(fábrica de shorts: tramos por momentos, ganchos, recorte, storyboard de partida),
+                                  cover(portada/miniatura: composición estática + hyperframes snapshot),
                                   captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
                                   licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG
