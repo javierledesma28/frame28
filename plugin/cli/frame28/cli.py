@@ -35,6 +35,17 @@ def main():
 
 
 @main.command()
+@click.argument("url")
+@click.option("-o", "--out", "out_mp4", default="input.mp4", show_default=True, type=click.Path())
+@click.option("--max-height", default=1080, show_default=True)
+@click.option("--json", "as_json", is_flag=True)
+def fetch(url, out_mp4, max_height, as_json):
+    """Descarga un vídeo de YouTube/Vimeo/etc. (yt-dlp; vía uvx si no está instalado) y deja <out>.source.json con título y origen."""
+    from .media import fetch_url
+    out(fetch_url(url, out_mp4, max_height), as_json or True)
+
+
+@main.command()
 @click.option("--json", "as_json", is_flag=True)
 def doctor(as_json):
     """Comprueba ffmpeg, Node, dependencias Python y modelos."""

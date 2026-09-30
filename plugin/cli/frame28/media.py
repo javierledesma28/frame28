@@ -77,3 +77,26 @@ def cut(video: str | Path, start: float, end: float, out_mp4: str | Path) -> Pat
     if r.returncode != 0:
         raise SystemExit(r.stderr)
     return Path(out_mp4)
+
+
+def fetch_url(url: str, out_mp4: str | Path, max_height: int = 1080) -> dict:
+    """Descarga un vídeo de YouTube/Vimeo/etc. como MP4 (vídeo <= max_height + audio) con yt-dlp. Si yt-dlp no está
+    instalado, lo ejecuta con `uvx` (entorno efímero: no instala nada). Devuelve título, duración y ruta."""
+    import json as _json
+    from .env import find_tool, run
+    out = Path(out_mp4); out.parent.mkdir(parents=True, exist_ok=True)
+    ytdlp = find_tool("yt-dlp")
+    base = [ytdlp] if ytdlp else ([find_tool("uv") or "uv", "tool", "run", "--python", "3.12", "yt-dlp"])
+    node = find_tool("node")
+    common = ["--no-playlist"] + (["--js-runtimes", "node"] if node else [])
+    info = run(base + common + ["--print", "%(title)s\t%(duration)s\t%(uploader)s\t%(upload_date)s", url])
+    if info.returncode != 0:
+        raise SystemExit("yt-dlp falló:\n" + (info.stderr or info.stdout)[-800:])
+    title, dur, up, date = (info.stdout.strip().splitlines()[-1].split("\t") + ["", "", "", ""])[:4]
+    fmt = f"bv*[height<={max_height}][ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b"
+    r = run(base + common + ["-f", fmt, "--merge-output-format", "mp4", "-o", str(out), url])
+    if r.returncode != 0 or not out.exists():
+        raise SystemExit("yt-dlp falló:\n" + (r.stderr or r.stdout)[-800:])
+    side = {"url": url, "title": title, "duration": float(dur) if dur.replace(".", "").isdigit() else None, "uploader": up, "upload_date": date, "file": str(out)}
+    out.with_suffix(".source.json").write_text(_json.dumps(side, indent=1, ensure_ascii=False), encoding="utf-8")
+    return side
