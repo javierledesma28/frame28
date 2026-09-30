@@ -1,0 +1,694 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Cliente A · glass engraving tutorial (primera pasada Frame28)",
+  "lang": "en"
+ },
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30
+ },
+ "source": {
+  "video": "clip.mp4",
+  "audio": "voice.wav",
+  "duration": 196.84
+ },
+ "brand": "cliente-a",
+ "speaker": {
+  "side": "center"
+ },
+ "captions": [
+  {
+   "start": 0.0,
+   "end": 4.76,
+   "text": "Hi everyone, welcome to another tutorial where we break engraving down into simple steps"
+  },
+  {
+   "start": 4.76,
+   "end": 5.84,
+   "text": "anyone can follow."
+  },
+  {
+   "start": 6.16,
+   "end": 10.04,
+   "text": "Today we're stepping into one of the most satisfying materials to engrave on, glass."
+  },
+  {
+   "start": 10.26,
+   "end": 14.62,
+   "text": "People always ask me things like, isn't glass too slippery, what if it cracks?"
+  },
+  {
+   "start": 14.98,
+   "end": 18.0,
+   "text": "And I get it, it looks a little intimidating at first."
+  },
+  {
+   "start": 18.18,
+   "end": 23.08,
+   "text": "But the truth is, with a low speed and the right bit and a calm pace, glass becomes"
+  },
+  {
+   "start": 23.08,
+   "end": 24.72,
+   "text": "surprisingly beginner friendly."
+  },
+  {
+   "start": 25.1,
+   "end": 27.5,
+   "text": "So let's start with something simple and build from there."
+  },
+  {
+   "start": 27.5,
+   "end": 32.1,
+   "text": "Before we start, we need to talk about safety, because glass is one of those materials that"
+  },
+  {
+   "start": 32.1,
+   "end": 33.58,
+   "text": "requires the most care."
+  },
+  {
+   "start": 33.78,
+   "end": 37.74,
+   "text": "Make sure you're wearing safety glasses and a mask, glass creates a very fine dust"
+  },
+  {
+   "start": 37.74,
+   "end": 39.3,
+   "text": "that you do not want to breathe in."
+  },
+  {
+   "start": 39.42,
+   "end": 43.82,
+   "text": "And for the same reason, work in a well ventilated space and keep your surface clean"
+  },
+  {
+   "start": 43.82,
+   "end": 44.5,
+   "text": "and stable."
+  },
+  {
+   "start": 44.94,
+   "end": 46.64,
+   "text": "First piece, this glass jar."
+  },
+  {
+   "start": 46.86,
+   "end": 49.56,
+   "text": "I'm using one of the mandala stencils from Cliente A."
+  },
+  {
+   "start": 49.58,
+   "end": 53.48,
+   "text": "These work especially well on glass because they give you a clear structure to follow."
+  },
+  {
+   "start": 53.62,
+   "end": 57.48,
+   "text": "Place the stencil on the outside of the jar and hold it in place with a couple pieces"
+  },
+  {
+   "start": 57.48,
+   "end": 57.92,
+   "text": "of tape."
+  },
+  {
+   "start": 57.98,
+   "end": 62.44,
+   "text": "Since the surface is curved, you might have to adjust it a bit until it sits flat."
+  },
+  {
+   "start": 62.62,
+   "end": 67.16,
+   "text": "Once it's stable, trace the design lightly with a marker, just enough so you can follow"
+  },
+  {
+   "start": 67.16,
+   "end": 69.24,
+   "text": "the lines once the stencil is off."
+  },
+  {
+   "start": 69.4,
+   "end": 70.94,
+   "text": "Now let's talk about bits."
+  },
+  {
+   "start": 71.14,
+   "end": 74.56,
+   "text": "For glass, I recommend using either a ball bit or a square bit."
+  },
+  {
+   "start": 74.72,
+   "end": 78.82,
+   "text": "The ball bit gives smooth, rounded strokes and it's great for beginners."
+  },
+  {
+   "start": 79.1,
+   "end": 83.64,
+   "text": "The square bit creates more defined lines when used at an angle, especially for"
+  },
+  {
+   "start": 83.64,
+   "end": 85.98,
+   "text": "geometric shapes like this mandala."
+  },
+  {
+   "start": 85.98,
+   "end": 87.76,
+   "text": "Get your Engraver Pro to speed one."
+  },
+  {
+   "start": 87.92,
+   "end": 91.3,
+   "text": "When you start engraving, use very light pressure and short strokes."
+  },
+  {
+   "start": 91.52,
+   "end": 95.5,
+   "text": "This material doesn't like rushed movements, so work slowly through the design."
+  },
+  {
+   "start": 95.82,
+   "end": 97.72,
+   "text": "And don't forget to wipe the dust away often."
+  },
+  {
+   "start": 97.88,
+   "end": 101.9,
+   "text": "It helps you keep track of your lines and makes the whole process much safer."
+  },
+  {
+   "start": 102.34,
+   "end": 102.84,
+   "text": "That's it!"
+  },
+  {
+   "start": 103.1,
+   "end": 104.2,
+   "text": "It turned out beautiful, right?"
+  },
+  {
+   "start": 104.42,
+   "end": 108.26,
+   "text": "It's such a simple project, but it gives the jar a completely new purpose."
+  },
+  {
+   "start": 108.52,
+   "end": 110.42,
+   "text": "So let's try something perfect for gifting."
+  },
+  {
+   "start": 110.54,
+   "end": 111.8,
+   "text": "A glass perfume bottle."
+  },
+  {
+   "start": 111.94,
+   "end": 115.78,
+   "text": "I'm engraving the phrase, Happy Birthday, because my mother's birthday is next week"
+  },
+  {
+   "start": 115.78,
+   "end": 117.6,
+   "text": "and I'm sure she will love this."
+  },
+  {
+   "start": 117.94,
+   "end": 121.3,
+   "text": "A ball bit on low speed, keeping my strokes short and gentle."
+  },
+  {
+   "start": 121.6,
+   "end": 125.08,
+   "text": "Lettering on glass feels a little slippery at first, but once you follow"
+  },
+  {
+   "start": 125.08,
+   "end": 128.0,
+   "text": "the guide of the marker lines, it becomes really steady."
+  },
+  {
+   "start": 128.4,
+   "end": 132.3,
+   "text": "After engraving, I'm adding a touch of gold patina to make the letter stand out."
+  },
+  {
+   "start": 132.44,
+   "end": 136.22,
+   "text": "It settles inside the grooves and gives the whole piece a really elegant look."
+  },
+  {
+   "start": 136.32,
+   "end": 139.28,
+   "text": "I think I just made the perfect customized gift ever."
+  },
+  {
+   "start": 139.5,
+   "end": 142.58,
+   "text": "And for our last idea, let's move into something really festive."
+  },
+  {
+   "start": 142.72,
+   "end": 144.48,
+   "text": "Once you're comfortable using the Engraver Pro,"
+  },
+  {
+   "start": 144.48,
+   "end": 148.18,
+   "text": "pieces like this become such a fun way to decorate your home for the holidays."
+  },
+  {
+   "start": 148.6,
+   "end": 151.64,
+   "text": "I'm engraving a simple snowflake using a ball bit on high speed."
+  },
+  {
+   "start": 152.0,
+   "end": 153.84,
+   "text": "You don't need a perfect outline for this one."
+  },
+  {
+   "start": 154.2,
+   "end": 157.6,
+   "text": "Holiday designs look even cozier when they have that slightly handmade look."
+  },
+  {
+   "start": 158.06,
+   "end": 161.44,
+   "text": "Little details like this around your home make the season feel so much warmer"
+  },
+  {
+   "start": 161.44,
+   "end": 164.1,
+   "text": "and the Engraver Pro makes it super easy to create them."
+  },
+  {
+   "start": 164.38,
+   "end": 165.04,
+   "text": "Cheers to that!"
+  },
+  {
+   "start": 165.5,
+   "end": 167.44,
+   "text": "And here are our three finished pieces."
+  },
+  {
+   "start": 167.92,
+   "end": 171.46,
+   "text": "Glass has this beautiful frosted effect when you engrave on it."
+  },
+  {
+   "start": 171.46,
+   "end": 175.36,
+   "text": "Once you get the basics, you can transform so many everyday objects."
+  },
+  {
+   "start": 175.62,
+   "end": 181.82,
+   "text": "Jars, bottles, mirrors, candle holders, even recycled pieces look completely new."
+  },
+  {
+   "start": 182.18,
+   "end": 185.74,
+   "text": "Now that you know all this, glass doesn't feel so intimidating anymore, right?"
+  },
+  {
+   "start": 186.04,
+   "end": 187.98,
+   "text": "Comment what surface you'd like us to engrave next"
+  },
+  {
+   "start": 187.98,
+   "end": 191.34,
+   "text": "and click the subscribe button to keep leveling up your DIY projects."
+  },
+  {
+   "start": 191.76,
+   "end": 192.62,
+   "text": "See you in the next one!"
+  }
+ ],
+ "overlays": [
+  {
+   "type": "lower_third",
+   "id": "lt",
+   "start": 1.0,
+   "end": 5.6,
+   "x": 60,
+   "y": 700,
+   "title": "ENGRAVER PRO™ TUTORIAL",
+   "subtitle": "Engraving glass · beginner friendly"
+  },
+  {
+   "type": "kinetic",
+   "id": "k_promise",
+   "start": 19.3,
+   "end": 25.0,
+   "x": 980,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "low speed",
+      "at": 19.38
+     },
+     {
+      "text": "· right bit",
+      "at": 20.46
+     },
+     {
+      "text": "· calm pace",
+      "at": 21.48
+     }
+    ],
+    [
+     {
+      "text": "beginner friendly",
+      "at": 23.96,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "b_safety",
+   "start": 34.4,
+   "end": 39.3,
+   "at": 34.46,
+   "text": "Safety glasses + mask",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_vent",
+   "start": 39.5,
+   "end": 44.5,
+   "at": 39.9,
+   "text": "Well-ventilated · clean, stable surface",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "p1",
+   "start": 44.9,
+   "end": 49.5,
+   "at": 44.94,
+   "text": "Project 1 · Glass jar",
+   "x": 1280,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_stencil",
+   "start": 47.6,
+   "end": 53.5,
+   "at": 47.66,
+   "text": "Mandala stencils · the-brand.com",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_tape",
+   "start": 55.9,
+   "end": 62.4,
+   "at": 55.98,
+   "text": "Tape the stencil in place",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_trace",
+   "start": 63.6,
+   "end": 69.2,
+   "at": 63.66,
+   "text": "Trace lightly with a marker",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_ball",
+   "start": 74.8,
+   "end": 79.0,
+   "at": 74.92,
+   "text": "Ball bit · smooth strokes · beginners",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_square",
+   "start": 79.2,
+   "end": 85.9,
+   "at": 79.32,
+   "text": "Square bit · defined lines · geometric",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_speed",
+   "start": 86.0,
+   "end": 91.4,
+   "at": 86.44,
+   "text": "Speed 1 · low",
+   "x": 1280,
+   "y": 840
+  },
+  {
+   "type": "kinetic",
+   "id": "k_tech",
+   "start": 88.9,
+   "end": 95.5,
+   "x": 1000,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "light pressure",
+      "at": 89.58,
+      "accent": true
+     }
+    ],
+    [
+     {
+      "text": "short strokes",
+      "at": 90.56
+     }
+    ]
+   ]
+  },
+  {
+   "type": "kinetic",
+   "id": "k_done",
+   "start": 102.3,
+   "end": 104.4,
+   "x": 700,
+   "y": 100,
+   "size": 104,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "That's it!",
+      "at": 102.34,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "p2",
+   "start": 108.5,
+   "end": 113.5,
+   "at": 109.36,
+   "text": "Project 2 · Perfume bottle · gifting",
+   "x": 1280,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_hb",
+   "start": 112.0,
+   "end": 117.6,
+   "at": 112.16,
+   "text": "“Happy Birthday” · a gift for mom",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_ball2",
+   "start": 117.9,
+   "end": 121.4,
+   "at": 117.94,
+   "text": "Ball bit · low speed · gentle strokes",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_patina",
+   "start": 128.4,
+   "end": 136.2,
+   "at": 128.7,
+   "text": "Gold patina · settles in the grooves",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "kinetic",
+   "id": "k_gift",
+   "start": 137.6,
+   "end": 139.4,
+   "x": 880,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "the perfect customized gift",
+      "at": 137.66,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "p3",
+   "start": 139.5,
+   "end": 144.4,
+   "at": 139.64,
+   "text": "Project 3 · Holiday glass",
+   "x": 1280,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_snow",
+   "start": 148.6,
+   "end": 152.0,
+   "at": 148.86,
+   "text": "Snowflake · ball bit · high speed",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "kinetic",
+   "id": "k_hand",
+   "start": 156.3,
+   "end": 158.0,
+   "x": 1000,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "that handmade look",
+      "at": 156.38,
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "lower_third",
+   "id": "prod",
+   "start": 161.9,
+   "end": 165.3,
+   "x": 1130,
+   "y": 700,
+   "title": "ENGRAVER PRO™ · $69.99",
+   "subtitle": "30% off · 30 diamond bits included · the-brand.com"
+  },
+  {
+   "type": "chart",
+   "id": "proof",
+   "kind": "counter",
+   "start": 182.0,
+   "end": 186.0,
+   "at": 182.18,
+   "bg": "accent",
+   "value": 650,
+   "suffix": "K+",
+   "decimals": 0,
+   "duration": 1.1,
+   "label": "happy makers",
+   "subtitle": "4.7★ · 15,600+ reviews · 60-day money-back guarantee"
+  },
+  {
+   "type": "image",
+   "id": "prodimg",
+   "start": 161.9,
+   "end": 165.3,
+   "at": 162.0,
+   "src": "product.jpg",
+   "x": 1130,
+   "y": 440,
+   "w": 560
+  },
+  {
+   "type": "kinetic",
+   "id": "k_list_a",
+   "start": 175.5,
+   "end": 181.9,
+   "x": 240,
+   "y": 90,
+   "size": 64,
+   "reveal": "fade",
+   "lines": [
+    [
+     {
+      "text": "Jars",
+      "at": 175.62
+     },
+     {
+      "text": "· Bottles",
+      "at": 176.94
+     },
+     {
+      "text": "· Mirrors",
+      "at": 177.54
+     }
+    ]
+   ]
+  },
+  {
+   "type": "kinetic",
+   "id": "k_list_b",
+   "start": 178.1,
+   "end": 181.9,
+   "x": 240,
+   "y": 175,
+   "size": 64,
+   "reveal": "fade",
+   "lines": [
+    [
+     {
+      "text": "Candle holders",
+      "at": 178.24
+     },
+     {
+      "text": "· even recycled pieces",
+      "at": 179.32
+     }
+    ]
+   ]
+  }
+ ]
+}

@@ -89,7 +89,16 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 - El guion de `docs/guion-demo.md` grabado (83 s) y montado: 16 overlays, 19 cortes, `out/demo.mp4` (70 s).
 - `cut.py`: silencios dentro de palabras estiradas y muletillas condicionadas por pausa (ver README del PoC).
   Regresión comprobada sobre `clip-auriculares` (solo cae el "Bueno," inicial).
-- Pendiente B-roll por palabra clave (Pexels/Pixabay): siguiente bloque acordado con el usuario.
+- **B-roll hecho** (commit `ed8bc87`): módulo `broll.py` (sugerencia de palabras clave por frase, búsqueda en Pexels y
+  Pixabay con claves en `PEXELS_API_KEY`/`PIXABAY_API_KEY` o `~/.config/frame28/keys.json`, descarga con sidecar de
+  licencia y recorte con ffmpeg, hoja de candidatos), overlay `broll` en `build.py` (pantalla completa o `pip`,
+  `in` vía `data-media-start`, `loop`, Ken Burns, `caption`, `credit` arriba a la derecha; el contenedor NO lleva
+  `data-start`, HyperFrames no admite vídeo temporizado dentro de otro elemento temporizado), CLI `frame28 broll
+  providers/suggest/search/fetch` y skill `frame28-broll`. Probado el overlay con material sintético (clip-javier);
+  **la búsqueda real no está probada: faltan las claves** (el usuario debe registrarse en Pexels y Pixabay).
+- En curso: `poc/clip-grabado/` (vídeo promocional-tutorial de YouTube de la marca Cliente A, 3 min 17 s,
+  inglés, con música de fondo). Brief de marca en `brief.md`; marca `cliente-a` en `work/brands/` (no versionada:
+  logo de terceros). Primera pasada de montaje pendiente de la transcripción.
 
 ## Problemas conocidos y dudas
 
