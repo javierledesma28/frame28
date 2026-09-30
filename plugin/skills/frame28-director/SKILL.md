@@ -148,6 +148,20 @@ overlay entra cuando se dice su palabra, (c) el texto detrás no se ve "delante"
 nada de tramos de más de 8 s sin evento. Si algo falla, edita **el storyboard** (nunca el HTML generado) y
 repite el paso 4. Entrega el MP4 y resume en dos líneas qué overlays lleva.
 
+## 6. Portada y miniatura
+
+Cada vídeo entregado lleva su portada: la miniatura decide el clic. Un fotograma del propio vídeo (el resultado,
+el producto en manos, la cara con expresión) más un título de dos líneas con resaltado, insignia y logo:
+```bash
+frame28 cover out/video.mp4 --at 103.0 -o out/cover-yt.png --title "Engrave GLASS|the easy way" \
+        --subtitle "No cracks. No slipping." --badge TUTORIAL --brand <marca> --ring 1180,560,300 --focus 0.62,0.5 --zoom 1.1
+frame28 cover out/short.mp4 --at 1.0 -o out/cover-short.png --title "Frame28.|Graba, habla y listo." --size 1080x1920 --brand <marca>
+```
+`--size` 1280x720 (YouTube), 1080x1920 (Shorts/Reels/TikTok: título en el tercio superior), 1080x1080 (ficha de
+producto: título abajo). `--ring x,y,r` dibuja un aro de acento sobre el producto; `--focus` y `--zoom` centran el
+recorte del fondo. Reglas: 3–6 palabras por título, nada de frases enteras; el título repite el gancho del vídeo,
+no el nombre de la marca (el logo ya está); mira el PNG antes de entregar, el texto no debe tapar el objeto.
+
 ## Qué no hacer
 
 - No editar `index.html` a mano: se regenera desde el storyboard.

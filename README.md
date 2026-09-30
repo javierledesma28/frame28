@@ -43,6 +43,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | (grabado bajito, con el ventilador de fondo) | Voz limpia y al volumen estándar de YouTube, sin tocar nada |
 | todo el rato | Subtítulos limpios, frase a frase, o por palabras estilo Shorts (`pages`, `karaoke`); SRT/VTT para la plataforma |
 | si es de una marca | La marca sale de su web (`frame28 brand from-site`): colores, fuente y logo con variantes; el montaje refuerza promesa, producto, pasos y prueba social |
+| la miniatura | `frame28 cover`: fotograma + título con resaltado, insignia, logo y aro sobre el producto, en 16:9, 9:16 o 1:1, con las mismas fuentes que el vídeo |
 | para vender | Gancho de 3 s, progreso de pasos, antes/después con barrido y CTA con precio, código y QR; zonas seguras de TikTok, Reels y Shorts |
 | para Reels o Shorts | `frame28 reframe` pasa un clip apaisado a 9:16 siguiendo al hablante (o con fondo desenfocado); el montaje se hace en vertical |
 | si el vídeo ya venía editado | `frame28 graphics` localiza sus rótulos, marca de agua, subtítulos y tarjetas, y los overlays nuevos van a las zonas y momentos libres |

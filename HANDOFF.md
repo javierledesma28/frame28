@@ -156,7 +156,13 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   defecto se coloca fuera de la columna de iconos y encima de los subtítulos por palabras.
 - Los ganchos de `hooks_for` son plantillas toscas a propósito: la skill `frame28-shorts` manda al agente reescribirlos
   con las palabras del hablante. Mejora posible: extraer la frase de resultado real como línea del gancho.
-- Pendiente del bloque: portada/miniatura, versión en otro idioma, marcadores de resultado en la transcripción.
+- **Portada y miniatura hechas** (`cover.py`, `frame28 cover`): composición HyperFrames estática de un fotograma
+  (fondo con `object-position`/zoom, sombreado, título con resaltado por línea, subtítulo, insignia, logo `on_dark`
+  de la marca, aro de acento opcional) capturada con `hyperframes snapshot --at 0 --no-end` (~25 s por portada,
+  arranque del navegador incluido). Probado en 1280×720 (Cliente A, YouTube), 1080×1920 (demo, Shorts) y
+  1080×1080 (Cliente A, ficha). Trampa: `hyperframes snapshot` resuelve el DIR relativo a su propio cwd: pasar rutas
+  absolutas.
+- Pendiente del bloque: versión en otro idioma, marcadores de resultado en la transcripción.
 
 ## Problemas conocidos y dudas
 

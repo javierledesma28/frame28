@@ -183,6 +183,35 @@ def gestures(video, words, sample_fps, annotate, canvas, out_json, as_json):
 
 
 @main.command()
+@click.argument("video", type=click.Path(exists=True), required=False)
+@click.option("-o", "--out", "out_png", required=True, type=click.Path(), help="PNG de salida")
+@click.option("--title", required=True, help="título; usa | para partir líneas: 'Engrave GLASS|the easy way'")
+@click.option("--subtitle", default=None)
+@click.option("--badge", default=None, help="insignia arriba a la izquierda: TUTORIAL, 30% OFF, NEW…")
+@click.option("--at", "at_s", type=float, default=None, help="segundo del vídeo para el fotograma de fondo")
+@click.option("--image", type=click.Path(exists=True), default=None, help="imagen de fondo en vez de un fotograma")
+@click.option("--size", default="1280x720", show_default=True, help="1280x720 (YouTube), 1080x1920 (Shorts/Reels), 1080x1080 (ficha)")
+@click.option("--brand", default=None, help="marca (think28, nombre en ./brands o ruta a brand.json): color, fuente y logo")
+@click.option("--bg", type=click.Choice(["accent", "black", "white", "none"]), default="accent", show_default=True, help="resaltado del título")
+@click.option("--darken", default=0.35, show_default=True, help="oscurecido del fondo bajo el título (0–0.8)")
+@click.option("--ring", default=None, help="aro de acento sobre el producto: x,y,r en píxeles de la portada")
+@click.option("--focus", default=None, help="punto de interés del fondo en fracciones: 0.6,0.5 (recorte y zoom se centran ahí)")
+@click.option("--zoom", default=1.0, show_default=True, help="acercar el fondo (1.2 = 20 %)")
+@click.option("--font-size", type=int, default=None)
+@click.option("--json", "as_json", is_flag=True)
+def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, darken, ring, focus, zoom, font_size, as_json):
+    """Portada o miniatura: fotograma + título con resaltado, insignia, logo y aro opcional; captura con HyperFrames (mismas fuentes que el vídeo)."""
+    from .cover import make_cover
+    w, h = (int(v) for v in size.lower().replace("×", "x").split("x"))
+    lines = [t.strip() for t in title.split("|") if t.strip()]
+    ring_t = tuple(int(v) for v in ring.split(",")) if ring else None
+    focus_t = tuple(float(v) for v in focus.split(",")) if focus else None
+    r = make_cover(video, out_png, lines[0], at_s, image, None, subtitle=subtitle, badge=badge, size=(w, h), brand=brand, bg=bg,
+                   darken=darken, ring=ring_t, focus=focus_t, zoom=zoom, font_size=font_size, lines=lines)
+    out(r, as_json or True)
+
+
+@main.command()
 @click.argument("video", type=click.Path(exists=True))
 @click.option("-o", "--out", "out_mp4", required=True, type=click.Path())
 @click.option("--mode", type=click.Choice(["crop", "blur"]), default="crop", show_default=True, help="crop: ventana 9:16 que sigue al hablante; blur: 16:9 entero sobre fondo desenfocado")

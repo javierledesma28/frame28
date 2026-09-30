@@ -47,6 +47,11 @@ a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son 
 6. **Variantes**: renderiza el mismo short con `--hook 0`, `--hook 1`, `--hook 2` → `s4-hook0.mp4`,
    `s4-hook1.mp4`, `s4-hook2.mp4`. Las plataformas queman un creativo en 7–14 días; se rota el gancho, no el cuerpo.
 
+## Portada del short
+
+`frame28 cover out/shorts/s4-hook0.mp4 --at 1.0 -o out/shorts/s4-cover.png --title "<gancho>" --size 1080x1920 --brand <marca>`
+con el mismo gancho de la variante; una portada por variante si los ganchos difieren.
+
 ## Qué no hacer
 
 - Shorts de más de 45 s ni de menos de 15 (salvo un "first time here" de 20–35 s a propósito).
