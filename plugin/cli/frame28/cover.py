@@ -11,7 +11,7 @@ import json
 import shutil
 from pathlib import Path
 
-from . import HYPERFRAMES_VERSION
+from . import GSAP_VERSION, HYPERFRAMES_VERSION
 from .build import DEFAULT_BRAND, resolve_brand
 from .env import env_with_ffmpeg, npx, run
 
@@ -86,7 +86,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width={W}, height={H}" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/gsap.min.js"></script>
     {font_link}
     <style>{css}</style>
   </head>

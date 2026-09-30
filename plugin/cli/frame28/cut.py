@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .captions import load_captions, load_words
 from .env import ffmpeg, run
 
 FILLERS = {
@@ -64,8 +65,7 @@ def _silent_core(mask: np.ndarray, hop: float, a: float, b: float) -> tuple[floa
 
 def plan(words_path: str | Path, audio: str | Path | None = None, min_gap: float = 0.6, pad: float = 0.12,
          lang: str = "es", fillers: bool = True, retakes: bool = True, duration: float | None = None) -> dict:
-    words = json.loads(Path(words_path).read_text(encoding="utf-8"))
-    words = [w for w in words if w.get("text", "").strip()]
+    words = load_words(words_path)
     removed: list[dict] = []
     mask, hop = (audio_silence_mask(audio) if audio else (None, 0.0))
     total = float(duration or (mask is not None and len(mask) * hop) or (words[-1]["end"] if words else 0))
@@ -283,12 +283,12 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
         run([ffmpeg(), "-v", "error", "-y", "-i", str(aout), "-ac", "1", "-ar", "16000", str(a16)]); res["audio16k"] = str(a16)
     # tiempos
     if words_path:
-        words = json.loads(Path(words_path).read_text(encoding="utf-8"))
+        words = load_words(words_path, merge_symbols=False)
         nw = remap_words(words, keep)
         (out / "words.json").write_text(json.dumps(nw, indent=1, ensure_ascii=False), encoding="utf-8")
         res["words"] = str(out / "words.json"); res["words_dropped"] = len(words) - len(nw)
     if captions_path:
-        caps = json.loads(Path(captions_path).read_text(encoding="utf-8"))
+        caps = load_captions(captions_path)
         f = _mapper(keep)
         nc = [{**c, "start": f(c["start"]), "end": f(c["end"])} for c in caps]
         nc = [c for c in nc if c["end"] > c["start"]]

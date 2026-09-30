@@ -185,11 +185,11 @@ def suggest_pointers(events: list[dict], words: list[dict] | None, face: list[in
 
 def analyze(video: str | Path, words_path: str | Path | None = None, sample_fps: float = 10.0, annotate: str | Path | None = None,
             canvas: tuple[int, int] | None = None) -> dict:
-    from .captions import default_canvas
+    from .captions import default_canvas, load_words
     tr = track(video, sample_fps)
     canvas = canvas or default_canvas(tr["width"], tr["height"])
     events = detect_pointing(tr, canvas=canvas)
-    words = json.loads(Path(words_path).read_text(encoding="utf-8")) if words_path else None
+    words = load_words(words_path) if words_path else None
     face = face_box(tr, canvas)
     sugg = suggest_pointers(events, words, face, canvas)
     result = {"video": str(video), "frames_analyzed": len(tr["frames"]), "sample_fps": tr["sample_fps"], "canvas": list(canvas),

@@ -33,18 +33,86 @@ def parse_canvas(spec: str | None, width: int, height: int) -> tuple[int, int]:
     return (int(w), int(h))
 
 
-def load_words(path: str | Path) -> list[dict]:
-    d = json.loads(Path(path).read_text(encoding="utf-8"))
-    ws = d["words"] if isinstance(d, dict) else d
+class TranscriptFormatError(ValueError):
+    """words.json o captions.json en un formato que Frame28 no entiende (el CLI lo muestra como error corto, sin traza)."""
+
+
+def _seconds(d: dict, key: str) -> float | None:
+    """Tiempo en segundos: `start`/`end` (s) o `startMs`/`endMs` (ms, formato de transcript de HyperFrames)."""
+    if d.get(key) is not None:
+        return float(d[key])
+    ms = d.get(key + "Ms")
+    return float(ms) / 1000.0 if ms is not None else None
+
+
+def _read_json(path: str | Path):
+    p = Path(path)
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as ex:
+        raise TranscriptFormatError(f"{p}: JSON inválido ({ex.msg}, línea {ex.lineno})") from ex
+
+
+def normalize_words(data, merge_symbols: bool = True, source: str = "words.json") -> list[dict]:
+    """Único cargador de palabras del CLI. Devuelve `text`, `start`, `end` en segundos (más las claves extra, p. ej. `prob`),
+    sin entradas vacías. Acepta: lista de palabras; dict con `words` o con `segments[].words` (faster-whisper, WhisperX);
+    texto en `text` o `word`; tiempos en segundos (`start`/`end`) o en milisegundos (`startMs`/`endMs`, HyperFrames).
+    Con `merge_symbols`, "30" + "%" (o "€", "$") se pegan en una sola palabra, como los separa el ASR."""
+    ws = data
+    if isinstance(data, dict):
+        if isinstance(data.get("words"), list):
+            ws = data["words"]
+        elif isinstance(data.get("segments"), list):
+            ws = [w for s in data["segments"] for w in (s.get("words") or [])]
+        else:
+            raise TranscriptFormatError(f"{source}: no es una lista de palabras ni tiene 'words' o 'segments'")
+    if not isinstance(ws, list):
+        raise TranscriptFormatError(f"{source}: se esperaba una lista de palabras")
     out: list[dict] = []
-    for w in ws:
+    for i, w in enumerate(ws):
+        if not isinstance(w, dict):
+            raise TranscriptFormatError(f"{source}: la entrada {i} no es un objeto con text/start/end")
         t = (w.get("text") or w.get("word") or "").strip()
         if not t:
             continue
-        # el ASR separa "30" y "%" (o "€", "$"): van pegados a la palabra anterior
-        if out and t[0] in "%€$" and len(t) <= 2:
-            out[-1]["text"] += t; out[-1]["end"] = float(w["end"]); continue
-        out.append({"text": t, "start": float(w["start"]), "end": float(w["end"])})
+        s, e = _seconds(w, "start"), _seconds(w, "end")
+        if s is None or e is None:
+            raise TranscriptFormatError(f"{source}: la palabra {i} ({t!r}) no tiene tiempos start/end ni startMs/endMs; regenera con `frame28 transcribe`")
+        if merge_symbols and out and t[0] in "%€$" and len(t) <= 2:
+            out[-1]["text"] += t; out[-1]["end"] = e; continue
+        nw = {k: v for k, v in w.items() if k not in ("word", "startMs", "endMs")}
+        nw.update({"text": t, "start": s, "end": e})
+        out.append(nw)
+    return out
+
+
+def load_words(path: str | Path, merge_symbols: bool = True) -> list[dict]:
+    """words.json normalizado (ver `normalize_words`). Todo el CLI lee las palabras por aquí, nunca con json.loads a pelo."""
+    return normalize_words(_read_json(path), merge_symbols, source=Path(path).name)
+
+
+def load_captions(path: str | Path) -> list[dict]:
+    """captions.json normalizado: frases con `text`, `start`, `end` en segundos (acepta dict con `captions` o `segments`,
+    y tiempos en milisegundos). Sin frases vacías."""
+    p = Path(path); d = _read_json(p)
+    caps = d
+    if isinstance(d, dict):
+        caps = d.get("captions") if isinstance(d.get("captions"), list) else d.get("segments")
+        if not isinstance(caps, list):
+            raise TranscriptFormatError(f"{p.name}: no es una lista de frases ni tiene 'captions' o 'segments'")
+    out: list[dict] = []
+    for i, c in enumerate(caps):
+        if not isinstance(c, dict):
+            raise TranscriptFormatError(f"{p.name}: la entrada {i} no es un objeto con text/start/end")
+        t = (c.get("text") or "").strip()
+        if not t:
+            continue
+        s, e = _seconds(c, "start"), _seconds(c, "end")
+        if s is None or e is None:
+            raise TranscriptFormatError(f"{p.name}: la frase {i} ({t[:30]!r}) no tiene tiempos start/end; regenera con `frame28 transcribe`")
+        nc = {k: v for k, v in c.items() if k not in ("startMs", "endMs")}
+        nc.update({"text": t, "start": s, "end": e})
+        out.append(nc)
     return out
 
 

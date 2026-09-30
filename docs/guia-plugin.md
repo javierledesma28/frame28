@@ -45,8 +45,8 @@ Comandos usados:
 claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # registra el repo local como marketplace "think28"
 claude plugin install frame28@think28 --scope user                     # instala para tu usuario
 ```
-Comprobación pendiente en una sesión nueva de Claude Code (los plugins se cargan al arrancar): `/frame28:frame28-director` debe aparecer, y pedir "móntame este clip"
-debe disparar la skill. Para quitarlo: `claude plugin uninstall frame28@think28`. Para actualizar tras editar
+Comprobado (2026-09-30): en una sesión nueva de Claude Code (los plugins se cargan al arrancar) las ocho skills `frame28:*`
+aparecen en la lista; "móntame este clip" debe disparar la directora. Para quitarlo: `claude plugin uninstall frame28@think28`. Para actualizar tras editar
 skills en local: `claude plugin marketplace update think28` o reinstalar.
 
 Qué puede fallar: que Claude Code no encuentre `frame28` en PATH (el CLI vive en `~/.local/bin`; `uv tool
@@ -68,8 +68,11 @@ que arreglar antes de subir:
 1. Repo: `javierledesma28/frame28` en GitHub (público para que cualquiera lo instale; privado funciona con
    credenciales git del que instala).
 2. Primer commit y push (el `.gitignore` ya excluye medios y salidas).
-3. Etiquetar versiones: `git tag v0.1.0 && git push --tags`. La `version` de `plugin.json` y de `pyproject.toml`
-   deben coincidir con la etiqueta; subirlas juntas en cada release.
+3. Etiquetar versiones: `git tag -a v0.1.0 -m ... && git push origin v0.1.0`. La versión vive en cuatro sitios y los
+   cuatro deben coincidir con la etiqueta: `plugin/cli/frame28/__init__.py` (`__version__`; `pyproject.toml` la lee de ahí),
+   `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y el README. `python scripts/release-check.py`
+   lo comprueba, junto con el árbol limpio, que el tag no exista, la cuenta activa de `gh` y `claude plugin validate`;
+   `--notes` lista los commits desde el último tag para redactar las notas.
 4. Opcional: publicar el CLI en PyPI (`uv build && uv publish`) para que `uv tool install frame28` funcione sin
    git. Mientras tanto: `uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`.
 
@@ -159,5 +162,5 @@ Diseño original (para referencia):
 ## 7. Iterar
 
 Cada mejora sigue el mismo ciclo: cambiar skill o CLI → `claude plugin validate .` → probar con
-`poc/clip-javier` → subir versión → tag → push. Las personas que lo tengan instalado actualizan con
+`poc/clip-javier` → subir versión → `python scripts/release-check.py` → tag → push. Las personas que lo tengan instalado actualizan con
 `claude plugin marketplace update think28` y `uv tool upgrade frame28`.

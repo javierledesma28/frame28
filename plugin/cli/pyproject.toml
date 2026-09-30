@@ -1,12 +1,12 @@
 [project]
 name = "frame28"
-version = "0.3.0"
+dynamic = ["version"]
 description = "Frame28 by Think28 · CLI: deterministic steps for talking-head explainer videos (prep, transcribe, matte, build, render)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Think28" }, { name = "Javier Ledesma" }]
-urls = { Homepage = "https://think28.app/frame28", Repository = "https://github.com/javierledesma28/frame28" }
+urls = { Homepage = "https://frame28.t28.io", Repository = "https://github.com/javierledesma28/frame28" }
 dependencies = [
   "click>=8.1",
   "numpy>=1.26",
@@ -20,7 +20,10 @@ dependencies = [
 ]
 
 [project.scripts]
-frame28 = "frame28.cli:main"
+frame28 = "frame28.cli:run"
+
+[tool.hatch.version]
+path = "frame28/__init__.py"
 
 [build-system]
 requires = ["hatchling"]
