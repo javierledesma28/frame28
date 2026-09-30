@@ -19,6 +19,7 @@
   <a href="#cómo-funciona">Cómo funciona</a> ·
   <a href="https://frame28.t28.io/presentacion/">Guía paso a paso (presentación)</a> ·
   <a href="docs/guia-plugin.md">Guía del plugin</a> ·
+  <a href="https://frame28.t28.io/roadmap/">Roadmap</a> ·
   <a href="https://t28.io">t28.io</a>
 </p>
 
@@ -161,6 +162,9 @@ tutorial real de una marca DTC (Cliente A) además de los clips del autor. Lo si
 - Puertas de calidad automáticas (contraste, legibilidad, sonoridad) y gráficas ampliadas.
 - Alineado con guion para nombres propios y karaoke exacto.
 - Una interfaz sobre el storyboard, para quien no quiere ver una terminal, si la decisión de producto lo pide.
+
+El roadmap completo, versión a versión y con el estado de cada ítem, está en
+[frame28.t28.io/roadmap](https://frame28.t28.io/roadmap/) (fuente: `docs/roadmap/index.html`).
 
 ## Estructura del repositorio
 

@@ -22,10 +22,10 @@ está incorporado abajo (secciones 4 y 5) y en las Trampas de `CLAUDE.md`. De la
 el **punto 1 (higiene y cierre de la 0.3.0)**: tag y release `v0.3.0` publicados con el OK del usuario.
 
 **Punto 2 (entregado en la misma sesión):** (a) el **roadmap visual con versiones** vive en `docs/roadmap/index.html`
-(página Think28, datos inline en `ROADMAP`, filtro por estado; se publica en frame28.t28.io/roadmap/ al hacer push y
-también como artefacto privado de claude.ai) y (b) el **análisis de monetización** en `research/06-monetizacion.md`
-(tres caminos dimensionados, recomendación híbrida por fases, plan de 90 días, decisiones para el usuario).
-`research/06` se dejó **sin versionar a propósito**: el repo es público y el usuario decide si se publica.
+(página Think28, datos inline en `ROADMAP`, filtro por estado; publicada en frame28.t28.io/roadmap/ y enlazada desde
+la portada de la web, la diapositiva de cierre de la guía y el README; también como artefacto privado de claude.ai)
+y (b) el **análisis de monetización** en `research/06-monetizacion.md` (tres caminos dimensionados, recomendación
+híbrida por fases, plan de 90 días, decisiones para el usuario), versionado tal cual por decisión del usuario.
 La recomendación (servicio operado por Think28 con el plugin abierto como canal; plataforma solo con demanda
 demostrada) es la que ordena la v0.4.0 del roadmap. Ver sección 5.
 
@@ -111,8 +111,9 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 2. **Roadmap visual con versionado: hecho** (`docs/roadmap/index.html`, 6 versiones y 53 ítems con estado, esfuerzo,
    valor y referencia a R4/R5/T; el siguiente paso marcado). Mantenerlo: al cerrar un ítem, cambiar su `s` en el
    array `ROADMAP` del propio fichero (los estados y las versiones futuras son la única copia de esa información).
-   Pendiente: decidir si se enlaza desde la web (hoy solo se sirve en `/roadmap/`, sin enlace).
-3. **Análisis de monetización: hecho** (`research/06-monetizacion.md`, sin versionar hasta que el usuario decida).
+   Enlazado desde `docs/index.html`, la diapositiva de cierre de `docs/presentacion/deck.html` (reconstruir
+   `index.html` tras editarla) y el README.
+3. **Análisis de monetización: hecho** (`research/06-monetizacion.md`, versionado).
    Quedan por responder las seis decisiones de su sección 8 (segmento, oferta y precio, qué sigue abierto, quién
    opera, marca de la oferta, umbrales para la plataforma).
 4. **Suite mínima de pruebas** (deuda principal del relevamiento: 4.400 líneas de CLI y cero tests; el bug de
