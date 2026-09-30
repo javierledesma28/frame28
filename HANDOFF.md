@@ -19,7 +19,7 @@ se queda en un README, una PoC o este fichero. Ante cada hallazgo: "¿qué parte
 **Esta sesión** empezó con un relevamiento completo del repo (todo verificado ejecutando: doctor, validación del
 plugin, los 11 storyboards, regresión build/check/render de clip-javier, web, releases, dependencias). El resultado
 está incorporado abajo (secciones 4 y 5) y en las Trampas de `CLAUDE.md`. De la propuesta de seis puntos se ejecutó
-el **punto 1 (higiene y cierre de la 0.3.0)**; el tag y la release se proponen al usuario (sección 4.1).
+el **punto 1 (higiene y cierre de la 0.3.0)**: tag y release `v0.3.0` publicados con el OK del usuario.
 
 **Sigue pendiente la petición anterior del usuario** (sin una línea escrita): (a) un **artefacto visual del roadmap
 con versiones** (hecho / en curso / pendiente, agrupado por versión) y (b) un **análisis de monetización** (plugin
@@ -29,8 +29,8 @@ vs producto en plataforma vs servicio) con recomendación. Ver sección 5.
 
 Versión **0.3.0** en los cuatro sitios: `plugin/cli/frame28/__init__.py` (`__version__`, de donde `pyproject.toml`
 la lee con hatch), `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y README.
-`python scripts/release-check.py` lo comprueba. Tags/releases publicadas: `v0.1.0`, `v0.2.0`. **`v0.3.0`: tag y
-release propuestos al usuario, pendientes de su OK** (comandos en 4.1; notas redactadas).
+`python scripts/release-check.py` lo comprueba. Tags/releases publicadas: `v0.1.0`, `v0.2.0` y **`v0.3.0`**
+(2026-09-30, commit `f178d0c`, https://github.com/javierledesma28/frame28/releases/tag/v0.3.0, marcada Latest).
 
 CLI `frame28` (todo probado en clips reales, Windows 11, CPU):
 `fetch` (yt-dlp vía uvx) · `probe` · `prep` (30 fps, voz limpia −14 LUFS) · `transcribe` (faster-whisper, 4 formatos)
@@ -92,19 +92,18 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 
 ## 4. A medias / pendiente inmediato (con ficheros)
 
-1. **Tag y release `v0.3.0`** (propuesto al usuario; los ficheros y el árbol están listos y `release-check` solo
-   avisa de la cuenta de `gh`). Desde `main` con todo commiteado y pusheado:
+1. **Tag y release `v0.3.0`: hechos** (2026-09-30, con el OK del usuario; plugin local reinstalado, caché idéntica al
+   repo). Procedimiento que funcionó, para la próxima (desde `main` limpio y con `release-check` en verde):
    ```bash
    gh auth switch --user javierledesma28
    git push origin main
-   git tag -a v0.3.0 -m "Frame28 v0.3.0" && git push origin v0.3.0
-   gh release create v0.3.0 --repo javierledesma28/frame28 --title "Frame28 v0.3.0" --notes-file <notas> --latest
+   git tag -a vX.Y.Z -m "Frame28 vX.Y.Z" && git push origin vX.Y.Z
+   gh release create vX.Y.Z --repo javierledesma28/frame28 --title "Frame28 vX.Y.Z" --notes-file <notas> --latest
    gh auth switch --user javierledesmasmc     # dejar la cuenta como estaba
    ```
-   Notas: novedades desde v0.2.0 (vertical y reencuadre, subtítulos por palabras y SRT/VTT, B-roll, `graphics`,
-   `fetch`, overlays de venta, shorts, portada, i18n, `brand from-site`) más el bloque de mantenimiento de esta
-   sesión; formato como en v0.2.0 (`gh release view v0.2.0`). Tras publicar: reinstalar el plugin local
-   (`claude plugin uninstall frame28@think28 && claude plugin install frame28@think28 --scope user`).
+   Notas con el formato de `gh release view v0.3.0` (novedades, mantenimiento, pendiente conocido, instaladores);
+   `release-check --notes` da el borrador. Tras publicar: `claude plugin uninstall frame28@think28 &&
+   claude plugin install frame28@think28 --scope user`.
 2. **Artefacto gráfico del roadmap con versionado** (petición del usuario; ver sección 5). Nada escrito aún; los
    datos están en `research/04-roadmap-features.md` (18 ítems: 6 cerrados, 3 a medias, 9 sin empezar),
    `research/05` (8 mejoras, 6 hechas), `plugin/skills/frame28-storyboard/references/tecnicas.md` (10 técnicas
@@ -130,11 +129,11 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 
 ## 5. Próximos pasos priorizados
 
-0. Punto 1 del relevamiento (higiene) **hecho**; queda el tag/release (4.1) con el OK del usuario.
+0. Punto 1 del relevamiento (higiene, tag y release v0.3.0) **hecho**.
 1. **Roadmap visual con versiones.** Propuesta de agrupación para el artefacto (ajustar con el usuario):
    - v0.1.0 (hecho): plugin base, 5 skills, brand kit, gráficas, gestos, release.
    - v0.2.0 (hecho): jump cuts, audio, GSAP, instaladores, web.
-   - v0.3.0 (hecho; tag pendiente de OK): vertical, subtítulos por palabras, B-roll, `graphics`, `reframe`, venta
+   - v0.3.0 (publicada): vertical, subtítulos por palabras, B-roll, `graphics`, `reframe`, venta
      (hook/cta/steps/before_after), shorts, portada, i18n, `brand from-site`, `fetch`, doctor y cargador únicos.
    - v0.4.0 (propuesta): suite mínima de pruebas (4.4), cierre de lo a medias (4.5–4.7), doblaje/TTS
      (Kokoro/Chatterbox, roadmap 14), demo de pantalla con zoom-pan (roadmap 6), decisión sobre render sin red.
