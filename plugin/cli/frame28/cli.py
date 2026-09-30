@@ -514,6 +514,47 @@ def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_j
 
 
 @main.group()
+def i18n():
+    """Versión en otro idioma: extraer los textos del storyboard, traducirlos (lo hace el agente) y aplicarlos con los mismos tiempos."""
+
+
+@i18n.command("extract")
+@click.argument("storyboard", type=click.Path(exists=True))
+@click.option("--captions", "captions_path", type=click.Path(exists=True), default=None, help="captions.json del clip (para regenerar los subtítulos por palabras)")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="strings.json (por defecto <storyboard>.strings.json)")
+def i18n_extract(storyboard, captions_path, out_json):
+    """Saca todos los textos visibles (overlays y subtítulos) a un JSON plano con clave, tipo, instante y límite orientativo."""
+    from .i18n import extract_with_captions
+    sbp = Path(storyboard); sb = json.loads(sbp.read_text(encoding="utf-8"))
+    cp = captions_path or (sbp.parent / "captions.json" if (sbp.parent / "captions.json").exists() else None)
+    r = extract_with_captions(sb, cp)
+    outp = Path(out_json) if out_json else sbp.with_name(sbp.stem + ".strings.json")
+    outp.write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
+    click.echo(f"  {r['count']} textos ({r['lang'] or 'idioma sin declarar'}) → {outp}")
+    click.echo("  Traduce los valores 'text' (mismas claves) y aplica con: frame28 i18n apply <storyboard> <strings traducido> --lang <xx>")
+
+
+@i18n.command("apply")
+@click.argument("storyboard", type=click.Path(exists=True))
+@click.argument("strings", type=click.Path(exists=True))
+@click.option("--lang", required=True, help="código del idioma destino: en, es, fr, de, pt…")
+@click.option("-o", "--out", "out_path", type=click.Path(), default=None, help="storyboard traducido (por defecto <storyboard>.<lang>.json)")
+@click.option("--words", "words_path", type=click.Path(exists=True), default=None, help="words.json original (subtítulos por palabras)")
+@click.option("--captions", "captions_path", type=click.Path(exists=True), default=None, help="captions.json original")
+@click.option("--json", "as_json", is_flag=True)
+def i18n_apply(storyboard, strings, lang, out_path, words_path, captions_path, as_json):
+    """Escribe el storyboard en el otro idioma con los mismos tiempos; con subtítulos por palabras genera words.<lang>.json."""
+    from .i18n import translate_project
+    r = translate_project(storyboard, strings, lang, out_path, words_path, captions_path)
+    if as_json:
+        out(r, True); return
+    click.echo(f"  {r['translated']} textos aplicados → {r['storyboard']}" + (f"  · palabras: {r['words']} ({r['words_count']})" if r.get("words") else ""))
+    for w in r["warnings"]:
+        click.echo(f"  ! {w}")
+    click.echo("  Ahora: frame28 build <storyboard traducido> -o <proyecto> && frame28 check && frame28 render")
+
+
+@main.group()
 def captions():
     """Subtítulos: exportar SRT/VTT legibles a partir de words.json."""
 

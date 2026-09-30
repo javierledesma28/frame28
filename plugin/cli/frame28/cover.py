@@ -54,7 +54,8 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
         logo_html = f'<img class="logo" src="assets/{src.name}" alt="">'
     lay = _layout(W, H, font_size)
     lines = lines or [title]
-    title_html = "".join(f'<div><span class="hl">{_esc(t)}</span></div>' for t in lines)
+    # cada línea por encima de la siguiente: los descendentes (g, y, p) se pintan sobre la caja de abajo, no debajo
+    title_html = "".join(f'<div style="position:relative; z-index:{100 - k}"><span class="hl">{_esc(t)}</span></div>' for k, t in enumerate(lines))
     sub_html = f'<div class="sub">{_esc(subtitle)}</div>' if subtitle else ""
     badge_html = f'<div class="badge">{_esc(badge)}</div>' if badge else ""
     ring_html = f'<div class="ring" style="left:{ring[0] - ring[2]}px; top:{ring[1] - ring[2]}px; width:{2 * ring[2]}px; height:{2 * ring[2]}px"></div>' if ring else ""
@@ -70,7 +71,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
       .bg {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:{fx * 100:.1f}% {fy * 100:.1f}%; transform:scale({zoom}); transform-origin:{fx * 100:.1f}% {fy * 100:.1f}%; }}
       .shade {{ position:absolute; inset:0; background:linear-gradient({"180deg" if H > W else "90deg"}, rgba(0,0,0,{darken + 0.25}) 0%, rgba(0,0,0,{darken}) 45%, rgba(0,0,0,0) 80%); }}
       .title {{ position:absolute; left:{lay['x']}px; top:{lay['y']}px; width:{lay['w']}px; font-size:{lay['size']}px; font-weight:800; line-height:1.12; letter-spacing:-0.035em; text-align:{lay['align']}; }}
-      .title .hl {{ display:inline; padding:0.04em 0.28em; box-decoration-break:clone; -webkit-box-decoration-break:clone; border-radius:0.16em; }}
+      .title .hl {{ display:inline; padding:0.04em 0.28em 0.08em; box-decoration-break:clone; -webkit-box-decoration-break:clone; border-radius:0.16em; }}
       .title.accent .hl {{ background:var(--accent); color:var(--ink); }}
       .title.black .hl {{ background:rgba(10,10,10,.88); color:#fff; }}
       .title.white .hl {{ background:var(--paper); color:var(--ink); }}

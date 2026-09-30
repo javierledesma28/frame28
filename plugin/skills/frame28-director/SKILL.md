@@ -162,6 +162,12 @@ producto: título abajo). `--ring x,y,r` dibuja un aro de acento sobre el produc
 recorte del fondo. Reglas: 3–6 palabras por título, nada de frases enteras; el título repite el gancho del vídeo,
 no el nombre de la marca (el logo ya está); mira el PNG antes de entregar, el texto no debe tapar el objeto.
 
+## 7. Otro idioma → skill `frame28-i18n`
+
+Con el vídeo aprobado, la segunda lengua cuesta minutos: `frame28 i18n extract` saca los textos, los traduces con
+criterio de subtitulado, `frame28 i18n apply --lang xx` los devuelve al storyboard con los mismos tiempos (y
+regenera los subtítulos por palabras sobre el ritmo original), y se vuelve a construir y renderizar.
+
 ## Qué no hacer
 
 - No editar `index.html` a mano: se regenera desde el storyboard.
