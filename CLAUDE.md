@@ -118,6 +118,16 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - El `.ps1` se sirve como `application/octet-stream` pero `irm` lo devuelve como String en PS 5.1 y 7 (probado).
 - El detector de falsos arranques no debe cortar estructuras paralelas ("por aquí hay X, por aquí hay Y"): solo
   repetición inmediata o tras pausa.
+- **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
+  escapes se comen. Escribir el parche a un `.py` en el scratchpad (Write) y ejecutarlo. Ya pasó tres veces.
+- **HyperFrames no admite un `<video data-start>` dentro de otro elemento temporizado** (`video_nested_in_timed_element`):
+  el contenedor del `broll` no lleva `data-start`; su visibilidad va por opacidad.
+- **No estimar anchos de texto en Python**: el rótulo recortaba títulos según la fuente que cargara el navegador.
+  La caja se dimensiona sola (`width: max-content`) y el tecleo es un `clip-path` tweeneado.
+- **Fondos claros**: cinéticos blancos o en acento no se leen (tutoriales cenitales, mesas, telas). `kinetic` tiene
+  `color`; usar la tinta de la marca.
+- **No editar el CLI mientras un render corre en segundo plano**: `frame28 render` importa `cli.py` al arrancar y un
+  fichero a medias lo tumba.
 - Whisper no transcribe "eh" y estira la palabra anterior a una pausa: `cut plan` busca silencio de audio dentro de
   palabras de > 0,9 s. Las muletillas ambiguas ("bueno", "pues") solo se cortan seguidas de pausa; "este" y "nada"
   nunca ("este muñeco", "de este a oeste" se cortaban mal).

@@ -614,7 +614,7 @@
    "x": 60,
    "y": 700,
    "title": "ENGRAVER PRO™ · $69.99",
-   "subtitle": "30% off · 30 diamond bits · the-brand.com"
+   "subtitle": "30% off · 30 diamond bits included · the-brand.com"
   },
   {
    "type": "chart",
@@ -691,6 +691,48 @@
     ]
    ],
    "color": "#2c2523"
+  },
+  {
+   "type": "box",
+   "id": "b_lines",
+   "start": 124.9,
+   "end": 128.0,
+   "at": 125.08,
+   "x": 60,
+   "y": 840,
+   "text": "Follow the marker lines"
+  },
+  {
+   "type": "kinetic",
+   "id": "k_frost",
+   "start": 167.8,
+   "end": 171.4,
+   "x": 240,
+   "y": 90,
+   "size": 64,
+   "reveal": "fade",
+   "color": "#2c2523",
+   "lines": [
+    [
+     {
+      "text": "beautiful frosted effect",
+      "at": 167.92
+     }
+    ]
+   ]
+  },
+  {
+   "type": "draw",
+   "id": "d_done",
+   "start": 102.3,
+   "end": 104.4,
+   "at": 102.4,
+   "icon": "circle-check",
+   "x": 600,
+   "y": 104,
+   "w": 80,
+   "color": "#2c2523",
+   "duration": 0.45
   }
  ]
 }

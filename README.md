@@ -42,6 +42,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | «eh… mmm… (silencio)» | Nada: los silencios largos, las muletillas y los falsos arranques desaparecen solos |
 | (grabado bajito, con el ventilador de fondo) | Voz limpia y al volumen estándar de YouTube, sin tocar nada |
 | todo el rato | Subtítulos limpios, frase a frase, o por palabras estilo Shorts (`pages`, `karaoke`); SRT/VTT para la plataforma |
+| si es de una marca | La marca sale de su web (`frame28 brand from-site`): colores, fuente y logo con variantes; el montaje refuerza promesa, producto, pasos y prueba social |
 
 El estilo es el de los *launch videos* de los laboratorios de IA: tres fondos, dos tipografías, esquinas de
 encuadre, animaciones de un cuarto de segundo. Un evento visual cada dos a cuatro segundos, nunca más de ocho sin

@@ -37,7 +37,7 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 
 | type | Campos | Qué es (técnica del análisis) |
 |---|---|---|
-| `lower_third` | `x`, `y`, `title`, `subtitle?` | Tarjeta de identidad monoespaciada que se escribe carácter a carácter (T1). |
+| `lower_third` | `x`, `y`, `title`, `subtitle?` | Tarjeta de identidad monoespaciada que se escribe carácter a carácter (T1). La caja mide lo que mide el texto (sin recortes con logos anchos o fuentes distintas). |
 | `box` | `x`, `y`, `text`, `at?` | Frase corta en caja con esquinas de encuadre (T7). Aparece con pop. |
 | `kinetic` | `x`, `y`, `size?` (124), `color?` (CSS; para fondos claros, pone sombra clara), `lines: [[{text, at, accent?}]]` | Tipografía cinética: cada palabra entra en su `at` (T2). Una lista por línea. `accent: true` la pinta con el color de acento. |
 | `behind` | `text`, `at?`, `size?` (240), `matte`, `matte_start?`, `matte_end?` | Palabra gigante **detrás** del hablante (T3). `matte` es el WebM con alfa de `frame28 matte`; `matte_start/end` su rango en el clip (por defecto `start/end`). |
@@ -61,7 +61,8 @@ escalonadas, SplitText de GSAP). Los tiempos siguen siendo los `at` de cada pala
 ## Marcas
 
 `"brand": "think28"` usa la marca incluida (amarillo `#F5C500`, Inter, Space Mono, isotipo "28" en el rótulo).
-`frame28 brand init mimarca --accent "#0D4F87" --logo logo.svg` crea `./brands/mimarca.json`; `frame28 brand list` las enumera.
+`frame28 brand init mimarca --accent "#0D4F87" --logo logo.svg` crea `./brands/mimarca.json`; `frame28 brand from-site https://cliente.com --name cliente`
+la propone a partir de la web (colores del CSS, fuente, logo con variantes para fondo oscuro y de acento); `frame28 brand list` las enumera.
 El `lower_third` muestra el isotipo de la marca; las `card` con `bg: accent` usan su color; la `brand_card` usa logo, tagline y endorsement.
 
 ## Capas (z-index) que aplica el generador

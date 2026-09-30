@@ -53,9 +53,17 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
 - Pizarras: fondo negro para afirmaciones, acento para "producto", blanco para listas.
 - El dato ganador entra el último y destacado; nunca una tabla entera de golpe.
 - Todo en el idioma del hablante; nombres propios tal como los escribe el usuario.
+- **Legibilidad**: texto blanco solo sobre fondo oscuro; sobre fondos claros (mesas, telas, exteriores) `kinetic`
+  con `color` = tinta de la marca. Nunca acento sobre acento (texto ámbar sobre tarjeta ámbar). Las `box` llevan
+  fondo oscuro y funcionan en cualquier fondo; `frame28 build` avisa si una caja se sale del lienzo.
+- **No repitas lo que ya está en pantalla** (rótulos del propio vídeo, texto de un envase que se enseña).
+- **Promocional**: promesa con las palabras de la marca → producto con precio una sola vez → pasos copiables →
+  frase de resultado → prueba social → cierre. Detalle en `references/marca-y-promocional.md`.
 
 ## Referencias
 
 - `references/tecnicas.md`: las 16 técnicas del video de referencia, cómo se logran y cuándo usarlas.
 - `references/grabacion.md`: qué pedirle al usuario para que el material funcione.
 - `references/ejemplo-storyboard.json`: storyboard real de un clip de 10 s (webcam, español).
+- `references/marca-y-promocional.md`: qué investigar de la marca del cliente, checklist de storytelling para
+  vídeos que venden, cómo montar sobre un vídeo ya producido y reglas de legibilidad salidas de renders reales.
