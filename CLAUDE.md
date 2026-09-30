@@ -11,8 +11,9 @@ identidad, títulos cinéticos por palabra, texto detrás del hablante, callouts
 subtítulos y tarjeta de marca. Todo generado por código, en local.
 
 Dos piezas:
-- **Plugin de Claude Code** (`plugin/`): siete skills (`frame28-director` orquesta; `frame28-transcribe`,
-  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-compose`). Claude dirige el montaje.
+- **Plugin de Claude Code** (`plugin/`): ocho skills (`frame28-director` orquesta; `frame28-transcribe`,
+  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-i18n`, `frame28-compose`).
+  Claude dirige el montaje.
 - **CLI Python `frame28`** (`plugin/cli/frame28/`, click): los pasos deterministas. Las skills lo invocan por Bash.
 
 El **contrato** entre ambos es el **storyboard JSON** (`plugin/cli/frame28/STORYBOARD.md` lo documenta;
@@ -37,6 +38,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   reframe(apaisado → 9:16 siguiendo la cara con zona muerta, o fondo desenfocado),
                                   clips(fábrica de shorts: tramos por momentos, ganchos, recorte, storyboard de partida),
                                   cover(portada/miniatura: composición estática + hyperframes snapshot),
+                                  i18n(extraer/aplicar textos traducidos; palabras redistribuidas sobre el ritmo original),
                                   captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
                                   licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG
@@ -130,6 +132,8 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
   el contenedor del `broll` no lleva `data-start`; su visibilidad va por opacidad.
 - **No estimar anchos de texto en Python**: el rótulo recortaba títulos según la fuente que cargara el navegador.
   La caja se dimensiona sola (`width: max-content`) y el tecleo es un `clip-path` tweeneado.
+- **Cajas de resaltado por línea (hook, portada)**: la caja de la línea siguiente tapaba los descendentes (g, y, p)
+  de la anterior. Cada línea lleva `position:relative; z-index` decreciente y algo más de padding inferior.
 - **Fondos claros**: cinéticos blancos o en acento no se leen (tutoriales cenitales, mesas, telas). `kinetic` tiene
   `color`; usar la tinta de la marca.
 - **Añadir una dependencia a `pyproject.toml` no la instala**: la instalación editable no relee dependencias.

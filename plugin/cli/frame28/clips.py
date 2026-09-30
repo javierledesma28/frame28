@@ -141,7 +141,12 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
           "caption_style": {"preset": "pages", "words": "words.json", "max_words": 4, "bottom": int(0.18 * H)},
           "overlays": [{"type": "hook", "id": "hook", "start": 0.2, "end": min(3.2, dur - 1), "at": 0.3, "lines": hook["lines"], "bg": "accent"}]}
     if brand:
-        sb["brand"] = brand
+        bp = Path(brand) if isinstance(brand, str) else None
+        if bp is not None and bp.suffix == ".json" and bp.exists():
+            import os
+            sb["brand"] = os.path.relpath(bp.resolve(), d.resolve()).replace("\\", "/")  # relativa al storyboard del short
+        else:
+            sb["brand"] = brand
     if cta:
         c = {"type": "cta", "id": "cta", "start": round(max(dur - 5.0, 3.5), 2), "end": dur, "at": round(max(dur - 4.9, 3.6), 2), **cta}
         sb["overlays"].append(c)

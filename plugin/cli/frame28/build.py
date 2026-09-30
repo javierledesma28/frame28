@@ -120,7 +120,7 @@ CSS = """
       .draw svg * { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
       /* venta: gancho, CTA, progreso de pasos, antes/después */
       .hook { position: absolute; text-align: center; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; opacity: 0; }
-      .hook .hl { display: inline; padding: 0.04em 0.3em; box-decoration-break: clone; -webkit-box-decoration-break: clone; border-radius: 0.18em; }
+      .hook .hl { display: inline; padding: 0.04em 0.3em 0.08em; box-decoration-break: clone; -webkit-box-decoration-break: clone; border-radius: 0.18em; }
       .hook.accent .hl { background: var(--accent); color: var(--ink); }
       .hook.black .hl { background: rgba(10,10,10,.88); color: #fff; }
       .hook.white .hl { background: var(--paper); color: var(--ink); }
@@ -178,8 +178,10 @@ USER_BRANDS = Path.home() / ".config" / "frame28" / "brands"
 def resolve_brand(name_or_path: str, near: Path | None = None) -> Path:
     """Orden: ruta explícita -> ./brands/<n>.json junto al proyecto -> ~/.config/frame28/brands -> incluidas."""
     p = Path(name_or_path)
-    if p.suffix == ".json" and p.exists():
-        return p
+    if p.suffix == ".json":
+        for cand in ([p] + ([near / p, near.parent / p] if near and not p.is_absolute() else [])):
+            if cand.exists():
+                return cand
     cands = []
     if near:
         cands += [near / "brands" / f"{name_or_path}.json", near.parent / "brands" / f"{name_or_path}.json"]
@@ -487,7 +489,8 @@ class Builder:
         bg = o.get("bg", "accent")
         lines = o.get("lines") or [o["text"]]
         x = int(o.get("x", 60)); w = int(o.get("w", self.W - 2 * x)); y = int(o.get("y", 160 if self.narrow else 90))
-        inner = "".join(f'<div><span class="hl" id="{i}-l{k}">{esc(t)}</span></div>' for k, t in enumerate(lines))
+        # cada línea por encima de la siguiente: los descendentes (g, y, p) se pintan sobre la caja de abajo, no debajo
+        inner = "".join(f'<div style="position:relative; z-index:{100 - k}"><span class="hl" id="{i}-l{k}">{esc(t)}</span></div>' for k, t in enumerate(lines))
         color = f" color:{o['color']};" if o.get("color") else ""
         self.timed(o, f"inset:auto; left:{x}px; top:{y}px; width:{w}px; height:max-content; font-size:{size}px;{color}", cls=f"clip hook {bg}", inner=inner, z=6, track=4)
         self.js.append(f'tl.set("#{i}", {{ opacity: 1 }}, {at});')

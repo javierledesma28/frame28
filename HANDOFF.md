@@ -162,7 +162,14 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   arranque del navegador incluido). Probado en 1280×720 (Cliente A, YouTube), 1080×1920 (demo, Shorts) y
   1080×1080 (Cliente A, ficha). Trampa: `hyperframes snapshot` resuelve el DIR relativo a su propio cwd: pasar rutas
   absolutas.
-- Pendiente del bloque: versión en otro idioma, marcadores de resultado en la transcripción.
+- **Otro idioma hecho** (`i18n.py`, `frame28 i18n extract|apply`, skill `frame28-i18n`): extracción de todos los
+  textos visibles con clave estable, tipo, instante y límite orientativo; aplicación con los mismos tiempos y aviso
+  si el texto crece > 35 %; con `caption_style` por palabras, `retime_words` reparte las palabras de cada frase
+  traducida sobre los inicios de las palabras originales (mismas pausas) → `words.<lang>.json`. Probado con el
+  short s4 de Cliente A en español.
+- Corregido tras aviso del usuario: en `hook` y en la portada, la caja de resaltado de la línea siguiente tapaba los
+  descendentes (la "g" de "Engrave"); ahora cada línea va por encima de la siguiente.
+- Pendiente del bloque: marcadores de resultado en la transcripción; doblaje (TTS) queda en el roadmap (14).
 
 ## Problemas conocidos y dudas
 
