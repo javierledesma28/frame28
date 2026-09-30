@@ -260,6 +260,85 @@ def cut_apply(video, cuts, audio, words, captions, storyboard, out_dir, as_json)
 
 
 @main.group()
+def broll():
+    """B-roll de stock (Pexels/Pixabay) con licencia registrada: sugerir, buscar, elegir y descargar."""
+
+
+@broll.command("providers")
+def broll_providers():
+    """Qué proveedores tienen clave (PEXELS_API_KEY, PIXABAY_API_KEY o ~/.config/frame28/keys.json)."""
+    from .broll import providers_available, KEYS_FILE
+    p = providers_available()
+    for k, v in p.items():
+        click.echo(f"  {k:<8} {'clave OK' if v else 'sin clave'}")
+    if not any(p.values()):
+        click.echo(f"  Consigue claves gratuitas en https://www.pexels.com/api/ y https://pixabay.com/api/docs/ y guárdalas en\n  {KEYS_FILE}  como {{\"PEXELS_API_KEY\": \"...\", \"PIXABAY_API_KEY\": \"...\"}}  o como variables de entorno.")
+
+
+@broll.command("suggest")
+@click.argument("captions", type=click.Path(exists=True))
+@click.option("--lang", default="es", show_default=True)
+@click.option("--json", "as_json", is_flag=True)
+def broll_suggest(captions, lang, as_json):
+    """Palabras clave por frase (de captions.json) como punto de partida para las búsquedas."""
+    from .broll import suggest
+    s = suggest(captions, lang)
+    if as_json:
+        out(s, True)
+    else:
+        for x in s:
+            click.echo(f"{x['start']:7.2f}–{x['end']:6.2f}  {x['query']:<28}  {x['text'][:70]}")
+
+
+@broll.command("search")
+@click.argument("query")
+@click.option("--kind", type=click.Choice(["video", "photo"]), default="video", show_default=True)
+@click.option("--provider", type=click.Choice(["auto", "pexels", "pixabay"]), default="auto", show_default=True)
+@click.option("--orientation", type=click.Choice(["landscape", "portrait", "square"]), default="landscape", show_default=True)
+@click.option("--per-page", default=8, show_default=True)
+@click.option("--sheet", "sheet_png", type=click.Path(), default=None, help="hoja de contacto PNG de los candidatos")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar candidatos en JSON (para fetch)")
+@click.option("--json", "as_json", is_flag=True)
+def broll_search(query, kind, provider, orientation, per_page, sheet_png, out_json, as_json):
+    """Busca vídeos o fotos de stock. Usa consultas en inglés y concretas ("city traffic night", no "ciudad")."""
+    from .broll import search, sheet, providers_available
+    if not any(providers_available().values()):
+        raise SystemExit("Sin claves de Pexels/Pixabay: ejecuta `frame28 broll providers`.")
+    items = search(query, kind, provider, orientation, per_page)
+    if out_json:
+        Path(out_json).write_text(json.dumps(items, indent=1, ensure_ascii=False), encoding="utf-8")
+    if sheet_png and items:
+        sheet(items, sheet_png)
+    if as_json:
+        out(items, True)
+    else:
+        for it in items:
+            click.echo(f"  {it['id']:<18} {it['kind']:<5} {str(it.get('duration') or ''):>4}s {it.get('width')}x{it.get('height')}  {it.get('author') or ''}  {it.get('page')}")
+        if sheet_png:
+            click.echo(f"  hoja: {sheet_png}")
+        if out_json:
+            click.echo(f"  candidatos: {out_json}")
+
+
+@broll.command("fetch")
+@click.argument("candidates", type=click.Path(exists=True))
+@click.argument("item_id")
+@click.option("-o", "--out", "out_dir", default="work/broll", show_default=True, type=click.Path())
+@click.option("--in", "trim_in", default=0.0, show_default=True, help="segundo del clip de stock por el que empezar")
+@click.option("--duration", default=None, type=float, help="segundos a conservar (recorta a *_cut.mp4, sin audio, 30 fps)")
+@click.option("--width", default=None, type=int, help="reescalar el recorte a este ancho")
+@click.option("--json", "as_json", is_flag=True)
+def broll_fetch(candidates, item_id, out_dir, trim_in, duration, width, as_json):
+    """Descarga un candidato (id de `search -o`) con su sidecar de licencia; opcionalmente recortado."""
+    from .broll import fetch
+    items = json.loads(Path(candidates).read_text(encoding="utf-8"))
+    it = next((x for x in items if x["id"] == item_id), None)
+    if not it:
+        raise SystemExit(f"id {item_id} no está en {candidates}")
+    out(fetch(it, out_dir, trim_in, duration, width), as_json or True)
+
+
+@main.group()
 def captions():
     """Subtítulos: exportar SRT/VTT legibles a partir de words.json."""
 
