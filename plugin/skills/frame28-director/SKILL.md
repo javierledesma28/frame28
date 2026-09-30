@@ -81,6 +81,11 @@ Si el storyboard usa `behind`, genera la máscara **solo** para ese tramo → sk
 frame28 matte work/clip.mp4 --start 4.3 --end 6.8 -o work/alpha_4.3.webm
 ```
 
+Si un tramo de más de 6 s no tiene nada visual que aportar (el hablante explica algo abstracto, un lugar, un
+proceso), pon un plano de apoyo → skill `frame28-broll`: material propio del usuario o stock de Pexels/Pixabay con
+licencia registrada (`frame28 broll suggest/search/fetch`), escrito como overlay `broll` (pantalla completa o `pip`).
+Uno o dos por minuto como mucho.
+
 Valida: `frame28 storyboard validate work/storyboard.json`.
 
 ## 4. Construir, comprobar y renderizar → skill `frame28-compose`

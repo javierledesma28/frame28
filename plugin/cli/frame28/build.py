@@ -14,7 +14,7 @@ from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
 
-OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw"}
+OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw", "broll"}
 
 DEFAULT_BRAND = {
     "accent": "#EA77A1",
@@ -106,6 +106,13 @@ CSS = """
       .w .wi { display: inline-block; }
       .w.rise { overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; margin-bottom: -0.08em; }
       .draw { position: absolute; opacity: 0; }
+      /* b-roll: a pantalla completa (tapa al hablante) o como ventana (pip) */
+      .broll { position: absolute; overflow: hidden; opacity: 0; background: #000; }
+      .broll.full { inset: 0; }
+      .broll.pip { border-radius: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.45); }
+      .broll video, .broll img { display: block; width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
+      .broll .credit { position: absolute; right: 22px; top: 16px; font-family: var(--mono); font-size: 20px; letter-spacing: 0.08em; color: rgba(255,255,255,.75); text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+      .broll .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 28px; font-weight: 600; font-size: 40px; letter-spacing: -0.03em; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.7)); }
       .draw svg { width: 100%; height: 100%; overflow: visible; }
       .draw svg * { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: normal; text-align: center; line-height: 1.25; max-width: calc(100% - 80px); width: max-content; font-size: {capsize}px; }
@@ -377,6 +384,39 @@ class Builder:
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0, scale: 0.92, y: 20 }}, {{ opacity: 1, scale: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {o.get("at", o["start"])});')
         self.fade_out(f"#{i}", o["end"])
 
+    def broll(self, o: dict) -> None:
+        """B-roll: vídeo o imagen de apoyo. `full` (por defecto) tapa al hablante; `pip: {x,y,w,h}` lo pone en una ventana.
+        `in` recorta el punto de entrada del clip (data-media-start), `ken_burns` anima escala/paneo, `credit` firma
+        la esquina, `caption` rotula abajo. Entra y sale con fundido corto."""
+        i = o["id"]; at = o.get("at", o["start"]); src = self.asset(o["src"])
+        is_video = Path(src).suffix.lower() in (".mp4", ".webm", ".mov", ".m4v")
+        pip = o.get("pip")
+        cls = "clip broll " + ("pip" if pip else "full")
+        style = f"left:{pip['x']}px; top:{pip['y']}px; width:{pip['w']}px; height:{pip['h']}px; inset:auto;" if pip else ""
+        dur = round(o["end"] - o["start"], 3)
+        media_start = f' data-media-start="{o["in"]}"' if o.get("in") else ""
+        loop = ' data-loop="true"' if o.get("loop") else ""
+        if is_video:
+            media = (f'<video id="{i}-m" data-start="{o["start"]}" data-duration="{dur}" data-track-index="5"{media_start}{loop} '
+                     f'src="{src}" muted playsinline></video>')
+        else:
+            media = f'<img id="{i}-m" src="{src}" alt="">'
+        credit = f'<div class="credit">{esc(o["credit"])}</div>' if o.get("credit") else ""
+        cap = f'<div class="cap" id="{i}-c">{esc(o["caption"])}</div>' if o.get("caption") else ""
+        # el contenedor NO lleva data-start (un <video> temporizado dentro de otro elemento temporizado confunde al
+        # extractor de HyperFrames): su visibilidad la lleva la opacidad; el vídeo tiene su propia ventana.
+        self.html.append(f'<div id="{i}" class="{cls}" style="z-index:{5 if not pip else 4};{style}">{media}{cap}{credit}</div>')
+        fade = float(o.get("fade", 0.25))
+        self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: {fade} }}, {at});')
+        kb = o.get("ken_burns")
+        if kb:
+            s0 = float(kb.get("from", 1.0)); s1 = float(kb.get("to", 1.12))
+            pan = kb.get("pan", "none"); dx = {"left": -3, "right": 3}.get(pan, 0); dy = {"up": -3, "down": 3}.get(pan, 0)
+            self.js.append(f'tl.fromTo("#{i}-m", {{ scale: {s0}, xPercent: 0, yPercent: 0 }}, {{ scale: {s1}, xPercent: {dx}, yPercent: {dy}, duration: {dur}, ease: "none" }}, {o["start"]});')
+        if o.get("caption"):
+            self.js.append(f'tl.fromTo("#{i}-c", {{ opacity: 0, y: 16 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {round(at + 0.2, 3)});')
+        self.fade_out(f"#{i}", o["end"], fade)
+
     def brand_card(self, o: dict) -> None:
         """Tarjeta de marca (apertura o cierre): logo + título + subtítulo + endorsement, sobre negro o acento."""
         i = o["id"]; bg = o.get("bg", "black"); at = o.get("at", o["start"])
@@ -634,7 +674,8 @@ def validate(sb: dict) -> list[str]:
         t = o.get("type")
         req = {"lower_third": ["x", "y", "title"], "box": ["x", "y", "text"], "kinetic": ["x", "y", "lines"],
                "behind": ["text", "matte"], "pointer": ["dot", "box", "text"], "card": ["title"],
-               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"], "draw": ["x", "y", "w"]}.get(t, [])
+               "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"], "draw": ["x", "y", "w"],
+               "broll": ["src"]}.get(t, [])
         for k in req:
             if k not in o:
                 errs.append(f"{p} ({t}): falta '{k}'")

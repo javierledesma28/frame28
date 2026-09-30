@@ -11,8 +11,8 @@ identidad, títulos cinéticos por palabra, texto detrás del hablante, callouts
 subtítulos y tarjeta de marca. Todo generado por código, en local.
 
 Dos piezas:
-- **Plugin de Claude Code** (`plugin/`): cinco skills (`frame28-director` orquesta; `frame28-transcribe`,
-  `frame28-cutout`, `frame28-storyboard`, `frame28-compose`). Claude dirige el montaje.
+- **Plugin de Claude Code** (`plugin/`): seis skills (`frame28-director` orquesta; `frame28-transcribe`,
+  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-compose`). Claude dirige el montaje.
 - **CLI Python `frame28`** (`plugin/cli/frame28/`, click): los pasos deterministas. Las skills lo invocan por Bash.
 
 El **contrato** entre ambos es el **storyboard JSON** (`plugin/cli/frame28/STORYBOARD.md` lo documenta;
@@ -33,7 +33,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
   skills/frame28-*/SKILL.md       skills; frame28-storyboard/references/ = técnicas, guía de grabación, ejemplo
   cli/pyproject.toml              paquete Python (uv); pin av>=11,<18 (ver Trampas)
   cli/frame28/                    env, media(prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
-                                  captions(páginas por palabra, SRT/VTT, lienzo por defecto), build(generador), render,
+                                  captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
+                                  licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG
 docs/                             GitHub Pages: presentacion/ (deck), install.ps1, install.sh, CNAME, .nojekyll,
                                   brand/ (logos oficiales), guia-plugin.md, index.html (redirige a la presentación)
