@@ -37,6 +37,8 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
    del pelo), la inferior (`y` 1150–1650, sobre el torso; los subtítulos van de 1650 abajo) y poco a los lados. Usa
    `box`/`kinetic` arriba, `pointer` con la caja sobre el torso, `card`/`counter` a pantalla completa para tapar
    silencios, y `caption_style` `pages` en vez de `captions` por frase. Nada de `chart bar` con más de 3 filas.
+   Si el vertical viene de `frame28 reframe --mode blur`, las franjas `free_bands` (arriba y abajo del vídeo) son
+   el sitio natural de cinéticos, cajas y subtítulos; el vídeo queda en la banda central.
 4. **Ritmo**: un evento visual cada 2–4 s; ningún tramo de más de 8 s sin nada; máximo un overlay grande a la
    vez, más subtítulos. Los overlays se solapan solo si están en zonas distintas.
 5. **Tiempos**: `start` = 0,05 s antes del `at`; `end` = fin de la frase o inicio del siguiente overlay en la

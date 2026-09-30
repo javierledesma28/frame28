@@ -85,6 +85,19 @@ con una `card` o un `counter` a pantalla completa en el storyboard. **A partir d
 storyboard). Si ya existía un storyboard, `--storyboard` lo remapea; si un corte cae dentro de un `behind`,
 regenera su máscara sobre el clip cortado.
 
+## 2c. Vertical (Reels, Shorts, TikTok) desde un clip apaisado
+
+Si el destino es vertical y el clip es 16:9, reencuadra **después de los cortes** y antes de speaker/gestures/matte:
+```bash
+frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 --path work/cut/reframe.json          # sigue al hablante
+frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 --mode blur                            # 16:9 entero sobre fondo desenfocado
+```
+`crop` recorta una ventana 9:16 de altura completa que sigue la cara (MediaPipe) con zona muerta y suavizado, como
+un operador de cámara: los gestos hacia los lados se pierden (mira `moving_samples` y la hoja de contacto).
+`blur` conserva todo el encuadre y deja dos franjas libres (`free_bands`) para overlays y subtítulos. A partir de
+aquí todo (speaker, gestures, matte, storyboard con `canvas` 1080×1920, `caption_style` `pages`) va sobre el clip
+vertical. Un clip que ya es vertical no necesita este paso.
+
 ## 3. Decidir el storyboard → skill `frame28-storyboard`
 
 Escribe `work/storyboard.json` siguiendo `frame28 storyboard schema` y las reglas de dirección de la skill

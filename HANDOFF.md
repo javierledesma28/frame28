@@ -125,6 +125,17 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   orientativa.
 - Control: el clip de hablante a cámara (`clip-demo`) da 0 textos y 0 tarjetas.
 
+## Hecho después: reencuadre automático a 9:16 (`frame28 reframe`)
+
+- `reframe.py`: modo `crop` (ventana 9:16 de altura completa; centro del sujeto = 0,6·nariz + 0,4·hombros de
+  `pose.track` a 10 fps; cámara con zona muerta 10 % del ancho, suavizado exponencial τ 0,8 s, velocidad máxima
+  0,5 anchos/s y media móvil de 0,4 s; recorte por fotograma con OpenCV y codificación por tubería a ffmpeg,
+  `reframe.json` con el camino y `map_point()` para pasar coordenadas del original) y modo `blur` (filtro ffmpeg:
+  fondo escalado y desenfocado + 16:9 centrado; `free_bands`). Probado en `clip-demo` (66 s: 1 min 45 s en crop,
+  47 s en blur; cámara casi quieta porque el hablante está centrado).
+- Pendiente: probar en un clip donde el hablante se desplace de verdad; `reframe map` para convertir los
+  `pointer` del original sin repetir `gestures`.
+
 ## Problemas conocidos y dudas
 
 - El instalador `install.ps1` **sustituye** una instalación editable del CLI por la de GitHub. En esta máquina se
