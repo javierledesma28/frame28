@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- artifact:head -->
+<title>Frame28 Roadmap</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  /* Layout: una vía de versiones arriba (dónde estamos) y debajo cada versión como un vagón:
+     cabecera con objetivo y criterio de cierre, y sus ítems en filas compactas con el estado a la izquierda. */
+  :root {
+    --bg: #FAFAF7;        /* papel Think28 con un punto cálido */
+    --bg-2: #F1F0EA;      /* superficie: cabeceras de versión, chips */
+    --fg: #0A0A0A;        /* tinta Think28 */
+    --fg-2: #5E5D57;      /* texto secundario */
+    --line: #DEDCD3;
+    --accent: #F5C500;    /* amarillo Think28: solo para "estás aquí" y "siguiente" */
+    --accent-ink: #0A0A0A;
+    --ok: #1C7F49;  --ok-bg: #DFF2E6;
+    --mid: #9A5F00; --mid-bg: #FAEBC8;
+    --todo: #6E6E68; --todo-bg: #E9E8E2;
+    --sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Space Mono', 'Cascadia Mono', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0A0A0A; --bg-2: #161614; --fg: #F2F1EC; --fg-2: #A9A8A0; --line: #2A2A26;
+      --accent: #F5C500; --accent-ink: #0A0A0A;
+      --ok: #5FCB8B; --ok-bg: #12321F; --mid: #E9B94B; --mid-bg: #3A2B07; --todo: #9A9A93; --todo-bg: #1F1F1C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0A0A0A; --bg-2: #161614; --fg: #F2F1EC; --fg-2: #A9A8A0; --line: #2A2A26;
+    --accent: #F5C500; --accent-ink: #0A0A0A;
+    --ok: #5FCB8B; --ok-bg: #12321F; --mid: #E9B94B; --mid-bg: #3A2B07; --todo: #9A9A93; --todo-bg: #1F1F1C;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); line-height: 1.5;
+         -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 56px; }
+  a { color: inherit; }
+  h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.03em; }
+  .mono { font-family: var(--mono); }
+  .eyebrow { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-2); }
+
+  /* cabecera */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo svg { height: 34px; width: auto; display: block; }
+  .top .date { font-family: var(--mono); font-size: 0.8rem; color: var(--fg-2); }
+  .title { margin-top: 28px; display: grid; gap: 10px; }
+  .title h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; line-height: 1.02; }
+  .title p { margin: 0; max-width: 62ch; color: var(--fg-2); font-size: 1.05rem; }
+
+  /* vía de versiones */
+  .track { margin-top: 32px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; position: relative; }
+  .track::before { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 2px; background: var(--line); }
+  .stop { position: relative; padding-top: 30px; min-width: 0; }
+  .stop::before { content: ""; position: absolute; top: 4px; left: 0; width: 16px; height: 16px; border-radius: 50%;
+                  background: var(--bg); border: 2px solid var(--fg-2); }
+  .stop.done::before { background: var(--fg); border-color: var(--fg); }
+  .stop.here::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 28%, transparent); }
+  .stop .v { font-family: var(--mono); font-weight: 700; font-size: 0.95rem; }
+  .stop .w { font-size: 0.8rem; color: var(--fg-2); line-height: 1.3; }
+  .stop.here .w, .stop.here .v { color: var(--fg); }
+  .stop .here-tag { display: inline-block; margin-top: 6px; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+                    text-transform: uppercase; background: var(--accent); color: var(--accent-ink); padding: 2px 8px; border-radius: 999px; }
+  @media (max-width: 720px) {
+    .track { grid-template-columns: repeat(3, 1fr); row-gap: 18px; }
+    .track::before { display: none; }
+  }
+
+  /* cifras */
+  .facts { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .fact { border-top: 2px solid var(--fg); padding-top: 8px; min-width: 0; }
+  .fact b { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; display: block; line-height: 1.1; }
+  .fact span { font-size: 0.82rem; color: var(--fg-2); }
+
+  /* controles */
+  .controls { margin-top: 40px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .controls .lbl { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-2); margin-right: 6px; }
+  .btn { font: 600 0.82rem var(--sans); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-2);
+         color: var(--fg); cursor: pointer; }
+  .btn[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .legend { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.8rem; color: var(--fg-2); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+
+  /* versiones */
+  .version { margin-top: 36px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .vhead { background: var(--bg-2); padding: 18px 20px; display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: baseline; }
+  .vhead .num { font-family: var(--mono); font-weight: 700; font-size: 1.35rem; }
+  .vhead h2 { font-size: 1.35rem; font-weight: 800; }
+  .vhead .meta { grid-column: 1 / -1; display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.85rem; color: var(--fg-2); }
+  .vhead .meta b { color: var(--fg); font-weight: 600; }
+  .vhead .goal { grid-column: 1 / -1; margin: 4px 0 0; max-width: 72ch; }
+  .vhead .close { grid-column: 1 / -1; margin: 0; font-size: 0.9rem; color: var(--fg-2); max-width: 72ch; }
+  .vhead .close b { color: var(--fg); font-weight: 600; }
+  .version.next .vhead { border-left: 6px solid var(--accent); }
+  .version.here .vhead { border-left: 6px solid var(--fg); }
+  .vtag { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .vtag.pub { background: var(--ok-bg); color: var(--ok); }
+  .vtag.nxt { background: var(--accent); color: var(--accent-ink); }
+  .vtag.cond { background: var(--todo-bg); color: var(--todo); }
+  .items { list-style: none; margin: 0; padding: 0; }
+  .item { display: grid; grid-template-columns: 96px 1fr auto; gap: 6px 16px; align-items: start; padding: 12px 20px; border-top: 1px solid var(--line); }
+  .item.is-next { background: color-mix(in srgb, var(--accent) 10%, var(--bg)); }
+  .status { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px;
+            white-space: nowrap; justify-self: start; margin-top: 2px; }
+  .status.hecho { background: var(--ok-bg); color: var(--ok); }
+  .status.medias { background: var(--mid-bg); color: var(--mid); }
+  .status.pendiente { background: var(--todo-bg); color: var(--todo); }
+  .what { min-width: 0; }
+  .what .t { font-weight: 600; }
+  .what .t .nx { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--accent);
+                  color: var(--accent-ink); padding: 2px 7px; border-radius: 999px; margin-left: 8px; vertical-align: 2px; }
+  .what .d { color: var(--fg-2); font-size: 0.92rem; margin-top: 2px; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; font-family: var(--mono); font-size: 0.7rem; color: var(--fg-2); }
+  .tags span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+  .tags .val-alto { border-color: var(--fg); color: var(--fg); }
+  .empty { padding: 14px 20px; border-top: 1px solid var(--line); color: var(--fg-2); font-size: 0.9rem; }
+  @media (max-width: 640px) {
+    .item { grid-template-columns: 1fr; gap: 6px; }
+    .tags { justify-content: flex-start; }
+  }
+
+  /* pie */
+  .foot { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+          font-size: 0.82rem; color: var(--fg-2); }
+  .foot p { margin: 0; max-width: 70ch; }
+  @media (prefers-reduced-motion: no-preference) { .btn, .item { transition: background .15s ease; } }
+</style>
+<!-- /artifact:head -->
+</head>
+<body>
+<!-- artifact:body -->
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="https://t28.io" aria-label="Think28">
+      <svg viewBox="0 0 480 120" role="img" aria-label="Think28"><rect width="480" height="120" rx="14" fill="#0a0a0a"/><text x="32" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-2">Think</text><text x="248" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#F5C500" letter-spacing="-3">28</text><rect x="32" y="88" width="24" height="1.5" fill="#F5C500" opacity="0.45"/><text x="32" y="106" font-family="Inter,Arial,sans-serif" font-weight="300" font-size="10" fill="#8a8a8a" letter-spacing="2">DIGITAL GROWTH PARTNER</text></svg>
+    </a>
+    <div class="date">Frame28 · roadmap · actualizado 2026-09-30</div>
+  </header>
+
+  <section class="title">
+    <div class="eyebrow">Dónde estamos y qué viene</div>
+    <h1>Frame28, versión a versión</h1>
+    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Tres versiones publicadas en dos días; la siguiente hace el montaje fiable para entregarlo a clientes.</p>
+  </section>
+
+  <nav class="track" aria-label="Versiones">
+    <div class="stop done"><div class="v">v0.1.0</div><div class="w">29 sep · funciona de punta a punta</div></div>
+    <div class="stop done"><div class="v">v0.2.0</div><div class="w">30 sep · suena y se instala bien</div></div>
+    <div class="stop done here"><div class="v">v0.3.0</div><div class="w">30 sep · del clip al vídeo que vende</div><span class="here-tag">Estás aquí</span></div>
+    <div class="stop"><div class="v">v0.4.0</div><div class="w">fiable para entregar a clientes</div></div>
+    <div class="stop"><div class="v">v0.5.0</div><div class="w">calidad y alcance</div></div>
+    <div class="stop"><div class="v">v1.0.0</div><div class="w">producto, si la demanda lo pide</div></div>
+  </nav>
+
+  <section class="facts" aria-label="Cifras de hoy">
+    <div class="fact"><b>38</b><span>órdenes del CLI</span></div>
+    <div class="fact"><b>17</b><span>tipos de overlay</span></div>
+    <div class="fact"><b>8</b><span>skills del plugin</span></div>
+    <div class="fact"><b>5</b><span>casos reales montados</span></div>
+    <div class="fact"><b>3</b><span>releases públicas</span></div>
+  </section>
+
+  <div class="controls" role="group" aria-label="Filtrar por estado">
+    <span class="lbl">Ver</span>
+    <button class="btn" data-f="todos" aria-pressed="true" id="f-todos">Todo</button>
+    <button class="btn" data-f="hecho" aria-pressed="false" id="f-hecho">Hecho</button>
+    <button class="btn" data-f="medias" aria-pressed="false" id="f-medias">A medias</button>
+    <button class="btn" data-f="pendiente" aria-pressed="false" id="f-pendiente">Pendiente</button>
+    <div class="legend"><span><i style="background:var(--ok)"></i>hecho</span><span><i style="background:var(--mid)"></i>a medias, con el porqué</span><span><i style="background:var(--todo)"></i>pendiente</span><span><i style="background:var(--accent)"></i>siguiente</span></div>
+  </div>
+
+  <main id="versions"></main>
+
+  <footer class="foot">
+    <p>Fuentes: <span class="mono">research/04</span> (18 ítems, R4), <span class="mono">research/05</span> (8 mejoras, R5), catálogo de técnicas (T), HANDOFF y el relevamiento del 30 de septiembre. Esfuerzo S/M/L y valor como en la investigación.</p>
+    <p>A Think28 product · <a href="https://frame28.t28.io">frame28.t28.io</a></p>
+  </footer>
+</div>
+
+<script>
+// Datos del roadmap. Estado: hecho | medias | pendiente. `why` explica lo que falta cuando está a medias.
+const ROADMAP = [
+  { v: "v0.1.0", name: "Que funcione de punta a punta", date: "29 sep 2026", state: "pub",
+    goal: "Un clip real entra y sale un MP4 con overlays sincronizados con la voz, sin tocar HTML.",
+    close: "Publicada como release v0.1.0.",
+    items: [
+      { t: "Plugin de Claude Code con cinco skills", d: "director, transcribe, cutout, storyboard y compose: el agente dirige, el CLI ejecuta.", s: "hecho", e: "M", val: "alto" },
+      { t: "CLI base sobre HyperFrames", d: "prep, transcribe (faster-whisper), matte (RobustVideoMatting), speaker, build, check y render, todo en CPU.", s: "hecho", e: "L", val: "alto" },
+      { t: "Storyboard JSON como contrato", d: "Qué aparece, cuándo y dónde; el generador lo convierte en HTML, CSS y una línea de tiempo GSAP.", s: "hecho", e: "M", val: "alto" },
+      { t: "Diez overlays base", d: "Rótulo, caja, cinético, texto detrás, callout, pizarras, lista con foco, palabra a palabra, imagen y subtítulos.", s: "hecho", e: "M", val: "alto", ref: "T1–T8, T15" },
+      { t: "Brand kit y tarjeta de marca", d: "Marca por nombre o por fichero; logo, tagline y endorsement en el rótulo y en la tarjeta de cierre.", s: "hecho", e: "S", val: "medio" },
+      { t: "Gráficas: barras con ganador y contador", d: "Barras horizontales agrupadas que crecen una a una y cifra que cuenta desde cero.", s: "hecho", e: "M", val: "alto", ref: "T10c, T10f" },
+      { t: "Gestos de señalar", d: "MediaPipe Pose detecta cuándo el hablante señala y propone el callout ya colocado.", s: "hecho", e: "M", val: "alto", ref: "T6" }
+    ] },
+  { v: "v0.2.0", name: "Que suene y se instale bien", date: "30 sep 2026", state: "pub",
+    goal: "El clip llega con silencios, muletillas y ruido; el resultado sale limpio y cualquiera lo instala en una línea.",
+    close: "Publicada como release v0.2.0, probada en un anuncio real de 58 s.",
+    items: [
+      { t: "Jump cuts por transcripción", d: "Silencios, muletillas y falsos arranques fuera, con fundidos de 30 ms; remapea palabras, subtítulos y storyboard.", s: "hecho", e: "M", val: "alto", ref: "R4 #1" },
+      { t: "Limpieza de voz y sonoridad", d: "Graves, reducción de ruido y loudnorm en dos pasadas a −14 LUFS; medida antes y después.", s: "hecho", e: "S", val: "alto", ref: "R4 #2" },
+      { t: "GSAP 3.13 con plugins", d: "Revelados rise y chars (SplitText) e iconos que se dibujan (DrawSVG, Lucide).", s: "hecho", e: "S", val: "alto", ref: "R4 #3, T7b" },
+      { t: "Instaladores de una línea", d: "Windows y macOS, interactivos, para equipos recién estrenados; asistente web e instrucciones para que Claude instale.", s: "hecho", e: "M", val: "alto" },
+      { t: "Web y guía", d: "frame28.t28.io con la presentación paso a paso para personas no técnicas.", s: "hecho", e: "S", val: "medio" }
+    ] },
+  { v: "v0.3.0", name: "Del clip al vídeo que vende", date: "30 sep 2026", state: "pub", here: true,
+    goal: "Un tutorial de una marca DTC se convierte en vídeo largo, shorts verticales, portada y versión en otro idioma.",
+    close: "Publicada como release v0.3.0, probada con un tutorial real de Cliente A de 3 min 17 s.",
+    items: [
+      { t: "Lienzo vertical y cuadrado", d: "canvas 1080×1920 y 1080×1080 en todo el pipeline; avisos de zonas seguras de TikTok, Reels y Shorts.", s: "hecho", e: "S", val: "alto", ref: "R5 #3" },
+      { t: "Reencuadre a 9:16", d: "Ventana que sigue la cara con zona muerta y suavizado, o fondo desenfocado con franjas libres.", s: "hecho", e: "M", val: "alto", ref: "R4 #7" },
+      { t: "Subtítulos por palabras y SRT/VTT", d: "Presets pages y karaoke; exportación legible con límites de caracteres, duración y velocidad.", s: "hecho", e: "S", val: "alto", ref: "R4 #5" },
+      { t: "B-roll de stock", d: "Overlay broll, sugerencias por frase, búsqueda en Pexels y Pixabay con licencia en sidecar, skill.", s: "medias", why: "sin claves de API: la búsqueda real no está probada", e: "M", val: "alto", ref: "R4 #4" },
+      { t: "Gráficos que ya trae el vídeo", d: "OCR de rótulos, marca de agua, subtítulos quemados y tarjetas; zonas libres y aviso de colisiones.", s: "hecho", e: "M", val: "alto" },
+      { t: "Descarga de YouTube o Vimeo", d: "yt-dlp sin instalar nada, con sidecar de origen.", s: "hecho", e: "S", val: "medio" },
+      { t: "Overlays de venta", d: "Gancho de 3 s, llamada a la acción con precio, código y QR, progreso de pasos y antes/después.", s: "hecho", e: "M", val: "alto", ref: "R5 #1" },
+      { t: "Fábrica de shorts", d: "Tramos con más momentos de venta, tres ganchos por tramo con la frase real del hablante, recorte y storyboard de partida.", s: "hecho", e: "M", val: "alto", ref: "R5 #2" },
+      { t: "Biblioteca de ganchos", d: "Diez tipos con plantillas en español e inglés y las frases que funcionaron en el caso.", s: "hecho", e: "S", val: "medio", ref: "R5 #4" },
+      { t: "Portada y miniatura", d: "Fotograma más título con resaltado, insignia, logo y aro, en 16:9, 9:16 y 1:1.", s: "hecho", e: "M", val: "alto", ref: "R5 #5" },
+      { t: "Versión en otro idioma", d: "Extrae los textos, el agente traduce, se aplican con los mismos tiempos y los subtítulos por palabras se redistribuyen.", s: "hecho", e: "S", val: "alto", ref: "R5 #6" },
+      { t: "Marca desde la web del cliente", d: "Colores del CSS, fuente y logo con variantes para fondo oscuro y de acento.", s: "hecho", e: "S", val: "medio" },
+      { t: "Higiene de mantenimiento", d: "Versión única, cargador tolerante de transcripciones, doctor con deriva de versión y red, checklist de release.", s: "hecho", e: "S", val: "medio" }
+    ] },
+  { v: "v0.4.0", name: "Fiable para entregar a clientes", date: "siguiente", state: "next",
+    goal: "Un vídeo para un cliente sale sin sorpresas, con todo lo que vende, y sabemos lo que cuesta producirlo.",
+    close: "Suite de pruebas en verde, B-roll real, un vídeo de cliente entregado con el flujo completo y su coste medido.",
+    items: [
+      { t: "Suite mínima de pruebas", d: "Módulos puros y rápidos, sin render: cargadores, cortes, subtítulos, shorts, i18n y validación del storyboard.", s: "pendiente", e: "M", val: "alto", next: true },
+      { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4" },
+      { t: "Coste y tiempo por vídeo", d: "Registro de duración por paso y de tokens por montaje: la base para fijar precio y detectar cuellos de botella.", s: "pendiente", e: "S", val: "alto" },
+      { t: "Variantes de gancho en lote", d: "Renderizar los tres ganchos de cada short de una vez para rotar creativos cada una o dos semanas.", s: "pendiente", e: "S", val: "alto", ref: "R5 #2" },
+      { t: "Marcadores de resultado", d: "Detectar en la transcripción las frases de resultado y proponer ahí el antes/después y el check.", s: "pendiente", e: "S", val: "medio", ref: "R5 #8" },
+      { t: "Ganchos para tramos sin momentos", d: "Hoy salen con una plantilla de curiosidad; deben usar la frase más fuerte del tramo.", s: "pendiente", e: "S", val: "medio" },
+      { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
+      { t: "Cuadrado 1:1 para ficha de producto", d: "El lienzo ya existe; falta el caso documentado y las reglas de colocación.", s: "medias", why: "soportado por canvas, sin caso ni documentación", e: "S", val: "medio", ref: "R5 #7" },
+      { t: "Callouts del original al vertical", d: "reframe map convierte los pointers detectados en apaisado sin repetir la detección de gestos.", s: "pendiente", e: "S", val: "medio" },
+      { t: "Gráfica de barras en vertical con más de tres filas", d: "El lienzo estrecho compacta la gráfica; con muchas filas se sale.", s: "pendiente", e: "S", val: "bajo" },
+      { t: "Reencuadre con hablante en movimiento", d: "Probar el modo crop con alguien que se desplace de verdad por el encuadre.", s: "pendiente", e: "S", val: "medio" },
+      { t: "Instalador de macOS en un Mac real", d: "Verificado en sintaxis, no en una máquina sin Homebrew.", s: "pendiente", e: "S", val: "medio" }
+    ] },
+  { v: "v0.5.0", name: "Calidad y alcance", date: "después", state: "later",
+    goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
+    close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
+    items: [
+      { t: "Puertas de calidad", d: "Regresión visual, sonoridad, legibilidad de subtítulos, contraste sobre el fotograma real y solape con la cara.", s: "pendiente", e: "M", val: "alto", ref: "R4 #11" },
+      { t: "Gráficas ampliadas", d: "Líneas, áreas, donut, mosaico de cifras, tabla con scroll y scatter con punto destacado, deterministas en seek.", s: "pendiente", e: "M", val: "medio", ref: "R4 #9, T10d, T10e" },
+      { t: "Capítulos y miniaturas por beats", d: "Cortes por cambio de tema, capítulos de YouTube y miniaturas de cada bloque.", s: "pendiente", e: "M", val: "medio", ref: "R4 #8" },
+      { t: "Alineado forzado con guion", d: "WhisperX o stable-ts con el guion para nombres propios exactos y karaoke sin deriva.", s: "pendiente", e: "M", val: "medio" },
+      { t: "Demo de pantalla con zoom y paneo", d: "Grabación con Playwright y clics como keyframes de una cámara sobre la captura.", s: "pendiente", e: "L", val: "alto", ref: "R4 #6" },
+      { t: "Anotaciones a mano y Lottie", d: "Círculos y subrayados con Rough.js sobre la detección de gestos; emoji animados y shaders de fondo.", s: "pendiente", e: "M", val: "medio", ref: "R4 #3, #10" },
+      { t: "Música y efectos con ducking", d: "Pixabay y Freesound CC0, beats con librosa, la voz por encima.", s: "pendiente", e: "M", val: "medio", ref: "R4 #12" },
+      { t: "Técnicas pendientes del catálogo", d: "Mosaico de píxeles, carrera de terminales, rejilla de puntos, barras 3D, PiP en tarjeta, rueda de textos, karaoke de párrafo, texturas.", s: "pendiente", e: "M", val: "medio", ref: "T4, T9, T10a, T10b, T11–T14" },
+      { t: "HyperFrames al día", d: "Subir del 0.8.72 pineado a la versión publicada, con clip-javier y Cliente A como regresión.", s: "pendiente", e: "S", val: "medio" },
+      { t: "Render sin red", d: "GSAP empaquetado en el proyecto generado en vez de cargado por CDN.", s: "pendiente", e: "S", val: "bajo" }
+    ] },
+  { v: "v1.0.0", name: "Producto, si la demanda lo pide", date: "condicional", state: "cond",
+    goal: "Una persona sin terminal sube el clip y recibe el vídeo. Solo se construye si el servicio demuestra demanda recurrente.",
+    close: "Decisión tomada con datos de clientes reales; hasta entonces el plugin y el servicio son el producto.",
+    items: [
+      { t: "Interfaz sobre el storyboard", d: "Entrada web, cola de render en servidor, revisión de la hoja de contacto y entrega.", s: "pendiente", e: "L", val: "alto" },
+      { t: "Director por API, cuentas y pagos", d: "Las skills como prompts sobre la API de Claude; coste por vídeo en vez de suscripción del operador.", s: "pendiente", e: "L", val: "alto" },
+      { t: "Diarización para entrevistas", d: "Rótulos por hablante con WhisperX o pyannote.", s: "pendiente", e: "M", val: "medio", ref: "R4 #13" },
+      { t: "Imágenes generadas", d: "OpenAI o Stability en la nube; FLUX schnell en local si hay GPU.", s: "pendiente", e: "M", val: "medio", ref: "R4 #15" },
+      { t: "Publicación en YouTube y GIF", d: "Subida privada hasta verificar la app; GIF de previsualización.", s: "pendiente", e: "S", val: "bajo", ref: "R4 #16" },
+      { t: "Fuera del plan por ahora", d: "Música generativa local (ACE-Step) y Three.js o Rive: valor bajo para el vídeo que vende.", s: "pendiente", e: "M", val: "bajo", ref: "R4 #17, #18" }
+    ] }
+];
+
+const STATE_LABEL = { hecho: "Hecho", medias: "A medias", pendiente: "Pendiente" };
+const VTAG = { pub: ["pub", "publicada"], next: ["nxt", "siguiente"], later: ["cond", "después"], cond: ["cond", "condicional"] };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function render(filter) {
+  const root = document.getElementById("versions");
+  root.innerHTML = ROADMAP.map(v => {
+    const items = v.items.filter(it => filter === "todos" || it.s === filter);
+    const counts = { hecho: 0, medias: 0, pendiente: 0 };
+    v.items.forEach(it => counts[it.s]++);
+    const [cls, lbl] = VTAG[v.state];
+    const rows = items.map(it => `
+      <li class="item${it.next ? " is-next" : ""}">
+        <span class="status ${it.s}">${STATE_LABEL[it.s]}</span>
+        <div class="what">
+          <div class="t">${esc(it.t)}${it.next ? '<span class="nx">Siguiente</span>' : ""}</div>
+          <div class="d">${esc(it.d)}${it.why ? ` <em>Falta: ${esc(it.why)}.</em>` : ""}</div>
+        </div>
+        <div class="tags"><span>esfuerzo ${esc(it.e)}</span><span class="val-${esc(it.val)}">valor ${esc(it.val)}</span>${it.ref ? `<span>${esc(it.ref)}</span>` : ""}</div>
+      </li>`).join("");
+    return `
+      <section class="version ${v.state === "next" ? "next" : ""} ${v.here ? "here" : ""}" id="${v.v.replace(/\./g, "-")}">
+        <div class="vhead">
+          <span class="num">${esc(v.v)}</span>
+          <h2>${esc(v.name)} <span class="vtag ${cls}">${lbl}</span></h2>
+          <div class="meta"><span><b>${esc(v.date)}</b></span><span><b>${counts.hecho}</b> hechos</span><span><b>${counts.medias}</b> a medias</span><span><b>${counts.pendiente}</b> pendientes</span></div>
+          <p class="goal">${esc(v.goal)}</p>
+          <p class="close"><b>Se cierra cuando:</b> ${esc(v.close)}</p>
+        </div>
+        <ul class="items">${rows || ""}</ul>
+        ${rows ? "" : '<div class="empty">Nada en este estado dentro de esta versión.</div>'}
+      </section>`;
+  }).join("");
+}
+
+let current = "todos";
+try { current = localStorage.getItem("frame28-roadmap-filter") || "todos"; } catch (e) {}
+if (!["todos", "hecho", "medias", "pendiente"].includes(current)) current = "todos";
+document.querySelectorAll(".btn[data-f]").forEach(b => {
+  b.setAttribute("aria-pressed", String(b.dataset.f === current));
+  b.addEventListener("click", () => {
+    current = b.dataset.f;
+    document.querySelectorAll(".btn[data-f]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    try { localStorage.setItem("frame28-roadmap-filter", current); } catch (e) {}
+    render(current);
+  });
+});
+render(current);
+</script>
+<!-- /artifact:body -->
+</body>
+</html>

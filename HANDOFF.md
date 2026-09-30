@@ -21,9 +21,13 @@ plugin, los 11 storyboards, regresión build/check/render de clip-javier, web, r
 está incorporado abajo (secciones 4 y 5) y en las Trampas de `CLAUDE.md`. De la propuesta de seis puntos se ejecutó
 el **punto 1 (higiene y cierre de la 0.3.0)**: tag y release `v0.3.0` publicados con el OK del usuario.
 
-**Sigue pendiente la petición anterior del usuario** (sin una línea escrita): (a) un **artefacto visual del roadmap
-con versiones** (hecho / en curso / pendiente, agrupado por versión) y (b) un **análisis de monetización** (plugin
-vs producto en plataforma vs servicio) con recomendación. Ver sección 5.
+**Punto 2 (entregado en la misma sesión):** (a) el **roadmap visual con versiones** vive en `docs/roadmap/index.html`
+(página Think28, datos inline en `ROADMAP`, filtro por estado; se publica en frame28.t28.io/roadmap/ al hacer push y
+también como artefacto privado de claude.ai) y (b) el **análisis de monetización** en `research/06-monetizacion.md`
+(tres caminos dimensionados, recomendación híbrida por fases, plan de 90 días, decisiones para el usuario).
+`research/06` se dejó **sin versionar a propósito**: el repo es público y el usuario decide si se publica.
+La recomendación (servicio operado por Think28 con el plugin abierto como canal; plataforma solo con demanda
+demostrada) es la que ordena la v0.4.0 del roadmap. Ver sección 5.
 
 ## 2. Estado actual (qué existe y funciona)
 
@@ -104,12 +108,13 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
    Notas con el formato de `gh release view v0.3.0` (novedades, mantenimiento, pendiente conocido, instaladores);
    `release-check --notes` da el borrador. Tras publicar: `claude plugin uninstall frame28@think28 &&
    claude plugin install frame28@think28 --scope user`.
-2. **Artefacto gráfico del roadmap con versionado** (petición del usuario; ver sección 5). Nada escrito aún; los
-   datos están en `research/04-roadmap-features.md` (18 ítems: 6 cerrados, 3 a medias, 9 sin empezar),
-   `research/05` (8 mejoras, 6 hechas), `plugin/skills/frame28-storyboard/references/tecnicas.md` (10 técnicas
-   "(pendiente)") y la sección 3 de este fichero. Formato: la skill de decks del usuario (`docs/presentacion/engine/`,
-   motor copiado, brand `think28-brand.css`) o un HTML/SVG suelto en `docs/roadmap/`.
-3. **Análisis de monetización** (ver sección 5). Sin empezar.
+2. **Roadmap visual con versionado: hecho** (`docs/roadmap/index.html`, 6 versiones y 53 ítems con estado, esfuerzo,
+   valor y referencia a R4/R5/T; el siguiente paso marcado). Mantenerlo: al cerrar un ítem, cambiar su `s` en el
+   array `ROADMAP` del propio fichero (los estados y las versiones futuras son la única copia de esa información).
+   Pendiente: decidir si se enlaza desde la web (hoy solo se sirve en `/roadmap/`, sin enlace).
+3. **Análisis de monetización: hecho** (`research/06-monetizacion.md`, sin versionar hasta que el usuario decida).
+   Quedan por responder las seis decisiones de su sección 8 (segmento, oferta y precio, qué sigue abierto, quién
+   opera, marca de la oferta, umbrales para la plataforma).
 4. **Suite mínima de pruebas** (deuda principal del relevamiento: 4.400 líneas de CLI y cero tests; el bug de
    `cut plan` lo destapó un smoke manual). Módulos puros y rápidos, sin render: `captions` (normalize_words,
    load_captions, pages, export), `cut.plan`/`remap_words`, `clips.plan`/`hooks_for`, `i18n.extract/apply/retime_words`,
@@ -129,8 +134,9 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 
 ## 5. Próximos pasos priorizados
 
-0. Punto 1 del relevamiento (higiene, tag y release v0.3.0) **hecho**.
-1. **Roadmap visual con versiones.** Propuesta de agrupación para el artefacto (ajustar con el usuario):
+0. Puntos 1 (higiene, tag y release v0.3.0) y 2 (roadmap visual y monetización) **hechos**. Lo que sigue es el
+   primer ítem de la v0.4.0: la suite mínima de pruebas (4.4), y las decisiones de `research/06` sección 8.
+1. **Roadmap visual con versiones.** Agrupación aplicada en `docs/roadmap/index.html` (ajustar con el usuario):
    - v0.1.0 (hecho): plugin base, 5 skills, brand kit, gráficas, gestos, release.
    - v0.2.0 (hecho): jump cuts, audio, GSAP, instaladores, web.
    - v0.3.0 (publicada): vertical, subtítulos por palabras, B-roll, `graphics`, `reframe`, venta
