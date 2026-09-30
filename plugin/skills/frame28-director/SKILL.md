@@ -98,6 +98,12 @@ un operador de cámara: los gestos hacia los lados se pierden (mira `moving_samp
 aquí todo (speaker, gestures, matte, storyboard con `canvas` 1080×1920, `caption_style` `pages`) va sobre el clip
 vertical. Un clip que ya es vertical no necesita este paso.
 
+## 2d. Shorts a partir del vídeo largo → skill `frame28-shorts`
+
+Si el usuario quiere clips para redes además del vídeo entero (o en vez de él): `frame28 clips plan` propone los
+tramos con más momentos de venta y tres ganchos por tramo; `clips cut` + `reframe` + `clips scaffold` dejan cada
+short montado de partida (gancho, subtítulos por palabras, CTA). Detalle en la skill `frame28-shorts`.
+
 ## 3. Decidir el storyboard → skill `frame28-storyboard`
 
 Escribe `work/storyboard.json` siguiendo `frame28 storyboard schema` y las reglas de dirección de la skill

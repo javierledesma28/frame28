@@ -300,6 +300,23 @@ def overlay_bbox(o: dict, W: int, H: int) -> list[int] | None:
         return [o["x"], o["y"], o["x"] + o["w"], o["y"] + o.get("h", o["w"])]
     if t == "broll" and o.get("pip"):
         p = o["pip"]; return [p["x"], p["y"], p["x"] + p["w"], p["y"] + p["h"]]
+    narrow = W < 1400
+    if t == "hook":
+        x = int(o.get("x", 60)); y = int(o.get("y", 160 if narrow else 90)); w = int(o.get("w", W - 2 * x))
+        size = int(o.get("size", 96 if narrow else 110)); n = len(o.get("lines") or [o.get("text", "")])
+        return [x, y, x + w, y + round(size * 1.2 * n)]
+    if t == "cta":
+        x = int(o.get("x", 60)); w = int(o.get("w", W - x - (170 if narrow else x)))
+        y = int(o.get("y", H - (int(0.18 * H) if narrow else 56) - round((72 if narrow else 40) * 2.4) - 464))
+        return [x, y, x + w, y + 440]
+    if t == "steps":
+        x = int(o.get("x", 60)); y = int(o.get("y", 60)); size = int(o.get("size", 34))
+        longest = max((len(it["label"]) for it in o.get("items", [])), default=6)
+        return [x, y, x + round(size * 0.55 * longest + 150), y + round(size * 1.9)]
+    if t == "before_after":
+        w = int(o.get("w", W - 120)); h = int(o.get("h", round(w * 9 / 16)))
+        x = int(o.get("x", (W - w) // 2)); y = int(o.get("y", (H - h) // 2))
+        return [x, y, x + w, y + h]
     return None
 
 

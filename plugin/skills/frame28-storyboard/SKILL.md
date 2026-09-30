@@ -27,6 +27,10 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
    | frase-lema, cambio de capítulo | `card` (negro o acento) o `card_words` | tapa al hablante 1,5–3 s |
    | mostrar algo | `image` | `at` = cuando lo nombra |
    | abrir o cerrar con marca | `brand_card` | 2–3 s; al final, con `duration` raíz mayor que el clip |
+   | enganchar (vídeo que vende) | `hook` | segundos 0,2–3; dos líneas; ver `references/ganchos.md` |
+   | seguir un tutorial | `steps` | píldora "2 / 3 · paso" desde el primer paso hasta el último |
+   | "sale bien" | `before_after` | `before_t`/`after_t` del propio clip; 2–4 s, tras la frase de resultado |
+   | comprar | `cta` | últimos 3–5 s: precio, descuento, código, QR o "link in bio"; nunca antes de la demostración |
    | todo el video | `captions` (frase) o `caption_style` (`pages`/`karaoke`, por palabras) | por frase de `captions.json`; por palabras de `words.json` |
 
 3. **Coloca** cada overlay en el lado libre (`free_side` de `frame28 speaker`). En 1920×1080: con hablante a la
@@ -63,8 +67,10 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
 - **No repitas lo que ya está en pantalla** (rótulos del propio vídeo, texto de un envase que se enseña). Si hay
   `work/graphics.json` (de `frame28 graphics`), cada overlay va a una zona cuya `free_windows` cubra su tramo, y
   ningún `card`/`chart` a pantalla completa sobre una `card` del vídeo salvo que quieras taparla a propósito.
-- **Promocional**: promesa con las palabras de la marca → producto con precio una sola vez → pasos copiables →
-  frase de resultado → prueba social → cierre. Detalle en `references/marca-y-promocional.md`.
+- **Promocional**: gancho → promesa con las palabras de la marca → pasos copiables con `steps` → resultado con
+  `before_after` → prueba social → `cta`. Detalle en `references/marca-y-promocional.md` y `references/ganchos.md`.
+- **Plataforma**: pon `"platform": "tiktok" | "reels" | "shorts"` en vertical; `frame28 build` avisa de overlays
+  bajo los iconos de la derecha, la descripción de abajo o la barra de arriba, y de subtítulos demasiado bajos.
 
 ## Referencias
 
@@ -73,3 +79,5 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
 - `references/ejemplo-storyboard.json`: storyboard real de un clip de 10 s (webcam, español).
 - `references/marca-y-promocional.md`: qué investigar de la marca del cliente, checklist de storytelling para
   vídeos que venden, cómo montar sobre un vídeo ya producido y reglas de legibilidad salidas de renders reales.
+- `references/ganchos.md`: los diez tipos de gancho con plantillas ES/EN y ejemplos medidos, el arco de 30 s con
+  su overlay en cada momento, y cómo sacar tres ganchos distintos de una transcripción.

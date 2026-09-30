@@ -31,6 +31,13 @@ isotipo, acento de color y `brand_card` de apertura/cierre con logo, tagline y e
 En lienzos estrechos el generador compacta gráficas y tarjetas; los subtítulos suben a 200 px del borde inferior para
 librar la interfaz de móvil. Un storyboard no se reutiliza entre lienzos sin recolocar `x`/`y`.
 
+## Zonas seguras de la plataforma
+
+Con `"platform": "tiktok"` (o `reels`, `shorts`) en un storyboard vertical, `build` añade avisos de overlays que caen
+bajo la interfaz del móvil (columna derecha de iconos, franja inferior de descripción, barra superior) y de
+subtítulos demasiado bajos (`caption_style.bottom` ≥ 16 % de la altura). Son avisos: mueve el overlay o sube los
+subtítulos. `youtube` y `pdp` no avisan.
+
 ## Gráficos que ya trae el vídeo
 
 Si el clip venía editado (rótulos, marca de agua, tarjeta final), `frame28 build work/storyboard.json -o work/project

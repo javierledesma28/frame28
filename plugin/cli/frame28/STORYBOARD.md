@@ -23,6 +23,8 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
 - `canvas`: tamaño del lienzo. El clip se ajusta con *cover* (se recorta lo que sobre). Con lienzo estrecho (< 1400 px de
   ancho) el generador compacta gráficas, contadores y tarjetas (`.narrow`). `frame28 speaker` y `frame28 gestures` devuelven
   sus coordenadas en el lienzo que corresponde al formato del clip (o el que pases con `--canvas 1080x1920`).
+- `platform` (opcional): `tiktok`, `reels`, `shorts`, `youtube` o `pdp`. En vertical, `frame28 build` avisa de overlays que caen
+  bajo la interfaz del móvil (columna derecha de iconos, franja inferior, franja superior) y de subtítulos demasiado bajos.
 - `captions`: subtítulos por frase (de `captions.json`). Se dibujan en caja negra centrada abajo (preset `phrase`).
 - `caption_style` (opcional): subtítulos **por palabras** en vez de por frase. `{"preset": "pages" | "karaoke", "words":
   "words.json", "max_words": 4, "max_chars": 22, "size": 72, "bottom": 200, "uppercase": true}`. `pages` = grupos de 2–4
@@ -50,6 +52,10 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 | `chart` (kind `counter`) | `value`, `prefix?`, `suffix?`, `decimals?`, `duration?` (s), `label?`, `subtitle?`, `bg?` o `panel?` | Cifra grande que cuenta desde 0 (T10f): "100×", "$42", "3 clientes". |
 | `draw` | `x`, `y`, `w`, `h?`, `icon?` (check, circle-check, circle, arrow-right, arrow-up-right, arrow-down, zap, star, x, plus, heart, underline) o `paths?` (lista de `d`) o `src?` (SVG), `color?`, `stroke_width?`, `duration?`, `at?` | Icono o trazo que se dibuja solo (DrawSVG). Para marcar, subrayar o señalar con estilo "a mano". |
 | `broll` | `src` (vídeo o imagen, relativo al storyboard), `pip?: {x,y,w,h}` (ventana; sin `pip` tapa todo el lienzo), `in?` (segundo del clip por el que empieza), `loop?`, `ken_burns?: {from, to, pan: left/right/up/down}`, `caption?`, `credit?`, `fade?`, `at?` | Plano de apoyo (stock o propio) mientras la voz sigue. A pantalla completa para ilustrar; en ventana para no perder al hablante. Los de stock salen de `frame28 broll search/fetch`, que guarda la licencia. |
+| `hook` | `text` o `lines: [..]`, `bg?` (accent/black/white/none), `size?`, `x?`, `y?`, `w?`, `color?`, `at?` | Gancho de los primeros 1–3 s: líneas grandes con resaltado por línea, estilo Shorts. Va arriba, en zona segura. |
+| `cta` | `title?`, `price?`, `old_price?`, `discount?`, `code?`, `code_label?`, `line?` ("Link in bio"), `url?` (genera QR; `qr: false` lo quita), `bg?`, `x?`, `y?`, `w?`, `at?` | Llamada a la acción: precio con anterior tachado, descuento, código de cupón y QR (segno, local). Por defecto una banda encima de los subtítulos. |
+| `steps` | `items: [{label, at}]`, `total?`, `x?`, `y?`, `size?` | Píldora de progreso "2 / 3 · Trace with a marker" que cambia en cada `at`. Para tutoriales: el espectador sabe cuánto queda. |
+| `before_after` | `before`/`after` (imágenes) o `before_t`/`after_t` (segundos del propio clip: el build extrae los fotogramas), `x?`, `y?`, `w?`, `h?`, `label_before?`, `label_after?`, `duration?`, `at?` | Antes/después con barrido de izquierda a derecha y etiquetas. El momento "sale bien". |
 | `brand_card` | `bg?` (black/accent/white), `logo?` (on_dark/on_light/on_accent/isotipo; por defecto según `bg`), `logo_width?`, `title?`, `subtitle?`, `endorsement?`, `at?` | Tarjeta de marca de apertura o cierre: logo, título, tagline y endorsement (por defecto los de la marca). |
 
 ## Revelado de texto (`reveal`)
