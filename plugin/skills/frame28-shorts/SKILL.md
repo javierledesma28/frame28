@@ -16,7 +16,11 @@ frame28 clips plan work/captions.json --lang en --keyword Engraver Pro --keyword
 ```
 Propone tramos que empiezan y terminan en frase, puntuados por momentos: **resultado** ("that's it", "turned out"),
 **promesa** ("beginner", "easy"), **objeción** ("isn't it", "what if"), **cifras** y **producto** (los `--keyword`).
-Cada tramo trae tres ganchos de tipos distintos. Léelos con el usuario: la puntuación ordena, no decide.
+Cada tramo trae tres ganchos de tipos distintos hechos con **las palabras reales del hablante**: la cláusula donde
+ocurre el momento, sin relleno inicial ("I think", "so", "bueno"), en dos líneas de cinco palabras. Cada gancho
+lleva `quote` (la frase completa de origen) y `t` (cuándo se dice): úsalos para comprobar que el gancho no promete
+lo que el tramo no enseña. Léelos con el usuario: la puntuación ordena, no decide; el de `curiosity` es una
+plantilla de reserva y suele merecer reescritura.
 
 Por cada tramo elegido:
 ```bash
@@ -34,8 +38,8 @@ a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son 
 
 ## Afinar el storyboard del short (lo que hace la diferencia)
 
-1. **Gancho**: reescribe las líneas de la plantilla con las palabras del hablante o de la marca (≤ 5 palabras por
-   línea, 2 líneas). Sin cifras inventadas.
+1. **Gancho**: parte de las líneas propuestas (ya son palabras del hablante) y afina: quita lo que sobre, cambia
+   el orden si la palabra fuerte no va la primera, ≤ 5 palabras por línea, 2 líneas. Sin cifras inventadas.
 2. **Demostración**: si el tramo tiene pasos, añade `steps` (`items` con `at` de cada paso) y una o dos `box`
    con el dato que se dice (velocidad, broca, material). En vertical, todo arriba (`y` 400–700 con `blur`, franja
    superior con `crop`).

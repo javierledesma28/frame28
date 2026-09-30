@@ -169,7 +169,12 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   short s4 de Cliente A en español.
 - Corregido tras aviso del usuario: en `hook` y en la portada, la caja de resaltado de la línea siguiente tapaba los
   descendentes (la "g" de "Engrave"); ahora cada línea va por encima de la siguiente.
-- Pendiente del bloque: marcadores de resultado en la transcripción; doblaje (TTS) queda en el roadmap (14).
+- **Ganchos con la frase real** (`clips.hooks_for`): cláusula del momento (entre signos de puntuación), ventana de 8
+  palabras alrededor del momento si la cláusula es larga, sin relleno inicial ni preposición colgando, partida en dos
+  líneas (≤ 5 palabras / 26 caracteres) por el punto más natural; `quote` y `t` en cada gancho. Ejemplos reales:
+  "Isn't glass too slippery? / Not anymore.", "I just made the perfect / customized gift ever", "Se queda en tu
+  ordenador / no lo dudes más Frame28". El de `curiosity` sigue siendo plantilla de reserva.
+- Pendiente: doblaje (TTS) queda en el roadmap (14); claves de Pexels/Pixabay (usuario).
 
 ## Problemas conocidos y dudas
 

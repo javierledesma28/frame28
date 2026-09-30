@@ -63,23 +63,29 @@
     {
      "type": "objection",
      "lines": [
-      "People always ask me things like, isn't ",
+      "Isn't glass too slippery?",
       "Not anymore."
-     ]
+     ],
+     "quote": "People always ask me things like, isn't glass too slippery, what if it cracks?",
+     "t": 10.26
     },
     {
      "type": "promise",
      "lines": [
-      "The only thing you need",
-      "Simple"
-     ]
+      "Where we break engraving",
+      "down into simple steps"
+     ],
+     "quote": "Hi everyone, welcome to another tutorial where we break engraving down into simple steps",
+     "t": 0.0
     },
     {
      "type": "curiosity",
      "lines": [
       "Can you actually do this",
       "with your own hands?"
-     ]
+     ],
+     "quote": "",
+     "t": 0.0
     }
    ]
   },
@@ -143,25 +149,30 @@
    "id": "s2",
    "hooks": [
     {
-     "type": "promise",
+     "type": "result",
      "lines": [
-      "The only thing you need",
-      "Beginner"
-     ]
+      "That's it"
+     ],
+     "quote": "That's it!",
+     "t": 102.34
     },
     {
-     "type": "transformation",
+     "type": "promise",
      "lines": [
-      "From zero to this",
-      "with zero practice"
-     ]
+      "Rounded strokes and it's",
+      "great for beginners"
+     ],
+     "quote": "The ball bit gives smooth, rounded strokes and it's great for beginners.",
+     "t": 74.72
     },
     {
      "type": "curiosity",
      "lines": [
       "Can you actually do this",
       "with your own hands?"
-     ]
+     ],
+     "quote": "",
+     "t": 74.72
     }
    ]
   },
@@ -199,18 +210,22 @@
    "id": "s3",
    "hooks": [
     {
-     "type": "transformation",
+     "type": "result",
      "lines": [
-      "From zero to this",
-      "with zero practice"
-     ]
+      "Let's try something",
+      "perfect for gifting"
+     ],
+     "quote": "So let's try something perfect for gifting.",
+     "t": 108.52
     },
     {
      "type": "curiosity",
      "lines": [
       "Can you actually do this",
       "with your own hands?"
-     ]
+     ],
+     "quote": "",
+     "t": 108.52
     }
    ]
   },
@@ -286,25 +301,31 @@
    "id": "s4",
    "hooks": [
     {
-     "type": "promise",
+     "type": "result",
      "lines": [
-      "The only thing you need",
-      "Simple"
-     ]
+      "I just made the perfect",
+      "customized gift ever"
+     ],
+     "quote": "I think I just made the perfect customized gift ever.",
+     "t": 136.32
     },
     {
-     "type": "transformation",
+     "type": "promise",
      "lines": [
-      "From zero to this",
-      "with zero practice"
-     ]
+      "A simple snowflake",
+      "using a ball bit"
+     ],
+     "quote": "I'm engraving a simple snowflake using a ball bit on high speed.",
+     "t": 148.6
     },
     {
      "type": "curiosity",
      "lines": [
       "Can you actually do this",
       "with your own hands?"
-     ]
+     ],
+     "quote": "",
+     "t": 136.32
     }
    ]
   },
@@ -334,16 +355,20 @@
     {
      "type": "objection",
      "lines": [
-      "Now that you know all this, glass doesn'",
-      "Not anymore."
-     ]
+      "Glass doesn't feel so",
+      "intimidating anymore?"
+     ],
+     "quote": "Now that you know all this, glass doesn't feel so intimidating anymore, right?",
+     "t": 182.18
     },
     {
      "type": "curiosity",
      "lines": [
       "Can you actually do this",
       "with your own hands?"
-     ]
+     ],
+     "quote": "",
+     "t": 171.46
     }
    ]
   }
