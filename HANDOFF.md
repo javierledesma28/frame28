@@ -1,4 +1,4 @@
-# HANDOFF · Frame28 · 2026-09-30 (cierre de sesión, tarde)
+# HANDOFF · Frame28 · 2026-09-30 (noche: relevamiento completo e higiene de la 0.3.0)
 
 Traspaso para retomar el proyecto desde otra cuenta de Claude Code **sin historial de conversación**. Lee primero
 `CLAUDE.md` (qué es, estructura, cómo se ejecuta, convenciones, trampas). Este fichero es el estado, lo hecho y lo
@@ -12,22 +12,25 @@ el clip de una persona" a **"vídeo que vende un producto DIY"**, usando como cl
 grabado; tutorial de YouTube de 3 min 17 s, `poc/clip-grabado/`). De ahí salieron: overlays de venta, fábrica de
 shorts, portada, versión en otro idioma, detección de gráficos existentes, reencuadre 9:16, marca desde la web.
 
-**La última petición del usuario, interrumpida por falta de tokens** (es lo primero que hay que retomar):
+**Regla de trabajo del usuario (2026-09-30, explícita):** todo lo que se aprende con un caso, un vídeo de ejemplo o
+un diagnóstico se **capitaliza en el plugin** (código del CLI, `doctor`, validaciones, skills y sus referencias), no
+se queda en un README, una PoC o este fichero. Ante cada hallazgo: "¿qué parte del CLI o de qué skill cambia?".
 
-> "Ármame un artefacto gráfico para entender en dónde estamos, cuáles son cada uno de los eventos que tenemos en
-> el roadmap, cómo quedarían los versionados en cada uno de ellos y empecemos a trabajar en el primero. Aunque me
-> gustaría primero que dimensionemos bien todo porque quizás me gustaría primero preparar o ver cómo vamos a hacer
-> para que este plugin pueda ser monetizable. Para ello necesito que me ayudes a pensar si es mejor mantenerlo
-> como plugin, montarlo como producto dentro de una plataforma, o ya me dirás tú."
+**Esta sesión** empezó con un relevamiento completo del repo (todo verificado ejecutando: doctor, validación del
+plugin, los 11 storyboards, regresión build/check/render de clip-javier, web, releases, dependencias). El resultado
+está incorporado abajo (secciones 4 y 5) y en las Trampas de `CLAUDE.md`. De la propuesta de seis puntos se ejecutó
+el **punto 1 (higiene y cierre de la 0.3.0)**; el tag y la release se proponen al usuario (sección 4.1).
 
-Es decir, dos entregables antes de seguir con features: (a) un **artefacto visual del roadmap con versiones**
-(hecho / en curso / pendiente, agrupado por versión) y (b) un **análisis de monetización** (plugin vs producto en
-plataforma vs servicio) con recomendación. Ver sección 5.
+**Sigue pendiente la petición anterior del usuario** (sin una línea escrita): (a) un **artefacto visual del roadmap
+con versiones** (hecho / en curso / pendiente, agrupado por versión) y (b) un **análisis de monetización** (plugin
+vs producto en plataforma vs servicio) con recomendación. Ver sección 5.
 
 ## 2. Estado actual (qué existe y funciona)
 
-Versión en ficheros: **0.3.0** (manifiesto, marketplace, pyproject, README). Tags/releases publicadas: `v0.1.0`,
-`v0.2.0`. **El tag y la release `v0.3.0` NO están hechos** (proponer al usuario; el bump es solo de ficheros).
+Versión **0.3.0** en los cuatro sitios: `plugin/cli/frame28/__init__.py` (`__version__`, de donde `pyproject.toml`
+la lee con hatch), `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y README.
+`python scripts/release-check.py` lo comprueba. Tags/releases publicadas: `v0.1.0`, `v0.2.0`. **`v0.3.0`: tag y
+release propuestos al usuario, pendientes de su OK** (comandos en 4.1; notas redactadas).
 
 CLI `frame28` (todo probado en clips reales, Windows 11, CPU):
 `fetch` (yt-dlp vía uvx) · `probe` · `prep` (30 fps, voz limpia −14 LUFS) · `transcribe` (faster-whisper, 4 formatos)
@@ -37,11 +40,15 @@ remapea words/captions/storyboard) · `audio measure/clean/compare` · `speaker`
 (crop siguiendo la cara / blur) · `captions pages|export` (SRT/VTT) · `broll providers|suggest|search|fetch`
 (Pexels/Pixabay; sin claves aún) · `clips plan|cut|scaffold` (fábrica de shorts, ganchos con la frase real)
 · `cover` (portada/miniatura) · `i18n extract|apply` · `brand init|list|show|from-site` · `storyboard validate|schema`
-· `build [--graphics]` · `check` · `render` · `sheet` · `frames` · `doctor`.
+· `build [--graphics]` · `check` · `render` · `sheet` · `frames` · `doctor` (también deriva de versión código vs
+instalación y red para el CDN de GSAP).
 
 Overlays del storyboard: lower_third, box, kinetic (con `color`), behind, pointer, card, list_focus, card_words,
 image, brand_card, chart (bar/counter), draw, broll, hook, cta (QR), steps, before_after; `reveal` fade/rise/chars;
 `caption_style` pages/karaoke; `canvas` 16:9/9:16/1:1; `platform` con zonas seguras.
+
+`words.json` y `captions.json` se leen en todo el CLI con `captions.load_words` / `load_captions` (segundos o
+milisegundos, `text` o `word`, lista o `segments`; error corto `TranscriptFormatError` si faltan tiempos).
 
 Skills: director, transcribe, cutout, storyboard (+ 5 referencias), broll, shorts, i18n, compose.
 
@@ -53,7 +60,7 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 
 | Caso | Qué demuestra | Salida |
 |---|---|---|
-| clip-javier | referencia de regresión (10 s), brand kit, GSAP, pointers | `out/*.mp4` |
+| clip-javier | referencia de regresión (10 s), brand kit, GSAP, pointers; `words.json` en formato del CLI | `out/*.mp4` |
 | clip-auriculares | anuncio 58 s: cortes, gestos, contadores, behind, marca | `out/auriculares.mp4` |
 | clip-whatsapp | vertical de móvil, inglés, subtítulos por palabras | `out/cliente-a_*.mp4` |
 | clip-demo | guion de demo 83 s → 70 s; versión vertical con `reframe` | `out/demo.mp4`, `out/demo_vertical.mp4` |
@@ -74,45 +81,65 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
   zonas seguras por plataforma; fábrica de shorts (`clips`) + skill; referencia de ganchos; tres variantes de short
   renderizadas; `cover` (16:9, 9:16, 1:1); `i18n` + skill (short en español); descendentes visibles en hook y
   portada (aviso del usuario); ganchos con la frase real del hablante; bump a 0.3.0 en ficheros.
+- **30 sep (noche)**: relevamiento completo (46 commits, 142 ficheros, todo verificado ejecutando) e higiene de la
+  0.3.0: `__version__` a 0.3.0 y pyproject dinámico (el bump anterior se lo había saltado y `frame28 --version`
+  decía 0.2.0); cargador único y tolerante de `words.json`/`captions.json` en los siete puntos que los leían a pelo
+  (`cut plan` reventaba con el fixture de clip-javier en milisegundos) con error corto y punto de entrada `cli:run`;
+  `doctor` con deriva de versión, HyperFrames pineado, red para GSAP y filas opcionales; `GSAP_VERSION` como
+  constante en build y cover; `scripts/release-check.py`; fixture de clip-javier normalizado; `think28.app` (dominio
+  muerto) sustituido por `t28.io`; docs al día (displayName sí valida con Claude Code 2.1.126, ruta de ffmpeg
+  independiente de la versión de WinGet, guía del plugin con la checklist de release).
 
 ## 4. A medias / pendiente inmediato (con ficheros)
 
-0. **Crear el tag `v0.3.0` y la release en GitHub** (dejado pendiente a propósito por el usuario al cerrar la sesión;
-   los ficheros ya están en 0.3.0, commit `27f43cc`). Comandos, desde `main` actualizado y con la cuenta
-   `javierledesma28` activa en `gh`:
+1. **Tag y release `v0.3.0`** (propuesto al usuario; los ficheros y el árbol están listos y `release-check` solo
+   avisa de la cuenta de `gh`). Desde `main` con todo commiteado y pusheado:
    ```bash
+   gh auth switch --user javierledesma28
+   git push origin main
    git tag -a v0.3.0 -m "Frame28 v0.3.0" && git push origin v0.3.0
    gh release create v0.3.0 --repo javierledesma28/frame28 --title "Frame28 v0.3.0" --notes-file <notas> --latest
+   gh auth switch --user javierledesmasmc     # dejar la cuenta como estaba
    ```
-   Notas: lo de la sección 3 desde v0.2.0 (vertical y reencuadre, subtítulos por palabras y SRT/VTT, B-roll,
-   `graphics`, overlays de venta, shorts, portada, i18n, `brand from-site`, `fetch`); formato como en v0.2.0.
-
-1. **Artefacto gráfico del roadmap con versionado** (petición interrumpida; ver sección 5). No hay nada escrito
-   aún; los datos están en `research/04-roadmap-features.md` (18 ítems con valor/esfuerzo), `research/05` (8 mejoras,
-   6 hechas) y la sección 3 de este fichero. Formato: la skill de decks del usuario (`docs/presentacion/engine/`,
+   Notas: novedades desde v0.2.0 (vertical y reencuadre, subtítulos por palabras y SRT/VTT, B-roll, `graphics`,
+   `fetch`, overlays de venta, shorts, portada, i18n, `brand from-site`) más el bloque de mantenimiento de esta
+   sesión; formato como en v0.2.0 (`gh release view v0.2.0`). Tras publicar: reinstalar el plugin local
+   (`claude plugin uninstall frame28@think28 && claude plugin install frame28@think28 --scope user`).
+2. **Artefacto gráfico del roadmap con versionado** (petición del usuario; ver sección 5). Nada escrito aún; los
+   datos están en `research/04-roadmap-features.md` (18 ítems: 6 cerrados, 3 a medias, 9 sin empezar),
+   `research/05` (8 mejoras, 6 hechas), `plugin/skills/frame28-storyboard/references/tecnicas.md` (10 técnicas
+   "(pendiente)") y la sección 3 de este fichero. Formato: la skill de decks del usuario (`docs/presentacion/engine/`,
    motor copiado, brand `think28-brand.css`) o un HTML/SVG suelto en `docs/roadmap/`.
-2. **Análisis de monetización** (ver sección 5). Sin empezar.
-3. **Tag y release v0.3.0**: ficheros ya en 0.3.0; falta `git tag -a v0.3.0`, push del tag y `gh release create`
-   con notas (proponerlo; el usuario aprueba las acciones persistentes). Notas: todo lo de la sección 3 desde v0.2.0.
-4. **Claves de Pexels/Pixabay** (las crea el usuario en pexels.com/api y pixabay.com/api/docs; van en
+3. **Análisis de monetización** (ver sección 5). Sin empezar.
+4. **Suite mínima de pruebas** (deuda principal del relevamiento: 4.400 líneas de CLI y cero tests; el bug de
+   `cut plan` lo destapó un smoke manual). Módulos puros y rápidos, sin render: `captions` (normalize_words,
+   load_captions, pages, export), `cut.plan`/`remap_words`, `clips.plan`/`hooks_for`, `i18n.extract/apply/retime_words`,
+   `build.validate`/`platform_warnings`. Fixture: `poc/clip-javier/words.json` y los storyboards versionados.
+5. **Claves de Pexels/Pixabay** (las crea el usuario en pexels.com/api y pixabay.com/api/docs; van en
    `~/.config/frame28/keys.json` o variables `PEXELS_API_KEY`/`PIXABAY_API_KEY`). Hasta entonces `broll search`
    no está probado contra la API real (`plugin/cli/frame28/broll.py::search`).
-5. **`install.sh` sin probar en un Mac real** sin Homebrew (`docs/install.sh`).
-6. Pequeños pendientes técnicos: `reframe map` para convertir `pointer` del original sin repetir `gestures`
+6. **`install.sh` sin probar en un Mac real** sin Homebrew (`docs/install.sh`).
+7. Pequeños pendientes técnicos: `reframe map` para convertir `pointer` del original sin repetir `gestures`
    (`reframe.py::map_point` existe, falta el comando); probar `reframe --mode crop` con un hablante que se mueva de
-   verdad; `chart bar` en vertical con > 3 filas; `hooks_for` para tramos sin momentos (hoy plantilla de curiosidad).
+   verdad; `chart bar` en vertical con > 3 filas; `hooks_for` para tramos sin momentos (hoy plantilla de curiosidad:
+   se ve en `clips plan` sobre clip-demo, tramo s1 con puntuación negativa).
+8. Deuda menor detectada en el relevamiento: el render necesita red (GSAP por CDN en `build.py`/`cover.py`, sin SRI;
+   decidir si se empaqueta local); HyperFrames 0.8.72 pineado con 0.8.98 publicada; OpenCV instalado por triplicado
+   (`opencv-python`, `contrib` y `headless`, arrastrados por mediapipe y rapidocr; cv2 5.0.0 con pin `>=4.9`);
+   `poc/remotion/package-lock.json` versionado aunque Remotion está descartado.
 
 ## 5. Próximos pasos priorizados
 
+0. Punto 1 del relevamiento (higiene) **hecho**; queda el tag/release (4.1) con el OK del usuario.
 1. **Roadmap visual con versiones.** Propuesta de agrupación para el artefacto (ajustar con el usuario):
    - v0.1.0 (hecho): plugin base, 5 skills, brand kit, gráficas, gestos, release.
    - v0.2.0 (hecho): jump cuts, audio, GSAP, instaladores, web.
-   - v0.3.0 (hecho en ficheros, sin tag): vertical, subtítulos por palabras, B-roll, `graphics`, `reframe`, venta
-     (hook/cta/steps/before_after), shorts, portada, i18n, `brand from-site`, `fetch`.
-   - v0.4.0 (propuesta): doblaje/TTS (Kokoro/Chatterbox, roadmap 14), demo de pantalla con zoom-pan (roadmap 6),
-     `reframe map`, B-roll probado con claves.
+   - v0.3.0 (hecho; tag pendiente de OK): vertical, subtítulos por palabras, B-roll, `graphics`, `reframe`, venta
+     (hook/cta/steps/before_after), shorts, portada, i18n, `brand from-site`, `fetch`, doctor y cargador únicos.
+   - v0.4.0 (propuesta): suite mínima de pruebas (4.4), cierre de lo a medias (4.5–4.7), doblaje/TTS
+     (Kokoro/Chatterbox, roadmap 14), demo de pantalla con zoom-pan (roadmap 6), decisión sobre render sin red.
    - v0.5.0 (propuesta): puertas de calidad (pixelmatch, LUFS, legibilidad; roadmap 11), gráficas ampliadas (9),
-     capítulos y miniaturas por beats (8), alineado forzado con guion (7).
+     capítulos y miniaturas por beats (8), alineado forzado con guion (7), HyperFrames al día.
    - v1.0.0: interfaz sobre el storyboard (Studio o web) si la decisión de producto lo pide.
 2. **Monetización: pensar antes de construir.** Marco para la conversación (no decidido):
    - *Plugin abierto + valor alrededor*: el plugin y el CLI siguen MIT (ya son públicos; retirar la licencia no cierra
@@ -131,8 +158,11 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
      suscripción, qué parte debe seguir abierta, si Think28 opera el servicio, y si la licencia de HyperFrames
      (Apache-2.0) y de los modelos (RVM GPL-3 como proceso, RapidOCR Apache, MediaPipe Apache) permiten el uso
      comercial previsto (sí, con RVM ejecutado como proceso externo y sin enlazarlo).
-3. Tag y release v0.3.0 (tras 1 y 2, o antes si el usuario lo pide).
-4. Roadmap técnico según la agrupación aprobada (v0.4.0 primero).
+3. Suite mínima de pruebas (4.4): la deuda que más crece con cada feature.
+4. Cerrar lo a medias antes de abrir la v0.4.0 (4.5–4.7).
+5. Render sin red: empaquetar GSAP en el proyecto generado o documentarlo como requisito; depende de la promesa de
+   producto que salga del punto 2.
+6. HyperFrames 0.8.98 en una rama, con clip-javier y clip-grabado como criterio de aceptación.
 
 ## 6. Problemas conocidos y dudas
 
@@ -140,23 +170,31 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
   `uv tool install --editable ./plugin/cli --python 3.12 --reinstall` y el marketplace local con
   `claude plugin marketplace remove think28` + `add C:/Workspaces/personal/Skill-Director` + `install`.
 - `gh` tiene dos cuentas (personal `javierledesma28`, dueña del repo; corporativa `javierledesmasmc`); si la activa es
-  la corporativa el push da 403. Ver CLAUDE.md, Convenciones.
-- `frame28 doctor` marca la GPU como ausente (onnxruntime CPU) y el modelo RVM como "se descarga solo": normal.
-- Render en CPU: ~2 min por cada 35 s en vertical 1080×1920; ~8–14 min para 3 min 17 s a 1080p.
+  la corporativa el push da 403. `release-check` lo avisa. Ver CLAUDE.md, Convenciones.
+- `frame28 doctor` marca como opcionales la GPU (onnxruntime CPU), el modelo RVM ("se descarga solo") y la red para
+  GSAP; solo las filas no opcionales bloquean "Todo listo". Si el código y la instalación editable no coinciden,
+  `--reinstall`.
+- `displayName` en `plugin.json` **sí** valida con Claude Code 2.1.126 (comprobado); se dejó fuera porque no está en
+  el esquema y no aporta nada.
+- Render en CPU: ~2 min por cada 35 s en vertical 1080×1920; ~8–14 min para 3 min 17 s a 1080p; el `check` de un
+  clip de 10 s tarda ~90 s (arranque de HyperFrames y Chrome).
 - La detección de gestos usa umbrales heurísticos; en clips donde el hablante ocupa poco encuadre revisar
   `plugin/cli/frame28/pose.py::_hand_out`.
 - `graphics` no distingue rótulos del editor de texto impreso en objetos quietos (clase orientativa).
 - Los `chart` y `brand_card` con fondo de acento dan avisos de contraste en `frame28 check` (informativos).
 - El deck usa el motor de `deck-fundanet` (skill privada del usuario) rebrandeado; los ficheros del motor están
-  copiados en `docs/presentacion/engine/`, no hay dependencia externa.
+  copiados en `docs/presentacion/engine/`, no hay dependencia externa; `index.html` se reconstruye idéntico desde
+  `deck.html` (comprobado).
 - Duda abierta del usuario, ahora central: si Frame28 acaba necesitando interfaz propia ("producto") además de
   las skills (sección 5.2).
 
 ## 7. Cómo verificar que todo sigue vivo (5 minutos)
 
 ```bash
-frame28 doctor
+frame28 doctor                                   # fila frame28: código e instalación en la misma versión
 claude plugin validate ./plugin
+python scripts/release-check.py --notes          # versiones, árbol, tags, cuenta gh, plugin
+cd poc/clip-javier && frame28 cut plan words.json --audio voice.wav -o work/cuts.json
 cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4
 curl -sI https://frame28.t28.io/presentacion/ | head -1     # HTTP/2 200
 ```
