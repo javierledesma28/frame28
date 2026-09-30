@@ -27,8 +27,15 @@ colores); `frame28 brand from-site <url> --name <marca>` propone la marca con lo
 argumento de venta, no decorar. Guía completa: `../frame28-storyboard/references/marca-y-promocional.md`.
 
 **Vídeo ya producido** (voz en off, manos, gráficos propios, cortes de plano): se monta igual, pero sáltate
-`speaker`, `gestures` y `behind`; mira la hoja de contacto **entera** para anotar dónde y cuándo aparecen sus
-gráficos, y coloca los tuyos en otra zona y otro momento; sobre fondos claros usa `kinetic` con `color` oscuro.
+`speaker`, `gestures` y `behind`, y localiza lo que ya hay en pantalla:
+```bash
+frame28 graphics work/clip.mp4 -o work/graphics.json --annotate work/graphics.png   # OCR en CPU, ~1 s por segundo de vídeo
+```
+Devuelve los textos en pantalla con su caja y su tramo (marca de agua, rótulos del editor, subtítulos quemados,
+texto impreso en objetos), las tarjetas a pantalla completa (color plano: tarjeta final, transiciones) y la
+ocupación de una rejilla 3×3 con ventanas libres por zona. Mira `graphics.png` y coloca tus overlays en zonas y
+momentos libres; en el paso 4 usa `frame28 build --graphics work/graphics.json` para que avise de colisiones.
+Si `burned_subtitles` es true, no pongas `captions`. Sobre fondos claros usa `kinetic` con `color` oscuro.
 
 ```bash
 frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav (limpia y a −14 LUFS), audio16k.wav, probe.json

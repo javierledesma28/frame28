@@ -182,6 +182,39 @@ def gestures(video, words, sample_fps, annotate, canvas, out_json, as_json):
     out(r, as_json or True)
 
 
+@main.command()
+@click.argument("video", type=click.Path(exists=True))
+@click.option("--sample-fps", default=1.0, show_default=True, help="muestras por segundo (0.5 = doble de rápido)")
+@click.option("--canvas", default="auto", show_default=True, help="lienzo del storyboard, p. ej. 1920x1080")
+@click.option("--annotate", type=click.Path(), default=None, help="PNG con el mapa de zonas ocupadas y la lista de gráficos")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar graphics.json")
+@click.option("--json", "as_json", is_flag=True)
+def graphics(video, sample_fps, canvas, annotate, out_json, as_json):
+    """Gráficos ya presentes en el vídeo (rótulos, marca de agua, subtítulos quemados, texto en objetos, tarjetas) y zonas libres. OCR en CPU, ~1 s por muestra."""
+    from .graphics import scan, annotate as _annotate
+    from .media import probe
+    from .captions import parse_canvas
+    v = probe(video).get("video") or {}
+    r = scan(video, sample_fps, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0)))
+    if out_json:
+        Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8"); r["saved"] = out_json
+    if annotate:
+        _annotate(r, annotate, video); r["annotated"] = str(annotate)
+    if as_json:
+        out(r, True); return
+    click.echo(f"  {r['samples']} muestras · {len(r['events'])} textos · {len(r['cards'])} tarjetas · subtítulos quemados: {'sí' if r['burned_subtitles'] else 'no'}")
+    for e in r["events"]:
+        if e["kind"] != "scene_text":
+            click.echo(f"  {e['start']:6.1f}–{e['end']:6.1f}  {e['kind']:<10} {e['bbox']}  {e['text'][:50]!r}")
+    for c in r["cards"]:
+        click.echo(f"  {c['start']:6.1f}–{c['end']:6.1f}  card       {c['color']}")
+    click.echo("  zonas (ocupación % del tiempo): " + "  ".join(f"{z} {r['zones'][z]['busy_pct']}" for z in r["zones"]))
+    if out_json:
+        click.echo(f"  guardado: {out_json}")
+    if annotate:
+        click.echo(f"  mapa: {annotate}")
+
+
 @main.group()
 def audio():
     """Medir y limpiar la voz: graves, ruido y sonoridad normalizada (EBU R128)."""
@@ -482,11 +515,18 @@ def brand_init(name, base, to_user, accent, logo):
 @main.command()
 @click.argument("storyboard", type=click.Path(exists=True))
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
+@click.option("--graphics", "graphics_json", type=click.Path(exists=True), default=None, help="graphics.json de `frame28 graphics`: avisa de overlays que pisan gráficos del vídeo")
 @click.option("--json", "as_json", is_flag=True)
-def build(storyboard, out_dir, as_json):
-    """storyboard.json → proyecto HyperFrames (index.html + assets copiados)."""
+def build(storyboard, out_dir, graphics_json, as_json):
+    """storyboard.json → proyecto HyperFrames (index.html + assets copiados). Con --graphics avisa de overlays que pisan gráficos del vídeo."""
     from .build import build_project
-    out(build_project(storyboard, out_dir), as_json or True)
+    r = build_project(storyboard, out_dir)
+    if graphics_json:
+        from .graphics import collisions
+        sb = json.loads(Path(storyboard).read_text(encoding="utf-8"))
+        gfx = json.loads(Path(graphics_json).read_text(encoding="utf-8"))
+        r["graphics_collisions"] = collisions(sb, gfx)
+    out(r, as_json or True)
 
 
 @main.command()

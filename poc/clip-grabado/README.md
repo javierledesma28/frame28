@@ -31,8 +31,12 @@ por la marca con sus propios rótulos (títulos arriba, marca de agua arriba a l
 
 Ficheros: `brief.md`, `storyboard.json` (26 overlays). `work/` y `out/` no se versionan.
 
-## Lo que este caso pide al plugin (pendiente)
+## Lo que este caso pidió al plugin (hecho)
 
-- Detectar los gráficos ya presentes en el vídeo (OCR o detección de texto por fotograma) para proponer zonas libres.
-- Un modo "vídeo producido" en `frame28-director` que salte speaker/gestures/behind y sugiera cajas y pizarras.
-- `frame28 fetch <url>` con `yt-dlp` como paso opcional del pipeline.
+- `frame28 graphics`: OCR por muestras (RapidOCR, CPU) → texto en pantalla con caja y tramo, tarjetas de color
+  plano, ocupación 3×3 con ventanas libres; `frame28 build --graphics` avisa de colisiones. Probado aquí:
+  marca de agua arriba a la izquierda (89 % del tiempo), rótulos del editor, tarjeta final; cero falsos positivos
+  en el clip de hablante a cámara.
+- Modo "vídeo producido" en `frame28-director` (sin speaker/gestures/behind; brief de marca; `kinetic.color`).
+- `frame28 fetch <url>` con `yt-dlp` vía `uvx`.
+- `frame28 brand from-site <url>`: la marca desde la web del cliente.

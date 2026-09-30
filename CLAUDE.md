@@ -33,6 +33,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
   skills/frame28-*/SKILL.md       skills; frame28-storyboard/references/ = técnicas, guía de grabación, ejemplo
   cli/pyproject.toml              paquete Python (uv); pin av>=11,<18 (ver Trampas)
   cli/frame28/                    env, media(fetch por yt-dlp vía uvx/prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
+                                  graphics(OCR RapidOCR: texto en pantalla, tarjetas, zonas libres, colisiones),
                                   captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
                                   licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG
@@ -94,7 +95,8 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
   PoC comparativa en `research/03-poc-compositores.md`.
 - **faster-whisper** (CPU, medium int8) para tiempos por palabra; WhisperX/stable-ts con guion son mejora pendiente.
 - **RobustVideoMatting ONNX** (GPL-3, ejecutado como proceso, modelo descargado a `~/.cache/frame28/`) para el
-  alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos.
+  alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos; **RapidOCR** (PaddleOCR en ONNX, Apache-2.0,
+  modelos dentro del wheel) para el texto ya presente en vídeos producidos. Todo en CPU.
 - **GSAP 3.13+** es gratis con plugins: `build.py` carga SplitText/DrawSVG solo cuando el storyboard los usa.
 - Limpieza de audio: `highpass 80` + `afftdn` (o `rnnoise` con modelo BSD en caché) + `loudnorm` en dos pasadas.
 - Marca por nombre (`"brand": "think28"`), orden de búsqueda `./brands/` → `~/.config/frame28/brands/` → incluidas.
@@ -126,6 +128,9 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
   La caja se dimensiona sola (`width: max-content`) y el tecleo es un `clip-path` tweeneado.
 - **Fondos claros**: cinéticos blancos o en acento no se leen (tutoriales cenitales, mesas, telas). `kinetic` tiene
   `color`; usar la tinta de la marca.
+- **Añadir una dependencia a `pyproject.toml` no la instala**: la instalación editable no relee dependencias.
+  `uv tool install --editable ./plugin/cli --python 3.12 --reinstall` (el Python de la herramienta está en
+  `%APPDATA%/uv/tools/frame28/Scripts/python.exe`, no en `~/.local/share`).
 - **No editar el CLI mientras un render corre en segundo plano**: `frame28 render` importa `cli.py` al arrancar y un
   fichero a medias lo tumba.
 - Whisper no transcribe "eh" y estira la palabra anterior a una pausa: `cut plan` busca silencio de audio dentro de

@@ -31,6 +31,13 @@ isotipo, acento de color y `brand_card` de apertura/cierre con logo, tagline y e
 En lienzos estrechos el generador compacta gráficas y tarjetas; los subtítulos suben a 200 px del borde inferior para
 librar la interfaz de móvil. Un storyboard no se reutiliza entre lienzos sin recolocar `x`/`y`.
 
+## Gráficos que ya trae el vídeo
+
+Si el clip venía editado (rótulos, marca de agua, tarjeta final), `frame28 build work/storyboard.json -o work/project
+--graphics work/graphics.json` añade `graphics_collisions`: overlays que pisan en tiempo y espacio un texto existente
+o que tapan una tarjeta del propio vídeo. Son avisos: mueve el overlay, acórtalo o cámbialo de momento. `graphics.json`
+sale de `frame28 graphics` (ver skill `frame28-director`).
+
 ## Cómo leer `check`
 
 - `errors`: hay que arreglarlos (en el storyboard) antes de renderizar. Típico: asset que no existe.

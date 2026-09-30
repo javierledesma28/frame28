@@ -56,7 +56,9 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
 - **Legibilidad**: texto blanco solo sobre fondo oscuro; sobre fondos claros (mesas, telas, exteriores) `kinetic`
   con `color` = tinta de la marca. Nunca acento sobre acento (texto ámbar sobre tarjeta ámbar). Las `box` llevan
   fondo oscuro y funcionan en cualquier fondo; `frame28 build` avisa si una caja se sale del lienzo.
-- **No repitas lo que ya está en pantalla** (rótulos del propio vídeo, texto de un envase que se enseña).
+- **No repitas lo que ya está en pantalla** (rótulos del propio vídeo, texto de un envase que se enseña). Si hay
+  `work/graphics.json` (de `frame28 graphics`), cada overlay va a una zona cuya `free_windows` cubra su tramo, y
+  ningún `card`/`chart` a pantalla completa sobre una `card` del vídeo salvo que quieras taparla a propósito.
 - **Promocional**: promesa con las palabras de la marca → producto con precio una sola vez → pasos copiables →
   frase de resultado → prueba social → cierre. Detalle en `references/marca-y-promocional.md`.
 

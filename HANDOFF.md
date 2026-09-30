@@ -112,6 +112,19 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   producido; trampas nuevas en CLAUDE.md (parches por stdin, vídeo anidado en HyperFrames, no tocar el CLI durante
   un render en segundo plano).
 
+## Hecho después: detección de gráficos existentes (`frame28 graphics`)
+
+- `graphics.py`: RapidOCR (dependencia nueva `rapidocr>=3.0`, Apache-2.0, ONNX en CPU, ~1 s por muestra 1080p)
+  sobre muestras a 1 fps; seguimiento de cajas entre muestras (IoU + parecido de texto, huecos de hasta 2,5 s),
+  fusión de eventos partidos, clases `watermark` (≥ 50 % del vídeo, quieto), `text` (estable, recto, ≥ 1 s),
+  `subtitle` (franja inferior centrada), `scene_text` (se mueve, girado o corto); tarjetas de color plano
+  (> 55 % de píxeles al color dominante, pocos bordes); ocupación de rejilla 3×3 con `free_windows`;
+  `annotate` (mapa PNG). `collisions(storyboard, graphics)` → `frame28 build --graphics`.
+- Límite conocido: el OCR no distingue un rótulo del editor del texto impreso en un objeto quieto (la caja del
+  producto sobre la mesa sale como `text`). Para colocar overlays es lo correcto (no tapar texto); la clase es
+  orientativa.
+- Control: el clip de hablante a cámara (`clip-demo`) da 0 textos y 0 tarjetas.
+
 ## Problemas conocidos y dudas
 
 - El instalador `install.ps1` **sustituye** una instalación editable del CLI por la de GitHub. En esta máquina se
