@@ -223,13 +223,15 @@ def remap_storyboard(sb: dict, keep: list[dict]) -> tuple[dict, list[str]]:
     for c in sb.get("captions", []):
         c["start"], c["end"] = f(c["start"]), f(c["end"])
     for o in sb.get("overlays", []):
+        # la máscara alfa se compara con los cortes en tiempos ORIGINALES (antes de remapear el overlay)
+        m0, m1 = o.get("matte_start", o.get("start")), o.get("matte_end", o.get("end"))
         for k in ("start", "end", "at", "matte_start", "matte_end"):
             if k in o and o[k] <= old_src + 0.01:
                 o[k] = f(o[k])
             elif k in o:  # tarjetas de cierre más allá del clip: desplazar en bloque
                 o[k] = round(o[k] - (old_src - new_total), 3)
-        if o.get("type") == "behind":
-            gaps = [r for r in sb.get("_removed", []) if r["start"] < o.get("matte_end", o["end"]) and r["end"] > o.get("matte_start", o["start"])]
+        if o.get("type") == "behind" and m0 is not None and m1 is not None:
+            gaps = [r for r in sb.get("_removed", []) if r["start"] < m1 and r["end"] > m0]
             if gaps:
                 warnings.append(f"overlay {o['id']} (behind): un corte cae dentro de su máscara alfa; regenera la máscara con `frame28 matte` sobre el clip cortado")
         for line in o.get("lines", []) or []:

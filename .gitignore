@@ -2,8 +2,11 @@
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
 plugin/cli/dist/
 plugin/cli/*.egg-info/
+# lo genera `uv run` al lanzar las pruebas; el CLI se instala editable, sin lock
+plugin/cli/uv.lock
 # Node / HyperFrames
 node_modules/
 .hyperframes/
