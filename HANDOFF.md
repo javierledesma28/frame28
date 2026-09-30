@@ -30,7 +30,7 @@ referencias), no se queda en un README ni en este fichero.
 | Qué | Evidencia |
 |---|---|
 | Versión publicada | **v0.3.0**: tag sobre `f178d0c`, release https://github.com/javierledesma28/frame28/releases/tag/v0.3.0 marcada Latest; v0.1.0 y v0.2.0 anteriores |
-| Versión en ficheros | 0.3.0 en `plugin/cli/frame28/__init__.py` (fuente; pyproject la lee con hatch), `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y README; `python scripts/release-check.py` en verde salvo el aviso de cuenta `gh` |
+| Versión en ficheros | 0.3.0 en `plugin/cli/frame28/__init__.py` (fuente; pyproject la lee con hatch), `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y README; `python scripts/release-check.py` da versiones coincidentes y marca tag y release de la 0.3.0 como ya existentes (correcto: hay que subir `__version__` antes de la próxima etiqueta) y avisa de la cuenta `gh` |
 | CLI instalado | `frame28 --version` 0.3.0, editable desde `plugin/cli`; `frame28 doctor` "Todo listo" (ffmpeg 9.0.2, Node 24.13.1, faster-whisper 1.2.1, onnxruntime 1.30.0 CPU, cv2 5.0.0, RVM en caché, red al CDN de GSAP); 38 órdenes en 20 módulos |
 | Instalación limpia desde el tag | `uvx --from "git+https://github.com/javierledesma28/frame28@v0.3.0#subdirectory=plugin/cli" frame28 --version` construye y responde 0.3.0 en 21 s |
 | Plugin | `claude plugin validate ./plugin` pasa; instalado 0.3.0 a nivel usuario desde el marketplace local; caché idéntica al repo |
@@ -162,7 +162,7 @@ la variante de artefacto (marcadores `artifact:head`/`artifact:body`) y republic
 ```bash
 frame28 doctor                                   # fila frame28: 0.3.0 en código y 0.3.0 instalada (editable); "Todo listo."
 claude plugin validate ./plugin                  # Validation passed
-python scripts/release-check.py --notes          # todo en verde salvo "! cuenta activa de gh javierledesmasmc"; commits sin push: 2
+python scripts/release-check.py --notes          # versiones 0.3.0 coincidentes; tag local, tag remoto y release v0.3.0 "ya existe/ya publicada" (normal hasta subir __version__); commits sin push: 2; aviso de cuenta gh
 cd poc/clip-javier && frame28 cut plan words.json --audio voice.wav -o work/cuts.json     # 9.94 s -> 9.49 s, 1 tramo
 cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4   # 13 overlays, check pasa, ~2 min
 curl -sI https://frame28.t28.io/roadmap/ | head -1     # HTTP/2 200
