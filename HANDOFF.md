@@ -149,6 +149,13 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
 - Fábrica de shorts en `clips.py` (`frame28 clips plan/cut/scaffold`): tramos de 15–45 s puntuados por momentos
   (resultado, promesa, objeción, cifras, producto), tres ganchos por tramo, recorte con `cut.apply`, storyboard de
   partida con gancho, subtítulos por palabras y CTA.
+- Probado de punta a punta con Cliente A: `clips plan` sobre el tutorial (21 momentos, 5 tramos), tramo s4 (136–171 s)
+  recortado, `reframe --mode blur`, scaffold con marca y CTA, y **tres variantes de gancho renderizadas**
+  (`out/shorts/s4-hook{0,1,2}.mp4`, ~2 min cada una). Lecciones: el QR como SVG inline triplicaba el render (ahora
+  PNG en data URI); `.clip` aplica `inset:0`, así que los overlays con alto propio llevan `inset:auto`; el CTA por
+  defecto se coloca fuera de la columna de iconos y encima de los subtítulos por palabras.
+- Los ganchos de `hooks_for` son plantillas toscas a propósito: la skill `frame28-shorts` manda al agente reescribirlos
+  con las palabras del hablante. Mejora posible: extraer la frase de resultado real como línea del gancho.
 - Pendiente del bloque: portada/miniatura, versión en otro idioma, marcadores de resultado en la transcripción.
 
 ## Problemas conocidos y dudas
