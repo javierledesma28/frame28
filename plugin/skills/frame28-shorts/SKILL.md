@@ -27,6 +27,7 @@ Por cada tramo elegido:
 frame28 clips cut work/clips.json s4 work/clip.mp4 --audio work/voice.wav --words work/words.json --captions work/captions.json
 frame28 reframe work/clips/s4/clip.mp4 -o work/clips/s4/vertical.mp4 --mode crop     # hablante a cámara
 frame28 reframe work/clips/s4/clip.mp4 -o work/clips/s4/vertical.mp4 --mode blur     # manos, producto, vídeo producido
+frame28 reframe-map work/clips/s4/reframe.json --gestures work/clips/s4/gestures.json -o work/clips/s4/gestures-vertical.json   # si hay gestos del apaisado (reframe con --path)
 frame28 clips scaffold work/clips.json s4 --brand <marca> --cta work/cta.json --hook 0 --video vertical.mp4
 frame28 build work/clips/s4/storyboard.json -o work/clips/s4/project && frame28 check work/clips/s4/project
 frame28 render work/clips/s4/project -o out/shorts/s4-hook0.mp4

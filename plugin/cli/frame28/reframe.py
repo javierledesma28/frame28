@@ -137,7 +137,8 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
 
 
 def map_point(res: dict, x: float, y: float, t: float) -> list[int]:
-    """Punto del clip original (px) → píxeles del clip reencuadrado en el instante t (modo crop)."""
+    """Punto del clip original (px) → píxeles del clip reencuadrado en el instante t (modo crop o blur).
+    En modo crop el punto puede quedar fuera de la ventana: `point_visible` lo dice."""
     if res.get("mode") == "blur":
         fg = res["foreground"]; W, H = res["source"]
         return [round(fg["x"] + x * fg["w"] / W), round(fg["y"] + y * fg["h"] / H)]
@@ -145,3 +146,57 @@ def map_point(res: dict, x: float, y: float, t: float) -> list[int]:
     cx = _interp(res["path"], t)
     x0 = max(0, min(res["source"][0] - crop_w, cx - crop_w / 2))
     return [round((x - x0) * ow / crop_w), round(y * oh / H)]
+
+
+def point_visible(res: dict, x: float, y: float, t: float) -> bool:
+    """¿El punto del original (px) queda dentro del encuadre vertical en el instante t? (blur: siempre)."""
+    if res.get("mode") == "blur":
+        return True
+    px, py = map_point(res, x, y, t)
+    ow, oh = res["out"]
+    return 0 <= px <= ow and 0 <= py <= oh
+
+
+def map_canvas_point(res: dict, x: float, y: float, t: float, canvas: tuple[int, int]) -> list[int]:
+    """Punto en el lienzo apaisado del storyboard (p. ej. 1920×1080, donde `gestures` y `speaker` dan sus coordenadas)
+    → píxeles del lienzo vertical. Convierte primero al tamaño real del clip original."""
+    W, H = res["source"]; cw, ch = canvas
+    return map_point(res, x * W / cw, y * H / ch, t)
+
+
+def map_gestures(res: dict, gestures: dict, box_w: int = 320, box_h: int = 90, margin: int = 40) -> dict:
+    """`gestures.json` del clip apaisado → mismos gestos y `pointer` propuestos en el lienzo vertical del reencuadre,
+    sin repetir la detección. Cada pointer lleva `visible` (el punto señalado cae dentro del encuadre en modo crop) y
+    la caja se recoloca dentro del lienzo. Los que no se ven se devuelven igualmente para que el agente decida."""
+    canvas = tuple(gestures.get("canvas") or (1920, 1080))
+    W, H = res["source"]; ow, oh = res["out"]
+    events = []
+    for e in gestures.get("events", []):
+        ne = dict(e)
+        if "tip" in e:
+            ne["tip"] = map_canvas_point(res, e["tip"][0], e["tip"][1], e.get("start", 0.0), canvas)
+        events.append(ne)
+    pointers = []
+    hidden = 0
+    for p in gestures.get("pointer_suggestions", []):
+        t = p.get("at", p.get("start", 0.0))
+        dot = map_canvas_point(res, p["dot"][0], p["dot"][1], t, canvas)
+        vis = point_visible(res, p["dot"][0] * W / canvas[0], p["dot"][1] * H / canvas[1], t)
+        bx, by = map_canvas_point(res, p["box"][0], p["box"][1], t, canvas)
+        # la caja dentro del lienzo y sin pisar el punto: por encima del dedo si cabe, si no debajo
+        bx = max(margin, min(bx, ow - box_w - margin))
+        if by + box_h > dot[1] - 20 and by < dot[1] + 20:
+            by = dot[1] - box_h - 60
+        by = max(margin, min(by, oh - box_h - margin))
+        np_ = {**p, "dot": [int(max(0, min(dot[0], ow))), int(max(0, min(dot[1], oh)))], "box": [int(bx), int(by)], "visible": vis}
+        if not vis:
+            hidden += 1
+        pointers.append(np_)
+    face = gestures.get("face_box")
+    if face:
+        t0 = 0.0
+        a = map_canvas_point(res, face[0], face[1], t0, canvas); b = map_canvas_point(res, face[2], face[3], t0, canvas)
+        face = [max(0, a[0]), max(0, a[1]), min(ow, b[0]), min(oh, b[1])]
+    return {"mode": res.get("mode"), "canvas": [ow, oh], "source_canvas": list(canvas), "face_box": face,
+            "events": events, "pointer_suggestions": pointers, "hidden": hidden,
+            "warnings": ([f"{hidden} pointer(s) señalan fuera del encuadre vertical (modo crop): usa --mode blur o quítalos"] if hidden else [])}

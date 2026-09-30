@@ -19,3 +19,5 @@ frame28 check project && frame28 render project -o out/video.mp4
 ```
 
 Requisitos: Python 3.11+, ffmpeg en PATH (o `FRAME28_FFMPEG`), Node.js 22+ (HyperFrames se descarga solo con `npx`).
+
+Pruebas (módulos puros, sin ffmpeg ni modelos, menos de un segundo): `uv run --group dev pytest` desde este directorio.
