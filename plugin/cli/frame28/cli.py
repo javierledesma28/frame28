@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 
 from . import __version__
+from .captions import TranscriptFormatError
 
 # Windows abre la consola en cp1252; forzamos UTF-8 para que ✓ ✗ → y acentos no rompan la salida.
 for _stream in (sys.stdout, sys.stderr):
@@ -48,15 +49,16 @@ def fetch(url, out_mp4, max_height, as_json):
 @main.command()
 @click.option("--json", "as_json", is_flag=True)
 def doctor(as_json):
-    """Comprueba ffmpeg, Node, dependencias Python y modelos."""
+    """Comprueba ffmpeg, Node, dependencias Python, modelos, que el código y la instalación coincidan, y red para GSAP."""
     from .doctor import doctor as _doctor
     rows = _doctor()
     if as_json:
         out(rows, True); return
     for r in rows:
         mark = "✓" if r["ok"] else "✗"
-        click.echo(f"  {mark} {r['name']:<20} {r['detail']}" + ("" if r["ok"] else f"\n      → {r['fix']}"))
-    missing = [r for r in rows if not r["ok"] and r["name"] not in ("gpu (onnxruntime)", "modelo RVM")]
+        tag = "  (opcional)" if not r["ok"] and r.get("optional") else ""
+        click.echo(f"  {mark} {r['name']:<20} {r['detail']}{tag}" + ("" if r["ok"] else f"\n      → {r['fix']}"))
+    missing = [r for r in rows if not r["ok"] and not r.get("optional")]
     click.echo("\n" + ("Todo listo." if not missing else f"Faltan {len(missing)} requisitos."))
 
 
@@ -734,5 +736,14 @@ def render(project, output, quality, crf, fps, no_sheet, as_json):
         click.echo(r["log_tail"]); raise SystemExit(1)
 
 
+def run():
+    """Punto de entrada del ejecutable: los errores de formato de datos salen como mensaje corto, sin traza."""
+    try:
+        main()
+    except TranscriptFormatError as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(2)
+
+
 if __name__ == "__main__":
-    main()
+    run()

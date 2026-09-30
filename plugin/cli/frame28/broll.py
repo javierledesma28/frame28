@@ -16,6 +16,7 @@ import urllib.request
 from pathlib import Path
 
 from .env import ffmpeg, run
+from .captions import load_captions
 
 KEYS_FILE = Path.home() / ".config" / "frame28" / "keys.json"
 UA = "Frame28/0.2 (+https://frame28.t28.io)"
@@ -60,7 +61,7 @@ def providers_available() -> dict:
 def suggest(captions_path: str | Path, lang: str = "es", per_phrase: int = 2, min_len: float = 2.0) -> list[dict]:
     """Por cada frase de captions.json: 1–3 palabras de contenido como consulta de stock. El agente afina la consulta
     (traduce al inglés, que es lo que mejor indexan los bancos) y decide en qué frases va B-roll."""
-    caps = json.loads(Path(captions_path).read_text(encoding="utf-8"))
+    caps = load_captions(captions_path)
     stop = STOP.get(lang, set())
     out = []
     for c in caps:

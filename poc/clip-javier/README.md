@@ -18,3 +18,6 @@ Observaciones:
 - Los callouts se colocaron donde señala la mano leyendo dos fotogramas: es el candidato natural para automatizar con detección de pose (MediaPipe) en la skill de storyboard.
 - Javier ocupa el tercio izquierdo del encuadre, así que todos los overlays fueron a la derecha. La skill debe detectar dónde está el hablante antes de decidir el layout.
 - `check` marca como error el texto detrás (falso positivo conocido) y avisa de contraste bajo del cursor rosa sobre fondo claro.
+- `words.json` se normalizó al formato del CLI (segundos) el 2026-09-30. El original del pipeline manual estaba en
+  milisegundos (`startMs`/`endMs`, formato de HyperFrames), que `captions.load_words` sigue aceptando; con él `cut plan`
+  reventaba con `KeyError` porque leía el JSON a pelo.

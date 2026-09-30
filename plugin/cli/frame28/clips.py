@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from .captions import load_captions, load_words
 
 MOMENTS = {
     "result": {
@@ -48,8 +49,7 @@ def _moments(caps: list[dict], lang: str, keywords: list[str]) -> list[dict]:
 
 def plan(captions_path: str | Path, target: float = 30.0, count: int = 5, lang: str = "en",
          min_len: float = 15.0, max_len: float = 45.0, keywords: list[str] | None = None, brand: str | None = None) -> dict:
-    caps = json.loads(Path(captions_path).read_text(encoding="utf-8"))
-    caps = [c for c in caps if c.get("text", "").strip()]
+    caps = load_captions(captions_path)
     keywords = [k for k in (keywords or []) if k]
     moments = _moments(caps, lang, keywords)
     cands = []
@@ -229,7 +229,7 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
              brand: str | dict | None = None, cta: dict | None = None, hook_index: int = 0, video_name: str = "clip.mp4") -> dict:
     """Storyboard de partida para el short: gancho, subtítulos por palabras, CTA al final. Construye tal cual."""
     d = Path(clip_dir)
-    words = json.loads((d / "words.json").read_text(encoding="utf-8")) if (d / "words.json").exists() else []
+    words = load_words(d / "words.json") if (d / "words.json").exists() else []
     dur = round(clip["end"] - clip["start"] + 0.3, 2)
     if words:
         dur = round(max(dur, words[-1]["end"] + 0.3), 2)

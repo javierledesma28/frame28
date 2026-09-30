@@ -31,12 +31,14 @@ instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude insta
 ```
 .claude-plugin/marketplace.json   este repo es su propio marketplace ("think28", source ./plugin)
 plugin/                           EL PLUGIN (solo esto se instala; el resto del repo no se copia)
-  .claude-plugin/plugin.json      manifiesto (name frame28; sin displayName: Claude Code 2.1.150 lo rechaza)
+  .claude-plugin/plugin.json      manifiesto (name frame28; sin displayName: no está en el esquema; una sesión lo vio rechazado,
+                                  con 2.1.126 valida, pero no aporta nada)
   skills/frame28-*/SKILL.md       ocho skills; frame28-storyboard/references/ = tecnicas.md, grabacion.md,
                                   ejemplo-storyboard.json, marca-y-promocional.md, ganchos.md
   cli/pyproject.toml              paquete Python (uv); deps: click, numpy, opencv-python-headless, onnxruntime,
                                   faster-whisper, av>=11,<18 (ver Trampas), mediapipe, rapidocr, segno
   cli/frame28/
+    __init__.py                   __version__ (única fuente de la versión del CLI; pyproject la lee con hatch), HYPERFRAMES_VERSION, GSAP_VERSION
     env.py                        localiza ffmpeg/uv/npx (WinGet), caché ~/.cache/frame28, modelo RVM
     media.py                      probe, prep (30 fps sin audio + voz limpia), sheet, frame_at, cut, fetch_url (yt-dlp vía uvx)
     transcribe.py                 faster-whisper → words.json, captions.json, words.srt (LF), transcript.json
@@ -57,6 +59,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
 docs/                             GitHub Pages: presentacion/ (deck + engine/), instalar/ (asistente web), instalar.md,
                                   install.ps1, install.sh, guion-demo.md, guia-plugin.md, brand/, CNAME, .nojekyll, index.html
+scripts/release-check.py          versiones en los cuatro sitios, árbol limpio, tag libre, cuenta gh, plugin validado; --notes: commits desde el último tag
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A)
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
@@ -76,7 +79,7 @@ claude plugin install frame28@think28 --scope user
 claude plugin validate ./plugin                             # SIEMPRE antes de commitear skills
 ```
 Tras editar skills: `claude plugin uninstall frame28@think28 && claude plugin install frame28@think28 --scope user`
-(con la misma versión, `update` no refresca el caché). Tras añadir una dependencia al pyproject:
+(con la misma versión, `update` no refresca el caché). Tras añadir una dependencia al pyproject o cambiar `__version__`:
 `uv tool install --editable ./plugin/cli --python 3.12 --reinstall`.
 
 Pipeline manual (lo que hace la skill directora):
@@ -106,6 +109,9 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - Idioma: español en docs, skills, mensajes del CLI y commits. Tono Think28: directo, técnico, humano; sin
   "innovador/disruptivo/robusto/holístico".
 - Commits: mensaje descriptivo en español + línea `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- Versión y release: `__version__` en `plugin/cli/frame28/__init__.py` (pyproject la lee), `plugin/.claude-plugin/plugin.json`,
+  `.claude-plugin/marketplace.json` y el README. `python scripts/release-check.py` antes de etiquetar; `--notes` da el
+  punto de partida de las notas. Luego `git tag -a vX.Y.Z`, push del tag y `gh release create` con la cuenta personal.
 - Push: el repo es de la cuenta **javierledesma28**; `gh` tiene también la corporativa `javierledesmasmc` y a veces es
   la activa (push → 403). `gh auth switch --user javierledesma28`, push, y volver a dejar la que estaba.
 - Finales de línea LF (`.gitattributes`); el `words.srt` que importa HyperFrames **solo funciona con LF**.
@@ -144,7 +150,9 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 
 ## Trampas ya sufridas (no repetir)
 
-- **ffmpeg y uv no siempre están en el PATH de la sesión Bash**: `export PATH="/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-8.1.1-full_build/bin:/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe:$HOME/.local/bin:$PATH"` (el CLI los localiza solo; la shell no).
+- **ffmpeg y uv no siempre están en el PATH de la sesión Bash** (y WinGet cambia la carpeta de ffmpeg en cada actualización:
+  8.1.1 pasó a 9.0.2): `export PATH="$(ls -d /c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin | tail -1):/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe:$HOME/.local/bin:$PATH"`
+  (el CLI los localiza solo; la shell no).
 - **PyAV**: uv resolvía `av` 19, que rompe faster-whisper (`metadata_errors`); `av` 14 no tiene wheel Windows → pin `<18`.
 - **Sin CUDA** en la máquina: faster-whisper y onnxruntime en CPU. No asumir GPU.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
@@ -187,3 +195,14 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
   con `note`/`visible`; traducir solo lo que se oye.
 - **`frame28 clips scaffold` con marca por ruta**: se guarda relativa al storyboard del short; construir desde
   cualquier carpeta funciona.
+- **La versión vive en cuatro sitios** y el bump a 0.3.0 se olvidó de `__init__.py`: `frame28 --version` siguió diciendo
+  0.2.0. Ahora pyproject la lee de `__init__.py` (hatch) y `scripts/release-check.py` comprueba los cuatro; `frame28 doctor`
+  avisa si el código y la instalación no coinciden (la instalación editable no relee `__version__`: `--reinstall`).
+- **`words.json` y `captions.json` se leen solo con `captions.load_words` / `load_captions`**: aceptan `text` o `word`,
+  `start`/`end` en segundos o `startMs`/`endMs` en milisegundos (HyperFrames) y dict con `words` o `segments`, y dan un
+  error corto (`TranscriptFormatError`) si faltan tiempos. Leerlos con `json.loads` a pelo es lo que hizo reventar
+  `cut plan` con el fixture de clip-javier en milisegundos.
+- **El render necesita red**: GSAP y sus plugins se cargan desde jsdelivr (`GSAP_VERSION`, en `__init__.py`); `doctor` lo
+  comprueba como fila opcional. "Tu vídeo no sale de tu máquina" sigue siendo cierto: solo se descargan los scripts.
+- **`gh` con la cuenta corporativa activa** da 403 en push, tag y release: `gh auth switch --user javierledesma28` antes
+  y volver a la que estaba después (`release-check` lo avisa).

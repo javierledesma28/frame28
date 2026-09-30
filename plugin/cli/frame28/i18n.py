@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from .captions import load_captions, load_words
 
 # campos con texto visible, por tipo de overlay (el resto: ids, tiempos, rutas, colores)
 TEXT_FIELDS = {"title", "subtitle", "text", "label", "caption", "credit", "line", "discount", "code_label",
@@ -148,7 +149,7 @@ def translate_project(storyboard_path: str | Path, strings_path: str | Path, lan
         if not wp.exists() or not cp.exists():
             warns.append(f"subtítulos por palabras: faltan {wp.name} o {cp.name}; deja caption_style.words apuntando al original")
         else:
-            words = json.loads(wp.read_text(encoding="utf-8")); caps = json.loads(cp.read_text(encoding="utf-8"))
+            words = load_words(wp, merge_symbols=False); caps = load_captions(cp)
             strings = tr.get("strings", tr)
             caps_tr = []
             for i, c in enumerate(caps):
@@ -170,9 +171,9 @@ def extract_with_captions(sb: dict, captions_path: str | Path | None) -> dict:
     r = extract(sb)
     cs = sb.get("caption_style")
     if cs and cs.get("preset") in ("pages", "karaoke") and captions_path and Path(captions_path).exists():
-        caps = json.loads(Path(captions_path).read_text(encoding="utf-8"))
+        caps = load_captions(captions_path)
         wp = Path(captions_path).parent / cs.get("words", "words.json")
-        words = json.loads(wp.read_text(encoding="utf-8")) if wp.exists() else []
+        words = load_words(wp) if wp.exists() else []
         for i, c in enumerate(caps):
             s, e = float(c["start"]), float(c["end"])
             inside = [w["text"] for w in words if s - 0.05 <= float(w["start"]) < e + 0.05]

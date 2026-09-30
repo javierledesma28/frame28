@@ -13,7 +13,7 @@ import math
 import shutil
 from pathlib import Path
 
-from . import HYPERFRAMES_VERSION
+from . import GSAP_VERSION, HYPERFRAMES_VERSION
 
 OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw", "broll",
                  "hook", "cta", "steps", "before_after"}
@@ -782,9 +782,9 @@ class Builder:
         font_link = f'    <link rel="stylesheet" href="{fl}">\n' if fl else ""
         plugins = ""
         if self.uses_split:
-            plugins += '    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/SplitText.min.js"></script>\n'
+            plugins += f'    <script src="https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/SplitText.min.js"></script>\n'
         if self.uses_draw:
-            plugins += '    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/DrawSVGPlugin.min.js"></script>\n'
+            plugins += f'    <script src="https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/DrawSVGPlugin.min.js"></script>\n'
         font_link = plugins + font_link
         reg = []
         if self.uses_split:
@@ -798,7 +798,7 @@ class Builder:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width={self.W}, height={self.H}" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/gsap.min.js"></script>
 {font_link}    <style>{css}    </style>
   </head>
   <body>

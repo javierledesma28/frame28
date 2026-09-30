@@ -4,7 +4,7 @@ Pasos deterministas de Frame28. Las skills de Claude Code lo invocan; también s
 
 ```bash
 uv tool install --editable .        # desde este directorio
-frame28 doctor                      # qué falta (ffmpeg, Node, modelos)
+frame28 doctor                      # qué falta (ffmpeg, Node, modelos, red para GSAP) y si código e instalación coinciden
 frame28 prep clip.mp4 -o work       # copia 30 fps + voz limpia y normalizada (--denoise none|afftdn|rnnoise|deepfilter)
 frame28 audio measure work/voice.wav # LUFS, pico, suelo de ruido, señal/ruido
 frame28 transcribe work/audio16k.wav -o work --lang es
