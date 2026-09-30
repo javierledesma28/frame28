@@ -77,6 +77,16 @@ Casos reales en `poc/` (cada uno con README, storyboard y cuts.json versionados;
 
 ## 4. A medias / pendiente inmediato (con ficheros)
 
+0. **Crear el tag `v0.3.0` y la release en GitHub** (dejado pendiente a propósito por el usuario al cerrar la sesión;
+   los ficheros ya están en 0.3.0, commit `27f43cc`). Comandos, desde `main` actualizado y con la cuenta
+   `javierledesma28` activa en `gh`:
+   ```bash
+   git tag -a v0.3.0 -m "Frame28 v0.3.0" && git push origin v0.3.0
+   gh release create v0.3.0 --repo javierledesma28/frame28 --title "Frame28 v0.3.0" --notes-file <notas> --latest
+   ```
+   Notas: lo de la sección 3 desde v0.2.0 (vertical y reencuadre, subtítulos por palabras y SRT/VTT, B-roll,
+   `graphics`, overlays de venta, shorts, portada, i18n, `brand from-site`, `fetch`); formato como en v0.2.0.
+
 1. **Artefacto gráfico del roadmap con versionado** (petición interrumpida; ver sección 5). No hay nada escrito
    aún; los datos están en `research/04-roadmap-features.md` (18 ítems con valor/esfuerzo), `research/05` (8 mejoras,
    6 hechas) y la sección 3 de este fichero. Formato: la skill de decks del usuario (`docs/presentacion/engine/`,
