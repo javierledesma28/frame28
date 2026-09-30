@@ -24,7 +24,19 @@ generado**: se edita el storyboard y se regenera.
 
 Repo público: `https://github.com/javierledesma28/frame28`. Web (GitHub Pages sobre `docs/`, dominio propio con
 HTTPS forzado): `https://frame28.t28.io/` → guía `/presentacion/`, asistente de instalación `/instalar/`,
-instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude instale `/instalar.md`.
+instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude instale `/instalar.md`, roadmap por
+versiones `/roadmap/`.
+
+**Desde el 2026-09-30 Frame28 es también un producto monetizable** del ecosistema Think28, con dominio
+**frame28.app** (comprado en Cloudflare; sitio del producto pendiente de construir en `site/` y desplegar en
+Cloudflare Pages). Se vende como servicio operado por Think28 (Launch, Studio), implantación en el cliente (Team) y,
+solo con demanda demostrada, plataforma (Cloud). Primer cliente objetivo: Cliente A. Definición, precios propuestos
+y plan en `research/07-producto-frame28-app.md`; caminos evaluados en `research/06-monetizacion.md`. El plugin y el
+CLI siguen MIT y públicos: son la demo viva y el canal de adopción.
+
+**Regla de trabajo del usuario:** cada aprendizaje de un caso, un vídeo de ejemplo o un diagnóstico se capitaliza en
+el plugin (código del CLI, `doctor`, validaciones, skills y referencias), no en docs ni en el HANDOFF. Ante cada
+hallazgo: "¿qué parte del CLI o de qué skill cambia para que esto no vuelva a pasar?".
 
 ## Estructura
 
@@ -59,9 +71,14 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
 docs/                             GitHub Pages: presentacion/ (deck + engine/), instalar/ (asistente web), instalar.md,
                                   install.ps1, install.sh, guion-demo.md, guia-plugin.md, brand/, CNAME, .nojekyll, index.html
+  roadmap/index.html              roadmap por versiones (Think28): los datos viven en el array ROADMAP del propio fichero
+                                  (estado hecho/medias/pendiente por ítem); marcadores artifact:head/body para publicarlo como artefacto
 scripts/release-check.py          versiones en los cuatro sitios, árbol limpio, tag libre, cuenta gh, plugin validado; --notes: commits desde el último tag
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
-                                  04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A)
+                                  04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
+                                  06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
+                                  Fundadores, KB y curso, sitio, plan de 7 días, propuesta a Cliente A)
+site/                             (pendiente de crear) sitio del producto frame28.app para Cloudflare Pages; ver research/07 §5
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
@@ -102,7 +119,16 @@ Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards r
 (16 overlays, cortes, vertical), `poc/clip-grabado/` (vídeo producido, marca de cliente, shorts, i18n).
 
 Deck de la guía: editar `docs/presentacion/deck.html`, luego `node engine/build.mjs deck.html --out index.html`
-desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` → `[]`.
+desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` → `[]`. El build puede dejar CRLF
+en `index.html`: normalizar a LF antes de commitear (git lo hace solo, pero deja aviso).
+
+Roadmap: editar el array `ROADMAP` de `docs/roadmap/index.html` (estado `s` de cada ítem: hecho | medias |
+pendiente; `next: true` marca el siguiente). Comprobar con `node --check` el script extraído y republicar el
+artefacto de claude.ai (URL en HANDOFF) con la variante sin doctype (contenido entre los marcadores
+`artifact:head` y `artifact:body`).
+
+Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tags, cuenta gh, release, CLI, plugin;
+`--notes` lista los commits desde el último tag). Notas con el formato de `gh release view v0.3.0`.
 
 ## Convenciones
 
@@ -129,6 +155,10 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
   marca `cliente-a` vive en `poc/clip-grabado/work/brands/` (no versionada) y se regenera con `frame28 brand from-site`.
 - Acciones persistentes (push, tags, cambios de visibilidad, DNS, instalar cosas en la máquina del usuario) se
   proponen antes de ejecutarlas; el usuario pidió acompañamiento paso a paso y explicaciones de cada etapa.
+- Los análisis de negocio (`research/06`, `07`) se versionan en este repo público por decisión del usuario; los
+  **precios** propuestos en `research/07` no se pushean hasta que él los valide (los commits quedan en local).
+- Precios y oferta se expresan en USD (el primer cliente es estadounidense); la landing es la fuente pública de
+  precios cuando exista; `research/07` es la propuesta.
 - Parches al CLI: escribir el parche a un `.py` en el scratchpad y ejecutarlo (ver Trampas), luego `ast.parse`.
 
 ## Decisiones técnicas
@@ -147,6 +177,10 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
 - Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
   o "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md" pegado en Claude Code.
+- Sitio del producto (decidido, no construido): frame28.app en **Cloudflare Pages** desde `site/` de este repo
+  (dominio ya en Cloudflare); base de conocimiento y curso tras **Cloudflare Access** con código por email;
+  formulario con Pages Functions y Cloudflare Email Service. frame28.t28.io sigue en GitHub Pages para el plugin.
+- El roadmap público vive en `docs/roadmap/index.html` con sus datos inline; no hay otra copia de los estados.
 
 ## Trampas ya sufridas (no repetir)
 
