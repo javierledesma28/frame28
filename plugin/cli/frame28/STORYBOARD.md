@@ -39,7 +39,7 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 |---|---|---|
 | `lower_third` | `x`, `y`, `title`, `subtitle?` | Tarjeta de identidad monoespaciada que se escribe carácter a carácter (T1). |
 | `box` | `x`, `y`, `text`, `at?` | Frase corta en caja con esquinas de encuadre (T7). Aparece con pop. |
-| `kinetic` | `x`, `y`, `size?` (124), `lines: [[{text, at, accent?}]]` | Tipografía cinética: cada palabra entra en su `at` (T2). Una lista por línea. `accent: true` la pinta con el color de acento. |
+| `kinetic` | `x`, `y`, `size?` (124), `color?` (CSS; para fondos claros, pone sombra clara), `lines: [[{text, at, accent?}]]` | Tipografía cinética: cada palabra entra en su `at` (T2). Una lista por línea. `accent: true` la pinta con el color de acento. |
 | `behind` | `text`, `at?`, `size?` (240), `matte`, `matte_start?`, `matte_end?` | Palabra gigante **detrás** del hablante (T3). `matte` es el WebM con alfa de `frame28 matte`; `matte_start/end` su rango en el clip (por defecto `start/end`). |
 | `pointer` | `dot: [x,y]`, `box: [x,y]`, `text`, `at?` | Callout con punto, línea que crece y caja (T6). Ponlo donde el hablante señala; la línea se calcula sola. |
 | `card` | `bg` (black/white/accent), `title: {text, at?, size?}`, `subtitle?: {text, at?, size?}` | Pizarra a pantalla completa con título (T5). Tapa al hablante. |

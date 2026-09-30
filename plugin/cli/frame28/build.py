@@ -7,6 +7,7 @@ capas con z-index explícito, todo elemento temporizado con id, posiciones inlin
 from __future__ import annotations
 
 import html
+import re
 import json
 import math
 import shutil
@@ -47,6 +48,7 @@ CSS = """
       .lower .c { width: 18px; height: 18px; } .lower .tl { top: -9px; left: -9px; } .lower .br { bottom: -9px; right: -9px; }
       .kin { position: absolute; font-weight: 600; line-height: 1.02; letter-spacing: -0.045em; text-shadow: 0 6px 30px rgba(0,0,0,.55); }
       .kin .w { display: inline-block; opacity: 0; margin-right: 0.22em; }
+      .kin.onlight { text-shadow: 0 2px 6px rgba(255,255,255,.75), 0 0 24px rgba(255,255,255,.6); }
       .accent { color: var(--accent); }
       .behind { display: flex; align-items: center; justify-content: center; }
       .behind .w { font-weight: 700; letter-spacing: -0.05em; white-space: nowrap; text-shadow: 0 8px 40px rgba(0,0,0,.35); opacity: 0; }
@@ -244,6 +246,28 @@ class Builder:
         self.assets.add(rel)
         return rel
 
+    def logo_width(self, pub: str | None, height: int = 30) -> int:
+        """Ancho que ocupará el logo a `height` px (PNG/JPG por sus dimensiones, SVG por viewBox); 30 si no se sabe."""
+        if not pub:
+            return 0
+        src = next((f for k, f in self.brand_assets.items() if k == pub), None)
+        try:
+            if src and src.suffix.lower() == ".svg":
+                txt = src.read_text(encoding="utf-8", errors="ignore")
+                m = re.search(r'viewBox="[\d.\-]+[ ,]+[\d.\-]+[ ,]+([\d.]+)[ ,]+([\d.]+)"', txt)
+                if m:
+                    return round(height * float(m.group(1)) / float(m.group(2)))
+            elif src:
+                import struct
+                with open(src, "rb") as f:
+                    head = f.read(26)
+                if head[:8] == b"\x89PNG\r\n\x1a\n":
+                    w, h = struct.unpack(">II", head[16:24])
+                    return round(height * w / h)
+        except Exception:
+            pass
+        return height
+
     def brand_logo(self, variant: str = "isotipo") -> str | None:
         """Publica el logo de la marca como assets/brand/<fichero> y devuelve la ruta relativa, o None si no hay."""
         files = self.brand_meta.get("logo_files") or {}
@@ -266,7 +290,8 @@ class Builder:
         inner = (f'<i class="c tl"></i><i class="c br"></i>'
                  f'<div class="line"><span class="mask" id="{i}-l1">{mark}&nbsp;{title}&nbsp;&nbsp;&nbsp;&nbsp;×</span></div>'
                  + (f'<div class="line"><span class="mask" id="{i}-l2">{sub}<span class="cur">▌</span></span></div>' if sub else ""))
-        w1 = 34 * 0.66 * (len(o["title"]) + 8); w2 = 34 * 0.66 * (len(o.get("subtitle", "")) + 2)
+        lw = self.logo_width(logo) if logo else 24
+        w1 = 34 * 0.66 * (len(o["title"]) + 6) + lw; w2 = 34 * 0.66 * (len(o.get("subtitle", "")) + 2)
         box_w = round(max(w1, w2) + 48)  # ancho fijo: si no, la segunda línea queda recortada por la primera
         self.timed(o, f"left:{o['x']}px; top:{o['y']}px; width:{box_w}px;", cls="lower", inner=inner, z=4, track=3)
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.2 }}, {t});')
@@ -287,7 +312,9 @@ class Builder:
             mode = o.get("reveal", "fade")
             spans = "".join(f'<span class="w{" accent" if w.get("accent") else ""}{" rise" if mode == "rise" else ""}" id="{i}-{li}-{wi}"><span class="wi">{esc(w["text"])}</span></span>' for wi, w in enumerate(line))
             rows.append(f"<div>{spans}</div>")
-        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; font-size:{size}px;", cls="kin", inner="".join(rows), z=4, track=5)
+        color = o.get("color")
+        cls = "kin onlight" if color else "kin"
+        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; font-size:{size}px;" + (f" color:{color};" if color else ""), cls=cls, inner="".join(rows), z=4, track=5)
         for li, line in enumerate(o["lines"]):
             for wi, w in enumerate(line):
                 self.reveal(f"#{i}-{li}-{wi}", w["at"], o.get("reveal", "fade"))
