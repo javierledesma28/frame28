@@ -25,8 +25,8 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   `audio measure/clean/compare`, `speaker`, `gestures` (MediaPipe → pointers propuestos), `matte` (RVM),
   `storyboard validate/schema`, `build`, `check`, `render`, `doctor`, `brand init/list/show`, `frames`, `sheet`.
 - Overlays del storyboard: lower_third, box, kinetic, behind, pointer, card, list_focus, card_words, image,
-  brand_card, chart (bar con hero, counter), draw (iconos DrawSVG); `reveal` fade/rise/chars en textos; marca por
-  nombre con `brands/think28.json` + logos oficiales.
+  brand_card, chart (bar con hero, counter), draw (iconos DrawSVG), broll, hook, cta (QR con segno), steps,
+  before_after; `reveal` fade/rise/chars en textos; marca por nombre con `brands/think28.json` + logos oficiales.
 - Distribución: plugin validado e instalado en local; repo recreado limpio (sin caras ni material de terceros) y
   público; tags y releases `v0.1.0` y `v0.2.0` (2026-09-30); GitHub Pages sobre `docs/` con dominio `frame28.t28.io` (CNAME en Cloudflare,
   HTTPS forzado); guía para no técnicos como deck de 17 slides (`docs/presentacion/`); instaladores
@@ -135,6 +135,21 @@ Todo commiteado y en `main` de `https://github.com/javierledesma28/frame28` (pú
   47 s en blur; cámara casi quieta porque el hablante está centrado).
 - Pendiente: probar en un clip donde el hablante se desplace de verdad; `reframe map` para convertir los
   `pointer` del original sin repetir `gestures`.
+
+## Hecho después: enfoque "vídeo que vende" (Cliente A como cliente tipo)
+
+- Investigación en `research/05-video-venta-diy.md`: canal de Cliente A (los tutoriales por material ganan 10× a
+  las listas de regalos; los shorts con gancho de transformación o riesgo multiplican por 5–10 el alcance), práctica
+  del sector (gancho → problema → demo → valor → prueba → CTA; 70 % sin sonido; fatiga a 7–14 días) y una tabla de
+  ocho mejoras priorizadas para Frame28.
+- Overlays nuevos en `build.py`: `hook` (líneas con resaltado), `cta` (precio, anterior tachado, descuento, código,
+  línea, QR local con `segno`), `steps` (píldora de progreso), `before_after` (dos instantes del clip, extraídos en el
+  build, con barrido por `clipPath` y barra por `x`). `platform` en el storyboard → `platform_warnings` (zonas de
+  TikTok/Reels/Shorts). `references/ganchos.md` con los diez tipos y el arco de 30 s.
+- Fábrica de shorts en `clips.py` (`frame28 clips plan/cut/scaffold`): tramos de 15–45 s puntuados por momentos
+  (resultado, promesa, objeción, cifras, producto), tres ganchos por tramo, recorte con `cut.apply`, storyboard de
+  partida con gancho, subtítulos por palabras y CTA.
+- Pendiente del bloque: portada/miniatura, versión en otro idioma, marcadores de resultado en la transcripción.
 
 ## Problemas conocidos y dudas
 

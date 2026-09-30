@@ -11,8 +11,8 @@ identidad, títulos cinéticos por palabra, texto detrás del hablante, callouts
 subtítulos y tarjeta de marca. Todo generado por código, en local.
 
 Dos piezas:
-- **Plugin de Claude Code** (`plugin/`): seis skills (`frame28-director` orquesta; `frame28-transcribe`,
-  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-compose`). Claude dirige el montaje.
+- **Plugin de Claude Code** (`plugin/`): siete skills (`frame28-director` orquesta; `frame28-transcribe`,
+  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-compose`). Claude dirige el montaje.
 - **CLI Python `frame28`** (`plugin/cli/frame28/`, click): los pasos deterministas. Las skills lo invocan por Bash.
 
 El **contrato** entre ambos es el **storyboard JSON** (`plugin/cli/frame28/STORYBOARD.md` lo documenta;
@@ -35,6 +35,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
   cli/frame28/                    env, media(fetch por yt-dlp vía uvx/prep/probe/sheet), transcribe, cut, audio, matte(+speaker), pose(gestures),
                                   graphics(OCR RapidOCR: texto en pantalla, tarjetas, zonas libres, colisiones),
                                   reframe(apaisado → 9:16 siguiendo la cara con zona muerta, o fondo desenfocado),
+                                  clips(fábrica de shorts: tramos por momentos, ganchos, recorte, storyboard de partida),
                                   captions(páginas por palabra, SRT/VTT, lienzo por defecto), broll(Pexels/Pixabay,
                                   licencia en sidecar; claves en ~/.config/frame28/keys.json), build(generador), render,
                                   doctor, cli, STORYBOARD.md, brands/think28.json + SVG
@@ -110,7 +111,8 @@ desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` �
 - **Sin CUDA** en la máquina: faster-whisper y onnxruntime en CPU. No asumir GPU.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
 - **Parches a `build.py` con heredoc bash fallan** por las comillas: escribir el parche a un `.py` y ejecutarlo.
-- **HyperFrames**: el `check` marca `text_occluded` en todo `behind` (falso positivo, `frame28 check` lo separa);
+- **HyperFrames rechaza tweens de `left/top/width`** (`gsap_non_transform_motion`): animar siempre `x/y/scale/opacity`
+  o `clipPath`. El `check` marca `text_occluded` en todo `behind` (falso positivo, `frame28 check` lo separa);
   la previsualización del Studio no respeta el rango de la capa alfa (el render sí); `hyperframes transcribe`
   exige whisper-cpp compilado (no usar; importar `words.srt` con `--preserve-cues` si hace falta).
 - **Plugin**: el caché copia todo el directorio del plugin → por eso vive en `plugin/`; tras editar skills hay que

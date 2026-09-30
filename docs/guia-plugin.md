@@ -20,7 +20,7 @@ comando, cómo se comprueba y qué puede salir mal. Vamos tachando.
 ```
 .claude-plugin/marketplace.json     catálogo (este mismo repo, source: ./plugin)
 plugin/.claude-plugin/plugin.json   manifiesto
-plugin/skills/frame28-*/SKILL.md    seis skills
+plugin/skills/frame28-*/SKILL.md    siete skills
 plugin/cli/                         paquete Python
 ```
 Comprobación: `claude plugin validate .` → `Validation passed`.

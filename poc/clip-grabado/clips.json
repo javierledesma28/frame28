@@ -1,0 +1,351 @@
+{
+ "captions": "work/captions.json",
+ "lang": "en",
+ "target": 30.0,
+ "moments": 21,
+ "clips": [
+  {
+   "start": 0.0,
+   "end": 32.1,
+   "duration": 32.1,
+   "score": 15.86,
+   "moments": [
+    {
+     "t": 0.0,
+     "kind": "promise",
+     "text": "Hi everyone, welcome to another tutorial where we break engraving down into simple steps",
+     "match": "simple"
+    },
+    {
+     "t": 4.76,
+     "kind": "promise",
+     "text": "anyone can follow.",
+     "match": "anyone can"
+    },
+    {
+     "t": 10.26,
+     "kind": "objection",
+     "text": "People always ask me things like, isn't glass too slippery, what if it cracks?",
+     "match": "isn't glass"
+    },
+    {
+     "t": 14.98,
+     "kind": "objection",
+     "text": "And I get it, it looks a little intimidating at first.",
+     "match": "intimidating"
+    },
+    {
+     "t": 23.08,
+     "kind": "promise",
+     "text": "surprisingly beginner friendly.",
+     "match": "beginner"
+    },
+    {
+     "t": 25.1,
+     "kind": "promise",
+     "text": "So let's start with something simple and build from there.",
+     "match": "simple"
+    }
+   ],
+   "phrases": [
+    "Hi everyone, welcome to another tutorial where we break engraving down into simple steps",
+    "anyone can follow.",
+    "Today we're stepping into one of the most satisfying materials to engrave on, glass.",
+    "People always ask me things like, isn't glass too slippery, what if it cracks?",
+    "And I get it, it looks a little intimidating at first.",
+    "But the truth is, with a low speed and the right bit and a calm pace, glass becomes",
+    "surprisingly beginner friendly.",
+    "So let's start with something simple and build from there.",
+    "Before we start, we need to talk about safety, because glass is one of those materials that"
+   ],
+   "id": "s1",
+   "hooks": [
+    {
+     "type": "objection",
+     "lines": [
+      "People always ask me things like, isn't ",
+      "Not anymore."
+     ]
+    },
+    {
+     "type": "promise",
+     "lines": [
+      "The only thing you need",
+      "Simple"
+     ]
+    },
+    {
+     "type": "curiosity",
+     "lines": [
+      "Can you actually do this",
+      "with your own hands?"
+     ]
+    }
+   ]
+  },
+  {
+   "start": 74.72,
+   "end": 110.42,
+   "duration": 35.7,
+   "score": 20.12,
+   "moments": [
+    {
+     "t": 74.72,
+     "kind": "promise",
+     "text": "The ball bit gives smooth, rounded strokes and it's great for beginners.",
+     "match": "beginner"
+    },
+    {
+     "t": 85.98,
+     "kind": "product",
+     "text": "Get your engraver pro to speed one.",
+     "match": "Engraver Pro"
+    },
+    {
+     "t": 102.34,
+     "kind": "result",
+     "text": "That's it!",
+     "match": "That's it"
+    },
+    {
+     "t": 103.1,
+     "kind": "result",
+     "text": "It turned out beautiful, right?",
+     "match": "turned out"
+    },
+    {
+     "t": 104.42,
+     "kind": "promise",
+     "text": "It's such a simple project, but it gives the jar a completely new purpose.",
+     "match": "simple"
+    },
+    {
+     "t": 108.52,
+     "kind": "result",
+     "text": "So let's try something perfect for gifting.",
+     "match": "perfect"
+    }
+   ],
+   "phrases": [
+    "The ball bit gives smooth, rounded strokes and it's great for beginners.",
+    "The square bit creates more defined lines when used at an angle, especially for",
+    "geometric shapes like this mandala.",
+    "Get your engraver pro to speed one.",
+    "When you start engraving, use very light pressure and short strokes.",
+    "This material doesn't like rushed movements, so work slowly through the design.",
+    "And don't forget to wipe the dust away often.",
+    "It helps you keep track of your lines and makes the whole process much safer.",
+    "That's it!",
+    "It turned out beautiful, right?",
+    "It's such a simple project, but it gives the jar a completely new purpose.",
+    "So let's try something perfect for gifting."
+   ],
+   "id": "s2",
+   "hooks": [
+    {
+     "type": "promise",
+     "lines": [
+      "The only thing you need",
+      "Beginner"
+     ]
+    },
+    {
+     "type": "transformation",
+     "lines": [
+      "From zero to this",
+      "with zero practice"
+     ]
+    },
+    {
+     "type": "curiosity",
+     "lines": [
+      "Can you actually do this",
+      "with your own hands?"
+     ]
+    }
+   ]
+  },
+  {
+   "start": 108.52,
+   "end": 139.28,
+   "duration": 30.76,
+   "score": 8.45,
+   "moments": [
+    {
+     "t": 108.52,
+     "kind": "result",
+     "text": "So let's try something perfect for gifting.",
+     "match": "perfect"
+    },
+    {
+     "t": 136.32,
+     "kind": "result",
+     "text": "I think I just made the perfect customized gift ever.",
+     "match": "perfect"
+    }
+   ],
+   "phrases": [
+    "So let's try something perfect for gifting.",
+    "A glass perfume bottle.",
+    "I'm engraving the phrase, Happy Birthday, because my mother's birthday is next week",
+    "and I'm sure she will love this.",
+    "A ball bit on low speed, keeping my strokes short and gentle.",
+    "Lettering on glass feels a little slippery at first, but once you follow",
+    "the guide of the marker lines, it becomes really steady.",
+    "After engraving, I'm adding a touch of gold patina to make the letter stand out.",
+    "It settles inside the grooves and gives the whole piece a really elegant look.",
+    "I think I just made the perfect customized gift ever."
+   ],
+   "id": "s3",
+   "hooks": [
+    {
+     "type": "transformation",
+     "lines": [
+      "From zero to this",
+      "with zero practice"
+     ]
+    },
+    {
+     "type": "curiosity",
+     "lines": [
+      "Can you actually do this",
+      "with your own hands?"
+     ]
+    }
+   ]
+  },
+  {
+   "start": 136.32,
+   "end": 171.46,
+   "duration": 35.14,
+   "score": 23.16,
+   "moments": [
+    {
+     "t": 136.32,
+     "kind": "result",
+     "text": "I think I just made the perfect customized gift ever.",
+     "match": "perfect"
+    },
+    {
+     "t": 142.72,
+     "kind": "product",
+     "text": "Once you're comfortable using the engraver pro,",
+     "match": "Engraver Pro"
+    },
+    {
+     "t": 148.6,
+     "kind": "promise",
+     "text": "I'm engraving a simple snowflake using a ball bit on high speed.",
+     "match": "simple"
+    },
+    {
+     "t": 152.0,
+     "kind": "result",
+     "text": "You don't need a perfect outline for this one.",
+     "match": "perfect"
+    },
+    {
+     "t": 161.44,
+     "kind": "promise",
+     "text": "and the engraver pro makes it super easy to create them.",
+     "match": "easy"
+    },
+    {
+     "t": 161.44,
+     "kind": "product",
+     "text": "and the engraver pro makes it super easy to create them.",
+     "match": "Engraver Pro"
+    },
+    {
+     "t": 165.5,
+     "kind": "result",
+     "text": "And here are our three finished pieces.",
+     "match": "finished"
+    },
+    {
+     "t": 167.92,
+     "kind": "result",
+     "text": "Glass has this beautiful frosted effect when you engrave on it.",
+     "match": "beautiful"
+    }
+   ],
+   "phrases": [
+    "I think I just made the perfect customized gift ever.",
+    "And for our last idea, let's move into something really festive.",
+    "Once you're comfortable using the engraver pro,",
+    "pieces like this become such a fun way to decorate your home for the holidays.",
+    "I'm engraving a simple snowflake using a ball bit on high speed.",
+    "You don't need a perfect outline for this one.",
+    "Holiday designs look even cozier when they have that slightly handmade look.",
+    "Little details like this around your home make the season feel so much warmer",
+    "and the engraver pro makes it super easy to create them.",
+    "Cheers to that!",
+    "And here are our three finished pieces.",
+    "Glass has this beautiful frosted effect when you engrave on it."
+   ],
+   "id": "s4",
+   "hooks": [
+    {
+     "type": "promise",
+     "lines": [
+      "The only thing you need",
+      "Simple"
+     ]
+    },
+    {
+     "type": "transformation",
+     "lines": [
+      "From zero to this",
+      "with zero practice"
+     ]
+    },
+    {
+     "type": "curiosity",
+     "lines": [
+      "Can you actually do this",
+      "with your own hands?"
+     ]
+    }
+   ]
+  },
+  {
+   "start": 171.46,
+   "end": 192.62,
+   "duration": 21.16,
+   "score": 2.41,
+   "moments": [
+    {
+     "t": 182.18,
+     "kind": "objection",
+     "text": "Now that you know all this, glass doesn't feel so intimidating anymore, right?",
+     "match": "intimidating"
+    }
+   ],
+   "phrases": [
+    "Once you get the basics, you can transform so many everyday objects.",
+    "Jars, bottles, mirrors, candle holders, even recycled pieces look completely new.",
+    "Now that you know all this, glass doesn't feel so intimidating anymore, right?",
+    "Comment what surface you'd like us to engrave next",
+    "and click the subscribe button to keep leveling up your DIY projects.",
+    "See you in the next one!"
+   ],
+   "id": "s5",
+   "hooks": [
+    {
+     "type": "objection",
+     "lines": [
+      "Now that you know all this, glass doesn'",
+      "Not anymore."
+     ]
+    },
+    {
+     "type": "curiosity",
+     "lines": [
+      "Can you actually do this",
+      "with your own hands?"
+     ]
+    }
+   ]
+  }
+ ]
+}

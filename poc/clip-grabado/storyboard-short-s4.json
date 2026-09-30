@@ -1,0 +1,57 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Short s4",
+  "lang": "en"
+ },
+ "canvas": {
+  "width": 1080,
+  "height": 1920,
+  "fps": 30
+ },
+ "platform": "tiktok",
+ "source": {
+  "video": "vertical.mp4",
+  "audio": "voice.wav",
+  "duration": 35.74
+ },
+ "speaker": {
+  "side": "center"
+ },
+ "caption_style": {
+  "preset": "pages",
+  "words": "words.json",
+  "max_words": 4,
+  "bottom": 345
+ },
+ "overlays": [
+  {
+   "type": "hook",
+   "id": "hook",
+   "start": 0.2,
+   "end": 3.2,
+   "at": 0.3,
+   "lines": [
+    "From zero to this",
+    "with zero practice"
+   ],
+   "bg": "accent"
+  },
+  {
+   "type": "cta",
+   "id": "cta",
+   "start": 30.74,
+   "end": 35.74,
+   "at": 30.84,
+   "title": "Engraver Pro™",
+   "price": "$69.99",
+   "old_price": "$99.99",
+   "discount": "30% OFF · 30 diamond bits",
+   "line": "the-brand.com · 60-day guarantee",
+   "url": "https://the-brand.com/products/engraver-pro",
+   "bg": "accent"
+  }
+ ],
+ "brand": "work/brands/cliente-a.json",
+ "duration": 35.74
+}

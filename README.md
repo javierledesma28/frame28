@@ -43,6 +43,7 @@ dice, entiende cuándo dice cada palabra, decide qué merece aparecer en pantall
 | (grabado bajito, con el ventilador de fondo) | Voz limpia y al volumen estándar de YouTube, sin tocar nada |
 | todo el rato | Subtítulos limpios, frase a frase, o por palabras estilo Shorts (`pages`, `karaoke`); SRT/VTT para la plataforma |
 | si es de una marca | La marca sale de su web (`frame28 brand from-site`): colores, fuente y logo con variantes; el montaje refuerza promesa, producto, pasos y prueba social |
+| para vender | Gancho de 3 s, progreso de pasos, antes/después con barrido y CTA con precio, código y QR; zonas seguras de TikTok, Reels y Shorts |
 | para Reels o Shorts | `frame28 reframe` pasa un clip apaisado a 9:16 siguiendo al hablante (o con fondo desenfocado); el montaje se hace en vertical |
 | si el vídeo ya venía editado | `frame28 graphics` localiza sus rótulos, marca de agua, subtítulos y tarjetas, y los overlays nuevos van a las zonas y momentos libres |
 
@@ -129,7 +130,8 @@ el MP4. Si quieres tocar algo ("el título de los 12 segundos, más pequeño y a
 storyboard y vuelve a renderizar.
 
 Las piezas también van sueltas: `frame28-transcribe`, `frame28-cutout`, `frame28-storyboard`, `frame28-broll`
-(planos de apoyo propios o de Pexels/Pixabay, con la licencia guardada) y `frame28-compose`.
+(planos de apoyo propios o de Pexels/Pixabay, con la licencia guardada), `frame28-shorts` (de un vídeo largo a
+varios shorts verticales con gancho, subtítulos y llamada a la acción) y `frame28-compose`.
 Y el CLI a mano, para quien prefiera la terminal:
 
 ```bash
@@ -159,7 +161,7 @@ v0.2.0 funciona de punta a punta en clips reales (probado en Windows con GPU de 
 
 | Ruta | Qué es |
 |---|---|
-| `plugin/` | el plugin: manifiesto, seis skills y el CLI `frame28`. Es lo único que se instala |
+| `plugin/` | el plugin: manifiesto, siete skills y el CLI `frame28`. Es lo único que se instala |
 | `.claude-plugin/marketplace.json` | este repo es su propio marketplace |
 | `docs/guia-plugin.md` | el ciclo completo del plugin: crear, probar, publicar, consumir, securizar |
 | `docs/brand/` | logos de Think28 (del [press kit](https://t28.io/press-kit.html)) |

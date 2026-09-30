@@ -16,6 +16,7 @@ dependencies = [
   "av>=11,<18",
   "mediapipe>=0.10.14",
   "rapidocr>=3.0",
+  "segno>=1.6",
 ]
 
 [project.scripts]

@@ -15,7 +15,8 @@ from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
 
-OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw", "broll"}
+OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw", "broll",
+                 "hook", "cta", "steps", "before_after"}
 
 DEFAULT_BRAND = {
     "accent": "#EA77A1",
@@ -117,6 +118,38 @@ CSS = """
       .broll .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 28px; font-weight: 600; font-size: 40px; letter-spacing: -0.03em; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.7)); }
       .draw svg { width: 100%; height: 100%; overflow: visible; }
       .draw svg * { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+      /* venta: gancho, CTA, progreso de pasos, antes/después */
+      .hook { position: absolute; text-align: center; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; opacity: 0; }
+      .hook .hl { display: inline; padding: 0.04em 0.3em; box-decoration-break: clone; -webkit-box-decoration-break: clone; border-radius: 0.18em; }
+      .hook.accent .hl { background: var(--accent); color: var(--ink); }
+      .hook.black .hl { background: rgba(10,10,10,.88); color: #fff; }
+      .hook.white .hl { background: var(--paper); color: var(--ink); }
+      .hook.none .hl { padding: 0; color: #fff; text-shadow: 0 4px 24px rgba(0,0,0,.7), 0 0 2px #000; }
+      .cta { position: absolute; display: flex; align-items: center; gap: 36px; padding: 34px 44px; border-radius: 26px; opacity: 0; }
+      .cta.accent { background: var(--accent); color: var(--ink); }
+      .cta.black { background: rgba(10,10,10,.92); color: #fff; }
+      .cta.white { background: var(--paper); color: var(--ink); }
+      .cta .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1 1 auto; }
+      .cta .title { font-weight: 800; font-size: 44px; letter-spacing: -0.03em; line-height: 1.05; }
+      .cta .price { font-weight: 800; font-size: 96px; letter-spacing: -0.05em; line-height: 1; }
+      .cta .price s { font-weight: 500; font-size: 0.45em; opacity: .6; margin-left: 0.3em; letter-spacing: -0.02em; }
+      .cta .pill { display: inline-block; font-family: var(--mono); font-size: 26px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.14); width: max-content; }
+      .cta.black .pill { background: rgba(255,255,255,.14); }
+      .cta .code { font-family: var(--mono); font-size: 34px; letter-spacing: 0.12em; }
+      .cta .code b { padding: 6px 14px; border: 2px dashed currentColor; border-radius: 10px; }
+      .cta .line { font-size: 32px; opacity: .85; letter-spacing: -0.02em; }
+      .cta .qr { flex: 0 0 auto; width: 220px; height: 220px; background: #fff; border-radius: 18px; padding: 12px; }
+      .cta .qr svg { width: 100%; height: 100%; display: block; }
+      .steps { position: absolute; display: flex; align-items: center; gap: 16px; padding: 12px 22px 12px 14px; border-radius: 999px; background: rgba(10,10,10,.72); color: #fff; font-size: 34px; letter-spacing: -0.02em; opacity: 0; white-space: nowrap; }
+      .steps .n { font-family: var(--mono); font-weight: 700; background: var(--accent); color: var(--ink); border-radius: 999px; padding: 4px 16px; font-size: 30px; }
+      .steps .lab { visibility: hidden; position: absolute; left: 110px; top: 50%; transform: translateY(-50%); }
+      .steps .lab.on { visibility: visible; }
+      .ba { position: absolute; overflow: hidden; border-radius: 22px; opacity: 0; box-shadow: 0 30px 80px rgba(0,0,0,.45); background: #000; }
+      .ba img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .ba .after { clip-path: inset(0 100% 0 0); }
+      .ba .bar { position: absolute; top: 0; bottom: 0; width: 6px; background: #fff; left: 0; box-shadow: 0 0 18px rgba(0,0,0,.6); }
+      .ba .lbl { position: absolute; top: 18px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 16px; border-radius: 999px; background: rgba(10,10,10,.75); color: #fff; }
+      .ba .lbl.b { left: 18px; } .ba .lbl.a { right: 18px; background: var(--accent); color: var(--ink); }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: normal; text-align: center; line-height: 1.25; max-width: calc(100% - 80px); width: max-content; font-size: {capsize}px; }
       /* subtítulos por palabras (pages: entran al decirse; karaoke: la palabra actual en acento) */
       .pages { position: absolute; left: 0; right: 0; }
@@ -447,6 +480,113 @@ class Builder:
             self.js.append(f'tl.fromTo("#{i}-c", {{ opacity: 0, y: 16 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {round(at + 0.2, 3)});')
         self.fade_out(f"#{i}", o["end"], fade)
 
+    # ---------- venta ----------
+    def hook(self, o: dict) -> None:
+        """Gancho de los primeros segundos: 1–3 líneas grandes con resaltado por línea (estilo Shorts/TikTok)."""
+        i = o["id"]; at = o.get("at", o["start"]); size = int(o.get("size", 96 if self.narrow else 110))
+        bg = o.get("bg", "accent")
+        lines = o.get("lines") or [o["text"]]
+        x = int(o.get("x", 60)); w = int(o.get("w", self.W - 2 * x)); y = int(o.get("y", 160 if self.narrow else 90))
+        inner = "".join(f'<div><span class="hl" id="{i}-l{k}">{esc(t)}</span></div>' for k, t in enumerate(lines))
+        color = f" color:{o['color']};" if o.get("color") else ""
+        self.timed(o, f"inset:auto; left:{x}px; top:{y}px; width:{w}px; height:max-content; font-size:{size}px;{color}", cls=f"clip hook {bg}", inner=inner, z=6, track=4)
+        self.js.append(f'tl.set("#{i}", {{ opacity: 1 }}, {at});')
+        for k in range(len(lines)):
+            self.js.append(f'tl.fromTo("#{i}-l{k}", {{ opacity: 0, scale: 0.85 }}, {{ opacity: 1, scale: 1, duration: 0.22, ease: "back.out(2)" }}, {round(at + 0.12 * k, 3)});')
+        self.fade_out(f"#{i}", o["end"], 0.25)
+
+    def _qr_svg(self, data: str) -> str:
+        """QR como <img> PNG en data URI: un SVG inline con cientos de módulos triplicaba el tiempo de captura."""
+        try:
+            import segno
+            import io
+            import base64
+            buf = io.BytesIO()
+            segno.make(data, error="m").save(buf, kind="png", scale=10, border=1, dark="#0A0A0A", light="#FFFFFF")
+            return f'<img src="data:image/png;base64,{base64.b64encode(buf.getvalue()).decode("ascii")}" alt="QR" style="width:100%;height:100%;display:block;image-rendering:pixelated">'
+        except Exception as e:  # segno ausente o dato inválido: sin QR, pero el resto del CTA sigue
+            self.warnings.append(f"cta: no se pudo generar el QR ({e})")
+            return ""
+
+    def cta(self, o: dict) -> None:
+        """Llamada a la acción: título, precio (con precio anterior tachado), descuento, código, línea ("Link in bio") y QR."""
+        i = o["id"]; at = o.get("at", o["start"]); bg = o.get("bg", "accent")
+        parts = []
+        if o.get("title"):
+            parts.append(f'<div class="title">{esc(o["title"])}</div>')
+        if o.get("price"):
+            parts.append(f'<div class="price">{esc(str(o["price"]))}' + (f'<s>{esc(str(o["old_price"]))}</s>' if o.get("old_price") else "") + '</div>')
+        if o.get("discount"):
+            parts.append(f'<div class="pill">{esc(o["discount"])}</div>')
+        if o.get("code"):
+            parts.append(f'<div class="code">{esc(o.get("code_label", "CODE"))} <b>{esc(o["code"])}</b></div>')
+        if o.get("line"):
+            parts.append(f'<div class="line">{esc(o["line"])}</div>')
+        qr = f'<div class="qr">{self._qr_svg(o["url"])}</div>' if o.get("url") and o.get("qr", True) else ""
+        inner = f'<div class="col">{"".join(parts)}</div>{qr}'
+        x, y, w = self.cta_box(o)
+        self.timed(o, f"inset:auto; left:{x}px; top:{y}px; width:{w}px; height:max-content;", cls=f"clip cta {bg}", inner=inner, z=6, track=4)
+        self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0, y: 40 }}, {{ opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {at});')
+        self.fade_out(f"#{i}", o["end"], 0.3)
+
+    def cta_box(self, o: dict) -> tuple[int, int, int]:
+        """Posición por defecto del CTA: fuera de la columna de iconos (vertical) y encima de los subtítulos."""
+        x = int(o.get("x", 60))
+        w = int(o.get("w", self.W - x - (170 if self.narrow else x)))
+        cs = self.sb.get("caption_style") or {}
+        if self.sb.get("captions") or cs:
+            bottom = int(cs.get("bottom", 200 if self.narrow else 56))
+            size = int(cs.get("size", 72 if self.narrow else 64)) if cs else 40
+            cap_top = self.H - bottom - round(size * 2.4)
+        else:
+            cap_top = self.H - 80
+        y = int(o.get("y", cap_top - 440 - 24))
+        return x, y, w
+
+    def steps(self, o: dict) -> None:
+        """Indicador de progreso "1 / 3 · Tape the stencil" que cambia en el `at` de cada paso (visible start–end)."""
+        i = o["id"]; items = o["items"]; total = int(o.get("total", len(items)))
+        x = int(o.get("x", 60)); y = int(o.get("y", 60)); size = int(o.get("size", 34))
+        labels = "".join(f'<span class="lab" id="{i}-s{k}">{esc(it["label"])}</span>' for k, it in enumerate(items))
+        nums = "".join(f'<span class="lab" id="{i}-n{k}" style="left:14px">{k + 1} / {total}</span>' for k in range(len(items)))
+        longest = max((len(it["label"]) for it in items), default=6)
+        inner = f'<span class="n" style="visibility:hidden">{total} / {total}</span>{nums}{labels}'
+        self.timed(o, f"left:{x}px; top:{y}px; font-size:{size}px; width:{round(size * 0.55 * longest + 150)}px; height:{round(size * 1.9)}px;", cls="clip steps", inner=inner, z=6, track=4)
+        self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0, x: -20 }}, {{ opacity: 1, x: 0, duration: 0.3 }}, {o["start"]});')
+        for k, it in enumerate(items):
+            t = it.get("at", o["start"]); nxt = items[k + 1].get("at", o["end"]) if k + 1 < len(items) else o["end"]
+            for sel in (f"#{i}-s{k}", f"#{i}-n{k}"):
+                self.js.append(f'tl.set("{sel}", {{ visibility: "visible" }}, {t}); tl.set("{sel}", {{ visibility: "hidden" }}, {nxt});')
+        self.fade_out(f"#{i}", o["end"], 0.25)
+
+    def before_after(self, o: dict) -> None:
+        """Antes/después: dos imágenes (o dos instantes `before_t`/`after_t` del propio clip) con barrido de izquierda a derecha."""
+        i = o["id"]; at = o.get("at", o["start"]); dur = float(o.get("duration", 1.2))
+        srcs = {}
+        for key in ("before", "after"):
+            if o.get(key):
+                srcs[key] = self.asset(o[key])
+            elif o.get(f"{key}_t") is not None and self.sb_dir is not None:
+                from .media import frame_at
+                video = Path(self.sb_dir) / self.sb["source"]["video"]
+                rel = f"assets/ba_{i}_{key}.jpg"
+                dst = Path(self.dir) / rel
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                frame_at(video, float(o[f"{key}_t"]), dst)
+                srcs[key] = rel
+            else:
+                self.warnings.append(f"before_after {i}: falta '{key}' o '{key}_t'")
+                srcs[key] = ""
+        w = int(o.get("w", self.W - 120)); h = int(o.get("h", round(w * 9 / 16)))
+        x = int(o.get("x", (self.W - w) // 2)); y = int(o.get("y", (self.H - h) // 2))
+        inner = (f'<img class="before" src="{srcs["before"]}" alt=""><img class="after" id="{i}-a" src="{srcs["after"]}" alt="">'
+                 f'<div class="bar" id="{i}-bar"></div><span class="lbl b">{esc(o.get("label_before", "Before"))}</span><span class="lbl a">{esc(o.get("label_after", "After"))}</span>')
+        self.timed(o, f"left:{x}px; top:{y}px; width:{w}px; height:{h}px;", cls="clip ba", inner=inner, z=5, track=6)
+        self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0, scale: 0.96 }}, {{ opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" }}, {at});')
+        self.js.append(f'tl.fromTo("#{i}-a", {{ clipPath: "inset(0 100% 0 0)" }}, {{ clipPath: "inset(0 0% 0 0)", duration: {dur}, ease: "power2.inOut" }}, {round(at + 0.4, 3)});')
+        self.js.append(f'tl.fromTo("#{i}-bar", {{ x: 0 }}, {{ x: {w - 6}, duration: {dur}, ease: "power2.inOut" }}, {round(at + 0.4, 3)});')
+        self.fade_out(f"#{i}", o["end"], 0.3)
+
     def brand_card(self, o: dict) -> None:
         """Tarjeta de marca (apertura o cierre): logo + título + subtítulo + endorsement, sobre negro o acento."""
         i = o["id"]; bg = o.get("bg", "black"); at = o.get("at", o["start"])
@@ -705,7 +845,9 @@ def validate(sb: dict) -> list[str]:
         req = {"lower_third": ["x", "y", "title"], "box": ["x", "y", "text"], "kinetic": ["x", "y", "lines"],
                "behind": ["text", "matte"], "pointer": ["dot", "box", "text"], "card": ["title"],
                "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"], "draw": ["x", "y", "w"],
-               "broll": ["src"]}.get(t, [])
+               "broll": ["src"], "hook": [], "cta": [], "steps": ["items"], "before_after": []}.get(t, [])
+        if t == "hook" and not (o.get("text") or o.get("lines")):
+            errs.append(f"{p} (hook): falta 'text' o 'lines'")
         for k in req:
             if k not in o:
                 errs.append(f"{p} ({t}): falta '{k}'")
@@ -727,7 +869,37 @@ def validate(sb: dict) -> list[str]:
     cv = sb.get("canvas") or {}
     if cv and (int(cv.get("width", 1920)) < 480 or int(cv.get("height", 1080)) < 480):
         errs.append("canvas demasiado pequeño (mínimo 480 px de lado)")
+    if sb.get("platform") not in (None, "tiktok", "reels", "shorts", "youtube", "pdp"):
+        errs.append("platform debe ser tiktok, reels, shorts, youtube o pdp")
     return errs
+
+
+def platform_warnings(sb: dict) -> list[str]:
+    """Zonas de la interfaz del móvil que tapan overlays en vertical: columna derecha de iconos, franja inferior
+    (descripción, barra) y franja superior. Solo avisa; el storyboard decide."""
+    plat = sb.get("platform")
+    W = int(sb.get("canvas", {}).get("width", 1920)); H = int(sb.get("canvas", {}).get("height", 1080))
+    if not plat or plat in ("youtube", "pdp") or H <= W:
+        return []
+    from .graphics import overlay_bbox, _iou
+    zones = {"columna derecha de iconos": [W - 150, int(0.35 * H), W, int(0.88 * H)],
+             "franja inferior (descripción y barra)": [0, int(0.84 * H), W, H],
+             "franja superior (estado y pestañas)": [0, 0, W, int(0.08 * H)]}
+    out = []
+    for o in sb.get("overlays", []):
+        bb = overlay_bbox(o, W, H)
+        if bb is None:
+            continue
+        for name, z in zones.items():
+            if _iou(bb, z) > 0.03 or (bb[0] < z[2] and bb[2] > z[0] and bb[1] < z[3] and bb[3] > z[1] and (min(bb[2], z[2]) - max(bb[0], z[0])) * (min(bb[3], z[3]) - max(bb[1], z[1])) > 0.15 * (bb[2] - bb[0]) * (bb[3] - bb[1])):
+                out.append(f"{o['id']} ({o['type']}) cae en la {name} de {plat}")
+                break
+    caps = sb.get("caption_style") or {}
+    if sb.get("captions") or caps:
+        bottom = int(caps.get("bottom", 200 if H > W else 56))
+        if bottom < int(0.16 * H):
+            out.append(f"subtítulos a {bottom} px del borde: en {plat} quedan bajo la descripción; usa caption_style.bottom >= {int(0.16 * H)}")
+    return out
 
 
 def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets: bool = True) -> dict:
@@ -739,6 +911,7 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     b = Builder(sb, out)
     b.sb_dir = sb_path.parent
+    b.warnings.extend(platform_warnings(sb))
     html_text = b.build()
     (out / "index.html").write_text(html_text, encoding="utf-8")
     (out / "hyperframes.json").write_text(json.dumps({

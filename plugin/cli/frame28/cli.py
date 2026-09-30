@@ -409,6 +409,82 @@ def broll_fetch(candidates, item_id, out_dir, trim_in, duration, width, as_json)
 
 
 @main.group()
+def clips():
+    """Fábrica de shorts: tramos con más momentos de venta, ganchos, recorte y storyboard de partida."""
+
+
+@clips.command("plan")
+@click.argument("captions", type=click.Path(exists=True))
+@click.option("--target", default=30.0, show_default=True, help="duración deseada (s)")
+@click.option("--count", default=5, show_default=True, help="cuántos tramos proponer")
+@click.option("--lang", default="en", show_default=True)
+@click.option("--min-len", default=15.0, show_default=True)
+@click.option("--max-len", default=45.0, show_default=True)
+@click.option("--keyword", "keywords", multiple=True, help="nombre del producto o marca (puntúa las frases que lo nombran); repetible")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar clips.json")
+@click.option("--json", "as_json", is_flag=True)
+def clips_plan(captions, target, count, lang, min_len, max_len, keywords, out_json, as_json):
+    """Propone los tramos de 15–45 s con más momentos (resultado, promesa, objeción, cifras, producto) y tres ganchos por tramo."""
+    from .clips import plan
+    r = plan(captions, target, count, lang, min_len, max_len, list(keywords))
+    if out_json:
+        Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
+    if as_json:
+        out(r, True); return
+    click.echo(f"  {r['moments']} momentos en la transcripción · {len(r['clips'])} tramos propuestos")
+    for c in r["clips"]:
+        kinds = ", ".join(sorted({m["kind"] for m in c["moments"]}))
+        click.echo(f"  {c['id']}  {c['start']:6.1f}–{c['end']:6.1f}  {c['duration']:4.1f}s  puntos {c['score']:5.1f}  [{kinds}]")
+        click.echo(f"      «{c['phrases'][0][:70]}…»")
+        for h in c["hooks"]:
+            click.echo(f"      gancho {h['type']:<14} {' / '.join(h['lines'])}")
+    if out_json:
+        click.echo(f"  guardado: {out_json}")
+
+
+@clips.command("cut")
+@click.argument("clips_json", type=click.Path(exists=True))
+@click.argument("clip_id")
+@click.argument("video", type=click.Path(exists=True))
+@click.option("--audio", type=click.Path(exists=True), default=None, help="voice.wav")
+@click.option("--words", type=click.Path(exists=True), default=None)
+@click.option("--captions", type=click.Path(exists=True), default=None)
+@click.option("-o", "--out", "out_dir", type=click.Path(), default=None, help="carpeta del short (por defecto work/clips/<id>)")
+@click.option("--json", "as_json", is_flag=True)
+def clips_cut(clips_json, clip_id, video, audio, words, captions, out_dir, as_json):
+    """Recorta el tramo elegido: clip.mp4, voice.wav, words.json y captions.json remapeados (fundidos de 30 ms)."""
+    from .clips import extract
+    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
+    clip = next((c for c in plan_["clips"] if c["id"] == clip_id), None)
+    if not clip:
+        raise SystemExit(f"{clip_id} no está en {clips_json}")
+    out(extract(clip, video, audio, words, captions, out_dir or f"work/clips/{clip_id}"), as_json or True)
+
+
+@clips.command("scaffold")
+@click.argument("clips_json", type=click.Path(exists=True))
+@click.argument("clip_id")
+@click.option("--dir", "clip_dir", type=click.Path(exists=True), default=None, help="carpeta del short (por defecto work/clips/<id>)")
+@click.option("--canvas", default="1080x1920", show_default=True)
+@click.option("--platform", default="tiktok", show_default=True)
+@click.option("--brand", default=None, help="nombre de marca (think28, o una de ./brands)")
+@click.option("--cta", "cta_json", type=click.Path(exists=True), default=None, help="JSON con los campos del overlay cta (price, code, url…)")
+@click.option("--hook", "hook_index", default=0, show_default=True, help="cuál de los tres ganchos usar (0, 1, 2)")
+@click.option("--video", "video_name", default="clip.mp4", show_default=True, help="vídeo dentro de la carpeta (vertical.mp4 tras reframe)")
+@click.option("--json", "as_json", is_flag=True)
+def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_json, hook_index, video_name, as_json):
+    """Escribe el storyboard de partida del short (gancho, subtítulos por palabras, CTA) que ya construye con `frame28 build`."""
+    from .clips import scaffold
+    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
+    clip = next((c for c in plan_["clips"] if c["id"] == clip_id), None)
+    if not clip:
+        raise SystemExit(f"{clip_id} no está en {clips_json}")
+    w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
+    cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
+    out(scaffold(clip, clip_dir or f"work/clips/{clip_id}", (w, h), platform, brand, cta, hook_index, video_name), as_json or True)
+
+
+@main.group()
 def captions():
     """Subtítulos: exportar SRT/VTT legibles a partir de words.json."""
 
