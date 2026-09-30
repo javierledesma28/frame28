@@ -19,9 +19,16 @@ ffmpeg o Node, di exactamente qué instalar (el `doctor` lo imprime) y para.
 ## 1. Preparar y entender el material
 
 Si el material es un enlace (YouTube, Vimeo…): `frame28 fetch <url> -o input.mp4` lo descarga a 1080p con yt-dlp
-(sin instalar nada: usa `uvx` si hace falta) y deja `input.source.json` con título y origen. Un vídeo ya producido
-(voz en off, manos, gráficos propios) se monta igual, pero sáltate `speaker`, `gestures` y `behind`, y coloca los
-overlays esquivando los rótulos que ya trae (míralos en la hoja de contacto).
+(sin instalar nada: usa `uvx` si hace falta) y deja `input.source.json` con título y origen.
+
+**Si el vídeo es de una marca o vende algo** (tutorial de producto, anuncio, lanzamiento): antes de decidir nada,
+investiga la marca en su web y escribe `work/brief.md` (qué venden, promesas literales, precio, prueba social,
+colores); `frame28 brand from-site <url> --name <marca>` propone la marca con logo. El montaje debe reforzar el
+argumento de venta, no decorar. Guía completa: `../frame28-storyboard/references/marca-y-promocional.md`.
+
+**Vídeo ya producido** (voz en off, manos, gráficos propios, cortes de plano): se monta igual, pero sáltate
+`speaker`, `gestures` y `behind`; mira la hoja de contacto **entera** para anotar dónde y cuándo aparecen sus
+gráficos, y coloca los tuyos en otra zona y otro momento; sobre fondos claros usa `kinetic` con `color` oscuro.
 
 ```bash
 frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav (limpia y a −14 LUFS), audio16k.wav, probe.json

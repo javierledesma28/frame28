@@ -426,6 +426,28 @@ def brand_show(name):
     click.echo(Path(resolve_brand(name)).read_text(encoding="utf-8"))
 
 
+@brand.command("from-site")
+@click.argument("url")
+@click.option("--name", required=True, help="nombre de la marca (fichero brands/<name>.json)")
+@click.option("--out", "out_dir", default="brands", show_default=True, type=click.Path())
+@click.option("--logo-url", default=None, help="URL del logo si el detector no acierta")
+@click.option("--tagline", default=None)
+@click.option("--json", "as_json", is_flag=True)
+def brand_from_site(url, name, out_dir, logo_url, tagline, as_json):
+    """Propone una marca a partir de la web del cliente: colores del CSS, fuente, logo con variantes para fondo oscuro y de acento."""
+    from .brandsite import from_site
+    r = from_site(url, name, out_dir, logo_url, tagline)
+    if as_json:
+        out(r, True); return
+    click.echo(f"  marca: {r['brand']}")
+    click.echo(f"  acento {r['accent']}  tinta {r['ink']}  fuente {r['font'] or '(no detectada)'}  secundarios {', '.join(r['secondary']) or '-'}")
+    click.echo(f"  colores más usados: " + ", ".join(f"{h} x{n}" for h, n in r["top_colors"]))
+    lg = r["logo"]
+    click.echo(f"  logo: {lg.get('url') or '(no encontrado)'}" + (f"  → {', '.join(lg['files'].keys())}" if lg.get("files") else "") + (f"  (error: {lg['error']})" if lg.get("error") else ""))
+    click.echo(f"  sitio: {r['title']}\n  {r['description'][:160]}")
+    click.echo("  Revisa y ajusta con un editor (tagline, endorsement, colores) y úsala con \"brand\": \"" + name + "\" en el storyboard.")
+
+
 @brand.command("init")
 @click.argument("name")
 @click.option("--from", "base", default="think28", show_default=True, help="marca de la que partir")

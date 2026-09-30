@@ -40,10 +40,10 @@ CSS = """
       .bl { bottom: -6px; left: -6px; border-bottom-width: 3px; border-left-width: 3px; }
       .br { bottom: -6px; right: -6px; border-bottom-width: 3px; border-right-width: 3px; }
       .box { position: absolute; padding: 10px 26px; font-size: 54px; font-weight: 500; letter-spacing: -0.03em; color: #fff; background: rgba(0,0,0,.45); white-space: nowrap; opacity: 0; }
-      .lower { position: absolute; font-family: var(--mono); font-size: 34px; color: #fff; opacity: 0; }
+      .lower { position: absolute; font-family: var(--mono); font-size: 34px; color: #fff; opacity: 0; width: max-content; max-width: calc(100% - 40px); }
       .lower .line { overflow: hidden; white-space: nowrap; border: 1.5px solid rgba(255,255,255,.9); padding: 12px 22px; background: rgba(0,0,0,.45); }
       .lower .line + .line { border-top: 0; }
-      .lower .mask { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: bottom; width: 0; }
+      .lower .mask { display: inline-block; white-space: nowrap; vertical-align: bottom; clip-path: inset(0 100% 0 0); }
       .lower .cur { color: var(--accent); }
       .lower .c { width: 18px; height: 18px; } .lower .tl { top: -9px; left: -9px; } .lower .br { bottom: -9px; right: -9px; }
       .kin { position: absolute; font-weight: 600; line-height: 1.02; letter-spacing: -0.045em; text-shadow: 0 6px 30px rgba(0,0,0,.55); }
@@ -290,17 +290,20 @@ class Builder:
         inner = (f'<i class="c tl"></i><i class="c br"></i>'
                  f'<div class="line"><span class="mask" id="{i}-l1">{mark}&nbsp;{title}&nbsp;&nbsp;&nbsp;&nbsp;×</span></div>'
                  + (f'<div class="line"><span class="mask" id="{i}-l2">{sub}<span class="cur">▌</span></span></div>' if sub else ""))
-        lw = self.logo_width(logo) if logo else 24
-        w1 = 34 * 0.66 * (len(o["title"]) + 6) + lw; w2 = 34 * 0.66 * (len(o.get("subtitle", "")) + 2)
-        box_w = round(max(w1, w2) + 48)  # ancho fijo: si no, la segunda línea queda recortada por la primera
-        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; width:{box_w}px;", cls="lower", inner=inner, z=4, track=3)
+        # la caja se dimensiona sola (width: max-content) y el "tecleo" es un clip-path: no dependemos de estimar
+        # el ancho de la fuente (Space Mono, Poppins o lo que cargue el navegador)
+        self.timed(o, f"left:{o['x']}px; top:{o['y']}px;", cls="lower", inner=inner, z=4, track=3)
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.2 }}, {t});')
-        self.js.append(f'tl.fromTo("#{i}-l1", {{ width: 0 }}, {{ width: {round(w1)}, duration: {round(min(0.9, 0.05 * len(o["title"]) + 0.3), 2)}, ease: "none" }}, {round(t + 0.1, 3)});')
+        self.js.append(f'tl.fromTo("#{i}-l1", {{ clipPath: "inset(0 100% 0 0)" }}, {{ clipPath: "inset(0 0% 0 0)", duration: {round(min(0.9, 0.05 * len(o["title"]) + 0.3), 2)}, ease: "none" }}, {round(t + 0.1, 3)});')
         if sub:
-            self.js.append(f'tl.fromTo("#{i}-l2", {{ width: 0 }}, {{ width: {round(w2)}, duration: {round(min(1.0, 0.03 * len(sub) + 0.2), 2)}, ease: "none" }}, {round(t + 0.75, 3)});')
+            self.js.append(f'tl.fromTo("#{i}-l2", {{ clipPath: "inset(0 100% 0 0)" }}, {{ clipPath: "inset(0 0% 0 0)", duration: {round(min(1.0, 0.03 * len(sub) + 0.2), 2)}, ease: "none" }}, {round(t + 0.75, 3)});')
         self.fade_out(f"#{i}", o["end"], 0.25)
 
     def box(self, o: dict) -> None:
+        est = 54 * 0.5 * len(o["text"]) + 52  # Poppins/Inter a 54 px: ~0,5 em por carácter
+        if o["x"] + est > self.W:
+            self.warnings.append(f"box {o['id']}: '{o['text']}' probablemente se sale del lienzo por la derecha "
+                                 f"(x {o['x']} + ~{round(est)} px > {self.W}); acorta el texto o muévelo a x <= {max(0, round(self.W - est))}")
         self.timed(o, f"left:{o['x']}px; top:{o['y']}px;", cls="box", inner=self.corners() + esc(o["text"]), z=4, track=4)
         self.box_in(f"#{o['id']}", o.get("at", o["start"]))
         self.fade_out(f"#{o['id']}", o["end"])
