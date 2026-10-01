@@ -244,7 +244,7 @@ Memoria de marca cuando exista la app); `og.png` ya está regenerada con el clai
 
 | Bloqueo o duda | Dueño | Qué lo desbloquea |
 |---|---|---|
-| Token de API de Cloudflare: creado y en `CLOUDFLARE_API_TOKEN`, pero sin `Cloudflare Tunnel`, `Access: Organizations` ni `Email Routing` (401/403 comprobados) | Javier | Añadir esas tres filas al token (y `CLOUDFLARE_ACCOUNT_ID=237f15b5e4fa24ef5465ae87da6986de` al entorno), o hacer esos pasos en el panel |
+| Token de API de Cloudflare: creado y en `CLOUDFLARE_API_TOKEN`, pero sin `Cloudflare Tunnel`, `Access: Organizations`, `Email Routing` ni `Cache Purge` (401/403 comprobados; la purga de `og.png` falló el 2026-10-02 y se resolvió con `?v=` en la URL de `og:image`) | Javier | Añadir esas tres filas al token (y `CLOUDFLARE_ACCOUNT_ID=237f15b5e4fa24ef5465ae87da6986de` al entorno), o hacer esos pasos en el panel |
 | Suscripción `sub-frame28-prod` (la API de facturación de la cuenta MOSP no la deja crear) | Javier | Portal → Suscripciones → Agregar; después Claude mueve o vincula `rg-frame28-identity-prod` (ver `frame28-app/HANDOFF.md` punto 2) |
 | Flujo de alta/entrada del tenant `frame28ciam` (Graph 400) | Claude / Javier | Reintentar `frame28-app/scripts/identidad/flow_devicecode.py` o crearlo en el centro de administración (dos minutos) |
 | «Entrar con Google» en el tenant | Javier | Cliente OAuth en Google Cloud (Think28) con el redirect del tenant (ver `frame28-app/HANDOFF.md` punto 4) |
