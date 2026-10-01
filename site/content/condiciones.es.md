@@ -239,7 +239,7 @@ versión en español [[decisión: para clientes de EE. UU. puede convenir que pr
 | Entrega | Enlace de descarga a [[email]] |
 | Condiciones | Condiciones del servicio Frame28 v1.0, que el Cliente declara haber leído y aceptar |
 
-Firma del Cliente: ______________________ · Firma de Think28: ______________________
+Firma del Cliente: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ · Firma de Think28: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## Anexo B · Lista de comprobación de derechos (qué nos puedes mandar)
 

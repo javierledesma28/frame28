@@ -235,7 +235,7 @@ preferable that the English version prevails; consult]].
 | Delivery | Download link to [[email]] |
 | Terms | Frame28 Terms of Service v1.0, which the Customer declares to have read and accepted |
 
-Customer signature: ______________________ · Think28 signature: ______________________
+Customer signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ · Think28 signature: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 ## Annex B · Rights checklist (what you can send us)
 
