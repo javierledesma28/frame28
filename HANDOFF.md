@@ -41,7 +41,7 @@ vende el servicio: reescribirla es la **fase 0**.
 
 | Qué | Evidencia |
 |---|---|
-| Enfoque de producto | **Giro del 2026-10-01 (noche)**: de servicio a plataforma (plugin de pago + frame28.app como panel). Definición completa en `research/08`; nada construido aún de la plataforma; la landing en vivo sigue vendiendo el servicio |
+| Enfoque de producto | **Giro del 2026-10-01 (noche)**: de servicio a plataforma (plugin de pago + frame28.app como panel). Definición en `research/08` con las **seis decisiones de Javier respondidas** y los **precios fijados** (Creator 79 · Brand 199 · Agency 499 USD/mes, anual ×10; Studio 990 pago único y 2.490/mes) y el **control de uso** (§7 bis: el plugin es una cáscara que solo funciona autenticado; el método del director y la Memoria se sirven por MCP según el plan; cuenta gratuita obligatoria para probar). **La landing en vivo ya vende la plataforma** (fase 0 desplegada el 2026-10-01 ~23:05). La plataforma se construye en el repo privado `javierledesma28/frame28-app` (`C:\Workspaces\personal\frame28-app`, inicializado con README, CLAUDE.md, HANDOFF y `docs/plataforma.md`) |
 | Versión publicada | **v0.4.0** (release en GitHub, tag en `4e7a6cb`); 0.4.0 en `__init__.py`, `plugin.json`, `marketplace.json`, README |
 | CLI | `frame28 --version` 0.4.0 (editable, con extra `gpu`); `frame28 doctor` «Todo listo», incluida la fila nueva **gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN**; opcionales en aspa: gpu (onnxruntime) y claves de B-roll |
 | Pruebas | **114 passed en ~3,7 s** (`cd plugin/cli && uv run --group dev pytest`) |
@@ -152,16 +152,30 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    la documentación de plugins y MCP de Claude Code (OAuth remoto con cliente preconfigurado, `userConfig` sensible,
    `${CLAUDE_PLUGIN_DATA}`, `bin/` no en claude.ai), lo que Synapse28 ya tiene (FastAPI + RLS, Entra External ID, Paddle
    con filtro por producto) y la capacidad del VPS (7,7 GB RAM, 4 CPU: cabe la app, no un render en la nube). Resultado:
-   `research/08-plataforma-frame28-app.md`. Nada de la plataforma está construido todavía.
+   `research/08-plataforma-frame28-app.md`.
+8. **Decisiones, control de uso, fase 0 y repo nuevo.** Javier respondió las seis decisiones (copy sí; precios «propón tú e
+   implementemos»; tenant CIAM propio de Frame28; open core; repo `frame28-app`; Cliente A → resuelto como Studio) y planteó
+   el **control de uso** («solo quien se autentica y tiene membresía puede usar el plugin»): respuesta en `research/08` §7 bis
+   (cáscara + MCP remoto, hooks, licencia en el motor, servidor en tiempo real; cuenta gratuita obligatoria en vez de modo
+   anónimo). **Precios fijados** en §11. **Fase 0 desplegada**: landing ES/EN reescrita (hero, tres pasos, terminal de
+   ejemplo, Memoria de marca, métricas de la segunda muestra, precios Creator/Brand/Agency + Studio + Open + Cloud, acceso
+   anticipado con 25 plazas, FAQ nueva, contacto), `build.py` con las opciones del formulario nuevas y el aviso «versión en
+   revisión» en las condiciones (`CONFIG["terms_draft"]`), `site.css` con `.term` y `.notice`; verificado en vivo. **Repo
+   `frame28-app`** (privado, creado por Javier) inicializado y subido por SSH con README, CLAUDE.md, HANDOFF y
+   `docs/plataforma.md`. Nada de código de la plataforma todavía.
 
 ## Lo que toca ahora (en este orden)
 
-**Antes que nada: el giro.** Leer `research/08` y cerrar con Javier sus seis decisiones (§14: copy del hero, tiers y cifras,
-Think28 ID compartido o nuevo, open core, repo aparte `frame28-app`, cómo se presenta al Cliente A). Con el sí: **fase 0**
-(reescribir la landing en vivo con el enfoque nuevo sobre el sitio estático actual: hero, tres pasos, bento, precios →
-acceso anticipado, condiciones «en revisión»; `build.py` + `deploy/deploy.sh`), después el *spike* de un día (Think28 ID +
-MCP remoto + `/mcp` en Claude Code + Paddle sandbox con `product=frame28`) y la **fase 1** (§12). Los puntos siguientes
-siguen valiendo; el 3 (formulario, Access, Turnstile) se hace sobre el sitio actual y se hereda en la app.
+**Antes que nada: la plataforma.** Las seis decisiones de `research/08` §14 están respondidas y la **fase 0 está hecha** (la
+landing en vivo vende la plataforma). Lo siguiente vive en el repo **`frame28-app`** (`C:\Workspaces\personal\frame28-app`,
+leer su `HANDOFF.md`): (a) lo que solo Javier puede crear — **tenant propio de Entra External ID para Frame28** (no el de
+Synapse28), productos en Paddle, bucket R2, dominio de email —, (b) el *spike* de un día (MCP remoto mínimo con OAuth del
+tenant nuevo → `/mcp` en Claude Code → Paddle sandbox), (c) la fase 1. En **este** repo, lo que toca para la plataforma es la
+**v0.5 del plugin como cáscara** (`.mcp.json` remoto, `hooks.json`, skills mínimas que llaman a `frame28_start`, `frame28
+deliver`, `frame28 context apply`, `frame28 license set/whoami`): se hace cuando el MCP del spike responda. Los puntos
+siguientes siguen valiendo; el 3 (formulario, Access, Turnstile) se hace sobre el sitio estático y se hereda en la app.
+Pendientes menores de la fase 0: `assets/og.png` aún lleva el claim antiguo (regenerar desde `og.html` con Chromium), y los
+artículos de la KB y el curso siguen escritos para el servicio (reescribir con la Memoria de marca cuando exista la app).
 
 1. **Revisar la segunda muestra** del Cliente A en movimiento y de oído (lista en `_private/cliente-a/dia6-estado.md`;
    copias en `_private/cliente-a/muestras/`). Hasta entonces no se envía nada.

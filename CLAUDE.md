@@ -34,10 +34,13 @@ en el Claude Code del cliente + frame28.app como panel de control** de la cuenta
 (brand kit, historia, voz, catálogo, ganchos, idiomas) y las **campañas**; el plugin se autentica con el mismo usuario
 (MCP remoto con OAuth) y recibe ese contexto para montar vídeos de la marca. Definición, arquitectura, stack, diseño,
 modelo y plan en **`research/08-plataforma-frame28-app.md`** (sustituye a `research/07` §2–3; el resto de 07 sigue
-vigente). Think28 mantiene un tier *Studio* operado por nosotros. **La landing en vivo todavía vende el servicio**: su
-reescritura es la fase 0. Primer cliente objetivo: **Cliente A** (nombre en clave: el cliente real no se escribe en ningún
-fichero del repo ni del sitio; ver HANDOFF §Confidencialidad). El plugin y el CLI siguen MIT y públicos (open core): son la
-demo viva y el canal de adopción; lo que se paga es la cuenta.
+vigente). Think28 mantiene un tier *Studio* operado por nosotros. La landing en vivo vende ya la plataforma (fase 0,
+2026-10-01) con los precios fijados en `research/08` §11. **La plataforma se construye en el repo privado
+`javierledesma28/frame28-app`** (`C:\Workspaces\personal\frame28-app`, con su propio CLAUDE.md y HANDOFF); este repo
+conserva el **motor MIT** y el **plugin público**, que en la v0.5 pasa a ser una **cáscara**: `.mcp.json` remoto con OAuth,
+hooks y skills mínimas; el método del director y la Memoria se sirven desde el MCP solo a cuentas autenticadas y según el
+plan (`research/08` §7 bis: control de uso). Primer cliente objetivo: **Cliente A** (nombre en clave: el cliente real no se
+escribe en ningún fichero del repo ni del sitio; ver HANDOFF §Confidencialidad).
 
 **Regla de trabajo del usuario:** cada aprendizaje de un caso, un vídeo de ejemplo o un diagnóstico se capitaliza en
 el plugin (código del CLI, `doctor`, validaciones, skills y referencias), no en docs ni en el HANDOFF. Ante cada
@@ -211,9 +214,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   máquina de Javier). Lo demás se hace, y se explica en pocas frases qué se hizo y cómo se comprueba: Javier quiere
   entender cada etapa, no ejecutarla él.
 - Los análisis de negocio (`research/06`, `07`, `08`) se versionan en este repo público por decisión del usuario. Los
-  **precios** de `research/07` §2 (servicio) fueron validados por él el 2026-10-01 y son los que aún muestra la landing;
-  `research/08` §11 propone la estructura de tiers de la plataforma con **cifras a validar**. Un cambio de precios se hace
-  en `research/08` primero y después en la landing; no se inventan ni redondean cifras en ningún otro sitio.
+  **precios vigentes** son los de `research/08` §11 (decididos el 2026-10-01: Creator 79 · Brand 199 · Agency 499 USD/mes,
+  anual ×10; Studio 990 y 2.490, heredados de `research/07`) y son los que muestra la landing. Un cambio de precios se hace
+  en `research/08` primero y después en la landing (`site/src/{es,en}/index.html`); no se inventan ni redondean cifras en
+  ningún otro sitio.
 - Precios y oferta se expresan en USD (el primer cliente es estadounidense); la landing es la fuente pública de
   precios cuando exista; `research/07` es la propuesta.
 - Parches al CLI: escribir el parche a un `.py` en el scratchpad y ejecutarlo (ver Trampas), luego `ast.parse`.
