@@ -69,6 +69,6 @@ sale de `frame28 graphics` (ver skill `frame28-director`).
 | Vídeo congelado en el render | (no debería) elemento de vídeo sin `id` | regenera con `build`; no edites el HTML |
 | Sin audio | `source.audio` ausente | añade `voice.wav` al storyboard |
 
-Para previsualizar con scrubbing y editar en vivo: `cd work/project && npx --yes hyperframes@0.8.72 preview --background`
+Para previsualizar con scrubbing y editar en vivo: `cd work/project && npx --yes hyperframes@0.8.105 preview --background`
 (abre `http://127.0.0.1:3002`). Es para revisar; el render es la verdad (la previsualización a veces no respeta el
 rango temporal de la capa alfa).

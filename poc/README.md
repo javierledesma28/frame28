@@ -22,7 +22,7 @@ ffmpeg -framerate 30 -i assets/alpha_png/f_%04d.png -c:v libvpx-vp9 -pix_fmt yuv
 
 ```bash
 # HyperFrames
-cd hyperframes && npx --yes hyperframes@0.8.72 check && npx --yes hyperframes@0.8.72 render -o out/poc_hyperframes.mp4 -q high --crf 18
+cd hyperframes && npx --yes hyperframes@0.8.105 check && npx --yes hyperframes@0.8.105 render -o out/poc_hyperframes.mp4 -q high --crf 18
 ```
 
 ```bash

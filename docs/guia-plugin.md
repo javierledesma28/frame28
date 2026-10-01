@@ -124,7 +124,7 @@ Qué puede hacer un plugin: sus skills ejecutan comandos con **los permisos del 
 
 - **Nada de secretos en el repo** (ni claves de API, ni tokens de HeyGen). El CLI no necesita ninguno; si algún
   día lo necesita, se lee de variable de entorno y se documenta.
-- **Versiones fijadas**: HyperFrames va pineado (`0.8.72`) y las dependencias Python con mínimos; así lo que se
+- **Versiones fijadas**: HyperFrames va pineado (`0.8.105`) y las dependencias Python con mínimos; así lo que se
   instala hoy es lo que probamos.
 - **Sin hooks ni MCP en v0.1**: no hay código que se ejecute solo al arrancar la sesión. Cuando añadamos un MCP,
   irá declarado en `.mcp.json` y revisado.
