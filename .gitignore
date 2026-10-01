@@ -40,3 +40,7 @@ poc/remotion/public/alpha/
 
 # Material privado: caras, fotogramas y transcripciones del video de referencia (nunca se publica)
 _private/
+
+# Previsualizaciones locales del sitio (capturas de Playwright)
+site/*.png
+site/node_modules/

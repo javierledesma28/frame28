@@ -81,10 +81,12 @@ research/                         01 análisis del vídeo de referencia (resumen
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
                                   06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
                                   Fundadores, KB y curso, sitio, plan de 7 días, propuesta a Cliente A)
-site/                             sitio del producto frame28.app para Cloudflare Pages (research/07 §5). content/landing.{es,en}.md son
-                                  la fuente de los textos (todas las secciones de /, /fundadores, /contacto, microcopy);
-                                  content/condiciones.es.md + terms.en.md = contrato base (/condiciones, /terms; pendiente de asesor legal);
-                                  el HTML aún no existe
+site/                             sitio del producto frame28.app, estático para Cloudflare Pages (root `site`, sin build en el despliegue).
+                                  build.py (plantilla común + CONFIG: plazas, buzón, caso público) ensambla src/{es,en}/*.html y convierte
+                                  content/condiciones.es.md + terms.en.md → index.html, en/, fundadores/, contacto/, condiciones/, en/founders/,
+                                  en/contact/, en/terms/ (HTML commiteado). content/landing.{es,en}.md = referencia editorial.
+                                  functions/api/contact.js (formulario → email con binding send_email), _redirects, _headers, wrangler.toml,
+                                  README.md (pasos de despliegue). Regenerar: `uv run --with markdown python site/build.py`
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
