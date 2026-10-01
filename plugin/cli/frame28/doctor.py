@@ -74,6 +74,14 @@ def doctor() -> list[dict]:
     except Exception:  # noqa: BLE001
         pass
     add("modelo RVM", RVM_MODEL_PATH.exists(), str(RVM_MODEL_PATH), "se descarga solo (15 MB) la primera vez que se use `frame28 matte`", optional=True)
+    try:
+        from .broll import providers_available
+        provs = providers_available()
+        have = [k for k, v in provs.items() if v]
+        add("claves de B-roll", bool(have), ", ".join(have) if have else "sin claves de Pexels ni Pixabay",
+            "opcional: PEXELS_API_KEY / PIXABAY_API_KEY en el entorno o en ~/.config/frame28/keys.json (gratis en pexels.com/api y pixabay.com/api/docs); sin ellas `frame28 broll search` no busca", optional=True)
+    except Exception as e:  # noqa: BLE001
+        add("claves de B-roll", False, str(e)[:80], "revisa ~/.config/frame28/keys.json", optional=True)
     net = cdn_reachable()
     add("red (GSAP por CDN)", net, f"gsap@{GSAP_VERSION} en cdn.jsdelivr.net" + ("" if net else ": sin acceso"),
         "el render y la portada cargan GSAP por internet: conecta la red antes de `frame28 render` o `frame28 cover`", optional=True)

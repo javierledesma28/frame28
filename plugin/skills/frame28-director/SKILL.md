@@ -174,6 +174,17 @@ Con el vídeo aprobado, la segunda lengua cuesta minutos: `frame28 i18n extract`
 criterio de subtitulado, `frame28 i18n apply --lang xx` los devuelve al storyboard con los mismos tiempos (y
 regenera los subtítulos por palabras sobre el ritmo original), y se vuelve a construir y renderizar.
 
+## 8. Tiempo y coste del montaje
+
+Cada orden `frame28` se cronometra sola en `.frame28/log.jsonl` del directorio de trabajo. Al cerrar un montaje:
+```bash
+frame28 report note "director: largo + 3 shorts + ES" --tokens <tokens de esta sesión> --minutes <minutos de revisión del usuario>
+frame28 report --rate 60          # por orden, total de máquina, notas y coste estimado a 60/h
+```
+Pega el resumen en la entrega: es lo que fija el precio de la siguiente y señala el paso que más tarda (si
+`render` domina, baja `--quality` al iterar; si `transcribe`, usa `--model small` para pruebas). Los tokens los
+sabes tú; el CLI no puede verlos. `FRAME28_LOG=0` desactiva el registro; `FRAME28_LOG=/ruta` lo centraliza.
+
 ## Qué no hacer
 
 - No editar `index.html` a mano: se regenera desde el storyboard.

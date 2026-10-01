@@ -173,9 +173,48 @@ def _two_lines(text: str) -> list[str]:
     return [best[1], best[2]]
 
 
+STRONG = {"en": [r"\byou\b", r"\byour\b", r"\bnever\b", r"\balways\b", r"\bonly\b", r"\bsecret\b", r"\bmistake\b", r"\bwrong\b", r"\bbest\b", r"\bfree\b"],
+          "es": [r"\btú\b", r"\btu\b", r"\bnunca\b", r"\bsiempre\b", r"\bsolo\b", r"\bsecreto\b", r"\berror\b", r"\bmal\b", r"\bmejor\b", r"\bgratis\b"]}
+
+
+def strongest_phrase(clip: dict, lang: str) -> dict | None:
+    """Para un tramo sin momentos: la frase del propio tramo con más fuerza como gancho. Puntúa preguntas, cifras,
+    segunda persona y palabras fuertes; penaliza las largas (no caben en dos líneas) y las de relleno."""
+    phrases = [p.strip() for p in clip.get("phrases", []) if p and p.strip()]
+    if not phrases:
+        return None
+    best = None
+    for i, ph in enumerate(phrases):
+        clause = _clause(ph, ph)
+        words = clause.split()
+        if len(words) < 3:
+            continue
+        score = 0.0
+        if "?" in clause:
+            score += 3
+        if re.search(r"\d", clause):
+            score += 2
+        score += sum(1 for pat in STRONG.get(lang, STRONG["en"]) if re.search(pat, clause, re.I))
+        low = clause.lower()
+        if any(low.startswith(f + " ") for f in FILLERS_START.get(lang, []) + FILLERS_START["en"]):
+            score -= 1
+        if 4 <= len(words) <= 10:
+            score += 1
+        elif len(words) > 16:
+            score -= 2
+        score -= i * 0.05  # a igualdad, la primera (es el arranque natural del tramo)
+        if best is None or score > best[0]:
+            best = (score, ph, clause)
+    if best is None:
+        return None
+    return {"text": best[1], "match": best[2], "t": clip.get("start", 0.0)}
+
+
 def hooks_for(clip: dict, lang: str, brand: str | None = None) -> list[dict]:
     """Tres ganchos de tipos distintos con las **palabras reales** del hablante: la cláusula donde ocurre el momento
-    (resultado, objeción, promesa, cifra), sin relleno inicial, en dos líneas. Cada gancho lleva `quote` y `t`."""
+    (resultado, objeción, promesa, cifra), sin relleno inicial, en dos líneas. Cada gancho lleva `quote` y `t`.
+    Si el tramo no tiene momentos, el gancho sale de la frase más fuerte del propio tramo (`statement`); la plantilla
+    de curiosidad queda como último recurso."""
     es = lang == "es"
     hooks: list[dict] = []
     used: set[str] = set()
@@ -205,6 +244,13 @@ def hooks_for(clip: dict, lang: str, brand: str | None = None) -> list[dict]:
     if num:
         add("number", num, _two_lines(_trim_trailing(_clean(_window(_clause(num["text"], num["match"]), num["match"]), lang).rstrip(".!"), lang)))
     if len(hooks) < 3:
+        sp = strongest_phrase(clip, lang)
+        if sp:
+            q = _trim_trailing(_clean(_window(_clause(sp["text"], sp["match"]), sp["match"]), lang).rstrip(".!"), lang)
+            if q and not q.endswith("?") and len(q.split()) <= 10 and "?" in sp["text"]:
+                q += "?"
+            add("statement", sp, _two_lines(q))
+    if len(hooks) < 3:
         hooks.append({"type": "curiosity", "lines": [("¿Se puede hacer esto" if es else "Can you actually do this"), ("con tus manos?" if es else "with your own hands?")],
                       "quote": "", "t": clip["start"]})
     return hooks[:3]
@@ -226,8 +272,10 @@ def extract(clip: dict, video: str | Path, audio: str | Path | None, words: str 
 
 
 def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 1920), platform: str = "tiktok",
-             brand: str | dict | None = None, cta: dict | None = None, hook_index: int = 0, video_name: str = "clip.mp4") -> dict:
-    """Storyboard de partida para el short: gancho, subtítulos por palabras, CTA al final. Construye tal cual."""
+             brand: str | dict | None = None, cta: dict | None = None, hook_index: int = 0, video_name: str = "clip.mp4",
+             name: str = "storyboard.json") -> dict:
+    """Storyboard de partida para el short: gancho, subtítulos por palabras, CTA al final. Construye tal cual.
+    `name` permite guardar varias variantes en la misma carpeta (storyboard-hook1.json)."""
     d = Path(clip_dir)
     words = load_words(d / "words.json") if (d / "words.json").exists() else []
     dur = round(clip["end"] - clip["start"] + 0.3, 2)
@@ -252,6 +300,59 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
         c = {"type": "cta", "id": "cta", "start": round(max(dur - 5.0, 3.5), 2), "end": dur, "at": round(max(dur - 4.9, 3.6), 2), **cta}
         sb["overlays"].append(c)
     sb["duration"] = dur
-    p = d / "storyboard.json"
+    sb["meta"]["title"] = f"Short {clip['id']} · gancho {hook_index + 1}: " + " / ".join(hook["lines"])
+    p = d / name
     p.write_text(json.dumps(sb, indent=1, ensure_ascii=False), encoding="utf-8")
-    return {"storyboard": str(p), "duration": dur, "hook": hook}
+    return {"storyboard": str(p), "duration": dur, "hook": hook, "hook_index": hook_index}
+
+
+def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | Path = "work/clips", out_dir: str | Path = "out/shorts",
+          hook_indexes: list[int] | None = None, canvas: tuple[int, int] = (1080, 1920), platform: str = "tiktok",
+          brand: str | dict | None = None, cta: dict | None = None, video_name: str = "clip.mp4", render: bool = True,
+          quality: str = "high") -> dict:
+    """Variantes de gancho en lote: para cada short (ya recortado con `clips cut`) y cada gancho, escribe
+    `storyboard-hook<N>.json`, construye `project-hook<N>/` y, con `render`, pasa `check` y renderiza a
+    `<out>/<id>-hook<N>.mp4` con su hoja de contacto. Deja `batch.json` en la carpeta de clips con el resultado de
+    cada variante: lo que falla no detiene al resto. Las plataformas queman un creativo en 7–14 días: se rota el
+    gancho, no el cuerpo, y esto deja todas las rotaciones listas de una vez."""
+    from .build import build_project
+    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
+    cdir = Path(clips_dir); odir = Path(out_dir)
+    chosen = [c for c in plan_["clips"] if not clip_ids or c["id"] in clip_ids]
+    variants = []; skipped = []
+    for c in chosen:
+        d = cdir / c["id"]
+        if not (d / video_name).exists():
+            skipped.append(c["id"]); continue
+        idxs = hook_indexes if hook_indexes is not None else list(range(len(c.get("hooks") or [])))
+        for k in idxs:
+            if k >= len(c.get("hooks") or []):
+                continue
+            name = f"{c['id']}-hook{k}"
+            v: dict = {"clip": c["id"], "hook_index": k, "name": name, "ok": False}
+            try:
+                s = scaffold(c, d, canvas, platform, brand, cta, k, video_name, name=f"storyboard-hook{k}.json")
+                v["storyboard"] = s["storyboard"]; v["hook"] = s["hook"]["lines"]; v["type"] = s["hook"]["type"]
+                b = build_project(s["storyboard"], d / f"project-hook{k}")
+                v["project"] = b["project"]; v["warnings"] = b["warnings"]
+                if render:
+                    from .render import check as _check, render as _render
+                    ck = _check(b["project"])
+                    v["check"] = {"passed": ck["passed"], "errors": ck["errors"], "contrast_warnings": ck["contrast_warnings"]}
+                    if not ck["passed"]:
+                        raise RuntimeError("check falló: " + "; ".join(ck["errors"])[:200])
+                    odir.mkdir(parents=True, exist_ok=True)
+                    rr = _render(b["project"], odir / f"{name}.mp4", quality)
+                    if not rr["ok"]:
+                        raise RuntimeError("render falló: " + rr["log_tail"][-200:])
+                    v["output"] = rr["output"]; v["sheet"] = rr.get("sheet"); v["time"] = rr.get("time")
+                v["ok"] = True
+            except Exception as e:  # noqa: BLE001  una variante rota no para el lote
+                v["error"] = f"{type(e).__name__}: {e}"[:300]
+            variants.append(v)
+    manifest = cdir / "batch.json"
+    res = {"clips": [c["id"] for c in chosen], "variants": variants, "ok": sum(1 for v in variants if v["ok"]),
+           "skipped": skipped, "rendered": render, "manifest": str(manifest)}
+    cdir.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps(res, indent=1, ensure_ascii=False), encoding="utf-8")
+    return res

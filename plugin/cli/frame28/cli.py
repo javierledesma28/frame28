@@ -29,10 +29,39 @@ def out(data, as_json: bool):
             click.echo(data)
 
 
-@click.group()
+from .log import TimedGroup
+
+
+@click.group(cls=TimedGroup)
 @click.version_option(__version__, prog_name="frame28")
 def main():
     """Frame28: de un clip hablando a cámara a un video con overlays sincronizados."""
+
+
+@main.group(invoke_without_command=True)
+@click.option("--log", "log_file", type=click.Path(), default=None, help="fichero de registro (por defecto .frame28/log.jsonl del directorio actual o FRAME28_LOG)")
+@click.option("--rate", type=float, default=None, help="coste por hora (en tu moneda) para estimar el coste del vídeo")
+@click.option("--json", "as_json", is_flag=True)
+@click.pass_context
+def report(ctx, log_file, rate, as_json):
+    """Tiempo y coste por vídeo: cada orden del CLI se cronometra sola; `report note` añade lo que el CLI no ve (tokens, minutos de persona, stock)."""
+    ctx.obj = {"log": Path(log_file) if log_file else None}
+    if ctx.invoked_subcommand is None:
+        from .log import format_report, report as _report
+        r = _report(ctx.obj["log"], rate)
+        out(r, True) if as_json else click.echo(format_report(r))
+
+
+@report.command("note")
+@click.argument("text")
+@click.option("--tokens", type=int, default=None, help="tokens consumidos por el director (Claude) en este montaje")
+@click.option("--cost", type=float, default=None, help="coste directo (stock, API) en tu moneda")
+@click.option("--minutes", type=float, default=None, help="minutos de persona (dirección, revisión)")
+@click.pass_context
+def report_note(ctx, text, tokens, cost, minutes):
+    """Añade una nota al registro: lo que el CLI no puede medir."""
+    from .log import add_note
+    out(add_note(text, tokens, cost, minutes, (ctx.obj or {}).get("log")), True)
 
 
 @main.command()
@@ -552,6 +581,37 @@ def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_j
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
     out(scaffold(clip, clip_dir or f"work/clips/{clip_id}", (w, h), platform, brand, cta, hook_index, video_name), as_json or True)
+
+
+@clips.command("batch")
+@click.argument("clips_json", type=click.Path(exists=True))
+@click.argument("clip_ids", nargs=-1)
+@click.option("--clips-dir", type=click.Path(), default="work/clips", show_default=True, help="carpeta con <id>/ de `clips cut`")
+@click.option("-o", "--out", "out_dir", type=click.Path(), default="out/shorts", show_default=True, help="MP4 de salida: <id>-hook<N>.mp4")
+@click.option("--hooks", default="all", show_default=True, help="'all' o índices separados por coma: 0,2")
+@click.option("--canvas", default="1080x1920", show_default=True)
+@click.option("--platform", default="tiktok", show_default=True)
+@click.option("--brand", default=None, help="nombre de marca o ruta a .json")
+@click.option("--cta", "cta_json", type=click.Path(exists=True), default=None, help="JSON con los campos del overlay cta")
+@click.option("--video", "video_name", default="clip.mp4", show_default=True, help="vídeo dentro de la carpeta del short (vertical.mp4 tras reframe)")
+@click.option("--no-render", is_flag=True, help="solo storyboards y proyectos construidos (sin check ni render)")
+@click.option("--quality", default="high", show_default=True, type=click.Choice(["draft", "standard", "high"]))
+@click.option("--json", "as_json", is_flag=True)
+def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, quality, as_json):
+    """Variantes de gancho en lote: por cada short y cada gancho, storyboard + build (+ check + render) → <id>-hook<N>.mp4 y batch.json."""
+    from .clips import batch
+    w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
+    cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
+    hook_idx = None if hooks == "all" else [int(x) for x in hooks.split(",") if x.strip()]
+    r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality)
+    if as_json:
+        out(r, True); return
+    for v in r["variants"]:
+        mark = "✓" if v["ok"] else "✗"
+        click.echo(f"  {mark} {v['name']:<14} {v.get('output') or v['storyboard']}" + (f"  {v['error']}" if v.get("error") else ""))
+    click.echo(f"  {r['ok']} de {len(r['variants'])} variantes · manifiesto: {r['manifest']}")
+    if r["skipped"]:
+        click.echo("  sin carpeta (haz `clips cut` antes): " + ", ".join(r["skipped"]))
 
 
 @main.group()
