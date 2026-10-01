@@ -95,20 +95,28 @@ ya remapeados; `i18n extract` no marcaba frases sin palabra oída); `frame28 ref
 10. **Release 0.4.0 preparada**: versión en los cuatro sitios, roadmap cerrado (sus seis pendientes pasan a la 0.5.0),
     README, notas de release entregadas a Javier (`RELEASE-NOTES-v0.4.0.md`, fuera del repo), artefacto del roadmap
     republicado, `release-check` en verde.
+11. **Bloque del PC en un script** (`avanza-pc.ps1`, entregado fuera del repo junto al bundle y las notas): el `.sh`
+    no sirve en Windows PowerShell 5.1 (no hay `&&` ni WSL). **Marcadores de resultado** (`frame28 clips markers`,
+    R5 #8): en cada frase de resultado propone `before_after` con dos instantes del clip, `draw` check y `kinetic`
+    con la frase real; en cada promesa, `kinetic`. 94 pruebas. Entra en la 0.4.0 si el tag se crea después de este
+    commit (el script etiqueta `origin/main`); las notas entregadas ya lo incluyen.
 
 ## Lo que toca ahora (Javier, en su PC, en este orden)
 
-1. **Resincronizar el clon y mover los tags.** `bash mover-tags.sh /ruta/tags-reescritos.bundle` (ambos ficheros
-   entregados por Claude): hace `fetch` + `reset --hard origin/main`, importa los tags reescritos del bundle,
-   `gh auth switch --user javierledesma28`, `git push --force origin refs/tags/v0.2.0 refs/tags/v0.3.0` y verifica con
-   un clon limpio (62 commits en la historia reescrita, 0 coincidencias). Hasta entonces la historia antigua con el
-   nombre del cliente sigue alcanzable desde esos tags.
-2. **Etiquetar la 0.4.0.** `uv tool install --editable ./plugin/cli --python 3.12 --reinstall`,
-   `python scripts/release-check.py`, `git tag -a v0.4.0 -m "Frame28 v0.4.0" && git push origin v0.4.0`,
+1. **Pasos 1 y 2 en una sola orden (Windows PowerShell):**
+   `powershell -ExecutionPolicy Bypass -File avanza-pc.ps1 -Bundle "C:\ruta\tags-reescritos.bundle" -Notes "C:\ruta\RELEASE-NOTES-v0.4.0.md"`
+   (los tres ficheros los entregó Claude fuera del repo). Hace `fetch` + `reset --hard origin/main`, importa los tags
+   reescritos del bundle y comprueba sus hashes, `gh auth switch --user javierledesma28`, `git push --force origin
+   refs/tags/v0.2.0 refs/tags/v0.3.0`, verifica con un clon limpio (0 coincidencias del nombre del cliente), reinstala
+   el CLI, pasa `release-check`, crea y sube el tag `v0.4.0`, publica la release con las notas, reinstala el plugin,
+   prueba la instalación limpia desde el tag con `uvx` y vuelve a la cuenta corporativa. Se detiene en el primer error.
+   Hasta entonces la historia antigua con el nombre del cliente sigue alcanzable desde los tags viejos.
+2. **A mano, si el script falla a mitad**: `uv tool install --editable ./plugin/cli --python 3.12 --reinstall`,
+   `python scripts/release-check.py`, `git tag -a v0.4.0 -m "Frame28 v0.4.0"`, `git push origin v0.4.0`,
    `gh release create v0.4.0 --title "Frame28 v0.4.0" --notes-file RELEASE-NOTES-v0.4.0.md`, volver a la cuenta
-   corporativa, reinstalar el plugin (`claude plugin uninstall frame28@think28 && claude plugin install
-   frame28@think28 --scope user`) y comprobar la instalación limpia desde el tag con `uvx`. El roadmap publicado ya
-   dice que la 0.4.0 está publicada el 1 de octubre.
+   corporativa, reinstalar el plugin (`claude plugin uninstall frame28@think28`; `claude plugin install
+   frame28@think28 --scope user`) y comprobar la instalación limpia desde el tag con `uvx`. En PowerShell 5.1 no existe
+   `&&`: una orden por línea. El roadmap publicado ya dice que la 0.4.0 está publicada el 1 de octubre.
 3. **Desplegar frame28.app.** Cloudflare Pages conectado al repo, rama `main`, root `site`, sin build; dominio;
    remitente `hola@frame28.app` y binding `SEND_EMAIL`; probar el formulario; **Cloudflare Access** sobre `/kb`,
    `/curso`, `/en/kb`, `/en/course` con PIN por email (pasos en `site/README.md`). Sin Access, el área de clientes es
@@ -132,7 +140,8 @@ ya remapeados; `i18n extract` no marcaba frases sin palabra oída); `frame28 ref
 3. **Condiciones**: 48 huecos `[[…]]` (los resalta `build.py`) y revisión legal pendientes.
 4. **Tarjeta de Frame28 en t28.io**: texto en `site/content/lanzamiento.md`; la web de Think28 no está en este repo.
 5. **Sin probar en real**: `broll search/fetch` (sin claves), `clips batch` con render, `reframe-map` con un
-   `gestures.json` real, `reframe --mode crop` con hablante en movimiento. El director anota los tokens con
+   `gestures.json` real, `reframe --mode crop` con hablante en movimiento, `clips markers` sobre un vídeo real
+   (sus `before_t` hay que mirarlos con `frame28 frames`: el "antes" debe enseñar el objeto sin tocar). El director anota los tokens con
    `frame28 report note --tokens`; el CLI no puede verlos.
 6. **Deuda menor**: GSAP por CDN sin copia local (el render necesita red); HyperFrames 0.8.72 pineado con 0.8.98
    publicada; OpenCV instalado por triplicado; `poc/remotion/package-lock.json` versionado aunque Remotion está
@@ -143,8 +152,8 @@ ya remapeados; `i18n extract` no marcaba frases sin palabra oída); `frame28 ref
 
 | Bloqueo o duda | Dueño | Qué lo desbloquea |
 |---|---|---|
-| Tags v0.2.0 y v0.3.0 en GitHub apuntan a la historia antigua (el proxy de la nube no permite tocar tags: 403 por git y por API) | Javier, PC | `mover-tags.sh` con el bundle (paso 1 de arriba) |
-| Tag y release v0.4.0 | Javier, PC | paso 2 de arriba |
+| Tags v0.2.0 y v0.3.0 en GitHub apuntan a la historia antigua (el proxy de la nube no permite tocar tags: 403 por git y por API; verificado dos veces) | Javier, PC | `avanza-pc.ps1` con el bundle (paso 1 de arriba) |
+| Tag y release v0.4.0 | Javier, PC | el mismo script (paso 1) o el paso 2 a mano |
 | Commits antiguos cacheados en GitHub tras la reescritura (accesibles por hash hasta su recolección) | Javier | Pedir a soporte de GitHub la purga del repo, si se quiere cerrar del todo |
 | Acceso a Cloudflare (Pages, Access, Email Service) | Javier | Desplegar él (paso 3) o dar a una sesión nueva un token de API con permisos de Pages, DNS y Email y permitir `api.cloudflare.com` en la red del entorno |
 | API de envío de Cloudflare Email Service | Javier al desplegar | `functions/api/contact.js::sendMail` usa el binding `send_email` estable; si la beta cambia la forma, es el único sitio que tocar (docs de Cloudflare bloqueadas desde la nube) |
@@ -161,7 +170,7 @@ git fetch origin && git status -sb                # main...origin/main; si el cl
 frame28 doctor                                   # fila frame28: 0.4.0 en código y 0.4.0 instalada tras --reinstall; "Todo listo." (gpu, RVM, B-roll y red son opcionales)
 claude plugin validate ./plugin                  # Validation passed
 python scripts/release-check.py --notes          # "Listo para etiquetar v0.4.0" hasta que exista el tag; después, tag y release "ya existe" hasta subir __version__
-(cd plugin/cli && uv run --group dev pytest)     # 90 passed en ~1 s
+(cd plugin/cli && uv run --group dev pytest)     # 94 passed en ~1 s
 uv run --with markdown python site/build.py      # 40 páginas · plazas Fundadores: 5 · caso público: False · huecos en condiciones: 48
 cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4   # 13 overlays, ~2 min (PC)
 curl -sI https://frame28.t28.io/roadmap/ | head -1     # HTTP/2 200

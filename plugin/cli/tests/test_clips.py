@@ -134,3 +134,65 @@ def test_scaffold_writes_a_storyboard_that_validates(tmp_path, grabado_clips):
     assert sb["overlays"][-1]["type"] == "cta" and sb["overlays"][-1]["end"] == sb["duration"]
     assert sb["brand"] == "../brands/acme.json"  # relativa al storyboard del short
     assert r["duration"] == sb["duration"] >= clip["end"] - clip["start"]
+
+
+CAPS_RESULT = [
+    (0.0, 5.0, "Hi everyone, today we are engraving a wine glass with the Engraver."),
+    (5.0, 9.0, "Anyone can do this, it's really easy."),
+    (9.0, 14.0, "Set the speed to 3 and use the diamond tip."),
+    (14.0, 19.0, "Follow the outline slowly, no pressure at all."),
+    (19.0, 24.0, "And that's it, look at that, beautiful."),
+    (24.0, 28.0, "Perfect, it turned out great."),
+    (28.0, 34.0, "Thanks for watching and see you next time."),
+]
+
+
+def _sb_with(overlays, duration=34.0, canvas=(1920, 1080)):
+    return {"version": 1, "source": {"video": "clip.mp4", "duration": duration}, "duration": duration,
+            "canvas": {"width": canvas[0], "height": canvas[1], "fps": 30}, "overlays": overlays}
+
+
+def test_markers_group_a_result_streak_and_propose_the_three_overlays(tmp_path):
+    r = clips.markers(_caps(tmp_path, CAPS_RESULT), lang="en")
+    assert r["results"] == 1 and r["promises"] == 1 and r["duration"] == 34.0
+    res = next(m for m in r["markers"] if m["kind"] == "result")
+    assert res["t"] == 19.0 and res["end"] == 28.0 and len(res["phrases"]) == 2  # "that's it" + "perfect" = una racha
+    types = [o["type"] for o in res["overlays"]]
+    assert types == ["kinetic", "draw", "before_after"]
+    kin, chk, ba = res["overlays"]
+    assert kin["lines"][0][0]["text"].lower() == "that's" and kin["lines"][0][0]["accent"] is True
+    assert kin["start"] == 18.95 and kin["end"] <= ba["start"] and kin["end"] <= 24.6
+    assert chk["icon"] == "check" and chk["at"] == 19.0 and chk["end"] == 20.6
+    assert ba["before_t"] == 11.0 and ba["after_t"] < ba["start"] and ba["end"] - ba["start"] == 3.0 and ba["end"] <= 34.0
+    assert ba["label_before"] == "Before"
+    prom = next(m for m in r["markers"] if m["kind"] == "promise")
+    assert [o["type"] for o in prom["overlays"]] == ["kinetic"] and prom["overlays"][0]["id"] == "prom1-kin"
+    # todo lo propuesto es un storyboard válido tal cual, en 16:9 y en vertical
+    all_ov = [o for m in r["markers"] for o in m["overlays"]]
+    assert validate(_sb_with(all_ov)) == []
+    v = clips.markers(_caps(tmp_path, CAPS_RESULT), lang="en", canvas=(1080, 1920))
+    v_ov = [o for m in v["markers"] for o in m["overlays"]]
+    assert validate(_sb_with(v_ov, canvas=(1080, 1920))) == []
+    assert all(o["x"] + o.get("w", 0) <= 1080 for o in v_ov) and all(o["y"] < 500 for o in v_ov)
+    left = clips.markers(_caps(tmp_path, CAPS_RESULT), lang="en", side="left")
+    assert left["markers"][0]["overlays"][0]["x"] == 90 and r["markers"][0]["overlays"][0]["x"] == 1100
+
+
+def test_markers_take_word_times_from_words_json_and_respect_lead(tmp_path):
+    words = write_json(tmp_path / "words.json", words_from("and|19.2 that's|19.6 it|20.1 look|20.5 at that beautiful"))
+    r = clips.markers(_caps(tmp_path, CAPS_RESULT), lang="en", words_path=words, lead=3.0, settle=0.5)
+    res = next(m for m in r["markers"] if m["kind"] == "result")
+    kin, chk, ba = res["overlays"]
+    assert [w["at"] for w in kin["lines"][0]] == [19.6, 20.1]  # "That's it" con los tiempos reales
+    assert chk["at"] == 19.6 and kin["start"] == 19.55
+    assert ba["before_t"] == 16.0 and ba["start"] == 28.5 and ba["after_t"] == 28.45
+
+
+def test_markers_spanish_labels_and_no_results(tmp_path):
+    caps = _caps(tmp_path, [(0.0, 4.0, "Hoy grabamos una copa."), (4.0, 8.0, "Y ya está, mira qué precioso queda."), (8.0, 10.0, "Hasta luego.")])
+    r = clips.markers(caps, lang="es")
+    res = r["markers"][-1]
+    assert res["kind"] == "result" and res["overlays"][-1]["label_before"] == "Antes"
+    assert res["overlays"][-1]["end"] <= 10.0 and res["overlays"][-1]["end"] - res["overlays"][-1]["start"] >= 1.5
+    empty = clips.markers(_caps(tmp_path, [(0.0, 3.0, "Hola."), (3.0, 6.0, "Adiós.")]), lang="es")
+    assert empty["markers"] == [] and empty["results"] == 0

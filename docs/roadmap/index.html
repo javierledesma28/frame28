@@ -162,7 +162,7 @@
   </nav>
 
   <section class="facts" aria-label="Cifras de hoy">
-    <div class="fact"><b>41</b><span>órdenes del CLI</span></div>
+    <div class="fact"><b>42</b><span>órdenes del CLI</span></div>
     <div class="fact"><b>17</b><span>tipos de overlay</span></div>
     <div class="fact"><b>8</b><span>skills del plugin</span></div>
     <div class="fact"><b>5</b><span>casos reales montados</span></div>
@@ -233,21 +233,21 @@ const ROADMAP = [
     goal: "Un vídeo para un cliente sale sin sorpresas, con todo lo que vende, y sabemos lo que cuesta producirlo.",
     close: "Publicada como release v0.4.0: suite de pruebas en verde, coste por vídeo medible, variantes de gancho en lote y el sitio del producto con condiciones, base de conocimiento y curso; lo que no entró pasa a la 0.5.0.",
     items: [
-      { t: "Suite mínima de pruebas", d: "90 pruebas en un segundo, sin render: cargadores, cortes, subtítulos, shorts, i18n, validación y build del storyboard, reencuadre y smoke del CLI; release-check la ejecuta.", s: "hecho", e: "M", val: "alto" },
+      { t: "Suite mínima de pruebas", d: "94 pruebas en un segundo, sin render: cargadores, cortes, subtítulos, shorts, i18n, validación y build del storyboard, reencuadre y smoke del CLI; release-check la ejecuta.", s: "hecho", e: "M", val: "alto" },
       { t: "Coste y tiempo por vídeo", d: "Cada orden del CLI se cronometra sola (.frame28/log.jsonl); frame28 report agrupa por paso, suma y estima el coste con una tarifa; report note añade tokens y minutos de persona.", s: "hecho", e: "S", val: "alto" },
       { t: "Página de producto en frame28.app", d: "Landing ES/EN con precios públicos, Fundadores, condiciones del servicio, formulario con Pages Function, área de clientes; el plugin abierto sigue en frame28.t28.io.", s: "medias", why: "construida y verificada en site/; falta desplegar en Cloudflare Pages con el dominio", e: "M", val: "alto" },
       { t: "Base de conocimiento y curso online", d: "Ocho artículos (ES y EN) y seis lecciones con guion en site/, tras Cloudflare Access, incluidos en todas las capas de pago; los vídeos del curso se graban a cámara y se montan con Frame28.", s: "medias", why: "artículos y guiones publicables; faltan los vídeos y activar Access", e: "M", val: "alto" },
       { t: "Variantes de gancho en lote", d: "frame28 clips batch: por cada short y gancho, storyboard, build, check y render con manifiesto; una variante rota no para el lote.", s: "hecho", e: "S", val: "alto", ref: "R5 #2" },
       { t: "Ganchos para tramos sin momentos", d: "La frase más fuerte del tramo (preguntas, cifras, segunda persona) como gancho `statement`; la plantilla de curiosidad queda de último recurso.", s: "hecho", e: "S", val: "medio" },
       { t: "Cuadrado 1:1 para ficha de producto", d: "El lienzo ya existe; falta el caso documentado y las reglas de colocación.", s: "medias", why: "soportado por canvas, sin caso ni documentación", e: "S", val: "medio", ref: "R5 #7" },
-      { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" }
+      { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" },
+      { t: "Marcadores de resultado", d: "frame28 clips markers: en cada frase de resultado de la transcripción propone el antes/después con dos instantes del clip, el check y el cinético con la frase real; en cada promesa, el cinético.", s: "hecho", e: "S", val: "medio", ref: "R5 #8" }
     ] },
   { v: "v0.5.0", name: "Calidad y alcance", date: "siguiente", state: "next",
     goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
     close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
     items: [
       { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
-      { t: "Marcadores de resultado", d: "Detectar en la transcripción las frases de resultado y proponer ahí el antes/después y el check.", s: "pendiente", e: "S", val: "medio", ref: "R5 #8" },
       { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
       { t: "Gráfica de barras en vertical con más de tres filas", d: "El lienzo estrecho compacta la gráfica; con muchas filas se sale.", s: "pendiente", e: "S", val: "bajo" },
       { t: "Reencuadre con hablante en movimiento", d: "Probar el modo crop con alguien que se desplace de verdad por el encuadre.", s: "pendiente", e: "S", val: "medio" },

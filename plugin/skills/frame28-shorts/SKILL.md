@@ -46,7 +46,10 @@ a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son 
    con el dato que se dice (velocidad, broca, material). En vertical, todo arriba (`y` 400–700 con `blur`, franja
    superior con `crop`).
 3. **Resultado**: `before_after` con `before_t`/`after_t` del propio short (el primer plano del objeto y el final)
-   justo después de la frase de resultado; o `draw` check + `kinetic`.
+   justo después de la frase de resultado, más `draw` check + `kinetic` con la frase real. Los propone
+   `frame28 clips markers work/clips/s4/captions.json --lang en --words work/clips/s4/words.json --canvas 1080x1920 -o work/clips/s4/markers.json`
+   (tiempos del short ya recortado): pega los overlays de `markers` en el storyboard y comprueba con
+   `frame28 frames` que `before_t` enseña el objeto sin tocar (`--lead` lo adelanta si el tramo empieza tarde).
 4. **Prueba social** en 2 s si cabe (`counter` con la cifra real de la web de la marca).
 5. **CTA**: precio y descuento reales del sitio; `url` para el QR si el vídeo se verá en pantalla grande o en
    YouTube; "Link in bio" si es TikTok/Reels. Nunca antes de haber enseñado el resultado.

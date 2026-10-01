@@ -102,3 +102,14 @@ def test_brand_list_and_broll_providers():
     assert r.exit_code == 0 and "think28" in r.output
     r = run("broll", "providers")
     assert r.exit_code == 0 and "pexels" in r.output.lower()
+
+
+def test_clips_markers_writes_json(tmp_path):
+    cp = write_json(tmp_path / "captions.json", [{"start": 0, "end": 8, "text": "Anyone can do this."},
+                                                    {"start": 8, "end": 16, "text": "Set the speed to 3 and go slowly."},
+                                                    {"start": 16, "end": 24, "text": "And that's it, look at that, beautiful."}])
+    r = run("clips", "markers", cp, "--lang", "en", "--canvas", "1080x1920", "-o", tmp_path / "markers.json")
+    assert r.exit_code == 0, r.output
+    assert "before_after" in r.output and "res1" in r.output and "prom1" in r.output
+    data = json.loads((tmp_path / "markers.json").read_text(encoding="utf-8"))
+    assert data["canvas"] == [1080, 1920] and data["results"] == 1
