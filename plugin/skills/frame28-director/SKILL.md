@@ -162,7 +162,10 @@ frame28 captions export work/words.json -o out/<nombre>.srt     # o .vtt; ≤ 42
 
 Mira la hoja de contacto `out/<nombre>_sheet.png` (cubre el vídeo entero: en un largo, un fotograma cada ~3 s). Para
 comprobar un overlay concreto, saca el fotograma de su instante: `frame28 frames out/<nombre>.mp4 -t 81.3 -o work/rev`.
-En un largo, itera con `frame28 render … --quality draft` y deja `high` para el definitivo. Comprueba: (a) ningún overlay tapa la cara, (b) cada
+En un largo, itera con `frame28 render … --quality draft` y deja `high` para el definitivo. Si la máquina tiene
+núcleos y memoria de sobra (16 núcleos, 32 GB), `--workers 10` recorta el render en torno a un 16 % sin tocar la
+calidad; `--gpu` codifica con NVENC (algo más rápido, fichero mayor: compara antes de entregar). No repitas `check`
+si solo cambiaste textos o posiciones de un storyboard que ya lo pasó (versiones traducidas, ajustes de revisión). Comprueba: (a) ningún overlay tapa la cara, (b) cada
 overlay entra cuando se dice su palabra, (c) el texto detrás no se ve "delante", (d) subtítulos legibles, (e) ritmo:
 nada de tramos de más de 8 s sin evento. Si algo falla, edita **el storyboard** (nunca el HTML generado) y
 repite el paso 4. Entrega el MP4 y resume en dos líneas qué overlays lleva.

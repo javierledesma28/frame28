@@ -862,11 +862,13 @@ def check(project, as_json):
 @click.option("--crf", default=18, show_default=True)
 @click.option("--fps", default=None, type=int)
 @click.option("--no-sheet", is_flag=True)
+@click.option("--workers", default=None, type=click.IntRange(1, 32), help="trabajadores de captura (por defecto los elige HyperFrames, ~6). Con 16 núcleos y 32 GB, 10 rinde más; 14 ya empeora")
+@click.option("--gpu", is_flag=True, help="codificar con la GPU (NVENC): algo más rápido, fichero ~50 %% mayor; compara la calidad antes de entregar")
 @click.option("--json", "as_json", is_flag=True)
-def render(project, output, quality, crf, fps, no_sheet, as_json):
+def render(project, output, quality, crf, fps, no_sheet, workers, gpu, as_json):
     """Renderiza el proyecto a MP4 y genera una hoja de contacto para revisar."""
     from .render import render as _render
-    r = _render(project, output, quality, crf, fps, not no_sheet)
+    r = _render(project, output, quality, crf, fps, not no_sheet, workers, gpu)
     out(r if as_json else {k: v for k, v in r.items() if k != "log_tail"}, as_json)
     if not r["ok"]:
         click.echo(r["log_tail"]); raise SystemExit(1)

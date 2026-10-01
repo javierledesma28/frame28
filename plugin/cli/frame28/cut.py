@@ -264,7 +264,7 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
     fc = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(keep)}:v=1:a=0[v]"
     vout = out / "clip.mp4"
     r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-filter_complex", fc, "-map", "[v]", "-c:v", "libx264", "-crf", "16",
-             "-pix_fmt", "yuv420p", "-r", "30", str(vout)])
+             "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p", "-r", "30", str(vout)])
     if r.returncode != 0:
         raise SystemExit(r.stderr)
     res["clip"] = str(vout)
