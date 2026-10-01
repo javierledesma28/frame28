@@ -12,7 +12,7 @@ con la estructura que convierte (gancho → demostración → resultado → acci
 ## Flujo
 
 ```bash
-frame28 clips plan work/captions.json --lang en --keyword Engraver Pro --keyword Cliente A -o work/clips.json --target 30 --count 5
+frame28 clips plan work/captions.json --lang en --keyword <producto> --keyword <marca> -o work/clips.json --target 30 --count 5
 ```
 Propone tramos que empiezan y terminan en frase, puntuados por momentos: **resultado** ("that's it", "turned out"),
 **promesa** ("beginner", "easy"), **objeción** ("isn't it", "what if"), **cifras** y **producto** (los `--keyword`).
@@ -46,7 +46,7 @@ a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son 
    superior con `crop`).
 3. **Resultado**: `before_after` con `before_t`/`after_t` del propio short (el primer plano del objeto y el final)
    justo después de la frase de resultado; o `draw` check + `kinetic`.
-4. **Prueba social** en 2 s si cabe (`counter` 650K+).
+4. **Prueba social** en 2 s si cabe (`counter` con la cifra real de la web de la marca).
 5. **CTA**: precio y descuento reales del sitio; `url` para el QR si el vídeo se verá en pantalla grande o en
    YouTube; "Link in bio" si es TikTok/Reels. Nunca antes de haber enseñado el resultado.
 6. **Variantes**: renderiza el mismo short con `--hook 0`, `--hook 1`, `--hook 2` → `s4-hook0.mp4`,
@@ -59,7 +59,7 @@ con el mismo gancho de la variante; una portada por variante si los ganchos difi
 
 ## Qué no hacer
 
-- Shorts de más de 45 s ni de menos de 15 (salvo un "first time here" de 20–35 s a propósito).
+- Shorts de más de 45 s ni de menos de 15 (salvo un vídeo de bienvenida de 20–35 s a propósito).
 - Empezar por el logo o el saludo: el gancho es lo primero.
 - Poner texto bajo los iconos de la derecha o la descripción de abajo (`build` avisa con `platform`).
 - Repetir el CTA en cada short con la misma frase: cambia el ángulo (precio, garantía, "everything included").

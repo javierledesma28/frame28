@@ -92,8 +92,8 @@ def test_build_project_rejects_invalid_storyboard(tmp_path):
         build.build_project(sbp, tmp_path / "p")
 
 
-def test_narrow_class_on_vertical_canvas(tmp_path, cliente-a_short):
-    sb = dict(cliente-a_short); sb["brand"] = "think28"
+def test_narrow_class_on_vertical_canvas(tmp_path, grabado_short):
+    sb = dict(grabado_short); sb["brand"] = "think28"
     sbp = write_json(tmp_path / "storyboard.json", sb)
     build.build_project(sbp, tmp_path / "p")
     html = (tmp_path / "p" / "index.html").read_text(encoding="utf-8")

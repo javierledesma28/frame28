@@ -17,7 +17,9 @@ SITE = Path(__file__).resolve().parent
 CONFIG = {
     "seats": 5,                      # plazas libres de Fundadores
     "mail": "hola@frame28.app",      # buzón que responde (y remite del formulario)
-    "case_public": False,            # True cuando Cliente A autorice publicar el caso
+    "case_public": False,            # True solo con permiso escrito del cliente; el nombre real nunca se escribe aquí hasta entonces
+    "case_brand": "[[marca]]",       # nombre público del cliente del caso cuando case_public sea True
+    "case_slug": "marca",            # carpeta casos/<slug>/ y en/cases/<slug>/
     "year": 2026,
 }
 
@@ -76,17 +78,17 @@ TERMS = [
 
 CASE = {
     "es": {
-        True: """<h2>Caso: Cliente A</h2>
-      <p class="muted" style="margin-top:12px">Cliente A vende kits de grabado a 650.000 clientes y publica tutoriales por material. Tomamos su tutorial de vidrio (3:17) y, sin grabar nada nuevo, salió el paquete completo: el largo con pasos en pantalla, notas de seguridad, tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada de YouTube y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos.</p>
-      <p style="margin-top:20px"><a class="btn" href="/casos/cliente-a/">Ver el caso completo</a></p>""",
+        True: """<h2>Caso: {brand}</h2>
+      <p class="muted" style="margin-top:12px">{brand} vende kits de grabado a cientos de miles de clientes y publica tutoriales por material. Tomamos su tutorial de vidrio (3:17) y, sin grabar nada nuevo, salió el paquete completo: el largo con pasos en pantalla, notas de seguridad, tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada de YouTube y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos.</p>
+      <p style="margin-top:20px"><a class="btn" href="/casos/{slug}/">Ver el caso completo</a></p>""",
         False: """<h2>Caso: un fabricante de kits de grabado</h2>
       <p class="muted" style="margin-top:12px">Un tutorial de 3:17 ya publicado, sin grabar nada nuevo. Salió el largo con pasos en pantalla, notas de seguridad, tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos. Pídenos la muestra y te la enseñamos.</p>
       <p style="margin-top:20px"><a class="btn" href="#contacto" data-plan="launch">Pedir la muestra</a></p>""",
     },
     "en": {
-        True: """<h2>Case: Cliente A</h2>
-      <p class="muted" style="margin-top:12px">Cliente A sells engraving kits to 650,000 customers and publishes one tutorial per material. We took their glass tutorial (3:17) and, without shooting anything new, the whole package came out: the long video with on-screen steps, safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the YouTube cover and the 1:1 product-page version; and a Spanish version with the same timing.</p>
-      <p style="margin-top:20px"><a class="btn" href="/en/cases/cliente-a/">See the full case</a></p>""",
+        True: """<h2>Case: {brand}</h2>
+      <p class="muted" style="margin-top:12px">{brand} sells engraving kits to hundreds of thousands of customers and publishes one tutorial per material. We took their glass tutorial (3:17) and, without shooting anything new, the whole package came out: the long video with on-screen steps, safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the YouTube cover and the 1:1 product-page version; and a Spanish version with the same timing.</p>
+      <p style="margin-top:20px"><a class="btn" href="/en/cases/{slug}/">See the full case</a></p>""",
         False: """<h2>Case: an engraving-kit brand</h2>
       <p class="muted" style="margin-top:12px">A 3:17 tutorial already published, nothing new shot. Out came the long video with on-screen steps, safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the cover and the 1:1 product-page version; and a Spanish version with the same timing. Ask for the sample and we'll show you.</p>
       <p style="margin-top:20px"><a class="btn" href="#contact" data-plan="launch">Ask for the sample</a></p>""",
@@ -204,7 +206,10 @@ def fill(lang: str, html: str) -> str:
     html = html.replace("{{SEATS}}", seats)
     html = html.replace("{{FORM_ES}}", form_html("es")).replace("{{FORM_EN}}", form_html("en"))
     html = html.replace("{{FORM_ES_FOUNDERS}}", form_html("es", "founders")).replace("{{FORM_EN_FOUNDERS}}", form_html("en", "founders"))
-    html = html.replace("{{CASE_ES}}", CASE["es"][CONFIG["case_public"]]).replace("{{CASE_EN}}", CASE["en"][CONFIG["case_public"]])
+    case = {k: CASE[k][CONFIG["case_public"]].replace("{brand}", CONFIG["case_brand"]).replace("{slug}", CONFIG["case_slug"]) for k in ("es", "en")}
+    if CONFIG["case_public"]:
+        assert "[[" not in CONFIG["case_brand"], "case_public=True exige el nombre real del cliente en CONFIG['case_brand'] (con su permiso escrito)"
+    html = html.replace("{{CASE_ES}}", case["es"]).replace("{{CASE_EN}}", case["en"])
     assert "{{" not in html, re.search(r"\{\{[^}]+\}\}", html).group(0)
     return html
 

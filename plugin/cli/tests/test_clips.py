@@ -10,7 +10,7 @@ from conftest import words_from, write_json
 CAPS_EN = [
     (0.0, 4.0, "Hi everyone, welcome to another tutorial where we break engraving down into simple steps."),
     (4.0, 9.0, "People always ask me things like, isn't glass too slippery, what if it cracks?"),
-    (9.0, 14.0, "Today we are engraving a wine glass with the Engraver Pro."),
+    (9.0, 14.0, "Today we are engraving a wine glass with the Engraver."),
     (14.0, 19.0, "Set the speed to 3 and use the diamond tip."),
     (19.0, 24.0, "Follow the outline slowly, no pressure at all."),
     (24.0, 29.0, "And that's it, look at that, beautiful."),
@@ -24,7 +24,7 @@ def _caps(tmp_path, rows=CAPS_EN):
 
 
 def test_plan_finds_moments_and_non_overlapping_clips(tmp_path):
-    r = clips.plan(_caps(tmp_path), target=30, count=3, lang="en", keywords=["Engraver Pro"])
+    r = clips.plan(_caps(tmp_path), target=30, count=3, lang="en", keywords=["Engraver"])
     assert r["moments"] >= 5
     kinds = {m["kind"] for c in r["clips"] for m in c["moments"]}
     assert {"objection", "result", "promise", "product"} <= kinds
@@ -39,8 +39,8 @@ def test_plan_finds_moments_and_non_overlapping_clips(tmp_path):
         assert b["start"] >= a["end"] - 3
 
 
-def test_hooks_use_real_words_and_fit_two_lines(cliente-a_clips):
-    for c in cliente-a_clips["clips"]:
+def test_hooks_use_real_words_and_fit_two_lines(grabado_clips):
+    for c in grabado_clips["clips"]:
         hooks = clips.hooks_for(c, "en")
         assert 1 <= len(hooks) <= 3
         assert len({h["type"] for h in hooks}) == len(hooks)
@@ -83,8 +83,8 @@ def test_trim_trailing_stopwords():
     assert clips._trim_trailing("queda precioso en tu", "es") == "queda precioso"
 
 
-def test_scaffold_writes_a_storyboard_that_validates(tmp_path, cliente-a_clips):
-    clip = cliente-a_clips["clips"][0]
+def test_scaffold_writes_a_storyboard_that_validates(tmp_path, grabado_clips):
+    clip = grabado_clips["clips"][0]
     d = tmp_path / "s1"; d.mkdir()
     write_json(d / "words.json", words_from("hola mundo cruel", start=0.5))
     (tmp_path / "brands").mkdir()

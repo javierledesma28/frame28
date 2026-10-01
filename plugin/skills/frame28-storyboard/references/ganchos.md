@@ -4,19 +4,19 @@ De la investigación `research/05-video-venta-diy.md`: el gancho decide en 3 s s
 mediano 28–33 %; los buenos, 45–55 %); más del 70 % ve el vídeo sin sonido, así que el gancho es **texto en
 pantalla**, no solo lo que se dice. Usa las palabras del hablante o de la marca, nunca inventes cifras.
 
-## Los diez tipos, con plantillas (ES / EN) y ejemplos que funcionaron en Cliente A
+## Los diez tipos, con plantillas (ES / EN) y ejemplos del estilo que funciona en marcas de kits (parafraseados)
 
-| Tipo | Plantilla | Ejemplo real (shorts de Cliente A) |
+| Tipo | Plantilla | Ejemplo (parafraseado de shorts que funcionaron) |
 |---|---|---|
-| Transformación / antes-después | "De {estado feo} a {estado deseable}" · "From {before} to {after}" | *Transformacion 1* (73 K) · *From Chaos to Aesthetic* (7 K) |
-| Riesgo / suspense | "{Reto} con cero práctica. ¿Error?" · "{Big thing} with ZERO practice (big mistake?)" | *Riesgo 1* (35 K) |
-| Curiosidad | "¿Se puede {cosa improbable}?" · "Can you actually {X}?" | *Curiosidad 1* · *huevo gigante* (25 K) |
-| Dolor / negativo | "Deja de {error habitual}" · "Your {thing} is RUINING your {result}" | *Dolor 2* · *Dolor 1* |
-| Beneficio | "Lo único que necesitas para {resultado}" · "The ONLY tutorial you need" | *Tutorial de vidrio* (17 K, el vídeo largo más visto) |
-| Prueba social | "{N} personas ya lo hacen" · "{N}+ makers can't be wrong" | 650 000+ clientes, 4,7★ (de la web) |
-| Precio / oferta | "{precio} y todo incluido" · "{price} · everything included" | Engraver Pro 69,99 $ (antes 99,99 $) |
+| Transformación / antes-después | "De {estado feo} a {estado deseable}" · "From {before} to {after}" | *From a scratched jar to a gift* · *From chaos to aesthetic* |
+| Riesgo / suspense | "{Reto} con cero práctica. ¿Error?" · "{Big thing} with ZERO practice (big mistake?)" | *Engraving a guitar with ZERO practice (mistake?)* |
+| Curiosidad | "¿Se puede {cosa improbable}?" · "Can you actually {X}?" | *Can you actually engrave an egg?* |
+| Dolor / negativo | "Deja de {error habitual}" · "Your {thing} is RUINING your {result}" | *Your tape is RUINING your lines* · *This hobby fixed my evenings* |
+| Beneficio | "Lo único que necesitas para {resultado}" · "The ONLY tutorial you need" | *The only tutorial you need for glass* (el formato de largo más visto) |
+| Prueba social | "{N} personas ya lo hacen" · "{N}+ makers can't be wrong" | {N}+ clientes, {nota}★ (siempre de la web de la marca) |
+| Precio / oferta | "{precio} y todo incluido" · "{price} · everything included" | Engraver Pro 59,99 $ (antes 89,99 $) |
 | Lista de tres | "Tres pasos: {a}, {b}, {c}" · "3 steps: {a} · {b} · {c}" | *Peel off · stick it on · sleep tight* |
-| Historia personal | "Le hice a mi madre {cosa}" · "I made my mom her dream bag" | *Historia personal 1* (5 K) |
+| Historia personal | "Le hice a mi madre {cosa}" · "I made my {person} their dream {thing}" | *I made my dad his dream wallet* |
 | Urgencia | "Solo esta semana: {oferta}" | úsalo solo si la marca lo confirma |
 
 Reglas: máximo 2 líneas de 4–5 palabras; entra en el segundo 0,2–0,5; se va antes del segundo 4; en vertical va

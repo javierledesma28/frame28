@@ -156,7 +156,7 @@ demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que de
 v0.3.0 funciona de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
 recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
 gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts, portada y versión en otro idioma. Probado con un
-tutorial real de una marca DTC (Cliente A) además de los clips del autor. Lo siguiente:
+tutorial real de una marca DTC de kits de grabado además de los clips del autor. Lo siguiente:
 
 - Doblaje con voz sintética y demo de pantalla con zoom y paneo.
 - Puertas de calidad automáticas (contraste, legibilidad, sonoridad) y gráficas ampliadas.

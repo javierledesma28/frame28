@@ -9,6 +9,6 @@
 /contact/       /en/contact/                      301
 /terms          /en/terms/                        301
 /terms/         /en/terms/                        301
-# el caso de Cliente A se publica cuando haya permiso; hasta entonces lleva al contacto
-/casos/cliente-a/   /contacto/        302
-/en/cases/cliente-a/   /en/contact/   302
+# las páginas de casos se publican solo con permiso escrito del cliente; hasta entonces llevan al contacto
+/casos/*        /contacto/        302
+/en/cases/*     /en/contact/      302

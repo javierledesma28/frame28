@@ -97,7 +97,7 @@
   {
    "start": 46.86,
    "end": 49.56,
-   "text": "I'm using one of the mandala stencils from Cliente A."
+   "text": "I'm using one of the mandala stencils from the brand."
   },
   {
    "start": 49.58,
@@ -613,7 +613,7 @@
    "end": 165.3,
    "x": 60,
    "y": 700,
-   "title": "ENGRAVER PRO™ · $69.99",
+   "title": "ENGRAVER PRO™ · $59.99",
    "subtitle": "30% off · 30 diamond bits included · the-brand.com"
   },
   {
@@ -624,12 +624,12 @@
    "end": 186.0,
    "at": 182.18,
    "bg": "accent",
-   "value": 650,
+   "value": 500,
    "suffix": "K+",
    "decimals": 0,
    "duration": 1.1,
    "label": "happy makers",
-   "subtitle": "4.7★ · 15,600+ reviews · 60-day money-back guarantee"
+   "subtitle": "4.8★ · 12,000+ reviews · 60-day money-back guarantee"
   },
   {
    "type": "image",

@@ -30,7 +30,7 @@ versiones `/roadmap/`.
 **Desde el 2026-09-30 Frame28 es también un producto monetizable** del ecosistema Think28, con dominio
 **frame28.app** (comprado en Cloudflare; sitio del producto pendiente de construir en `site/` y desplegar en
 Cloudflare Pages). Se vende como servicio operado por Think28 (Launch, Studio), implantación en el cliente (Team) y,
-solo con demanda demostrada, plataforma (Cloud). Primer cliente objetivo: Cliente A. Definición, precios propuestos
+solo con demanda demostrada, plataforma (Cloud). Primer cliente objetivo: **Cliente A** (nombre en clave: el cliente real no se escribe en ningún fichero del repo ni del sitio; ver HANDOFF §Confidencialidad). Definición, precios propuestos
 y plan en `research/07-producto-frame28-app.md`; caminos evaluados en `research/06-monetizacion.md`. El plugin y el
 CLI siguen MIT y públicos: son la demo viva y el canal de adopción.
 
@@ -80,7 +80,7 @@ scripts/release-check.py          versiones en los cuatro sitios, árbol limpio,
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
                                   06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
-                                  Fundadores, KB y curso, sitio, plan de 7 días, propuesta a Cliente A)
+                                  Fundadores, KB y curso, sitio, plan de 7 días; la propuesta al cliente vive fuera del repo)
 site/                             sitio del producto frame28.app, estático para Cloudflare Pages (root `site`, sin build en el despliegue).
                                   build.py (plantilla común + CONFIG: plazas, buzón, caso público) ensambla src/{es,en}/*.html y convierte
                                   content/condiciones.es.md + terms.en.md → index.html, en/, fundadores/, contacto/, condiciones/, en/founders/,

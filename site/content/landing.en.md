@@ -170,13 +170,13 @@ The program closes at the fifth customer or after ninety days, whichever comes f
 
 ## 7. Case
 
-<!-- Until Cliente A gives permission, publish the anonymous version (second block) and keep /casos/cliente-a private. -->
+<!-- The anonymous version is published until the customer gives written permission; the real name is never written in the repo: [[brand]] is filled in CONFIG at publish time. -->
 
 ### With permission
 
-## Case: Cliente A
+## Case: [[brand]]
 
-Cliente A sells engraving kits to 650,000 customers and publishes one tutorial per material. We took their glass
+[[brand]] sells engraving kits to hundreds of thousands of customers and publishes one tutorial per material. We took their glass
 tutorial (3:17) and, without shooting anything new, the whole package came out: the long video with on-screen steps,
 safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the YouTube cover
 and the 1:1 product-page version; and a Spanish version with the same timing.

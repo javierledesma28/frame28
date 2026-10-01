@@ -1,58 +1,64 @@
-# Cliente A · brief de marca para el montaje (investigación 2026-09-30)
+# Cliente A · brief de marca para el montaje (ejemplo anonimizado)
 
-Fuentes: the-brand.com (home, producto Engraver Pro, About us, FAQs, colección, blog). Vídeo: "The ONLY Tutorial
-You Need to Engrave GLASS (Easy DIY)", canal Cliente A, 3 min 17 s, publicado 2025-12-24.
+Nombre en clave de una marca real de kits de grabado (EE. UU.). Los datos identificativos (nombre, fundador,
+historia, web, colores exactos, logo) no se versionan: el brief real vive en `work/` (ignorado) y la marca se
+regenera con `frame28 brand from-site <url>`. Este fichero conserva la **estructura** del brief y el tipo de dato
+que hay que recoger, con valores difuminados, para que sirva de plantilla en el siguiente cliente.
 
-## Qué es Cliente A
+Fuentes del brief real: home, página del producto, "about", FAQ, colección y blog de la web; el vídeo largo
+(tutorial de grabado en vidrio, 3 min 17 s, inglés, ya producido con voz en off).
 
-Marca DTC de **kits para crear con las manos**. Nació como joyería (2016–2019); su fundador, [[fundador]], orfebre, inventó
-un lápiz grabador y lo lanzó en 2021 como **Engraver Pro™**; en 2023 pasaron de 100 000 unidades; en 2024 rebranding.
-Hoy venden dos familias: **grabado** (el Engraver Pro y sus kits de proyecto: lámpara de acrílico, botella de vidrio,
-espejo, posavasos, tazas de camping, joyería; brocas, plantillas, set de seguridad) y **marroquinería** (kits de bolso,
-cartera, funda de gafas).
+## Qué es la marca
 
-- **Misión**: "reignite the creative spark on people's lives by making arts & crafts simple and fun".
-- **Origen emocional**: la abuela del fundador probó el lápiz y dijo "I felt like a little girl again".
-- **Concepto**: "Snack-Hobbies", proyectos cortos de principio a fin, "no mess, no stress".
-- **Promesas**: "Everything included. No extra tools, no guesswork." · "Impressive from day one" · "Easy to use,
-  perfect for beginners" · "Enjoy a relaxing, fun experience" · "Make ordinary items unique".
-- **Prueba social**: 650 000+ clientes, 4,7★ con 15 600+ reseñas, 1M+ creaciones. Garantía de 60 días, 1 año de
-  garantía, atención 24/7.
-- **Taglines**: "Pick your craft. Make it yours." (home) · "Engraving Made Easy" (producto).
+Marca DTC de **kits para crear con las manos**. Empezó en otro producto artesanal, inventó un lápiz grabador
+inalámbrico y lo lanzó como producto estrella; hoy vende dos familias: **grabado** (el grabador y sus kits de
+proyecto: lámpara, botella, espejo, posavasos, tazas, joyería; brocas, plantillas, set de seguridad) y
+**marroquinería** (kits de bolso, cartera, funda).
 
-## El producto que vende este vídeo: Engraver Pro™
+- **Misión**: devolver la chispa creativa haciendo las manualidades simples y divertidas.
+- **Origen emocional**: una persona mayor de la familia del fundador probó el lápiz y "volvió a sentirse niña".
+- **Concepto**: proyectos cortos de principio a fin, "sin lío, sin estrés".
+- **Promesas**: "todo incluido, sin herramientas extra ni adivinanzas" · "impresionante desde el primer día" ·
+  "fácil, perfecto para principiantes" · "una experiencia relajante" · "haz únicos los objetos corrientes".
+- **Prueba social**: cientos de miles de clientes, ~4,7★ con más de diez mil reseñas, más de un millón de
+  creaciones. Garantía de devolución de 60 días, 1 año de garantía, atención 24/7. (Las cifras exactas se toman
+  de la web el día del montaje; nunca se inventan ni se redondean hacia arriba.)
+- **Taglines**: una para la home ("elige tu manualidad, hazla tuya") y otra para el producto ("grabar, fácil").
 
-- Precio 69,99 $ (antes 99,99 $, **30 % off**). Inalámbrico, 50 g, 12,5 cm, USB-C, ~2 h por carga.
-- 3 velocidades, 8 000–21 000 rpm, 30 g/cm de par.
-- En la caja: fresa de carburo, **30 brocas de diamante** (regalo), 4 lienzos de práctica (acrílico, bambú,
-  eco-piel, aluminio), plantillas, guía rápida, ebook "Engraving Mastery Guide".
+## El producto que vende este vídeo: Engraver Pro™ (nombre en clave)
+
+- Precio ~60 $ (antes ~90 $, **30 % off**). Inalámbrico, ~50 g, ~12 cm, USB-C, ~2 h por carga.
+- 3 velocidades, 8 000–21 000 rpm.
+- En la caja: fresa de carburo, **30 brocas de diamante** (regalo), lienzos de práctica (acrílico, bambú,
+  eco-piel, aluminio), plantillas, guía rápida, ebook.
 - Materiales: madera, vidrio, metal, piedra, plástico, piel (dureza < 4 Mohs).
-- **Para vidrio**: brocas de diamante; la FAQ recomienda humedecer la piedra, y el kit de lámpara de botella de
-  vidrio (44,99 $) es el proyecto natural.
+- **Para vidrio**: brocas de diamante; la FAQ recomienda humedecer; el kit de lámpara de botella es el proyecto natural.
 
 ## Colores, tipografía y logo (del CSS del sitio)
 
 | Uso | Valor |
 |---|---|
-| Acento / botones | `#fbb04c` (ámbar) · secundarios `#ffb859`, `#f4d06f`, `#fd7317` |
-| Tinta / fondos oscuros | `#2c2523` (marrón oscuro), `#121212`, `#421e1c` |
-| Verde de apoyo | `#108474` |
-| Claros | `#ffffff`, `#f4f4f4`, `#ffefd8` (crema) |
-| Fuente | Poppins |
-| Logo | wordmark horizontal `logo-cliente-a.png` (2500×320), ámbar `#fbb04c` sobre transparente; variante marrón para fondo ámbar |
+| Acento / botones | un ámbar cálido y sus secundarios (naranja, amarillo pálido) |
+| Tinta / fondos oscuros | un marrón muy oscuro, casi negro |
+| Verde de apoyo | un verde azulado |
+| Claros | blanco, gris claro, crema |
+| Fuente | una geométrica redondeada (Google Fonts) |
+| Logo | wordmark horizontal en el acento sobre transparente; variante oscura para fondo de acento |
+
+`frame28 brand from-site` saca estos valores del CSS y del logo de la web y los deja en `work/brands/cliente-a.json`.
 
 ## Qué debe potenciar el montaje
 
 El vídeo es un **tutorial promocional**: enseña a grabar vidrio para demostrar que *cualquiera puede* con el
-Engraver Pro. El storytelling que hay que reforzar, en este orden:
+grabador. El storytelling que hay que reforzar, en este orden:
 
 1. **Facilidad**: "lo único que necesitas" → una lista corta de material (pizarra o `list_focus`), y callouts en
    cada objeto cuando lo muestra.
-2. **El producto como protagonista**: rótulo con nombre y precio con descuento cuando aparece el Engraver Pro;
+2. **El producto como protagonista**: rótulo con nombre y precio con descuento cuando aparece el grabador;
    `pointer` a la broca de diamante y a la velocidad cuando las mencione.
 3. **Pasos numerados**: cada paso del tutorial con `box` "1 · …", "2 · …" para que el espectador lo siga.
-4. **Resultado "impressive from day one"**: al final, el antes/después y la frase-lema en `card`.
-5. **Confianza**: 650 000+ clientes, 4,7★, 60 días de garantía → contadores o tarjeta antes del cierre.
-6. **Cierre con marca**: `brand_card` con logo, "Pick your craft. Make it yours." y the-brand.com.
+4. **Resultado "impresionante desde el primer día"**: al final, el antes/después y la frase-lema en `card`.
+5. **Confianza**: clientes, estrellas y garantía → contadores o tarjeta antes del cierre.
+6. **Cierre con marca**: `brand_card` con logo, tagline y web.
 
-Tono: cálido, cercano, sin tecnicismos; el acento ámbar sobre marrón oscuro; Poppins.
+Tono: cálido, cercano, sin tecnicismos; el acento cálido sobre fondo oscuro; la fuente de la marca.

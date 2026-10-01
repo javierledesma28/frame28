@@ -1,7 +1,7 @@
 # Frame28.app · definición de producto, precios y plan de una semana (2026-09-30)
 
 Decisiones del usuario que fijan este documento: Frame28 es un **producto propio del ecosistema Think28** con
-dominio `frame28.app` (comprado en Cloudflare); el primer cliente objetivo es **Cliente A**, que hoy solo sabe
+dominio `frame28.app` (comprado en Cloudflare); el primer cliente objetivo es el **Cliente A** (nombre en clave; el real no se escribe en el repo), que hoy solo sabe
 que existimos; hay **una semana** para tener una imagen sólida de producto aunque el producto siga en desarrollo;
 los **precios y la oferta se fijan ahora** en fase de early adopters; la puerta de **formación y comunicación
 interna** para clientes corporativos queda abierta, con una **base de conocimiento y un mini curso** para
@@ -51,25 +51,24 @@ al quinto cliente o a los noventa días, lo que llegue antes.
 
 ### Garantía
 
-Espejo de la política de Cliente A, que devuelve el dinero a sesenta días: en Launch, si el cliente no publica al
+Espejo de la política del Cliente A, que devuelve el dinero a sesenta días: en Launch, si el cliente no publica al
 menos la mitad de las piezas en treinta días, se devuelve el importe. Cuesta poco (el coste de producción es
 bajo) y quita el miedo a probar.
 
-## 3. Lo que Cliente A compraría, en su orden
+## 3. Lo que el Cliente A compraría, en su orden
 
-1. **Multiplicar lo que ya tienen.** Cada tutorial largo (vidrio hecho; acrílico, cuero, piedra pendientes) en
-   shorts con ganchos distintos, portada y ficha 1:1. Es donde está su alcance: los shorts multiplican por cinco a
-   diez las vistas del largo.
-2. **Idiomas de sus mercados mayoristas.** Venden al por mayor en Estados Unidos, Canadá, México, Reino Unido,
-   Alemania, Francia, España e Italia: español, alemán, francés e italiano de sus mejores tutoriales.
-3. **Afiliados convertidos en anuncios.** Su programa paga el diez por ciento a creadores con mil seguidores;
-   ese material se normaliza con marca, gancho, código de descuento y llamada a la acción.
-4. **Vídeos para listados de terceros.** Sus mayoristas venden en Amazon y Walmart, donde el vídeo de producto
-   pesa en la conversión: versión 1:1 y 16:9 sin gancho de red, con pasos y resultado.
-5. **Lanzamientos.** Kit de lámpara y lo que venga: gancho, pasos, antes y después, oferta.
+1. **Multiplicar lo que ya tienen.** Cada tutorial largo por material en shorts con ganchos distintos, portada y ficha
+   1:1. Es donde está su alcance: los shorts multiplican por cinco a diez las vistas del largo.
+2. **Idiomas de sus mercados mayoristas.** Venden al por mayor en Norteamérica y en varios países europeos: los
+   idiomas de esos mercados para sus mejores tutoriales.
+3. **Afiliados convertidos en anuncios.** Tienen programa de creadores; ese material se normaliza con marca, gancho,
+   código de descuento y llamada a la acción.
+4. **Vídeos para listados de terceros.** Sus mayoristas venden en marketplaces, donde el vídeo de producto pesa en la
+   conversión: versión 1:1 y 16:9 sin gancho de red, con pasos y resultado.
+5. **Lanzamientos.** Cada kit nuevo: gancho, pasos, antes y después, oferta.
 
-Piloto propuesto: un Launch sobre el tutorial de acrílico (el de vidrio ya está hecho y se entrega como muestra
-gratuita), con español y alemán, en cinco días laborables, a 990 USD, con la garantía. Al aprobarlo, Studio
+Piloto propuesto: un Launch sobre su segundo tutorial por material (el primero ya está montado y se entrega como
+muestra gratuita), con dos idiomas, en cinco días laborables, a 990 USD, con la garantía. Al aprobarlo, Studio
 mensual con precio de Fundadores.
 
 ## 4. Base de conocimiento y mini curso (para clientes de pago y early adopters)
@@ -106,7 +105,7 @@ Pages sigue sirviendo `docs/` en frame28.t28.io. Rutas:
 | Ruta | Contenido |
 |---|---|
 | `/` | Promesa, para quién, cómo funciona en tres pasos, entregables, precios, Fundadores, caso, roadmap, contacto |
-| `/casos/cliente-a` | El largo, tres shorts con ganchos, portada, versión en español; qué cambió; con permiso de Cliente A |
+| `/casos/<marca>` | El largo, tres shorts con ganchos, portada, versión en español; qué cambió; solo con permiso escrito del cliente |
 | `/fundadores` | Programa early adopters y formulario |
 | `/roadmap` | Redirección a frame28.t28.io/roadmap/ hasta moverlo |
 | `/kb/*`, `/curso/*` | Base de conocimiento y curso, tras Cloudflare Access |
@@ -123,14 +122,14 @@ frame28.app".
 |---|---|---|
 | 1 | Validar este documento (precios, capas, garantía). Textos de la landing en ES y EN. Contrato base y derechos. Tarjeta en t28.io | Oferta cerrada; textos listos |
 | 2 | Landing frame28.app en `site/` y despliegue en Cloudflare Pages con el dominio; formulario de contacto | frame28.app en vivo |
-| 3 | Propuesta para Cliente A (one-pager en inglés, enlace a las muestras) y página del caso | Propuesta lista para enviar |
+| 3 | Propuesta para el Cliente A (one-pager en inglés, enlace a las muestras; vive fuera del repo) y página del caso | Propuesta lista para enviar |
 | 4 | Base de conocimiento v1 (ocho artículos desde las referencias) y guion del curso; grabar y montar la lección 1 con Frame28 | KB publicada tras Access; lección 1 |
 | 5 | v0.4.0 mínimo para el servicio: pruebas de módulos puros, claves de B-roll, coste por vídeo, variantes de gancho en lote | Pipeline fiable para entregar |
-| 6 | Montar el tutorial de acrílico de Cliente A como muestra del piloto, con español y alemán | Segunda muestra |
-| 7 | Enviar la propuesta a [[buzon-partners-cliente]] y a [[fundador]] por LinkedIn; abrir el programa Fundadores | Primer contacto hecho |
+| 6 | Montar el tutorial de acrílico del Cliente A como muestra del piloto, con español y alemán | Segunda muestra |
+| 7 | Enviar la propuesta al Cliente A (buzón de partners y fundador por LinkedIn; datos fuera del repo); abrir el programa Fundadores | Primer contacto hecho |
 
 Dependencias del usuario: acceso a Cloudflare para Pages, Access y Email Service (lo despliega Javier o autoriza
-cada paso); permiso de Cliente A para publicar el caso (hasta entonces, la página del caso es privada);
+cada paso); permiso del Cliente A para publicar el caso (hasta entonces, la página del caso es privada);
 grabarse para la lección 1.
 
 ## 7. Qué cambia en el roadmap del producto
@@ -150,34 +149,13 @@ grabarse para la lección 1.
 | Derechos del material | Contrato base: el cliente garantiza derechos de su material; el stock lleva licencia por vídeo; los entregables son del cliente |
 | Términos de Claude para uso profesional | Revisar los términos vigentes de la suscripción; para Cloud, API |
 
-## Anexo · Propuesta para Cliente A (borrador en inglés)
+## Anexo · Propuesta al Cliente A
 
-> **Subject:** We turned your glass tutorial into a full campaign. Want the next one?
->
-> Hi [[fundador]] and team,
->
-> I'm Javier, founder of Think28. We build Frame28, a product that turns one brand video into the whole campaign:
-> the long video edited with your brand, vertical shorts with different hooks to rotate, covers, product-page
-> versions and translated versions with the same timing. Generated by code, reviewed by a person, delivered in days.
->
-> To show you rather than tell you, we took your "Tutorial de vidrio" and produced:
-> the 3:17 tutorial with on-screen steps, safety notes, product card and social proof; three 30-second shorts,
-> each with a different hook; a YouTube cover and a 1:1 product-page version; and a Spanish version with the same
-> timing. Links below. This one is yours to use, free.
->
-> **The pilot:** your acrylic tutorial, same treatment, plus Spanish and German for your wholesale markets, in
-> five business days, for 990 USD as a Founders member (regular 1,490). If you don't publish at least half of the
-> pieces within 30 days, we refund it. After the pilot, Studio runs monthly: four long videos, twelve shorts with
-> two hooks each, covers, two languages and a monthly report on which hooks performed.
->
-> Founders is limited to five brands: locked pricing for twelve months, a vote on the roadmap and a direct line.
->
-> Shall we start with acrylic or leather?
->
-> Javier Ledesma · Think28 · frame28.app
+La propuesta en inglés (email y one-pager) **no se versiona**: nombra al cliente. Vive fuera del repo, en el
+equipo de Javier; la plantilla neutra se reconstruye desde las secciones 2 y 3 de este documento.
 
 ## Fuentes
 
-- t28.io (ecosistema, servicios, presencia), the-brand.com (productos, precios, afiliados, mayoristas, about),
-  `research/05` (canal de YouTube de Cliente A, estructura que convierte, fatiga de creativos),
+- t28.io (ecosistema, servicios, presencia), la web del Cliente A (productos, precios, afiliados, mayoristas, about),
+  `research/05` (canal de YouTube del Cliente A, estructura que convierte, fatiga de creativos),
   `research/06` (tres caminos y recomendación), decisiones del usuario del 2026-09-30.

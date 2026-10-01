@@ -83,8 +83,8 @@ def test_reframe_map_points_and_gestures(tmp_path):
     assert r.exit_code == 2 and "--gestures" in r.output
 
 
-def test_i18n_extract_and_apply(tmp_path, cliente-a_short):
-    sbp = write_json(tmp_path / "storyboard.json", {**cliente-a_short, "brand": "think28"})
+def test_i18n_extract_and_apply(tmp_path, grabado_short):
+    sbp = write_json(tmp_path / "storyboard.json", {**grabado_short, "brand": "think28"})
     r = run("i18n", "extract", sbp, "-o", tmp_path / "strings.json")
     assert r.exit_code == 0, r.output
     data = json.loads((tmp_path / "strings.json").read_text(encoding="utf-8"))

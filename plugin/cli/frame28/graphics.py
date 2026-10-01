@@ -163,7 +163,7 @@ def scan(video: str | Path, sample_fps: float = 1.0, canvas: tuple[int, int] | N
 
 def watermark_pass(events: list[dict], dur: float, cw: int, min_cover: float = 0.5) -> list[dict]:
     """Marca de agua = misma zona (IoU > 0.6, quieta) ocupada en total >= `min_cover` del vídeo, aunque el OCR la
-    pierda a ratos o lea 'CLIENTE A', 'CLIENTE A:' o 'RESPAR'. Los trozos pasan a `watermark` y se añade un evento
+    pierda a ratos o lea 'MARCA', 'MARCA:' o 'MAR'. Los trozos pasan a `watermark` y se añade un evento
     resumen que cubre todo el vídeo (es lo que importa para colocar overlays)."""
     groups: list[list[dict]] = []
     for e in sorted(events, key=lambda e: e["start"]):

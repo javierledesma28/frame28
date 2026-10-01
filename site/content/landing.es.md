@@ -170,13 +170,13 @@ El programa se cierra al quinto cliente o a los noventa días, lo que llegue ant
 
 ## 7. Caso
 
-<!-- Hasta tener el permiso de Cliente A, publicar la versión anónima (segundo bloque) y mantener la página /casos/cliente-a privada. -->
+<!-- Se publica la versión anónima hasta tener permiso escrito del cliente; el nombre real nunca se escribe en el repo: se rellena [[marca]] en CONFIG al publicar. -->
 
 ### Versión con permiso
 
-## Caso: Cliente A
+## Caso: [[marca]]
 
-Cliente A vende kits de grabado a 650.000 clientes y publica tutoriales por material. Tomamos su tutorial de vidrio
+[[marca]] vende kits de grabado a cientos de miles de clientes y publica tutoriales por material. Tomamos su tutorial de vidrio
 (3:17) y, sin grabar nada nuevo, salió el paquete completo: el largo con pasos en pantalla, notas de seguridad,
 tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada de
 YouTube y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos.

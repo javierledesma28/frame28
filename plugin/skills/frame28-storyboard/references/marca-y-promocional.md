@@ -1,6 +1,6 @@
 # Marca del cliente y vídeo promocional · qué investigar y qué reforzar
 
-Aprendido montando un tutorial promocional de Cliente A (kits de grabado; vídeo ya producido con voz en off).
+Aprendido montando un tutorial promocional de una marca de kits de grabado (vídeo ya producido con voz en off).
 Vale para cualquier vídeo que venda un producto: el montaje no decora, **refuerza el argumento de venta**.
 
 ## 1. Investiga la marca antes de decidir nada (15 minutos)
@@ -29,7 +29,7 @@ públicos.
 3. **Pasos que se pueden seguir**: "Project 1 · …", "Tape the stencil", "Speed 1 · low": cajas breves que un
    espectador podría pausar y copiar. Es lo que convierte un tutorial en "yo también puedo".
 4. **El resultado**: la frase de satisfacción ("That's it!", "the perfect gift") como cinético + `draw` check.
-5. **Prueba social** justo antes del cierre: "650K+ happy makers · 4.7★ · 60-day guarantee".
+5. **Prueba social** justo antes del cierre: "{N}K+ happy makers · {nota}★ · 60-day guarantee" (cifras reales de la web).
 6. **Cierre**: si el vídeo ya trae tarjeta final de la marca, respétala; si no, `brand_card`.
 
 Lo que **no**: repetir en un overlay lo que ya está escrito en pantalla, poner precio en cada plano, más de un

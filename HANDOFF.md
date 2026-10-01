@@ -18,7 +18,7 @@ dirige y escribe el storyboard JSON) y un **CLI Python `frame28`** (los pasos de
 
 **Giro del 2026-09-30 (noche):** Frame28 deja de ser "un plugin sin monetizar" y pasa a ser un **producto
 monetizable** con dominio **frame28.app** (comprado en Cloudflare; el plugin abierto sigue en frame28.t28.io).
-Primer cliente objetivo: **Cliente A** (the-brand.com, kits de grabado, EE. UU.), que hoy solo sabe que existimos;
+Primer cliente objetivo: **Cliente A** (nombre en clave; marca de kits de grabado, EE. UU.), que hoy solo sabe que existimos;
 objetivo: piloto en **una semana** desde el 2026-09-30. La oferta se vende como servicio operado por Think28
 (Launch, Studio), implantación en el cliente (Team) y, solo con demanda demostrada, plataforma (Cloud). Todo en
 [research/07-producto-frame28-app.md](research/07-producto-frame28-app.md); el análisis previo de caminos en
@@ -79,9 +79,9 @@ de ganchos; tres variantes de short; `cover`; `i18n` y skill; ganchos con la fra
    y como artefacto; enlazado desde la portada, la diapositiva de cierre de la guía (deck reconstruido) y el README.
 5. **Monetización**: `research/06` (tres caminos dimensionados, recomendación híbrida por fases, plan de 90 días),
    versionado por decisión del usuario aunque el repo sea público.
-6. **Giro a producto** tras un brainstorming con t28.io y the-brand.com leídas: `research/07` con definición de
+6. **Giro a producto** tras un brainstorming con t28.io y la web del Cliente A leídas: `research/07` con definición de
    producto, capas Open/Launch/Studio/Team/Cloud con precios early adopter propuestos, programa Fundadores,
-   garantía, lo que Cliente A compraría, base de conocimiento y mini curso, arquitectura del sitio frame28.app en
+   garantía, lo que el Cliente A compraría, base de conocimiento y mini curso, arquitectura del sitio frame28.app en
    Cloudflare Pages, plan de siete días y borrador de propuesta en inglés. Roadmap actualizado con los ítems de
    producto (v0.4.0), Frame28 Team (v0.5.0) y Frame28 Cloud (v1.0.0).
 7. Memoria persistente de Claude actualizada (producto frame28.app, regla de capitalizar en el plugin).
@@ -109,6 +109,17 @@ contrato base ES/EN (`site/content/condiciones.es.md`, `terms.en.md`) y el sitio
 redirecciones, cabeceras de seguridad, `wrangler.toml` y README de despliegue. Verificado con Chromium (Playwright)
 a 1280 y 390 px: sin desbordes ni errores de JS propios. Pendiente de Javier: desplegar en Cloudflare Pages.
 
+## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
+
+El cliente objetivo **no se nombra en ningún fichero del repo ni del sitio** (el repo es público y la captación va
+en paralelo). Nombre en clave: **Cliente A**; producto: **Engraver Pro™**; web: `the-brand.com`; carpeta del caso:
+`poc/clip-grabado`; marca local `cliente-a` (en `work/`, no versionada). Cifras y títulos de vídeo del cliente van
+difuminados o parafraseados. La propuesta comercial (email, one-pager, seguimiento) vive **fuera del repo**, en
+los ficheros de Javier. El sitio publica el caso anónimo hasta tener permiso escrito (`site/build.py`
+`CONFIG["case_public"]` + `case_brand`). El árbol de trabajo se limpió el 2026-10-01 (script de anonimizado con
+comprobación final); **el historial de git anterior a ese día sigue conteniendo el nombre** hasta que Javier
+decida reescribirlo (ver §Bloqueos).
+
 ## Qué quedó a medias o sin hacer
 
 Decisiones conscientes:
@@ -120,9 +131,9 @@ Decisiones conscientes:
    (sin desbordes, HTML equilibrado). **Falta desplegar**: proyecto en Cloudflare Pages (root `site`), dominio
    frame28.app, remitente `hola@frame28.app` verificado y binding `SEND_EMAIL` (pasos en `site/README.md`; el
    API de envío de Email Service no se pudo verificar desde la nube: docs de Cloudflare bloqueadas por el proxy).
-   También falta `site/assets/og.png` (1200×630) y el caso de Cliente A (`CONFIG["case_public"]`).
-3. **Propuesta a Cliente A**: borrador en inglés en `research/07` anexo; no enviada. El caso (largo, shorts,
-   portada, ES) existe en `poc/clip-grabado/out` pero no hay permiso para publicarlo.
+   También falta `site/assets/og.png` (1200×630) y la página del caso (`CONFIG["case_public"]`).
+3. **Propuesta al Cliente A**: escrita el 2026-10-01 y entregada a Javier fuera del repo (no se versiona: nombra al
+   cliente). El caso (largo, shorts, portada, ES) existe en `poc/clip-grabado/out` pero no hay permiso para publicarlo.
 4. **Base de conocimiento y mini curso**: solo planificados (`research/07` §4); las fuentes ya existen en
    `plugin/skills/frame28-storyboard/references/` (`grabacion.md`, `ganchos.md`, `marca-y-promocional.md`,
    `tecnicas.md`) y en `plugin/cli/frame28/STORYBOARD.md`.
@@ -149,7 +160,8 @@ Deuda técnica, por orden:
 |---|---|---|
 | ~~Validar precios, capas, garantía y programa Fundadores (`research/07` §2)~~ | Javier | **Validados el 2026-10-01**: desbloquea landing, contrato y propuesta |
 | Acceso a Cloudflare (Pages, Access, Email Service) para frame28.app | Javier | Autorizar cada paso o desplegar él; Claude prepara `site/` y la configuración |
-| Permiso de Cliente A para publicar el caso | Javier con Cliente A | Hasta entonces la página del caso es privada |
+| Reescribir el historial de git para borrar el nombre del cliente de commits y ficheros antiguos (destructivo; repo público, 70+ commits) | Javier | Su OK explícito; se hace con `git filter-repo` y push forzado, y las instalaciones desde el tag v0.3.0 siguen funcionando porque el tag se recrea |
+| Permiso del Cliente A para publicar el caso | Javier con el cliente | Hasta entonces la página del caso es privada |
 | Claves de Pexels y Pixabay | Javier | Crearlas en pexels.com/api y pixabay.com/api/docs |
 | Términos de la suscripción de Claude para uso profesional del servicio | Javier | Revisar los términos vigentes; para Cloud, API |
 | Horas disponibles para operar el piloto en una semana | Javier | Fija si Launch se entrega en cinco días laborables |
@@ -176,7 +188,7 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
    La landing enlaza `/condiciones` y `/terms` y ya no dice "tu vídeo no sale de nuestras máquinas" a secas: dice
    que se procesa en nuestros equipos y que la dirección usa modelos de lenguaje con transcripción y fotogramas.
 2. **Día 2 — landing.** Hecho el sitio (`site/`: `/`, `/en/`, `/fundadores`, `/contacto`, `/condiciones` y sus
-   equivalentes EN; `/casos/cliente-a` redirige al contacto hasta el permiso; `/roadmap` y `/plugin` redirigen a
+   equivalentes EN; `/casos/*` redirige al contacto hasta el permiso; `/roadmap` y `/plugin` redirigen a
    frame28.t28.io). Queda el despliegue en Cloudflare Pages con raíz `site` y dominio frame28.app, el remitente
    y el binding de email (pasos en `site/README.md`; lo hace Javier o se autoriza paso a paso), `og.png` y la
    tarjeta en t28.io.
@@ -187,9 +199,9 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
 5. **Día 5 — v0.4.0 mínima para el servicio.** Suite de pruebas hecha (adelantada); quedan claves de B-roll y prueba
    real, registro de coste y tiempo por vídeo, variantes de gancho en lote (`clips scaffold --hook N` para cada
    gancho y render en cadena).
-6. **Día 6 — muestra de acrílico.** `frame28 fetch` del tutorial de acrílico de Cliente A, flujo de vídeo producido
+6. **Día 6 — muestra de acrílico.** `frame28 fetch` del segundo tutorial del Cliente A, flujo de vídeo producido
    (`graphics`, marca `cliente-a` regenerada con `brand from-site`), largo, shorts, portada, ES y DE.
-7. **Día 7 — enviar.** Propuesta a [[buzon-partners-cliente]] y a [[fundador]] (fundador) por LinkedIn; abrir Fundadores.
+7. **Día 7 — enviar.** Propuesta al Cliente A (buzón de partners y fundador por LinkedIn; datos fuera del repo); abrir Fundadores.
 
 Después de la semana: resto de la v0.4.0 (doblaje/TTS, marcadores de resultado, `hooks_for`) y
 mantener el roadmap cambiando el estado de cada ítem en el array `ROADMAP` de `docs/roadmap/index.html`, regenerar

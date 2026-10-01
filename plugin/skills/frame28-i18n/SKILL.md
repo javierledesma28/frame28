@@ -28,7 +28,7 @@ frame28 captions export work/words.en.json -o out/video-en.srt      # subtítulo
 - **Corto y hablado**: el espectador lee en el tiempo que dura la frase. Si el original dice "I think I just made
   the perfect customized gift ever", en español cabe "Creo que acabo de hacer el regalo personalizado perfecto",
   no una paráfrasis más larga.
-- **Nombres, marcas, cifras y códigos intactos**: Engraver Pro™, Cliente A, 69,99 $, GLASS30. Adapta el formato de
+- **Nombres, marcas, cifras y códigos intactos**: Engraver Pro™, la marca, 59,99 $, GLASS30. Adapta el formato de
   precio al mercado solo si el usuario lo pide (€ con coma decimal, etc.).
 - **Gancho y CTA con las mismas reglas del original**: ≤ 5 palabras por línea, verbo primero, sin cifras nuevas.
 - **Subtítulos por palabras** (`pages`/`karaoke`): traduce la **frase** de `captions.N.text`; `apply` reparte las

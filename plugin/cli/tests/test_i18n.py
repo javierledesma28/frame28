@@ -10,8 +10,8 @@ from frame28.build import validate
 from conftest import words_from, write_json
 
 
-def test_extract_short_storyboard(cliente-a_short):
-    r = i18n.extract(cliente-a_short)
+def test_extract_short_storyboard(grabado_short):
+    r = i18n.extract(grabado_short)
     keys = set(r["strings"])
     assert {"hook.lines.0", "hook.lines.1", "cta.title"} <= keys
     assert r["strings"]["hook.lines.0"]["max_chars"] == i18n.LIMITS["hook"]
@@ -29,16 +29,16 @@ def test_extract_card_title_dict_and_captions():
     assert r["strings"]["captions.0.text"] == {"text": "Hola.", "type": "caption", "id": "captions.0", "at": 0}
 
 
-def test_apply_replaces_texts_and_warns(cliente-a_short, cliente-a_strings):
-    new, warns = i18n.apply(cliente-a_short, cliente-a_strings, "es")
+def test_apply_replaces_texts_and_warns(grabado_short, grabado_strings):
+    new, warns = i18n.apply(grabado_short, grabado_strings, "es")
     assert new["meta"]["lang"] == "es"
     hook = next(o for o in new["overlays"] if o["id"] == "hook")
-    assert hook["lines"] == [cliente-a_strings["strings"]["hook.lines.0"], cliente-a_strings["strings"]["hook.lines.1"]]
+    assert hook["lines"] == [grabado_strings["strings"]["hook.lines.0"], grabado_strings["strings"]["hook.lines.1"]]
     assert validate(new) == []
-    assert cliente-a_short["meta"]["lang"] == "en", "apply no debe tocar el original"
+    assert grabado_short["meta"]["lang"] == "en", "apply no debe tocar el original"
     # las frases de captions.json no van al storyboard cuando los subtítulos son por palabras
     assert "captions" not in new
-    new2, warns2 = i18n.apply(cliente-a_short, {"hook.lines.0": "x" * 60, "nadie.text": "y"}, "de")
+    new2, warns2 = i18n.apply(grabado_short, {"hook.lines.0": "x" * 60, "nadie.text": "y"}, "de")
     assert any("60 caracteres" in w for w in warns2)
     assert any("no existe" in w for w in warns2)
 
@@ -77,8 +77,8 @@ def test_extract_with_captions_marks_residual_phrase(tmp_path):
     assert s["captions.0.text"]["max_words"] == 2
 
 
-def test_translate_project_end_to_end(tmp_path, cliente-a_short):
-    sb = json.loads(json.dumps(cliente-a_short)); sb["brand"] = "think28"
+def test_translate_project_end_to_end(tmp_path, grabado_short):
+    sb = json.loads(json.dumps(grabado_short)); sb["brand"] = "think28"
     sbp = write_json(tmp_path / "storyboard.json", sb)
     write_json(tmp_path / "words.json", words_from("look at that", start=0.2))
     write_json(tmp_path / "captions.json", [{"start": 0.2, "end": 1.3, "text": "look at that"}])

@@ -46,17 +46,17 @@ def javier_storyboard() -> dict:
 
 
 @pytest.fixture(scope="session")
-def cliente-a_short() -> dict:
+def grabado_short() -> dict:
     return json.loads((POC / "clip-grabado" / "storyboard-short-s4.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="session")
-def cliente-a_strings() -> dict:
+def grabado_strings() -> dict:
     return json.loads((POC / "clip-grabado" / "strings-short-s4.es.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="session")
-def cliente-a_clips() -> dict:
+def grabado_clips() -> dict:
     return json.loads((POC / "clip-grabado" / "clips.json").read_text(encoding="utf-8"))
 
 

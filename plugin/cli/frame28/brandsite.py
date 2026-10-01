@@ -1,6 +1,6 @@
 """Marca a partir de una web: colores, fuente y logo del sitio del cliente → brand.json listo para el storyboard.
 
-Lo que hacía a mano el director con Cliente A: bajar la portada, contar los colores hexadecimales más usados,
+Lo que hacía a mano el director con el primer caso de marca: bajar la portada, contar los colores hexadecimales más usados,
 leer las variables CSS de botones (Shopify y similares las exponen), la fuente más repetida, el logo (`<img>` con
 "logo" en la ruta o el `og:image` como respaldo), y generar variantes del logo para fondo oscuro y de acento.
 Es una propuesta: el agente la revisa con el usuario (`frame28 brand show`) antes de usarla.

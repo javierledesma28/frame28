@@ -16,7 +16,7 @@ _redirects, _headers, wrangler.toml
 
 1. Textos: `src/{es,en}/*.html` (landing, Fundadores, contacto) o `content/condiciones.es.md` / `terms.en.md`.
    `content/landing.*.md` son la referencia editorial de la landing; si cambias un texto ahí, cámbialo también en `src/`.
-2. Plazas de Fundadores, buzón y si el caso de Cliente A es público: `CONFIG` en `build.py`.
+2. Plazas de Fundadores, buzón y si el caso de cliente es público (y con qué nombre): `CONFIG` en `build.py`.
 3. Regenerar desde la raíz del repo: `uv run --with markdown python site/build.py`.
 4. Previsualizar sin Cloudflare: `python -m http.server 8080 -d site` y abrir http://localhost:8080/ (el formulario
    fallará con error visible porque no hay `/api/contact`; eso es lo esperado). Con wrangler:
@@ -42,5 +42,5 @@ _redirects, _headers, wrangler.toml
 - `assets/og.png` generada desde `assets/og.html` (1200×630, captura con Chromium); regenerar si cambia la promesa.
 - Rellenar los huecos `[[…]]` de las condiciones (datos fiscales, fuero, buzón) tras la revisión legal; `build.py`
   los resalta en amarillo mientras existan y cuenta cuántos quedan.
-- `CONFIG["case_public"] = True` y crear `casos/cliente-a/` cuando Cliente A autorice; hasta entonces `_redirects`
+- `CONFIG["case_public"] = True` con `case_brand` y crear `casos/<marca>/` cuando el cliente autorice por escrito; hasta entonces `_redirects`
   manda esa ruta al contacto.

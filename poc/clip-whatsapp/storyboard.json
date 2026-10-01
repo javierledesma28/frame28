@@ -13,7 +13,7 @@
  ],
  "overlays": [
   { "type": "lower_third", "id": "lt", "start": 0.3, "end": 3.1, "x": 60, "y": 70,
-    "title": "CLIENTE A", "subtitle": "Special offer" },
+    "title": "THE BRAND", "subtitle": "Special offer" },
   { "type": "box", "id": "b30", "start": 1.8, "end": 3.2, "at": 1.86, "x": 740, "y": 980, "text": "30% OFF" },
   { "type": "pointer", "id": "p1", "start": 3.3, "end": 4.9, "at": 3.38,
     "dot": [791, 1475], "box": [100, 1250], "text": "this one · 30% off" },
@@ -25,6 +25,6 @@
   { "type": "kinetic", "id": "k1", "start": 9.15, "end": 10.9, "x": 60, "y": 36, "size": 110, "reveal": "rise",
     "lines": [[{ "text": "for you.", "at": 9.2, "accent": true }]] },
   { "type": "brand_card", "id": "end", "start": 10.9, "end": 14.0, "at": 11.0, "bg": "accent", "reveal": "chars",
-    "title": "30% OFF", "subtitle": "CLIENTE A", "endorsement": "" }
+    "title": "30% OFF", "subtitle": "THE BRAND", "endorsement": "" }
  ]
 }
