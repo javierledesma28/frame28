@@ -43,7 +43,7 @@ que Javier va a crear (permisos acordados en §Cloudflare). La zona DNS de `fram
 | `release-check.py` | 4 bloqueos esperados (árbol, tag local, tag remoto, release «ya existe») hasta subir `__version__`; **confidencialidad: sin rastro** en ficheros, historia, tags y releases |
 | Sitio del producto | `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 5 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). **No desplegado** |
 | Web del plugin | frame28.t28.io `/`, `/roadmap/`, `/instalar/`, `/install.ps1` → HTTP 200 |
-| frame28.app | zona activa en Cloudflare; `curl` no obtiene respuesta (sin origen): esperado |
+| frame28.app | **Desplegado en t28server el 2026-10-01 (noche)**: `/opt/frame28` con `frame28-web` (nginx) y `frame28-tunnel` arriba, `site/` = HEAD verificado por hash (`deploy/deploy.sh --check`); CNAME `frame28.app` y `www` → túnel `frame28` (id `8d6534bd-e051-4b5f-9a94-8b8c87aa0b8a`), proxied. **Falta el último clic en el panel**: los dos *Public Hostnames* del túnel (`frame28.app` y `www.frame28.app` → HTTP `web:80`); hasta entonces Cloudflare responde 530/503 |
 | Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**39 hechos, 4 a medias, 22 pendientes**; los 9 hechos tras la 0.4.0 cuelgan de la 0.5.0); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai republicado (versión 6) |
 | Actualización de usuarios | **verificado en un entorno aislado**: `uv tool upgrade frame28` mueve una instalación desde git al último commit en 14 s aunque la versión no cambie; repetir el instalador (`--force`) también. `claude plugin update` solo actúa si cambia la versión del plugin |
 | Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); HyperFrames 0.8.72 pineado (0.8.105 publicada); GSAP 3.14.2 (3.15.0 publicada) |
@@ -130,6 +130,13 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    repos Claude commitea, pushea y abre PRs sin que él pegue comandos): remoto cambiado a SSH `github-jl28`, convención
    escrita en `CLAUDE.md`. El 403 del push por HTTPS era Git Credential Manager con la credencial corporativa guardada, no
    `gh`. Chapita no es un repo git.
+6. **Despliegue de frame28.app en t28server** (decisión de Javier: VPS en vez de Cloudflare Pages). Verificado antes: SSH al
+   VPS, patrón nginx + cloudflared de tino/ramplas/savia, `/opt/frame28` libre, token de Cloudflare activo (cuenta T28, zona
+   `27b1c228…`). Hecho: `deploy/` en el repo (compose, nginx.conf que traduce `_headers`/`_redirects`, remote-up.sh,
+   deploy.sh con backup y verificación por hash), CNAME apex y `www` por API al túnel `frame28` que Javier creó en el panel
+   (el token no tiene permiso de túneles: 401), `.env` con el token del túnel escrito en el servidor (600), contenedores
+   arriba, sitio = HEAD. Tres fallos de Windows por el camino, ya en Trampas de `CLAUDE.md` (CRLF del editor, `*` de
+   `sha256sum`, `ssh -T`). Pendiente el clic de los Public Hostnames (punto 3 de «Lo que toca ahora»).
 
 ## Lo que toca ahora (en este orden)
 
@@ -139,13 +146,17 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    `CLOUDFLARE_API_TOKEN`, más `CLOUDFLARE_ACCOUNT_ID`; hay que reiniciar la app de Claude para que la shell lo vea).
    Primero verificación de solo lectura: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
    https://api.cloudflare.com/client/v4/user/tokens/verify` y `npx wrangler whoami`.
-3. **Desplegar frame28.app**, proponiendo cada paso antes: `npx wrangler pages project create frame28-app
-   --production-branch main` → `npx wrangler pages deploy site/ --project-name frame28-app` → dominio personalizado
-   `frame28.app` y `www` (DNS por API) → variables `MAIL_FROM`/`MAIL_TO` y binding `SEND_EMAIL` (si la activación del Email
-   Service en beta es solo por panel, pedírselo a Javier) → **Turnstile** en el formulario (`site/functions/api/contact.js`
-   y los fragmentos de contacto en `site/src/{es,en}/`) → organización de **Access** con PIN por email y aplicación sobre
-   `/kb`, `/curso`, `/en/kb`, `/en/course` (pasos en `site/README.md`; sin Access el área de clientes es pública) → prueba
-   real del formulario. Añadir el despliegue como fila/paso de `release-check` o un script `scripts/deploy-site.*`.
+3. **Terminar la salida en vivo de frame28.app** (ya desplegado en el VPS, ver §Estado): (a) Javier añade en Zero Trust →
+   Networks → Tunnels → `frame28` → Public Hostname los dos nombres (`frame28.app` y `www.frame28.app` → HTTP `web:80`); si el
+   panel protesta porque el CNAME ya existe, apunta al mismo túnel y se puede aceptar (o se borran los dos CNAME y el panel
+   los recrea). O bien añade `Cloudflare Tunnel → Edit` al token y lo hace Claude por API. (b) Comprobar `curl -sI
+   https://frame28.app/` → 200 y `deploy/deploy.sh --check`. (c) **Formulario**: Worker en la ruta `frame28.app/api/contact*`
+   con el código de `site/functions/api/contact.js` adaptado (`export default { fetch }`) y el binding de email; exige
+   Email Routing activo en la zona con `hola@frame28.app` reenviando al buzón real de Javier (permiso del token o panel).
+   Hasta entonces nginx devuelve 503 y la página enseña su fallback. (d) **Access** con PIN por email sobre `/kb`, `/curso`,
+   `/en/kb`, `/en/course` (organización Zero Trust: permiso `Access: Organizations` en el token o crearla en el panel) y
+   quitar las dos líneas de 404 de `deploy/nginx.conf`. (e) **Turnstile** en el formulario. Cada publicación del sitio es
+   `deploy/deploy.sh` tras commitear; añadirlo como paso del `release-check`.
 4. **Decisiones pendientes de Javier** (preguntadas el 2026-10-01, sin respuesta por falta de tokens):
    - (a) GPU: **resuelta**, medida (42,4 s frente a 178,7 s) y anotada en `CLAUDE.md`.
    - (b) `poc/clip-acrilico`: versionar README + storyboard + `clips.json` anonimizados como los otros casos, o dejar
@@ -191,7 +202,8 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 
 | Bloqueo o duda | Dueño | Qué lo desbloquea |
 |---|---|---|
-| Token de API de Cloudflare | Javier | Crearlo con §Cloudflare y dejarlo en `CLOUDFLARE_API_TOKEN` (variable de usuario de Windows); reiniciar la app |
+| Token de API de Cloudflare: creado y en `CLOUDFLARE_API_TOKEN`, pero sin `Cloudflare Tunnel`, `Access: Organizations` ni `Email Routing` (401/403 comprobados) | Javier | Añadir esas tres filas al token (y `CLOUDFLARE_ACCOUNT_ID=237f15b5e4fa24ef5465ae87da6986de` al entorno), o hacer esos pasos en el panel |
+| Public Hostnames del túnel `frame28` | Javier | Dos entradas en Zero Trust → Networks → Tunnels → frame28 (ver punto 3 de «Lo que toca ahora»); desbloquea frame28.app en vivo |
 | Activación del Email Service (beta) y verificación del remitente `hola@frame28.app` | Javier al desplegar | Si la API no lo permite, un paso en el panel; el código solo toca `contact.js::sendMail` |
 | Despliegue automático al hacer push | Javier | Conectar GitHub en el panel de Pages (OAuth) o crear un segundo token estrecho (`Cloudflare Pages → Edit`) para una GitHub Action |
 | Decisión (b): versionar `clip-acrilico` anonimizado o dejarlo en `_private/` | Javier | Responderla al retomar (las muestras ya están copiadas en `_private/cliente-a/muestras/`) |
@@ -232,6 +244,8 @@ Browser Rendering, Secrets Store y Email Sending no figuraban en esa página.
 ```bash
 git fetch origin && git status -sb            # main...origin/main y árbol limpio; si hay `behind`, mirar qué subió otra sesión antes de tocar nada
 ssh -T git@github-jl28                        # «Hi javierledesma28!»: el remoto es SSH; si falla, falta la clave id_ed25519_github_jl28 o GitHub la revocó
+deploy/deploy.sh --check                      # «el servidor tiene exactamente el site/ de HEAD»; ssh -T t28server "docker ps --filter name=frame28" → web y tunnel Up
+curl -sI https://frame28.app/ | head -1       # HTTP/2 200 cuando los Public Hostnames del túnel estén puestos (530/503 mientras no)
 frame28 doctor                                # "Todo listo."; filas gpu (transcripción) ✓, gpu (onnxruntime) y claves de B-roll en aspa (opcionales)
 claude plugin validate C:/Workspaces/personal/Skill-Director/plugin   # Validation passed (ruta absoluta: un `cd` previo en la sesión lo rompe)
 (cd plugin/cli && uv run --group dev pytest)  # 114 passed en ~3 s

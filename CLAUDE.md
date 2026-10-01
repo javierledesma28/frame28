@@ -98,6 +98,10 @@ site/                             sitio del producto frame28.app, estático para
                                   = pendiente de grabar) → /kb, /curso, /en/kb, /en/course con noindex, tras Cloudflare Access.
                                   functions/api/contact.js (formulario → email con binding send_email), _redirects, _headers, wrangler.toml,
                                   README.md (pasos de despliegue y de Access). Regenerar: `uv run --with markdown python site/build.py`
+deploy/                           despliegue de frame28.app en t28server (/opt/frame28): docker-compose.yml (nginx:alpine + cloudflared, sin
+                                  puertos), nginx.conf (traduce site/_headers y _redirects; cierra /kb y /curso hasta Access; 503 en /api/contact
+                                  hasta el Worker), remote-up.sh (nginx -t antes de recrear), deploy.sh (sube HEAD, backup, hash, comprueba URLs),
+                                  .env.example (el token del túnel solo vive en el .env del servidor)
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
@@ -226,11 +230,14 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
 - Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
   o "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md" pegado en Claude Code.
-- Sitio del producto (construido, **no desplegado**): frame28.app en **Cloudflare Pages** desde `site/` de este repo, por
-  subida directa con `wrangler pages deploy site/` usando un token de API (la integración Pages↔GitHub es un OAuth del
-  panel que un token no puede hacer; si se quiere despliegue al hacer push, GitHub Action con un segundo token estrecho);
-  base de conocimiento y curso tras **Cloudflare Access** con código por email; formulario con Pages Functions, Cloudflare
-  Email Service y Turnstile (previsto). frame28.t28.io sigue en GitHub Pages para el plugin.
+- Sitio del producto: frame28.app se sirve desde el **VPS t28server** (Hetzner, Ubuntu 24.04) con el patrón de todos los
+  sitios de Think28: `nginx:alpine` + túnel `cloudflared` en `/opt/frame28`, cero puertos abiertos, HTTPS de Cloudflare;
+  CNAME apex y `www` → `<id-túnel>.cfargotunnel.com` (proxied). Publicar = commitear y `deploy/deploy.sh` (decidido el
+  2026-10-01 por Javier, en lugar de Cloudflare Pages; `site/functions`, `_headers`, `_redirects` y `wrangler.toml` se
+  conservan por si algún día se usa Pages). Pendientes sobre esa base: Worker en la ruta `frame28.app/api/contact*` con
+  el envío de email (el formulario ya hace `fetch` JSON a `/api/contact`), **Cloudflare Access** con PIN por email sobre
+  `/kb`, `/curso`, `/en/kb`, `/en/course` (hasta entonces nginx devuelve 404 ahí) y Turnstile. frame28.t28.io sigue en
+  GitHub Pages para el plugin.
 - El roadmap público vive en `docs/roadmap/index.html` con sus datos inline; no hay otra copia de los estados.
 
 ## Trampas ya sufridas (no repetir)
@@ -350,6 +357,15 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **`poc/clip-acrilico/input.source.json` nombra el canal del cliente** y lo único que lo mantiene fuera de `git add -A` es la
   línea `*.source.json` del `.gitignore` (commiteada el 2026-10-01). Las sesiones que descarguen vídeos de clientes deben
   comprobar `git status` antes de añadir nada.
+- **El token de API de Cloudflare no ve los túneles** (401/403 en `cfd_tunnel`, también 403 en Pages, Access Organizations
+  y Email Routing): el túnel `frame28` y sus *Public Hostnames* se hacen en el panel (Zero Trust → Networks → Tunnels) o se
+  añade al token `Cloudflare Tunnel → Edit`. DNS, Access apps, Workers y Turnstile sí van por API. El token del túnel (el del
+  `cloudflared … run --token`) se decodifica en base64 y trae el id del túnel; va solo al `.env` del servidor.
+- **`sha256sum` en Git Bash escribe `hash *ruta`** (modo binario) y en Linux `hash  ruta`: comparar manifiestos entre PC y
+  servidor exige normalizar (`deploy.sh::norm`). Y el alias `t28server` lleva `RequestTTY yes`: sin terminal, cada `ssh`
+  avisa de la pseudo-terminal salvo con `-T`.
+- **La herramienta de escritura de Claude deja CRLF en Windows**: git los normaliza a LF al commitear (`.gitattributes`), pero
+  un script que se ejecute desde el working tree antes de commitear puede fallar; comprobar con `git ls-files --eol`.
 - **El HANDOFF puede quedarse atrás en un mismo día**: el del 2026-10-01 (mediodía) decía «árbol limpio» mientras la tarde
   dejó 4 commits sin subir, 8 ficheros sin commitear y una muestra entera renderizada sin anotar. Antes de fiarse, `git status
   -sb`, `git log origin/main..main` y mirar los `.frame28/log.jsonl` de `poc/*/` (son la bitácora real de lo que se ejecutó).
