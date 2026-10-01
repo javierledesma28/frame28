@@ -164,7 +164,8 @@ Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tag
 - Acciones persistentes (push, tags, cambios de visibilidad, DNS, instalar cosas en la máquina del usuario) se
   proponen antes de ejecutarlas; el usuario pidió acompañamiento paso a paso y explicaciones de cada etapa.
 - Los análisis de negocio (`research/06`, `07`) se versionan en este repo público por decisión del usuario; los
-  **precios** propuestos en `research/07` no se pushean hasta que él los valide (los commits quedan en local).
+  **precios** de `research/07` §2 están validados por él (2026-10-01). Un cambio de precios se hace ahí primero y
+  después en la landing; no se inventan ni redondean cifras en ningún otro sitio.
 - Precios y oferta se expresan en USD (el primer cliente es estadounidense); la landing es la fuente pública de
   precios cuando exista; `research/07` es la propuesta.
 - Parches al CLI: escribir el parche a un `.py` en el scratchpad y ejecutarlo (ver Trampas), luego `ast.parse`.
