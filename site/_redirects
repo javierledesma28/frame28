@@ -1,0 +1,14 @@
+# Cloudflare Pages · redirecciones de frame28.app (research/07 §5)
+/roadmap        https://frame28.t28.io/roadmap/   302
+/roadmap/       https://frame28.t28.io/roadmap/   302
+/plugin         https://frame28.t28.io/           302
+/plugin/        https://frame28.t28.io/           302
+/founders       /en/founders/                     301
+/founders/      /en/founders/                     301
+/contact        /en/contact/                      301
+/contact/       /en/contact/                      301
+/terms          /en/terms/                        301
+/terms/         /en/terms/                        301
+# el caso de Cliente A se publica cuando haya permiso; hasta entonces lleva al contacto
+/casos/cliente-a/   /contacto/        302
+/en/cases/cliente-a/   /en/contact/   302

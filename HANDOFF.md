@@ -102,15 +102,25 @@ Sin validación de precios todavía, se adelantó lo del día 5 que no depende d
 4. Roadmap: "Suite mínima de pruebas" y "Callouts del original al vertical" en hecho; el siguiente es B-roll real.
    CLAUDE.md, README y README del CLI al día. El artefacto del roadmap en claude.ai no se republicó desde aquí.
 
+### Sesión 2026-10-01 (nube) — precios validados, landing, contrato y sitio
+Javier validó precios y capas y pidió fusionar en `main`. Después: textos de la landing ES/EN (`site/content/`),
+contrato base ES/EN (`site/content/condiciones.es.md`, `terms.en.md`) y el sitio completo en `site/` (día 2):
+`build.py` con plantilla común y CONFIG, ocho páginas, formulario con Pages Function y binding `send_email`,
+redirecciones, cabeceras de seguridad, `wrangler.toml` y README de despliegue. Verificado con Chromium (Playwright)
+a 1280 y 390 px: sin desbordes ni errores de JS propios. Pendiente de Javier: desplegar en Cloudflare Pages.
+
 ## Qué quedó a medias o sin hacer
 
 Decisiones conscientes:
 
 1. **Precios y capas de `research/07` §2: validados por Javier el 2026-10-01** ("están bien"). Son la base de la
    landing, que será la fuente pública cuando exista; cualquier cambio futuro se hace primero en `research/07` §2.
-2. **Landing frame28.app**: los textos están en `site/content/` (ES y EN); falta el HTML, el formulario (Pages
-   Functions + Email Service) y el despliegue en Cloudflare Pages con el dominio. Arquitectura y rutas en
-   `research/07` §5. Es el día 2 del plan.
+2. **Landing frame28.app**: HTML listo en `site/` (8 páginas ES/EN generadas por `site/build.py`, formulario con
+   `functions/api/contact.js`, `_redirects`, `_headers`, `wrangler.toml`); verificado en Chromium a 1280 y 390 px
+   (sin desbordes, HTML equilibrado). **Falta desplegar**: proyecto en Cloudflare Pages (root `site`), dominio
+   frame28.app, remitente `hola@frame28.app` verificado y binding `SEND_EMAIL` (pasos en `site/README.md`; el
+   API de envío de Email Service no se pudo verificar desde la nube: docs de Cloudflare bloqueadas por el proxy).
+   También falta `site/assets/og.png` (1200×630) y el caso de Cliente A (`CONFIG["case_public"]`).
 3. **Propuesta a Cliente A**: borrador en inglés en `research/07` anexo; no enviada. El caso (largo, shorts,
    portada, ES) existe en `poc/clip-grabado/out` pero no hay permiso para publicarlo.
 4. **Base de conocimiento y mini curso**: solo planificados (`research/07` §4); las fuentes ya existen en
@@ -165,10 +175,11 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
    arrastre de vídeos en Studio, medio de pago, tratamiento fiscal fuera de la UE, términos vigentes de Anthropic.
    La landing enlaza `/condiciones` y `/terms` y ya no dice "tu vídeo no sale de nuestras máquinas" a secas: dice
    que se procesa en nuestros equipos y que la dirección usa modelos de lenguaje con transcripción y fotogramas.
-2. **Día 2 — landing.** Carpeta `site/` con `/`, `/fundadores`, `/casos/cliente-a` (privada hasta el permiso),
-   `/contacto` (Pages Functions + Email Service), redirecciones `/roadmap` y `/plugin`. Cloudflare Pages con raíz
-   `site/` y dominio frame28.app (skills `cloudflare`, `wrangler`, `cloudflare-email-service` disponibles).
-   Tarjeta en t28.io.
+2. **Día 2 — landing.** Hecho el sitio (`site/`: `/`, `/en/`, `/fundadores`, `/contacto`, `/condiciones` y sus
+   equivalentes EN; `/casos/cliente-a` redirige al contacto hasta el permiso; `/roadmap` y `/plugin` redirigen a
+   frame28.t28.io). Queda el despliegue en Cloudflare Pages con raíz `site` y dominio frame28.app, el remitente
+   y el binding de email (pasos en `site/README.md`; lo hace Javier o se autoriza paso a paso), `og.png` y la
+   tarjeta en t28.io.
 3. **Día 3 — propuesta y caso.** One-pager en inglés desde el anexo de `research/07`, enlaces a las muestras de
    `poc/clip-grabado/out` (subirlas a un sitio privado o al artefacto), página del caso.
 4. **Día 4 — base de conocimiento y lección 1.** Ocho artículos desde las referencias del plugin en `site/kb/`

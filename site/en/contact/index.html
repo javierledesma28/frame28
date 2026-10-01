@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contact · Frame28</title>
+<meta name="description" content="Tell us what you sell and send us a video. We reply within one business day.">
+<link rel="canonical" href="https://frame28.app/en/contact/">
+<link rel="alternate" hreflang="es" href="https://frame28.app/">
+<link rel="alternate" hreflang="en" href="https://frame28.app/en/">
+<meta property="og:title" content="Contact · Frame28">
+<meta property="og:description" content="Tell us what you sell and send us a video. We reply within one business day.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://frame28.app/en/contact/">
+<meta property="og:image" content="https://frame28.app/assets/og.png">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/en/">Frame28 <small>by Think28</small></a>
+    <nav class="nav"><a href="/en/#how">How it works</a><a href="/en/#pricing">Pricing</a><a href="/en/founders/">Founders</a><a href="/en/#faq">FAQ</a><a class="lang" href="/" hreflang="es">Español</a><a class="btn sm" href="/en/contact/">Contact</a></nav>
+  </div>
+</header>
+<main>
+<section class="hero">
+  <div class="wrap" style="grid-template-columns: 1fr">
+    <div class="copy">
+      <p class="eyebrow">Contact</p>
+      <h1>Let's talk about your next video</h1>
+      <p class="lead">Tell us what you sell and send us a video. We reply within one business day with a concrete proposal: which pieces would come out of that video and when you'd have them.</p>
+    </div>
+  </div>
+</section>
+<section id="contact">
+  <div class="wrap">
+    <form class="form" method="post" action="/api/contact" data-ok="Received. We'll write to you within one business day from hola@frame28.app." data-err="It couldn't be sent. Email us directly at hola@frame28.app." data-sending="Sending…">
+      <input type="hidden" name="lang" value="en">
+      <input type="hidden" name="page" value="">
+      <div class="row">
+        <label>Name<input type="text" name="name" required autocomplete="name" maxlength="120"></label>
+        <label>Email<input type="email" name="email" required autocomplete="email" maxlength="200"></label>
+      </div>
+      <div class="row">
+        <label>Brand or website<input type="text" name="brand" autocomplete="organization" maxlength="200"></label>
+        <label>What you're interested in<select name="interest"><option value="launch">Launch · starter package</option><option value="studio">Studio · monthly</option><option value="team">Team · in-house</option><option value="founders">Founders</option><option value="cloud">Cloud waitlist</option></select></label>
+      </div>
+      <label>Link to the video (YouTube, Drive, whatever you have)<input type="url" name="video" placeholder="https://" maxlength="500"></label>
+      <label>Message (optional)<textarea name="message" maxlength="4000"></textarea></label>
+      <label class="hp" aria-hidden="true">Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="msg" role="status" aria-live="polite"></div>
+      <div><button class="btn" type="submit">Send</button></div>
+      <p class="privacy">We only use this to reply to you. No lists, no third parties.</p>
+    </form>
+  </div>
+</section>
+
+</main>
+<footer>
+  <div class="wrap">
+    <a href="https://t28.io"><img src="/assets/think28-horizontal.svg" alt="Think28 · Digital Growth Partner" width="440" height="72"></a>
+    <div class="links"><a href="https://frame28.t28.io">Open plugin</a><a href="https://frame28.t28.io/roadmap/">Roadmap</a><a href="/en/terms/">Terms</a><a href="/en/contact/">Contact</a><a href="https://github.com/javierledesma28/frame28">GitHub</a></div>
+    <p>Frame28 is a <a href="https://t28.io">Think28</a> product · © 2026 Think28</p>
+  </div>
+</footer>
+<script>
+(function () {
+  // Formularios: envío por fetch con mensaje en la página; sin JS, el POST normal al mismo endpoint también funciona.
+  var q = new URLSearchParams(location.search);   // vuelta del envío sin JS: /contacto/?ok=1 o ?error=1
+  document.querySelectorAll('form.form').forEach(function (form) {
+    form.querySelector('input[name=page]').value = location.pathname;
+    if (q.has('ok') || q.has('error')) {
+      var m = form.querySelector('.msg'); m.textContent = q.has('ok') ? form.dataset.ok : form.dataset.err; m.className = 'msg ' + (q.has('ok') ? 'ok' : 'err');
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msg = form.querySelector('.msg'); var btn = form.querySelector('button[type=submit]'); var label = btn.textContent;
+      msg.className = 'msg'; form.classList.add('busy'); btn.textContent = form.dataset.sending;
+      var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+      fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function () { msg.textContent = form.dataset.ok; msg.className = 'msg ok'; form.reset(); })
+        .catch(function () { msg.textContent = form.dataset.err; msg.className = 'msg err'; })
+        .finally(function () { form.classList.remove('busy'); btn.textContent = label; });
+    });
+  });
+  // Los botones de precios preseleccionan el interés en el formulario de la misma página.
+  document.querySelectorAll('[data-plan]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var sel = document.querySelector('form.form select[name=interest]');
+      if (sel) sel.value = a.dataset.plan;
+    });
+  });
+})();
+</script>
+</body>
+</html>

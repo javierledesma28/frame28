@@ -1,0 +1,14 @@
+# Cloudflare Pages · proyecto frame28-app. Con este fichero en la raíz del proyecto (site/), Pages lee los
+# bindings de aquí; también se pueden configurar en el panel (Workers & Pages → frame28-app → Settings).
+name = "frame28-app"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "."
+
+# Envío del formulario de contacto (functions/api/contact.js). El remitente debe estar verificado en el dominio
+# frame28.app dentro de Email (Email Service / Email Routing) en el panel de Cloudflare.
+[[send_email]]
+name = "SEND_EMAIL"
+
+[vars]
+MAIL_FROM = "hola@frame28.app"
+MAIL_TO = "hola@frame28.app"
