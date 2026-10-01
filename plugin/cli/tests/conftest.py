@@ -21,7 +21,9 @@ POC = REPO / "poc"
 
 
 def _storyboards() -> list[Path]:
-    return sorted(p for p in POC.glob("*/storyboard*.json") if "work" not in p.parts and "out" not in p.parts)
+    # partes relativas a poc/: en GitHub Actions el checkout vive en /home/runner/work/<repo>/, y "work" en la ruta
+    # absoluta vaciaba la lista (la CI encontraba 0 storyboards)
+    return sorted(p for p in POC.glob("*/storyboard*.json") if not {"work", "out"} & set(p.relative_to(POC).parts))
 
 
 STORYBOARDS = _storyboards()
