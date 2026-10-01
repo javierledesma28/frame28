@@ -39,7 +39,7 @@ _redirects, _headers, wrangler.toml
 
 ## Pendiente antes de publicar
 
-- `assets/og.png` (imagen para redes, 1200×630): la referencia el `<head>` y aún no existe.
+- `assets/og.png` generada desde `assets/og.html` (1200×630, captura con Chromium); regenerar si cambia la promesa.
 - Rellenar los huecos `[[…]]` de las condiciones (datos fiscales, fuero, buzón) tras la revisión legal; `build.py`
   los resalta en amarillo mientras existan y cuenta cuántos quedan.
 - `CONFIG["case_public"] = True` y crear `casos/cliente-a/` cuando Cliente A autorice; hasta entonces `_redirects`
