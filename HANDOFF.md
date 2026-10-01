@@ -117,8 +117,9 @@ en paralelo). Nombre en clave: **Cliente A**; producto: **Engraver Pro™**; web
 difuminados o parafraseados. La propuesta comercial (email, one-pager, seguimiento) vive **fuera del repo**, en
 los ficheros de Javier. El sitio publica el caso anónimo hasta tener permiso escrito (`site/build.py`
 `CONFIG["case_public"]` + `case_brand`). El árbol de trabajo se limpió el 2026-10-01 (script de anonimizado con
-comprobación final); **el historial de git anterior a ese día sigue conteniendo el nombre** hasta que Javier
-decida reescribirlo (ver §Bloqueos).
+comprobación final) y **el historial de git se reescribió el mismo día con `git filter-repo`** (rutas, contenidos y
+mensajes de los 62 commits; tags v0.1.0–v0.3.0 recreados; push forzado): cero coincidencias en todos los objetos. Los
+hashes cambiaron: cualquier clon anterior debe volver a clonarse. Copia previa del repo en un bundle fuera del repo.
 
 ## Qué quedó a medias o sin hacer
 
@@ -160,7 +161,7 @@ Deuda técnica, por orden:
 |---|---|---|
 | ~~Validar precios, capas, garantía y programa Fundadores (`research/07` §2)~~ | Javier | **Validados el 2026-10-01**: desbloquea landing, contrato y propuesta |
 | Acceso a Cloudflare (Pages, Access, Email Service) para frame28.app | Javier | Autorizar cada paso o desplegar él; Claude prepara `site/` y la configuración |
-| Reescribir el historial de git para borrar el nombre del cliente de commits y ficheros antiguos (destructivo; repo público, 70+ commits) | Javier | Su OK explícito; se hace con `git filter-repo` y push forzado, y las instalaciones desde el tag v0.3.0 siguen funcionando porque el tag se recrea |
+| Commits antiguos cacheados en GitHub tras la reescritura (accesibles por hash hasta su recolección) | Javier | Pedir a soporte de GitHub la purga del repo, si se quiere cerrar del todo |
 | Permiso del Cliente A para publicar el caso | Javier con el cliente | Hasta entonces la página del caso es privada |
 | Claves de Pexels y Pixabay | Javier | Crearlas en pexels.com/api y pixabay.com/api/docs |
 | Términos de la suscripción de Claude para uso profesional del servicio | Javier | Revisar los términos vigentes; para Cloud, API |
