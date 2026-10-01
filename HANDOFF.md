@@ -26,14 +26,22 @@ demanda, plataforma (Cloud). Precios **validados por Javier el 2026-10-01** (`re
 Primer cliente objetivo: **Cliente A** (nombre en clave, ver §Confidencialidad). **Regla de trabajo de Javier:** todo lo que
 se aprende con un caso se capitaliza en el plugin (CLI, `doctor`, validaciones, skills, referencias), no en docs.
 
-**Decisión del 2026-10-01 (noche):** el despliegue de frame28.app lo hará Claude Code con un **token de API de Cloudflare**
-que Javier va a crear (permisos acordados en §Cloudflare). La zona DNS de `frame28.app` ya está activa en Cloudflare
-(cuenta T28, plan Free, sin Pages ni Workers conectados).
+**Decisiones del 2026-10-01 (noche):** (1) frame28.app se despliega en el **VPS t28server** por túnel de Cloudflare, no en
+Pages; está en vivo (ver §Estado). (2) **Giro de producto**: Frame28 deja de ser un servicio y pasa a ser **una plataforma:
+plugin de pago en el Claude Code del cliente + frame28.app como panel de control** (cuenta, membresía, Memoria de marca,
+campañas, revisión, aprendizaje), con el plugin autenticado por MCP remoto con OAuth y recibiendo ese contexto. Todo está
+en **`research/08-plataforma-frame28-app.md`**: qué cambia, las cuatro piezas, el flujo de punta a punta, la Memoria de
+marca (schema v1), campañas y entregables, lo que permite Claude Code (verificado en su documentación), arquitectura y
+stack (Next.js + Tailwind + GSAP; FastAPI + MCP en Python; Think28 ID sobre el Entra External ID de Synapse28; Paddle
+reutilizado; Postgres con RLS; R2; Docker + túnel), referencias web verificadas, dirección de diseño y copy del hero,
+tiers con cifras a validar, plan por fases y **seis decisiones pendientes de Javier (§14)**. La landing en vivo todavía
+vende el servicio: reescribirla es la **fase 0**.
 
 ## Estado: qué funciona hoy (verificado ejecutando, 2026-10-01 entre las 18:50 y las 19:40)
 
 | Qué | Evidencia |
 |---|---|
+| Enfoque de producto | **Giro del 2026-10-01 (noche)**: de servicio a plataforma (plugin de pago + frame28.app como panel). Definición completa en `research/08`; nada construido aún de la plataforma; la landing en vivo sigue vendiendo el servicio |
 | Versión publicada | **v0.4.0** (release en GitHub, tag en `4e7a6cb`); 0.4.0 en `__init__.py`, `plugin.json`, `marketplace.json`, README |
 | CLI | `frame28 --version` 0.4.0 (editable, con extra `gpu`); `frame28 doctor` «Todo listo», incluida la fila nueva **gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN**; opcionales en aspa: gpu (onnxruntime) y claves de B-roll |
 | Pruebas | **114 passed en ~3,7 s** (`cd plugin/cli && uv run --group dev pytest`) |
@@ -136,9 +144,24 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    deploy.sh con backup y verificación por hash), CNAME apex y `www` por API al túnel `frame28` que Javier creó en el panel
    (el token no tiene permiso de túneles: 401), `.env` con el token del túnel escrito en el servidor (600), contenedores
    arriba, sitio = HEAD. Tres fallos de Windows por el camino, ya en Trampas de `CLAUDE.md` (CRLF del editor, `*` de
-   `sha256sum`, `ssh -T`). Pendiente el clic de los Public Hostnames (punto 3 de «Lo que toca ahora»).
+   `sha256sum`, `ssh -T`). Javier puso las dos rutas públicas del túnel en el panel y **frame28.app quedó en vivo a las
+   19:55**, verificado desde fuera.
+7. **Giro de producto y `research/08`.** Javier trajo su análisis de 22 webs de referencia (`referencias-web-t28.md`, fuera
+   del repo) y, al ver la landing, corrigió el enfoque: no «nos envías el vídeo», sino **plugin de pago + frame28.app como
+   panel de la marca y las campañas**. Se verificaron los stacks de las 22 webs contra su HTML (la mitad de las ⚠️ cambian),
+   la documentación de plugins y MCP de Claude Code (OAuth remoto con cliente preconfigurado, `userConfig` sensible,
+   `${CLAUDE_PLUGIN_DATA}`, `bin/` no en claude.ai), lo que Synapse28 ya tiene (FastAPI + RLS, Entra External ID, Paddle
+   con filtro por producto) y la capacidad del VPS (7,7 GB RAM, 4 CPU: cabe la app, no un render en la nube). Resultado:
+   `research/08-plataforma-frame28-app.md`. Nada de la plataforma está construido todavía.
 
 ## Lo que toca ahora (en este orden)
+
+**Antes que nada: el giro.** Leer `research/08` y cerrar con Javier sus seis decisiones (§14: copy del hero, tiers y cifras,
+Think28 ID compartido o nuevo, open core, repo aparte `frame28-app`, cómo se presenta al Cliente A). Con el sí: **fase 0**
+(reescribir la landing en vivo con el enfoque nuevo sobre el sitio estático actual: hero, tres pasos, bento, precios →
+acceso anticipado, condiciones «en revisión»; `build.py` + `deploy/deploy.sh`), después el *spike* de un día (Think28 ID +
+MCP remoto + `/mcp` en Claude Code + Paddle sandbox con `product=frame28`) y la **fase 1** (§12). Los puntos siguientes
+siguen valiendo; el 3 (formulario, Access, Turnstile) se hace sobre el sitio actual y se hereda en la app.
 
 1. **Revisar la segunda muestra** del Cliente A en movimiento y de oído (lista en `_private/cliente-a/dia6-estado.md`;
    copias en `_private/cliente-a/muestras/`). Hasta entonces no se envía nada.
