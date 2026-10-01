@@ -146,3 +146,15 @@ def test_transcribe_device_auto_picks_gpu_only_when_ready():
     assert pick_device('cpu', 'auto')[:2] == ('cpu', 'int8')
     assert pick_device('auto', 'int8_float16', ready=(True, 'ok'))[:2] == ('cuda', 'int8_float16')   # el cómputo explícito manda
     assert pick_device('cpu', 'int8')[2] == 'elegido a mano'
+
+
+def test_intermediate_encoder_is_x264_unless_nvenc_requested(monkeypatch):
+    # la GPU codifica 5x más rápido, pero nunca por defecto: otra máquina puede no tener NVIDIA
+    from frame28 import env
+    monkeypatch.delenv(env.ENCODER_ENV, raising=False)
+    assert env.encoder_args(16)[:4] == ["-c:v", "libx264", "-crf", "16"] and not env.use_gpu_encoder()
+    monkeypatch.setenv(env.ENCODER_ENV, "nvenc")
+    a = env.encoder_args(18)
+    assert a[:2] == ["-c:v", "h264_nvenc"] and a[a.index("-cq") + 1] == "18" and env.use_gpu_encoder()
+    assert env.use_gpu_encoder(False) is False and env.encoder_args()[1] == "libx264"
+    assert env.use_gpu_encoder(True) is True

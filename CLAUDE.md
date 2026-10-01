@@ -126,7 +126,7 @@ Tras editar skills: `claude plugin uninstall frame28@think28 && claude plugin in
 Pipeline manual (lo que hace la skill directora):
 ```bash
 frame28 fetch <url> -o input.mp4           # opcional: YouTube/Vimeo con yt-dlp (uvx, sin instalar)
-frame28 prep input.mp4 -o work             # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav
+frame28 prep input.mp4 -o work [--gpu]     # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav; --gpu = NVENC
 frame28 transcribe work/audio16k.wav -o work --lang es   # --device auto (GPU si `doctor` la da por lista, si no CPU); --script nombres.txt sesga nombres propios
 frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json && frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
 frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 --path work/cut/reframe.json [--mode blur]   # solo si el destino es vertical
@@ -234,10 +234,11 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   (el CLI los localiza solo; la shell no).
 - **PyAV**: uv resolvía `av` 19, que rompe faster-whisper (`metadata_errors`); `av` 14 no tiene wheel Windows → pin `<18`.
 - **La GPU (RTX 4060 Laptop, 8 GB) ya transcribe**: las librerías CUDA van en el extra `gpu` y `doctor` lo confirma
-  («gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN»); hubo una transcripción real en GPU el 2026-10-01 pero la ganancia
-  frente a los 179 s de CPU en un clip de 160 s **no está medida**. onnxruntime sigue siendo la compilación de CPU (matte y
-  OCR). NVENC en ffmpeg (`render --gpu`) y la GPU del navegador en HyperFrames funcionan sin instalar nada. No asumir GPU en
-  la máquina de un usuario: todo tiene que ir también por CPU.
+  («gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN»). **Medido el 2026-10-01**: el mismo audio de 160 s, 42,4 s en
+  GPU (float16) frente a 178,7 s en CPU (int8), 4,2× más rápido con un render ocupando la máquina. onnxruntime sigue siendo
+  la compilación de CPU (matte y OCR). NVENC en ffmpeg funciona sin instalar nada: `render --gpu` codifica el final, y
+  `prep`, `reframe` y `cut apply --gpu` (o `FRAME28_ENCODER=nvenc`) los intermedios (`env.encoder_args`; 5× medido, fichero
+  mayor). Nunca por defecto: en la máquina de un usuario todo tiene que ir también por CPU.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
 - **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
   escapes se comen; también los heredoc bash con comillas. Escribir el parche a un `.py` (Write) y ejecutarlo.

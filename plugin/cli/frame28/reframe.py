@@ -16,7 +16,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .env import ffmpeg, run
+from .env import encoder_args, ffmpeg, run
 
 
 def subject_path(video: str | Path, sample_fps: float = 10.0) -> dict:
@@ -91,8 +91,7 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
         # fondo: el mismo clip escalado a cubrir y desenfocado; delante: el clip entero a lo ancho
         vf = (f"split[bg][fg];[bg]scale={ow}:{oh}:force_original_aspect_ratio=increase,crop={ow}:{oh},"
               f"gblur=sigma=40,eq=brightness=-0.08[bgb];[fg]scale={ow}:-2[fgs];[bgb][fgs]overlay=(W-w)/2:(H-h)/2")
-        r = run([ffmpeg(), "-y", "-loglevel", "error", "-i", str(video), "-filter_complex", vf, "-an", "-c:v", "libx264",
-                 "-preset", "medium", "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)])
+        r = run([ffmpeg(), "-y", "-loglevel", "error", "-i", str(video), "-filter_complex", vf, "-an", *encoder_args(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)])
         if r.returncode != 0:
             raise SystemExit(r.stderr[-800:])
         fg_h = round(ow * H / W / 2) * 2
@@ -106,7 +105,7 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
     subj = subject_path(video)
     path = camera_path(subj, crop_w, deadzone, smooth, max_speed)
     cmd = [ffmpeg(), "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{ow}x{oh}", "-r", f"{fps:.6f}",
-           "-i", "-", "-an", "-c:v", "libx264", "-preset", "medium", "-crf", str(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)]
+           "-i", "-", "-an", *encoder_args(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     i = 0
     try:

@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from .captions import load_captions, load_words
-from .env import ffmpeg, run
+from .env import encoder_args, ffmpeg, run
 
 FILLERS = {
     "es": {"eh", "ehh", "ehm", "em", "emm", "mm", "mmm", "hmm", "uhm", "um", "uh", "ah", "aha", "ajá", "aja", "este...", "o sea..."},
@@ -263,7 +263,7 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
         parts.append(f"[0:v]trim=start={k['start']}:end={k['end']},setpts=PTS-STARTPTS[v{i}]"); labels.append(f"[v{i}]")
     fc = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(keep)}:v=1:a=0[v]"
     vout = out / "clip.mp4"
-    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-filter_complex", fc, "-map", "[v]", "-c:v", "libx264", "-crf", "16",
+    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-filter_complex", fc, "-map", "[v]", *encoder_args(16),
              "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p", "-r", "30", str(vout)])
     if r.returncode != 0:
         raise SystemExit(r.stderr)

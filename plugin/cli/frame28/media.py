@@ -6,7 +6,7 @@ import math
 import re
 from pathlib import Path
 
-from .env import ffmpeg, ffprobe, run
+from .env import encoder_args, ffmpeg, ffprobe, run
 
 
 def probe(video: str | Path) -> dict:
@@ -40,7 +40,7 @@ def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | Non
     info = probe(video)
     vf = f"fps={fps}" + (f",scale={width}:-2" if width else "")
     clip = out / "clip.mp4"
-    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vf", vf, "-an", "-c:v", "libx264", "-crf", "16",
+    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vf", vf, "-an", *encoder_args(16),
              "-g", str(fps), "-keyint_min", str(fps),  # un fotograma clave por segundo: HyperFrames avisa de saltos si van espaciados
              "-pix_fmt", "yuv420p", str(clip)])
     if r.returncode != 0:
@@ -86,7 +86,7 @@ def frame_at(video: str | Path, t: float, out_png: str | Path, width: int | None
 
 def cut(video: str | Path, start: float, end: float, out_mp4: str | Path) -> Path:
     r = run([ffmpeg(), "-v", "error", "-y", "-ss", str(start), "-t", str(end - start), "-i", str(video), "-an",
-             "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p", str(out_mp4)])
+             *encoder_args(16), "-pix_fmt", "yuv420p", str(out_mp4)])
     if r.returncode != 0:
         raise SystemExit(r.stderr)
     return Path(out_mp4)
