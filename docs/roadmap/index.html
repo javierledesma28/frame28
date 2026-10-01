@@ -143,30 +143,30 @@
     <a class="logo" href="https://t28.io" aria-label="Think28">
       <svg viewBox="0 0 480 120" role="img" aria-label="Think28"><rect width="480" height="120" rx="14" fill="#0a0a0a"/><text x="32" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-2">Think</text><text x="248" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#F5C500" letter-spacing="-3">28</text><rect x="32" y="88" width="24" height="1.5" fill="#F5C500" opacity="0.45"/><text x="32" y="106" font-family="Inter,Arial,sans-serif" font-weight="300" font-size="10" fill="#8a8a8a" letter-spacing="2">DIGITAL GROWTH PARTNER</text></svg>
     </a>
-    <div class="date">Frame28 · roadmap · actualizado 2026-09-30</div>
+    <div class="date">Frame28 · roadmap · actualizado 2026-10-01</div>
   </header>
 
   <section class="title">
     <div class="eyebrow">Dónde estamos y qué viene</div>
     <h1>Frame28, versión a versión</h1>
-    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Tres versiones publicadas en dos días; la siguiente hace el montaje fiable para entregarlo a clientes.</p>
+    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Cuatro versiones publicadas en tres días; la 0.4.0 lo hace fiable para entregarlo a clientes y abre el producto en frame28.app.</p>
   </section>
 
   <nav class="track" aria-label="Versiones">
     <div class="stop done"><div class="v">v0.1.0</div><div class="w">29 sep · funciona de punta a punta</div></div>
     <div class="stop done"><div class="v">v0.2.0</div><div class="w">30 sep · suena y se instala bien</div></div>
-    <div class="stop done here"><div class="v">v0.3.0</div><div class="w">30 sep · del clip al vídeo que vende</div><span class="here-tag">Estás aquí</span></div>
-    <div class="stop"><div class="v">v0.4.0</div><div class="w">fiable para entregar a clientes</div></div>
+    <div class="stop done"><div class="v">v0.3.0</div><div class="w">30 sep · del clip al vídeo que vende</div></div>
+    <div class="stop done here"><div class="v">v0.4.0</div><div class="w">1 oct · fiable para entregar a clientes</div><span class="here-tag">Estás aquí</span></div>
     <div class="stop"><div class="v">v0.5.0</div><div class="w">calidad y alcance</div></div>
     <div class="stop"><div class="v">v1.0.0</div><div class="w">Frame28 Cloud, si la demanda lo pide</div></div>
   </nav>
 
   <section class="facts" aria-label="Cifras de hoy">
-    <div class="fact"><b>38</b><span>órdenes del CLI</span></div>
+    <div class="fact"><b>41</b><span>órdenes del CLI</span></div>
     <div class="fact"><b>17</b><span>tipos de overlay</span></div>
     <div class="fact"><b>8</b><span>skills del plugin</span></div>
     <div class="fact"><b>5</b><span>casos reales montados</span></div>
-    <div class="fact"><b>3</b><span>releases públicas</span></div>
+    <div class="fact"><b>4</b><span>releases públicas</span></div>
   </section>
 
   <div class="controls" role="group" aria-label="Filtrar por estado">
@@ -211,7 +211,7 @@ const ROADMAP = [
       { t: "Instaladores de una línea", d: "Windows y macOS, interactivos, para equipos recién estrenados; asistente web e instrucciones para que Claude instale.", s: "hecho", e: "M", val: "alto" },
       { t: "Web y guía", d: "frame28.t28.io con la presentación paso a paso para personas no técnicas.", s: "hecho", e: "S", val: "medio" }
     ] },
-  { v: "v0.3.0", name: "Del clip al vídeo que vende", date: "30 sep 2026", state: "pub", here: true,
+  { v: "v0.3.0", name: "Del clip al vídeo que vende", date: "30 sep 2026", state: "pub",
     goal: "Un tutorial de una marca DTC se convierte en vídeo largo, shorts verticales, portada y versión en otro idioma.",
     close: "Publicada como release v0.3.0, probada con un tutorial real de una marca de kits de grabado de 3 min 17 s.",
     items: [
@@ -229,29 +229,29 @@ const ROADMAP = [
       { t: "Marca desde la web del cliente", d: "Colores del CSS, fuente y logo con variantes para fondo oscuro y de acento.", s: "hecho", e: "S", val: "medio" },
       { t: "Higiene de mantenimiento", d: "Versión única, cargador tolerante de transcripciones, doctor con deriva de versión y red, checklist de release.", s: "hecho", e: "S", val: "medio" }
     ] },
-  { v: "v0.4.0", name: "Fiable para entregar a clientes", date: "siguiente", state: "next",
+  { v: "v0.4.0", name: "Fiable para entregar a clientes", date: "1 oct 2026", state: "pub", here: true,
     goal: "Un vídeo para un cliente sale sin sorpresas, con todo lo que vende, y sabemos lo que cuesta producirlo.",
-    close: "Suite de pruebas en verde, B-roll real, un vídeo de cliente entregado con el flujo completo y su coste medido.",
+    close: "Publicada como release v0.4.0: suite de pruebas en verde, coste por vídeo medible, variantes de gancho en lote y el sitio del producto con condiciones, base de conocimiento y curso; lo que no entró pasa a la 0.5.0.",
     items: [
-      { t: "Suite mínima de pruebas", d: "82 pruebas en menos de un segundo, sin render: cargadores, cortes, subtítulos, shorts, i18n, validación y build del storyboard, reencuadre y smoke del CLI; release-check la ejecuta.", s: "hecho", e: "M", val: "alto" },
-      { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
+      { t: "Suite mínima de pruebas", d: "90 pruebas en un segundo, sin render: cargadores, cortes, subtítulos, shorts, i18n, validación y build del storyboard, reencuadre y smoke del CLI; release-check la ejecuta.", s: "hecho", e: "M", val: "alto" },
       { t: "Coste y tiempo por vídeo", d: "Cada orden del CLI se cronometra sola (.frame28/log.jsonl); frame28 report agrupa por paso, suma y estima el coste con una tarifa; report note añade tokens y minutos de persona.", s: "hecho", e: "S", val: "alto" },
-      { t: "Página de producto en frame28.app", d: "Oferta para marcas y equipos, precios de early adopters, caso de cliente y formulario; el plugin abierto sigue en frame28.t28.io.", s: "pendiente", e: "M", val: "alto" },
+      { t: "Página de producto en frame28.app", d: "Landing ES/EN con precios públicos, Fundadores, condiciones del servicio, formulario con Pages Function, área de clientes; el plugin abierto sigue en frame28.t28.io.", s: "medias", why: "construida y verificada en site/; falta desplegar en Cloudflare Pages con el dominio", e: "M", val: "alto" },
       { t: "Base de conocimiento y curso online", d: "Ocho artículos (ES y EN) y seis lecciones con guion en site/, tras Cloudflare Access, incluidos en todas las capas de pago; los vídeos del curso se graban a cámara y se montan con Frame28.", s: "medias", why: "artículos y guiones publicables; faltan los vídeos y activar Access", e: "M", val: "alto" },
       { t: "Variantes de gancho en lote", d: "frame28 clips batch: por cada short y gancho, storyboard, build, check y render con manifiesto; una variante rota no para el lote.", s: "hecho", e: "S", val: "alto", ref: "R5 #2" },
-      { t: "Marcadores de resultado", d: "Detectar en la transcripción las frases de resultado y proponer ahí el antes/después y el check.", s: "pendiente", e: "S", val: "medio", ref: "R5 #8" },
       { t: "Ganchos para tramos sin momentos", d: "La frase más fuerte del tramo (preguntas, cifras, segunda persona) como gancho `statement`; la plantilla de curiosidad queda de último recurso.", s: "hecho", e: "S", val: "medio" },
-      { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
       { t: "Cuadrado 1:1 para ficha de producto", d: "El lienzo ya existe; falta el caso documentado y las reglas de colocación.", s: "medias", why: "soportado por canvas, sin caso ni documentación", e: "S", val: "medio", ref: "R5 #7" },
-      { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" },
-      { t: "Gráfica de barras en vertical con más de tres filas", d: "El lienzo estrecho compacta la gráfica; con muchas filas se sale.", s: "pendiente", e: "S", val: "bajo" },
-      { t: "Reencuadre con hablante en movimiento", d: "Probar el modo crop con alguien que se desplace de verdad por el encuadre.", s: "pendiente", e: "S", val: "medio" },
-      { t: "Instalador de macOS en un Mac real", d: "Verificado en sintaxis, no en una máquina sin Homebrew.", s: "pendiente", e: "S", val: "medio" }
+      { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" }
     ] },
-  { v: "v0.5.0", name: "Calidad y alcance", date: "después", state: "later",
+  { v: "v0.5.0", name: "Calidad y alcance", date: "siguiente", state: "next",
     goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
     close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
     items: [
+      { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
+      { t: "Marcadores de resultado", d: "Detectar en la transcripción las frases de resultado y proponer ahí el antes/después y el check.", s: "pendiente", e: "S", val: "medio", ref: "R5 #8" },
+      { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
+      { t: "Gráfica de barras en vertical con más de tres filas", d: "El lienzo estrecho compacta la gráfica; con muchas filas se sale.", s: "pendiente", e: "S", val: "bajo" },
+      { t: "Reencuadre con hablante en movimiento", d: "Probar el modo crop con alguien que se desplace de verdad por el encuadre.", s: "pendiente", e: "S", val: "medio" },
+      { t: "Instalador de macOS en un Mac real", d: "Verificado en sintaxis, no en una máquina sin Homebrew.", s: "pendiente", e: "S", val: "medio" },
       { t: "Puertas de calidad", d: "Regresión visual, sonoridad, legibilidad de subtítulos, contraste sobre el fotograma real y solape con la cara.", s: "pendiente", e: "M", val: "alto", ref: "R4 #11" },
       { t: "Gráficas ampliadas", d: "Líneas, áreas, donut, mosaico de cifras, tabla con scroll y scatter con punto destacado, deterministas en seek.", s: "pendiente", e: "M", val: "medio", ref: "R4 #9, T10d, T10e" },
       { t: "Capítulos y miniaturas por beats", d: "Cortes por cambio de tema, capítulos de YouTube y miniaturas de cada bloque.", s: "pendiente", e: "M", val: "medio", ref: "R4 #8" },

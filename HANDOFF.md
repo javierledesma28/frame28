@@ -30,8 +30,8 @@ referencias), no se queda en un README ni en este fichero.
 
 | Qué | Evidencia |
 |---|---|
-| Versión publicada | **v0.3.0**: tag sobre `f178d0c`, release https://github.com/javierledesma28/frame28/releases/tag/v0.3.0 marcada Latest; v0.1.0 y v0.2.0 anteriores |
-| Versión en ficheros | 0.3.0 en `plugin/cli/frame28/__init__.py` (fuente; pyproject la lee con hatch), `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y README; `python scripts/release-check.py` da versiones coincidentes y marca tag y release de la 0.3.0 como ya existentes (correcto: hay que subir `__version__` antes de la próxima etiqueta) y avisa de la cuenta `gh` |
+| Versión publicada | **v0.3.0** (release https://github.com/javierledesma28/frame28/releases/tag/v0.3.0). **v0.4.0 preparada el 2026-10-01 y pendiente de etiquetar**: versión subida en los cuatro sitios, roadmap cerrado, notas en `RELEASE-NOTES-v0.4.0.md` (entregado a Javier, fuera del repo). Desde el PC, con los tags ya movidos: `git pull && gh auth switch --user javierledesma28 && git tag -a v0.4.0 -m "Frame28 v0.4.0" && git push origin v0.4.0 && gh release create v0.4.0 --title "Frame28 v0.4.0" --notes-file RELEASE-NOTES-v0.4.0.md` y `uv tool install --editable ./plugin/cli --python 3.12 --reinstall` (la instalación editable no relee `__version__`) |
+| Versión en ficheros | 0.4.0 en `plugin/cli/frame28/__init__.py` (fuente; pyproject la lee con hatch), `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y README; `python scripts/release-check.py` da versiones coincidentes y marca tag y release de la 0.3.0 como ya existentes (correcto: hay que subir `__version__` antes de la próxima etiqueta) y avisa de la cuenta `gh` |
 | CLI instalado | `frame28 --version` 0.3.0, editable desde `plugin/cli`; `frame28 doctor` "Todo listo" (ffmpeg 9.0.2, Node 24.13.1, faster-whisper 1.2.1, onnxruntime 1.30.0 CPU, cv2 5.0.0, RVM en caché, red al CDN de GSAP); 38 órdenes en 20 módulos |
 | Instalación limpia desde el tag | `uvx --from "git+https://github.com/javierledesma28/frame28@v0.3.0#subdirectory=plugin/cli" frame28 --version` construye y responde 0.3.0 en 21 s |
 | Plugin | `claude plugin validate ./plugin` pasa; instalado 0.3.0 a nivel usuario desde el marketplace local; caché idéntica al repo |
@@ -236,10 +236,10 @@ la variante de artefacto (marcadores `artifact:head`/`artifact:body`) y republic
 ## Para retomar sin sorpresas
 
 ```bash
-frame28 doctor                                   # fila frame28: 0.3.0 en código y 0.3.0 instalada (editable); "Todo listo."
+frame28 doctor                                   # fila frame28: 0.4.0 en código y 0.4.0 instalada tras --reinstall (editable); "Todo listo."
 claude plugin validate ./plugin                  # Validation passed
-python scripts/release-check.py --notes          # versiones 0.3.0 coincidentes; tag local, tag remoto y release v0.3.0 "ya existe/ya publicada" (normal hasta subir __version__); pytest en verde; aviso de cuenta gh
-(cd plugin/cli && uv run --group dev pytest)     # 82 passed en < 1 s
+python scripts/release-check.py --notes          # versiones 0.4.0 coincidentes; tag v0.4.0 libre hasta etiquetar; pytest en verde (90); aviso de cuenta gh
+(cd plugin/cli && uv run --group dev pytest)     # 90 passed en ~1 s
 cd poc/clip-javier && frame28 cut plan words.json --audio voice.wav -o work/cuts.json     # 9.94 s -> 9.49 s, 1 tramo
 cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4   # 13 overlays, check pasa, ~2 min
 curl -sI https://frame28.t28.io/roadmap/ | head -1     # HTTP/2 200

@@ -23,7 +23,7 @@
   <a href="https://t28.io">t28.io</a>
 </p>
 
-<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.3.0 · MIT</sub></p>
+<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.4.0 · MIT</sub></p>
 
 ---
 
@@ -153,12 +153,14 @@ demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que de
 
 ## Estado y roadmap
 
-v0.3.0 funciona de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
+v0.4.0 funciona de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
 recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
-gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts, portada y versión en otro idioma. Probado con un
-tutorial real de una marca DTC de kits de grabado además de los clips del autor. Lo siguiente:
+gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts con variantes de gancho en lote, portada y versión
+en otro idioma. Probado con un tutorial real de una marca DTC de kits de grabado además de los clips del autor. Y es
+fiable para entregar: suite de pruebas, tiempo y coste por vídeo (`frame28 report`), y el sitio del producto en `site/`
+con condiciones, base de conocimiento y curso online. Lo siguiente:
 
-- Doblaje con voz sintética y demo de pantalla con zoom y paneo.
+- B-roll contra la API real, marcadores de resultado y doblaje con voz sintética.
 - Puertas de calidad automáticas (contraste, legibilidad, sonoridad) y gráficas ampliadas.
 - Alineado con guion para nombres propios y karaoke exacto.
 - Una interfaz sobre el storyboard, para quien no quiere ver una terminal, si la decisión de producto lo pide.
