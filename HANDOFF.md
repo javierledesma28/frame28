@@ -120,8 +120,8 @@ los ficheros de Javier. El sitio publica el caso anónimo hasta tener permiso es
 comprobación final) y **el historial de git se reescribió el mismo día con `git filter-repo`** (rutas, contenidos y
 mensajes de los 62 commits; tags v0.1.0–v0.3.0 recreados; push forzado de `main` y `main-ky21ae`): cero coincidencias
 en todos los objetos. Los hashes cambiaron: **el clon del PC de Javier debe resincronizarse** (`git fetch origin &&
-git checkout main && git reset --hard origin/main`; `git tag -d v0.2.0 v0.3.0 && git fetch origin --tags`). Los tags
-v0.2.0 y v0.3.0 remotos los mueve Javier (ver §Bloqueos). Copia previa del repo en un bundle fuera del repo.
+git checkout main && git reset --hard origin/main`; los tags los trae `mover-tags.sh` desde el bundle). Los tags
+v0.2.0 y v0.3.0 remotos los mueve Javier con ese script (ver §Bloqueos). Copia previa del repo en un bundle fuera del repo.
 
 ## Qué quedó a medias o sin hacer
 
@@ -163,7 +163,7 @@ Deuda técnica, por orden:
 |---|---|---|
 | ~~Validar precios, capas, garantía y programa Fundadores (`research/07` §2)~~ | Javier | **Validados el 2026-10-01**: desbloquea landing, contrato y propuesta |
 | Acceso a Cloudflare (Pages, Access, Email Service) para frame28.app | Javier | Autorizar cada paso o desplegar él; Claude prepara `site/` y la configuración |
-| **Tags v0.2.0 y v0.3.0 en GitHub apuntan todavía a la historia antigua** (el proxy de la nube no permite mover ni borrar tags: 403 por git y por API). Mientras tanto la historia vieja sigue alcanzable | Javier, desde su PC | `git fetch origin --tags` (trae `v0.2.0-rewritten` y `v0.3.0-rewritten`, que son los tags reescritos), luego `gh auth switch --user javierledesma28 && git push --force origin refs/tags/v0.2.0-rewritten:refs/tags/v0.2.0 refs/tags/v0.3.0-rewritten:refs/tags/v0.3.0 && git push origin --delete v0.2.0-rewritten v0.3.0-rewritten`; comprobar con `git ls-remote --tags origin`; la release v0.3.0 queda enganchada al tag nuevo |
+| **Tags v0.2.0 y v0.3.0 en GitHub apuntan todavía a la historia antigua** (el proxy de la nube no permite mover ni borrar tags: 403 por git y por API). Mientras tanto la historia vieja sigue alcanzable | Javier, desde su PC | Claude le entregó `tags-reescritos.bundle` (los dos tags reescritos, con autor y fecha originales) y `mover-tags.sh`: resincroniza `main`, importa los tags del bundle, `gh auth switch --user javierledesma28`, `git push --force origin refs/tags/v0.2.0 refs/tags/v0.3.0`, y verifica con un clon limpio (62 commits, 0 coincidencias). Los commits destino (`a38672b`, `264777d`) ya están en `origin/main`. La release v0.3.0 queda enganchada al tag nuevo |
 | Commits antiguos cacheados en GitHub tras la reescritura (accesibles por hash hasta su recolección) | Javier | Pedir a soporte de GitHub la purga del repo, si se quiere cerrar del todo |
 | Permiso del Cliente A para publicar el caso | Javier con el cliente | Hasta entonces la página del caso es privada |
 | Claves de Pexels y Pixabay | Javier | Crearlas en pexels.com/api y pixabay.com/api/docs |
