@@ -1,0 +1,23 @@
+# Pruebas del CLI en cada push y pull request: los módulos puros (sin ffmpeg, modelos ni render), como en local.
+name: tests
+
+on:
+  push:
+    branches: [main]
+    paths: ["plugin/cli/**", ".github/workflows/tests.yml"]
+  pull_request:
+    paths: ["plugin/cli/**", ".github/workflows/tests.yml"]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugin/cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Pruebas
+        run: uv run --group dev pytest

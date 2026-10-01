@@ -75,6 +75,25 @@ def env_with_ffmpeg() -> dict:
     return env
 
 
+ENCODER_ENV = "FRAME28_ENCODER"   # "nvenc" → h264_nvenc en los clips intermedios; cualquier otra cosa → libx264
+
+
+def use_gpu_encoder(enable: bool | None = None) -> bool:
+    """Lee (o fija, con `enable`) si los clips intermedios se codifican con NVENC. Medido en una RTX 4060: 20 s de
+    1080p en 3,2 s frente a 15,4 s con libx264; el fichero sale mayor. Los intermedios no se entregan: no importa."""
+    if enable is not None:
+        os.environ[ENCODER_ENV] = "nvenc" if enable else "x264"
+    return os.environ.get(ENCODER_ENV, "").lower() == "nvenc"
+
+
+def encoder_args(crf: int = 16) -> list[str]:
+    """Argumentos de codificación H.264 de los clips intermedios: libx264 con `crf`, o NVENC con el mismo valor como
+    `-cq` cuando `use_gpu_encoder()`."""
+    if use_gpu_encoder():
+        return ["-c:v", "h264_nvenc", "-preset", "p5", "-rc", "vbr", "-cq", str(crf), "-b:v", "0"]
+    return ["-c:v", "libx264", "-crf", str(crf)]
+
+
 def cuda_dll_dirs() -> list[Path]:
     """Carpetas con las librerías de CUDA instaladas como paquetes pip (`nvidia-cublas-cu12`, `nvidia-cudnn-cu12`):
     site-packages/nvidia/<lib>/bin en Windows, .../lib en Linux."""

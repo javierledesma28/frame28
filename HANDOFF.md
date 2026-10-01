@@ -44,7 +44,7 @@ que Javier va a crear (permisos acordados en §Cloudflare). La zona DNS de `fram
 | Sitio del producto | `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 5 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). **No desplegado** |
 | Web del plugin | frame28.t28.io `/`, `/roadmap/`, `/instalar/`, `/install.ps1` → HTTP 200 |
 | frame28.app | zona activa en Cloudflare; `curl` no obtiene respuesta (sin origen): esperado |
-| Roadmap | `docs/roadmap/index.html`: 6 versiones, 56 ítems (**30 hechos, 4 a medias, 22 pendientes**); siguiente: «B-roll probado contra la API real» |
+| Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**39 hechos, 4 a medias, 22 pendientes**; los 9 hechos tras la 0.4.0 cuelgan de la 0.5.0); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai pendiente de republicar |
 | Actualización de usuarios | **verificado en un entorno aislado**: `uv tool upgrade frame28` mueve una instalación desde git al último commit en 14 s aunque la versión no cambie; repetir el instalador (`--force`) también. `claude plugin update` solo actúa si cambia la versión del plugin |
 | Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); HyperFrames 0.8.72 pineado (0.8.105 publicada); GSAP 3.14.2 (3.15.0 publicada) |
 | Git | `main` 8 por delante de `origin/main`; `gh` con la cuenta personal `javierledesma28` activa (la correcta para push); rama `origin/main-ky21ae` obsoleta, borrable |
@@ -113,7 +113,8 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    `plugin/cli/pyproject.toml` (`nvidia-cublas-cu12`, `nvidia-cudnn-cu12`), `env.cuda_ready()`/`enable_cuda_dlls()`,
    `transcribe --device auto` (cuda/float16 con caída a CPU si la GPU falla a mitad), fila en `doctor`, prueba
    `test_transcribe_device_auto_picks_gpu_only_when_ready`. Librerías instaladas en el entorno de la herramienta; una
-   transcripción real en GPU a las 18:42 (`poc/clip-acrilico/work/gpu/asr/`, ficheros completos) **sin medir el tiempo**.
+   transcripción real en GPU a las 18:42 (`poc/clip-acrilico/work/gpu/asr/`): **42,4 s frente a 178,7 s en CPU** para el
+   mismo audio de 160 s (4,2×, con un render ocupando la máquina; medido por la sesión de la tarde).
 
 ### 2026-10-01 (PC, noche) — relevamiento completo y cierre
 1. **Relevamiento** sin tocar código (estructura, git, 12 comprobaciones ejecutadas: tabla de §Estado). Hallazgos: el
@@ -142,8 +143,7 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    `/kb`, `/curso`, `/en/kb`, `/en/course` (pasos en `site/README.md`; sin Access el área de clientes es pública) → prueba
    real del formulario. Añadir el despliegue como fila/paso de `release-check` o un script `scripts/deploy-site.*`.
 4. **Decisiones pendientes de Javier** (preguntadas el 2026-10-01, sin respuesta por falta de tokens):
-   - (a) GPU: medir `frame28 transcribe poc/clip-acrilico/work/audio16k.wav -o <tmp> --lang en` en GPU frente a los
-     179 s de CPU y dejar el dato en `CLAUDE.md`/`doctor`; o darlo por bueno sin medir.
+   - (a) GPU: **resuelta**, medida (42,4 s frente a 178,7 s) y anotada en `CLAUDE.md`.
    - (b) `poc/clip-acrilico`: versionar README + storyboard + `clips.json` anonimizados como los otros casos, o dejar
      todo en `_private/`. En cualquier caso: copiar `out/` (3 MP4, 6 shorts, 4 portadas, 3 SRT) a
      `_private/cliente-a/muestras/` y anotar `frame28 report note "director" --tokens <n>` en `poc/clip-acrilico/`.
@@ -159,17 +159,16 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    el día que el sitio esté en vivo con Access.
 9. Claves de Pexels y Pixabay en `~/.config/frame28/keys.json` y una búsqueda real; `clips batch` **con render** sobre
    `poc/clip-demo`; `reframe-map` con un `gestures.json` real.
-10. **Deuda pequeña (0.5.0):** CI mínima (GitHub Actions con pytest), HyperFrames 0.8.72 → 0.8.105 pasando las dos
+10. **Deuda pequeña (0.5.0):** HyperFrames 0.8.72 → 0.8.105 pasando las dos
     regresiones, GSAP 3.15, quitar `poc/remotion/package-lock.json` y la rama `origin/main-ky21ae`, decidir sobre
     versionar `uv.lock`, OpenCV instalado por triplicado en el entorno, `onnxruntime-gpu` opcional.
 
 ## Qué quedó a medias o sin hacer
 
-1. **GPU en `transcribe`** — código y prueba commiteados; **sin medir** la ganancia. Ficheros: `plugin/cli/frame28/env.py`
-   (`cuda_dll_dirs`, `enable_cuda_dlls`, `cuda_ready`), `plugin/cli/frame28/transcribe.py` (`pick_device`, `_run_whisper`,
-   caída a CPU), `plugin/cli/frame28/doctor.py` (fila «gpu (transcripción)»), `plugin/cli/pyproject.toml`
-   (`[project.optional-dependencies] gpu`), `plugin/cli/tests/test_cli.py` (última prueba). Decisión consciente de
-   commitear sin medir para no perder el trabajo al cerrar.
+1. **GPU** — `transcribe` en GPU medido (4,2×) y NVENC opcional en `prep`/`reframe`/`cut apply` (`--gpu`,
+   `env.encoder_args`), sin probar aún en un montaje entero con `--gpu`. Falta `onnxruntime-gpu` para `matte` y OCR: no es
+   un `--with` más, porque sustituye al paquete `onnxruntime` del que dependen mediapipe y rapidocr; hay que probarlo en un
+   entorno aparte antes de tocar el extra `gpu`.
 2. **Caso `poc/clip-acrilico`** — montaje entero solo en `work/` y `out/` (ignorados): `work/storyboard.json`,
    `work/storyboard.{es,de}.json`, `work/strings.{es,de}.json`, `work/clips.sel.json`, `work/clips/s*/storyboard-hook*.json`,
    `work/brief.md`, `work/cta.json`, scripts `work/make_*.py`. Si se borra `work/`, se pierde. Pendiente la decisión (b).
@@ -182,7 +181,7 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    `--no-render` y los shorts se renderizaron uno a uno), `reframe-map` con gestos reales, `reframe --mode crop` con
    hablante en movimiento. `clips markers` sí se ejecutó sobre un vídeo real (`poc/clip-acrilico/work/markers.json`).
 8. **Fila de `doctor` «última release»** — propuesta, no hecha (punto 5 de la lista anterior).
-9. **Sin CI** — no hay `.github/workflows`; las pruebas solo corren en local y en `release-check`.
+9. **CI** — `.github/workflows/tests.yml` pasa la suite del CLI en cada push; sin verificar todavía en GitHub (primer push pendiente).
 
 ## Bloqueos y dudas
 
@@ -191,7 +190,7 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 | Token de API de Cloudflare | Javier | Crearlo con §Cloudflare y dejarlo en `CLOUDFLARE_API_TOKEN` (variable de usuario de Windows); reiniciar la app |
 | Activación del Email Service (beta) y verificación del remitente `hola@frame28.app` | Javier al desplegar | Si la API no lo permite, un paso en el panel; el código solo toca `contact.js::sendMail` |
 | Despliegue automático al hacer push | Javier | Conectar GitHub en el panel de Pages (OAuth) o crear un segundo token estrecho (`Cloudflare Pages → Edit`) para una GitHub Action |
-| Decisiones (a) GPU medir/no y (b) versionado de `clip-acrilico` | Javier | Responderlas al retomar |
+| Decisión (b): versionar `clip-acrilico` anonimizado o dejarlo en `_private/` | Javier | Responderla al retomar (las muestras ya están copiadas en `_private/cliente-a/muestras/`) |
 | Permiso del Cliente A para publicar el caso | Javier con el cliente | Hasta entonces, versión anónima (`case_public: False`) |
 | Claves de Pexels y Pixabay | Javier | pexels.com/api y pixabay.com/api/docs → `~/.config/frame28/keys.json` |
 | Commits antiguos cacheados en GitHub tras la reescritura | Javier | Pedir la purga a soporte de GitHub, si se quiere cerrar del todo |

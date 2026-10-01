@@ -107,10 +107,13 @@ def probe(video, as_json):
 @click.option("--width", default=None, type=int, help="Reescalar a este ancho (p. ej. 1920)")
 @click.option("--denoise", default="afftdn", show_default=True, type=click.Choice(["none", "afftdn", "rnnoise", "deepfilter"]), help="limpieza de la voz")
 @click.option("--lufs", default=-14.0, show_default=True)
+@click.option("--gpu", is_flag=True, help="codificar el clip con NVENC (GPU NVIDIA): ~5x más rápido, fichero mayor; también FRAME28_ENCODER=nvenc")
 @click.option("--json", "as_json", is_flag=True)
-def prep(video, out_dir, fps, width, denoise, lufs, as_json):
+def prep(video, out_dir, fps, width, denoise, lufs, gpu, as_json):
     """Copia de trabajo: clip.mp4 a 30 fps sin audio + voice.wav limpia y normalizada + audio16k.wav para ASR."""
     from .media import prep as _prep
+    if gpu:
+        from .env import use_gpu_encoder; use_gpu_encoder(True)
     r = _prep(video, out_dir, fps, width, normalize=(denoise == "none"))
     if r.get("voice") and denoise != "none":
         from .audio import clean
@@ -251,10 +254,13 @@ def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, 
 @click.option("--smooth", default=0.8, show_default=True, help="constante de tiempo del suavizado (s); más = más lento y suave")
 @click.option("--max-speed", default=0.5, show_default=True, help="velocidad máxima (anchos de ventana por segundo)")
 @click.option("--path", "path_json", type=click.Path(), default=None, help="guardar reframe.json (camino de la cámara, para mapear coordenadas)")
+@click.option("--gpu", is_flag=True, help="codificar con NVENC (GPU NVIDIA); también FRAME28_ENCODER=nvenc")
 @click.option("--json", "as_json", is_flag=True)
-def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, as_json):
+def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, gpu, as_json):
     """Reencuadra un clip apaisado a vertical (9:16) siguiendo al hablante (MediaPipe) o con fondo desenfocado."""
     from .reframe import reframe as _reframe
+    if gpu:
+        from .env import use_gpu_encoder; use_gpu_encoder(True)
     w, h = (int(v) for v in size.lower().replace("×", "x").split("x"))
     r = _reframe(video, out_mp4, mode, (w, h), deadzone, smooth, max_speed, path_json)
     if as_json:
@@ -421,8 +427,11 @@ def cut_plan(words, audio, min_gap, pad, lang, no_fillers, no_retakes, duration,
 @click.option("--captions", type=click.Path(exists=True), default=None)
 @click.option("--storyboard", type=click.Path(exists=True), default=None)
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
+@click.option("--gpu", is_flag=True, help="codificar con NVENC (GPU NVIDIA); también FRAME28_ENCODER=nvenc")
 @click.option("--json", "as_json", is_flag=True)
-def cut_apply(video, cuts, audio, words, captions, storyboard, out_dir, as_json):
+def cut_apply(video, cuts, audio, words, captions, storyboard, out_dir, gpu, as_json):
+    if gpu:
+        from .env import use_gpu_encoder; use_gpu_encoder(True)
     """Aplica cuts.json: clip.mp4 y voice.wav cortados (fundidos de 30 ms) + words/captions/storyboard remapeados."""
     from .cut import apply as _apply
     out(_apply(video, audio, cuts, out_dir, words, captions, storyboard), as_json or True)
