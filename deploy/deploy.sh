@@ -7,10 +7,12 @@
 #   deploy/deploy.sh --check    # solo compara los hashes del servidor con HEAD (no toca nada)
 #
 # Requisitos: alias SSH `t28server` (~/.ssh/config) con la clave local; árbol commiteado (lo que no está en HEAD
-# no se despliega: `git status` te lo recuerda).
+# no se despliega: `git status` te lo recuerda). Fichero en LF: con CRLF bash no lo ejecuta.
 set -euo pipefail
 HOST=${FRAME28_HOST:-t28server}
 DIR=/opt/frame28
+# -T: el alias lleva RequestTTY yes y sin terminal ssh avisaría en cada llamada
+SSH=(ssh -T -o BatchMode=yes)
 cd "$(git rev-parse --show-toplevel)"
 
 # Lo que NO forma parte del sitio publicado: fuentes del generador, Markdown de la KB y el curso, y los ficheros de
@@ -18,14 +20,16 @@ cd "$(git rev-parse --show-toplevel)"
 EXCL=(--exclude='site/src' --exclude='site/content' --exclude='site/functions' --exclude='site/build.py'
       --exclude='site/README.md' --exclude='site/wrangler.toml' --exclude='site/_headers' --exclude='site/_redirects')
 
+# sha256sum en Git Bash escribe «hash *ruta» (modo binario) y en Linux «hash  ruta»: se normaliza para comparar.
+norm() { sed -E 's/^([0-9a-f]{64}) \*?/\1  /'; }
 manifest_local() {
   local tmp; tmp=$(mktemp -d)
   git archive HEAD site | tar -x -f - -C "$tmp" "${EXCL[@]}"
-  (cd "$tmp" && find site -type f | LC_ALL=C sort | xargs sha256sum)
+  (cd "$tmp" && find site -type f | LC_ALL=C sort | xargs sha256sum | norm)
   rm -rf "$tmp"
 }
 manifest_remote() {
-  ssh -o BatchMode=yes "$HOST" "cd $DIR 2>/dev/null && [ -d site ] && find site -type f | LC_ALL=C sort | xargs sha256sum" || true
+  "${SSH[@]}" "$HOST" "cd $DIR 2>/dev/null && [ -d site ] && find site -type f | LC_ALL=C sort | xargs sha256sum" | norm || true
 }
 compare() {
   if diff <(manifest_local) <(manifest_remote) >/dev/null; then
@@ -42,18 +46,18 @@ if [[ -n "$(git status --porcelain site deploy)" ]]; then
 fi
 
 echo "1/4 ficheros de despliegue → $HOST:$DIR"
-ssh -o BatchMode=yes "$HOST" "mkdir -p $DIR"
-git archive HEAD deploy | ssh -o BatchMode=yes "$HOST" "cd $DIR && tar x -f - --strip-components=1 && chmod +x remote-up.sh"
+"${SSH[@]}" "$HOST" "mkdir -p $DIR"
+git archive HEAD deploy | "${SSH[@]}" "$HOST" "cd $DIR && tar x -f - --strip-components=1 && chmod +x remote-up.sh"
 
 echo "2/4 sitio → $HOST:$DIR/site (copia de seguridad del anterior, se conservan las 3 últimas)"
-ssh -o BatchMode=yes "$HOST" "cd $DIR && if [ -d site ]; then mv site .deploy-bak-site-\$(date +%Y%m%d-%H%M%S); fi; ls -d .deploy-bak-site-* 2>/dev/null | head -n -3 | xargs -r rm -rf"
-git archive HEAD site | ssh -o BatchMode=yes "$HOST" "cd $DIR && tar x -f - ${EXCL[*]}"
+"${SSH[@]}" "$HOST" "cd $DIR && if [ -d site ]; then mv site .deploy-bak-site-\$(date +%Y%m%d-%H%M%S); fi; ls -d .deploy-bak-site-* 2>/dev/null | head -n -3 | xargs -r rm -rf"
+git archive HEAD site | "${SSH[@]}" "$HOST" "cd $DIR && tar x -f - ${EXCL[*]}"
 
 echo "3/4 verificación por hash"
 compare
 
 echo "4/4 nginx (+ túnel)"
-ssh -o BatchMode=yes "$HOST" "sh $DIR/remote-up.sh"
+"${SSH[@]}" "$HOST" "sh $DIR/remote-up.sh"
 
 echo "— comprobación pública —"
 for p in / /en/ /fundadores/ /founders /healthz /kb/ /api/contact; do
