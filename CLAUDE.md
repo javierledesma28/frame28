@@ -376,6 +376,9 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **`sha256sum` en Git Bash escribe `hash *ruta`** (modo binario) y en Linux `hash  ruta`: comparar manifiestos entre PC y
   servidor exige normalizar (`deploy.sh::norm`). Y el alias `t28server` lleva `RequestTTY yes`: sin terminal, cada `ssh`
   avisa de la pseudo-terminal salvo con `-T`.
+- **Python en Windows no entiende las rutas `/c/…` de Git Bash**: dentro de un script bash, `python -c "open('$S/x.json')"` con
+  `S=/c/Users/…` da `FileNotFoundError` (y con `2>/dev/null` parece que «no hay estado»). Pasar a Python rutas `C:/Users/…`
+  (`cygpath -m "$S"`) o hacer el parseo con `az … --query` / `jq`, sin Python. Lo mismo para cualquier ejecutable nativo.
 - **La herramienta de escritura de Claude deja CRLF en Windows**: git los normaliza a LF al commitear (`.gitattributes`), pero
   un script que se ejecute desde el working tree antes de commitear puede fallar; comprobar con `git ls-files --eol`.
 - **El HANDOFF puede quedarse atrás en un mismo día**: el del 2026-10-01 (mediodía) decía «árbol limpio» mientras la tarde
