@@ -4,6 +4,10 @@ y el recorte listo (clip, voz, palabras y subtítulos remapeados) con un storybo
 Momentos que puntúan (ES/EN): resultado ("that's it", "turned out", "queda", "mira"), promesa ("beginner",
 "easy", "cualquiera", "fácil"), objeción ("isn't it", "what if", "¿y si"), cifras y menciones del producto.
 Un tramo empieza y termina en frase (captions.json), no a mitad de palabra.
+
+`markers` usa los mismos momentos para el vídeo entero (o un short ya recortado): en cada frase de resultado
+propone el `before_after` con dos instantes del propio clip, el `draw` check y el `kinetic` con la frase real; en
+cada promesa, el `kinetic`. Son overlays listos para pegar en el storyboard, con posiciones orientativas.
 """
 from __future__ import annotations
 
@@ -146,8 +150,9 @@ def _clean(clause: str, lang: str) -> str:
     return c[:1].upper() + c[1:] if c else c
 
 
-def _two_lines(text: str) -> list[str]:
+def _two_lines(text: str, max_words: int = MAX_LINE_WORDS, max_chars: int = MAX_LINE_CHARS) -> list[str]:
     """Parte en dos líneas de <= 5 palabras / 26 caracteres en el punto más natural; recorta si no cabe."""
+    MAX_LINE_WORDS, MAX_LINE_CHARS = max_words, max_chars  # noqa: N806  límites locales (los ganchos usan los globales)
     words = text.split()
     if len(words) <= MAX_LINE_WORDS and len(text) <= MAX_LINE_CHARS:
         return [text]
@@ -356,3 +361,128 @@ def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | P
     cdir.mkdir(parents=True, exist_ok=True)
     manifest.write_text(json.dumps(res, indent=1, ensure_ascii=False), encoding="utf-8")
     return res
+
+
+# ---------- marcadores de resultado ----------
+RESULT_LEAD = 8.0      # segundos antes de la frase de resultado para el fotograma "antes"
+RESULT_SETTLE = 1.0    # segundos tras la frase para el "después" (la cámara ya enseña el resultado)
+RESULT_CLUSTER = 6.0   # resultados a menos de esto son la misma racha ("that's it… look at that… perfect")
+BA_DURATION = 3.0      # el antes/después dura 2–4 s
+WORD_STEP = 0.18       # separación entre palabras cuando no hay words.json
+
+
+def _norm(w: str) -> str:
+    return re.sub(r"[^\w']", "", w.lower().replace("’", "'"))
+
+
+def _word_times(words: list[dict], tokens: list[str], t0: float, t1: float) -> list[float]:
+    """`at` de cada token: la palabra real de words.json dentro de la frase (en orden); si no está, el anterior + paso."""
+    cands = [w for w in words if t0 - 0.3 <= w["start"] <= t1 + 0.3]
+    out: list[float] = []
+    k = 0
+    for tok in tokens:
+        n = _norm(tok)
+        hit = next((j for j in range(k, len(cands)) if _norm(cands[j]["text"]) == n), None)
+        if hit is not None:
+            out.append(round(cands[hit]["start"], 3)); k = hit + 1
+        else:
+            out.append(round((out[-1] + WORD_STEP) if out else t0, 3))
+    return out
+
+
+def _kinetic_lines(text: str, match: str, lang: str, words: list[dict], t0: float, t1: float, max_chars: int) -> list[list[dict]]:
+    clause = _trim_trailing(_clean(_window(_clause(text, match), match), lang).rstrip(".!"), lang)
+    lines = _two_lines(clause, MAX_LINE_WORDS, max_chars)
+    tokens = [w for line in lines for w in line.split()]
+    ats = _word_times(words, tokens, t0, t1)
+    first = _norm(match.split()[0]) if match else ""
+    accent_done = False
+    out: list[list[dict]] = []
+    k = 0
+    for line in lines:
+        row = []
+        for w in line.split():
+            item = {"text": w, "at": ats[k]}
+            if not accent_done and first and _norm(w) == first:
+                item["accent"] = True; accent_done = True
+            row.append(item); k += 1
+        out.append(row)
+    return out
+
+
+def _zone(canvas: tuple[int, int], side: str) -> dict:
+    """Posiciones orientativas: el lado libre del hablante en 16:9, la franja superior en vertical."""
+    W, H = canvas
+    narrow = W < 1400
+    if narrow:
+        return {"kin": (80, 160), "size": 76, "chars": 22, "draw": (W - 220, 120), "draw_w": 120, "ba": (60, int(H * 0.22), W - 120)}
+    x0 = 90 if side == "left" else 1100
+    return {"kin": (x0, 200), "size": 76, "chars": 20, "draw": (x0 + 640, 90), "draw_w": 140, "ba": (x0 - 30 if side == "left" else x0 - 60, 180, 820)}
+
+
+def markers(captions_path: str | Path, lang: str = "en", words_path: str | Path | None = None,
+            canvas: tuple[int, int] = (1920, 1080), side: str = "right", lead: float = RESULT_LEAD,
+            settle: float = RESULT_SETTLE) -> dict:
+    """Marcadores de resultado y de promesa a partir de captions.json: por cada racha de frases de resultado, un
+    `before_after` (dos instantes del propio clip: `lead` s antes y `settle` s después), un `draw` check en la
+    palabra que lo dice y un `kinetic` con la frase real; por cada promesa, un `kinetic`. Las posiciones son
+    orientativas (`side` = lado libre de `frame28 speaker`, o la franja superior en vertical): el director las
+    ajusta y comprueba `before_t` con `frame28 frames` (el "antes" debe ser el objeto sin tocar)."""
+    caps = load_captions(captions_path)
+    words = load_words(words_path) if words_path else []
+    total = round(max(c["end"] for c in caps), 3) if caps else 0.0
+    moms = [m for m in _moments(caps, lang, []) if m["kind"] in ("result", "promise")]
+    by_t: dict[float, dict] = {c["start"]: c for c in caps}
+    z = _zone(canvas, side)
+    out: list[dict] = []
+    seen_prom: set[str] = set()
+    results: list[list[dict]] = []
+    for m in sorted(moms, key=lambda m: m["t"]):
+        if m["kind"] == "promise":
+            if m["text"] in seen_prom:
+                continue
+            seen_prom.add(m["text"])
+            c = by_t[m["t"]]
+            k = sum(1 for o in out if o["kind"] == "promise") + 1
+            lines = _kinetic_lines(m["text"], m["match"], lang, words, c["start"], c["end"], z["chars"])
+            at = lines[0][0]["at"]
+            out.append({"id": f"prom{k}", "kind": "promise", "t": round(c["start"], 3), "end": round(c["end"], 3),
+                        "phrase": m["text"], "match": m["match"],
+                        "overlays": [{"type": "kinetic", "id": f"prom{k}-kin", "start": round(max(0.0, at - 0.05), 3),
+                                      "end": round(min(total, c["end"] + 0.6), 3), "x": z["kin"][0], "y": z["kin"][1],
+                                      "size": z["size"], "reveal": "rise", "lines": lines}]})
+            continue
+        if results and m["t"] - results[-1][-1]["t"] <= RESULT_CLUSTER:
+            results[-1].append(m)
+        else:
+            results.append([m])
+    for k, grp in enumerate(results, 1):
+        first, last = grp[0], grp[-1]
+        c0, c1 = by_t[first["t"]], by_t[last["t"]]
+        lines = _kinetic_lines(first["text"], first["match"], lang, words, c0["start"], c0["end"], z["chars"])
+        at = lines[0][0]["at"]
+        hit = next((w["at"] for row in lines for w in row if w.get("accent")), at)
+        ba_start = round(min(c1["end"] + settle, max(0.0, total - BA_DURATION)), 3)
+        ba_end = round(min(total, ba_start + BA_DURATION), 3)
+        before_t = round(max(0.0, first["t"] - lead), 3)
+        after_t = round(max(0.0, min(total - 0.05, ba_start - 0.05)), 3)
+        kin_end = round(max(at + 1.0, min(c0["end"] + 0.6, ba_start)), 3)  # la frase que lo dice, no toda la racha
+        ovs = [
+            {"type": "kinetic", "id": f"res{k}-kin", "start": round(max(0.0, at - 0.05), 3), "end": kin_end,
+             "x": z["kin"][0], "y": z["kin"][1], "size": z["size"], "reveal": "rise", "lines": lines},
+            {"type": "draw", "id": f"res{k}-check", "icon": "check", "start": round(max(0.0, hit - 0.05), 3),
+             "end": round(min(total, hit + 1.6), 3), "at": round(hit, 3), "x": z["draw"][0], "y": z["draw"][1],
+             "w": z["draw_w"], "color": "#ffffff", "duration": 0.5},
+        ]
+        if ba_end - ba_start >= 1.5:
+            ovs.append({"type": "before_after", "id": f"res{k}-ba", "start": ba_start, "end": ba_end,
+                        "before_t": before_t, "after_t": after_t, "x": z["ba"][0], "y": z["ba"][1], "w": z["ba"][2],
+                        "label_before": "Antes" if lang == "es" else "Before", "label_after": "Después" if lang == "es" else "After"})
+        out.append({"id": f"res{k}", "kind": "result", "t": round(first["t"], 3), "end": round(c1["end"], 3),
+                    "phrase": first["text"], "match": first["match"],
+                    "phrases": [m["text"] for m in grp] if len(grp) > 1 else [first["text"]], "overlays": ovs})
+    out.sort(key=lambda m: m["t"])
+    return {"captions": str(captions_path), "lang": lang, "canvas": list(canvas), "side": side, "duration": total,
+            "results": len(results), "promises": sum(1 for m in out if m["kind"] == "promise"), "markers": out,
+            "note": "posiciones orientativas: mueve cada overlay al lado libre de `frame28 speaker` (o a las free_bands del "
+                    "reframe) y comprueba before_t/after_t con `frame28 frames` antes de pegarlos en el storyboard"}

@@ -114,7 +114,10 @@ short montado de partida (gancho, subtítulos por palabras, CTA). Detalle en la 
 
 Escribe `work/storyboard.json` siguiendo `frame28 storyboard schema` y las reglas de dirección de la skill
 `frame28-storyboard`. Los `at` de cada palabra salen de `words.json`; las posiciones, del lado libre que devolvió
-`frame28 speaker`; los callouts `pointer`, de `work/gestures.json`. Si un gesto no se detectó, mira el fotograma:
+`frame28 speaker`; los callouts `pointer`, de `work/gestures.json`. En un vídeo que vende o enseña un resultado,
+`frame28 clips markers work/cut/captions.json --lang es --words work/cut/words.json --side <free_side> -o work/cut/markers.json`
+propone en cada frase de resultado ("ya está", "mira", "that's it") el `before_after` con dos instantes del clip, el
+`draw` check y el `kinetic` con la frase, y un `kinetic` en cada promesa: pégalos y ajusta. Si un gesto no se detectó, mira el fotograma:
 
 ```bash
 frame28 frames work/clip.mp4 -t 7.3 -o work/frames

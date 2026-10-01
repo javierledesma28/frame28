@@ -44,3 +44,4 @@ _private/
 # Previsualizaciones locales del sitio (capturas de Playwright)
 site/*.png
 site/node_modules/
+.frame28/

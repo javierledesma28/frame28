@@ -541,6 +541,37 @@ def clips_plan(captions, target, count, lang, min_len, max_len, keywords, out_js
         click.echo(f"  guardado: {out_json}")
 
 
+@clips.command("markers")
+@click.argument("captions", type=click.Path(exists=True))
+@click.option("--lang", default="en", show_default=True)
+@click.option("--words", "words_path", type=click.Path(exists=True), default=None, help="words.json: `at` exactos de cada palabra del cinético")
+@click.option("--canvas", default="1920x1080", show_default=True, help="lienzo del storyboard (1080x1920 en vertical)")
+@click.option("--side", default="right", show_default=True, type=click.Choice(["right", "left"]), help="lado libre del hablante (free_side de `frame28 speaker`); en vertical se ignora")
+@click.option("--lead", default=8.0, show_default=True, help="segundos antes de la frase de resultado para el fotograma 'antes'")
+@click.option("--settle", default=1.0, show_default=True, help="segundos tras la frase para el 'después' y la entrada del antes/después")
+@click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar markers.json")
+@click.option("--json", "as_json", is_flag=True)
+def clips_markers(captions, lang, words_path, canvas, side, lead, settle, out_json, as_json):
+    """Marcadores de resultado: en cada frase de resultado propone before_after (dos instantes del clip), draw check y kinetic; en cada promesa, kinetic."""
+    from .clips import markers
+    w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
+    r = markers(captions, lang, words_path, (w, h), side, lead, settle)
+    if out_json:
+        Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
+    if as_json:
+        out(r, True); return
+    click.echo(f"  {r['results']} momentos de resultado · {r['promises']} promesas · lienzo {w}x{h} · {r['duration']:.1f} s")
+    for m in r["markers"]:
+        kinds = " + ".join(o["type"] for o in m["overlays"])
+        ba = next((o for o in m["overlays"] if o["type"] == "before_after"), None)
+        extra = f"  (antes {ba['before_t']:.1f} s, después {ba['after_t']:.1f} s)" if ba else ""
+        click.echo(f"  {m['id']:<6} {m['t']:6.1f}–{m['end']:6.1f}  {m['kind']:<8} «{m['phrase'][:60]}»")
+        click.echo(f"         → {kinds}{extra}")
+    click.echo("  " + r["note"])
+    if out_json:
+        click.echo(f"  guardado: {out_json}")
+
+
 @clips.command("cut")
 @click.argument("clips_json", type=click.Path(exists=True))
 @click.argument("clip_id")

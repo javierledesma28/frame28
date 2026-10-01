@@ -29,7 +29,7 @@ contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json
    | abrir o cerrar con marca | `brand_card` | 2–3 s; al final, con `duration` raíz mayor que el clip |
    | enganchar (vídeo que vende) | `hook` | segundos 0,2–3; dos líneas; ver `references/ganchos.md` |
    | seguir un tutorial | `steps` | píldora "2 / 3 · paso" desde el primer paso hasta el último |
-   | "sale bien" | `before_after` | `before_t`/`after_t` del propio clip; 2–4 s, tras la frase de resultado |
+   | "sale bien" | `before_after` (+ `draw` check + `kinetic`) | `before_t`/`after_t` del propio clip; 2–4 s, tras la frase de resultado. `frame28 clips markers work/captions.json --lang es --words work/words.json --canvas … --side <free_side>` propone los tres en cada frase de resultado (y un `kinetic` en cada promesa); comprueba `before_t` con `frame28 frames` |
    | comprar | `cta` | últimos 3–5 s: precio, descuento, código, QR o "link in bio"; nunca antes de la demostración |
    | todo el video | `captions` (frase) o `caption_style` (`pages`/`karaoke`, por palabras) | por frase de `captions.json`; por palabras de `words.json` |
 
