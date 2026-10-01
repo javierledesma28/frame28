@@ -132,3 +132,16 @@ def test_hook_line_that_will_wrap_is_reported(tmp_path, grabado_short):
     hook["size"] = 74
     r = build.build_project(write_json(tmp_path / "storyboard.json", sb), tmp_path / "p2")
     assert not [x for x in r["warnings"] if x.startswith("hook ")]
+
+
+def test_highlighted_titles_get_taller_lines_for_accented_capitals(tmp_path, grabado_short):
+    # día 6: en la portada "Graba / ACRÍLICO" la caja de la primera línea tapaba la tilde de la Í
+    assert build.highlight_line_height(["ACRÍLICO", "fácil de grabar"], 1.12) == 1.12      # en la primera línea no molesta
+    assert build.highlight_line_height(["Graba", "ACRÍLICO"], 1.12) == 1.34
+    assert build.highlight_line_height(["Jetzt", "ÜBEN"], 1.15) == 1.37
+    assert build.highlight_line_height(["Graba", "acrílico"], 1.15) == 1.15                 # las minúsculas caben
+    sb = json.loads(json.dumps(grabado_short)); sb["brand"] = "think28"
+    hook = next(o for o in sb["overlays"] if o["type"] == "hook")
+    hook.pop("text", None); hook["lines"] = ["Graba", "ACRÍLICO"]
+    build.build_project(write_json(tmp_path / "storyboard.json", sb), tmp_path / "p")
+    assert "line-height:1.37;" in (tmp_path / "p" / "index.html").read_text(encoding="utf-8")

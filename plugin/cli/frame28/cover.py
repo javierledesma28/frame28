@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
-from .build import DEFAULT_BRAND, resolve_brand
+from .build import DEFAULT_BRAND, highlight_line_height, resolve_brand
 from .env import env_with_ffmpeg, npx, run
 
 
@@ -70,7 +70,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
       #root {{ position:relative; width:{W}px; height:{H}px; font-family:var(--sans); color:#fff; overflow:hidden; }}
       .bg {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:{fx * 100:.1f}% {fy * 100:.1f}%; transform:scale({zoom}); transform-origin:{fx * 100:.1f}% {fy * 100:.1f}%; }}
       .shade {{ position:absolute; inset:0; background:linear-gradient({"180deg" if H > W else "90deg"}, rgba(0,0,0,{darken + 0.25}) 0%, rgba(0,0,0,{darken}) 45%, rgba(0,0,0,0) 80%); }}
-      .title {{ position:absolute; left:{lay['x']}px; top:{lay['y']}px; width:{lay['w']}px; font-size:{lay['size']}px; font-weight:800; line-height:1.12; letter-spacing:-0.035em; text-align:{lay['align']}; }}
+      .title {{ position:absolute; left:{lay['x']}px; top:{lay['y']}px; width:{lay['w']}px; font-size:{lay['size']}px; font-weight:800; line-height:{highlight_line_height(lines, 1.12)}; letter-spacing:-0.035em; text-align:{lay['align']}; }}
       .title .hl {{ display:inline; padding:0.04em 0.28em 0.08em; box-decoration-break:clone; -webkit-box-decoration-break:clone; border-radius:0.16em; }}
       .title.accent .hl {{ background:var(--accent); color:var(--ink); }}
       .title.black .hl {{ background:rgba(10,10,10,.88); color:#fff; }}

@@ -171,6 +171,16 @@ CSS = """
 """
 
 
+TALL_CAPS = re.compile(r"[ÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÃÕÑÅ]")
+
+
+def highlight_line_height(lines: list[str], base: float) -> float:
+    """Interlineado de un título con resaltado por línea (gancho, portada). Cada línea va por encima de la siguiente
+    para no cortar los descendentes (g, y, p); por eso la caja de arriba tapa la tilde o la diéresis de una mayúscula
+    de la línea de abajo ("ACRÍLICO" se leía "ACRILICO"). Con más interlineado caben los dos."""
+    return round(base + 0.22, 2) if any(TALL_CAPS.search(t) for t in lines[1:]) else base
+
+
 HOOK_EM = 0.465   # medido en un short real: 20 caracteres a 96 px caben en 960 px; 21 se parten
 BUNDLED_BRANDS = Path(__file__).with_name("brands")
 USER_BRANDS = Path.home() / ".config" / "frame28" / "brands"
@@ -499,7 +509,9 @@ class Builder:
         # cada línea por encima de la siguiente: los descendentes (g, y, p) se pintan sobre la caja de abajo, no debajo
         inner = "".join(f'<div style="position:relative; z-index:{100 - k}"><span class="hl" id="{i}-l{k}">{esc(t)}</span></div>' for k, t in enumerate(lines))
         color = f" color:{o['color']};" if o.get("color") else ""
-        self.timed(o, f"inset:auto; left:{x}px; top:{y}px; width:{w}px; height:max-content; font-size:{size}px;{color}", cls=f"clip hook {bg}", inner=inner, z=6, track=4)
+        lh = highlight_line_height(lines, 1.15)
+        tall = f" line-height:{lh};" if lh != 1.15 else ""
+        self.timed(o, f"inset:auto; left:{x}px; top:{y}px; width:{w}px; height:max-content; font-size:{size}px;{color}{tall}", cls=f"clip hook {bg}", inner=inner, z=6, track=4)
         self.js.append(f'tl.set("#{i}", {{ opacity: 1 }}, {at});')
         for k in range(len(lines)):
             self.js.append(f'tl.fromTo("#{i}-l{k}", {{ opacity: 0, scale: 0.85 }}, {{ opacity: 1, scale: 1, duration: 0.22, ease: "back.out(2)" }}, {round(at + 0.12 * k, 3)});')
