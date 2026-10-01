@@ -127,8 +127,8 @@ def prep(video, out_dir, fps, width, denoise, lufs, as_json):
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
 @click.option("--lang", default="es", show_default=True)
 @click.option("--model", default="medium", show_default=True, help="tiny/base/small/medium/large-v3")
-@click.option("--device", default="cpu", show_default=True)
-@click.option("--compute", default="int8", show_default=True)
+@click.option("--device", default="auto", show_default=True, help="auto (GPU NVIDIA si está lista, si no CPU), cuda o cpu")
+@click.option("--compute", default="auto", show_default=True, help="auto: float16 en GPU, int8 en CPU")
 @click.option("--script", type=click.Path(exists=True), default=None, help="Guion en texto para sesgar nombres propios")
 @click.option("--json", "as_json", is_flag=True)
 def transcribe(audio, out_dir, lang, model, device, compute, script, as_json):

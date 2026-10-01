@@ -73,6 +73,12 @@ def doctor() -> list[dict]:
         add("gpu (onnxruntime)", "CUDAExecutionProvider" in provs, ", ".join(provs), "opcional: uv pip install onnxruntime-gpu + CUDA 12 para matting rápido", optional=True)
     except Exception:  # noqa: BLE001
         pass
+    try:
+        from .env import cuda_ready
+        ok_gpu, why_gpu = cuda_ready()
+        add("gpu (transcripción)", ok_gpu, why_gpu, 'opcional: uv tool install --editable "<ruta>/plugin/cli[gpu]" --python 3.12 --reinstall (librerías CUDA, más de 1 GB); sin ellas `transcribe` va por CPU', optional=True)
+    except Exception:  # noqa: BLE001
+        pass
     add("modelo RVM", RVM_MODEL_PATH.exists(), str(RVM_MODEL_PATH), "se descarga solo (15 MB) la primera vez que se use `frame28 matte`", optional=True)
     try:
         from .broll import providers_available

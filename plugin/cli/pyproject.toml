@@ -19,6 +19,14 @@ dependencies = [
   "segno>=1.6",
 ]
 
+[project.optional-dependencies]
+# Transcripción en GPU NVIDIA: las librerías de CUDA 12 que ctranslate2 (faster-whisper) carga en tiempo de ejecución.
+# uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --reinstall   (más de 1 GB; sin esto todo va por CPU)
+gpu = [
+  "nvidia-cublas-cu12; sys_platform != 'darwin'",
+  "nvidia-cudnn-cu12>=9,<10; sys_platform != 'darwin'",
+]
+
 [project.scripts]
 frame28 = "frame28.cli:run"
 

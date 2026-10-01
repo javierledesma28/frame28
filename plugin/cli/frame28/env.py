@@ -75,6 +75,59 @@ def env_with_ffmpeg() -> dict:
     return env
 
 
+def cuda_dll_dirs() -> list[Path]:
+    """Carpetas con las librerías de CUDA instaladas como paquetes pip (`nvidia-cublas-cu12`, `nvidia-cudnn-cu12`):
+    site-packages/nvidia/<lib>/bin en Windows, .../lib en Linux."""
+    try:
+        import nvidia
+        roots = [Path(p) for p in nvidia.__path__]
+    except Exception:  # noqa: BLE001  el extra `gpu` no está instalado
+        return []
+    out: list[Path] = []
+    for r in roots:
+        for d in sorted(r.glob("*/bin")) + sorted(r.glob("*/lib")):
+            if any(d.glob("*.dll")) or any(d.glob("*.so*")):
+                out.append(d)
+    return out
+
+
+def enable_cuda_dlls() -> list[str]:
+    """Deja las librerías de CUDA localizables para ctranslate2, que las carga por nombre al usar la GPU."""
+    dirs = cuda_dll_dirs()
+    for d in dirs:
+        if hasattr(os, "add_dll_directory"):
+            try:
+                os.add_dll_directory(str(d))
+            except OSError:
+                pass
+        if str(d) not in os.environ.get("PATH", ""):
+            os.environ["PATH"] = str(d) + os.pathsep + os.environ.get("PATH", "")
+    return [str(d) for d in dirs]
+
+
+def cuda_ready() -> tuple[bool, str]:
+    """¿Puede faster-whisper usar la GPU? Hace falta un dispositivo CUDA (driver de NVIDIA) y las librerías cuBLAS y
+    cuDNN. Devuelve (sí/no, motivo en una línea)."""
+    try:
+        import ctranslate2
+        n = ctranslate2.get_cuda_device_count()
+    except Exception as e:  # noqa: BLE001
+        return False, f"ctranslate2 no disponible ({type(e).__name__})"
+    if n < 1:
+        return False, "sin GPU NVIDIA con driver CUDA"
+    dirs = enable_cuda_dlls()
+    if os.name == "nt":
+        import ctypes
+        for lib in ("cublas64_12.dll", "cudnn64_9.dll"):
+            try:
+                ctypes.WinDLL(lib)
+            except OSError:
+                return False, f"GPU detectada, falta {lib} (instala el extra: frame28[gpu])"
+    elif not dirs:
+        return False, "GPU detectada, faltan cuBLAS/cuDNN (instala el extra: frame28[gpu])"
+    return True, f"{n} GPU CUDA con cuBLAS y cuDNN"
+
+
 def ensure_rvm_model() -> Path:
     if RVM_MODEL_PATH.exists():
         return RVM_MODEL_PATH
