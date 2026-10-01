@@ -251,6 +251,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   `/kb`, `/curso`, `/en/kb`, `/en/course` (hasta entonces nginx devuelve 404 ahí) y Turnstile. frame28.t28.io sigue en
   GitHub Pages para el plugin.
 - El roadmap público vive en `docs/roadmap/index.html` con sus datos inline; no hay otra copia de los estados.
+- **Identidad (Think28 ID para Frame28)**: tenant externo propio `frame28ciam.onmicrosoft.com` (Microsoft Entra External ID,
+  creado el 2026-10-01; no es el de Synapse28, por decisión de Javier) con las apps `frame28-api`, `frame28-web` y
+  `frame28-claude-code` (cliente público PKCE para el `.mcp.json` del plugin). Identificadores, pendientes y scripts en el repo
+  `frame28-app` (`docs/identidad.md`, `scripts/identidad/`); aquí solo se consume: el plugin v0.5 apuntará a ese tenant.
 
 ## Trampas ya sufridas (no repetir)
 

@@ -42,6 +42,7 @@ vende el servicio: reescribirla es la **fase 0**.
 | Qué | Evidencia |
 |---|---|
 | Enfoque de producto | **Giro del 2026-10-01 (noche)**: de servicio a plataforma (plugin de pago + frame28.app como panel). Definición en `research/08` con las **seis decisiones de Javier respondidas** y los **precios fijados** (Creator 79 · Brand 199 · Agency 499 USD/mes, anual ×10; Studio 990 pago único y 2.490/mes) y el **control de uso** (§7 bis: el plugin es una cáscara que solo funciona autenticado; el método del director y la Memoria se sirven por MCP según el plan; cuenta gratuita obligatoria para probar). **La landing en vivo ya vende la plataforma** (fase 0 desplegada el 2026-10-01 ~23:05). La plataforma se construye en el repo privado `javierledesma28/frame28-app` (`C:\Workspaces\personal\frame28-app`, inicializado con README, CLAUDE.md, HANDOFF y `docs/plataforma.md`) |
+| Identidad (Think28 ID para Frame28) | **Tenant externo `frame28ciam.onmicrosoft.com`** (`e26abf56-cc6a-4338-9fbf-732c7cc9bc94`, Entra External ID, Europa/ES) creado el 2026-10-01 por API con la sesión de `javier@t28.io`; apps `frame28-api` (scope `frame28.access`), `frame28-web`, `frame28-claude-code` (público, PKCE) y `frame28-admin-tools` con preautorización y consentimiento. **Pendientes**: flujo de alta/entrada (Graph 400), secreto de la web, Google, y mover el recurso Azure de `sub-azurehub-prod` a una `sub-frame28-prod` que Javier debe crear en el portal. Todo en `C:\Workspaces\personal\frame28-app` (`docs/identidad.md`, `scripts/identidad/`, su HANDOFF) |
 | Versión publicada | **v0.4.0** (release en GitHub, tag en `4e7a6cb`); 0.4.0 en `__init__.py`, `plugin.json`, `marketplace.json`, README |
 | CLI | `frame28 --version` 0.4.0 (editable, con extra `gpu`); `frame28 doctor` «Todo listo», incluida la fila nueva **gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN**; opcionales en aspa: gpu (onnxruntime) y claves de B-roll |
 | Pruebas | **114 passed en ~3,7 s** (`cd plugin/cli && uv run --group dev pytest`) |
@@ -163,14 +164,21 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    revisión» en las condiciones (`CONFIG["terms_draft"]`), `site.css` con `.term` y `.notice`; verificado en vivo. **Repo
    `frame28-app`** (privado, creado por Javier) inicializado y subido por SSH con README, CLAUDE.md, HANDOFF y
    `docs/plataforma.md`. Nada de código de la plataforma todavía.
+9. **Identidad de Frame28 creada** (en el repo `frame28-app`, con autenticación interactiva de Javier por códigos de dispositivo
+   y el resto por API): tenant externo `frame28ciam`, cuatro app registrations con scope, preautorización y consentimiento.
+   Lo que no salió: la suscripción `sub-frame28-prod` por API (la cuenta de facturación es MOSP: portal) y el flujo de
+   alta/entrada por Graph (400 con permisos correctos; reintentar o centro de administración). Detalle, scripts y pasos en
+   `frame28-app/HANDOFF.md`, `docs/identidad.md` y `scripts/identidad/README.md`. `az` quedó con la suscripción por defecto
+   `sub-azurehub-prod` y una cuenta de nivel de tenant en `frame28ciam`.
 
 ## Lo que toca ahora (en este orden)
 
-**Antes que nada: la plataforma.** Las seis decisiones de `research/08` §14 están respondidas y la **fase 0 está hecha** (la
-landing en vivo vende la plataforma). Lo siguiente vive en el repo **`frame28-app`** (`C:\Workspaces\personal\frame28-app`,
-leer su `HANDOFF.md`): (a) lo que solo Javier puede crear — **tenant propio de Entra External ID para Frame28** (no el de
-Synapse28), productos en Paddle, bucket R2, dominio de email —, (b) el *spike* de un día (MCP remoto mínimo con OAuth del
-tenant nuevo → `/mcp` en Claude Code → Paddle sandbox), (c) la fase 1. En **este** repo, lo que toca para la plataforma es la
+**Antes que nada: la plataforma.** Las seis decisiones de `research/08` §14 están respondidas, la **fase 0 está hecha** (la
+landing en vivo vende la plataforma) y la **identidad está creada** (tenant `frame28ciam` y sus apps). Lo siguiente vive en el
+repo **`frame28-app`** (`C:\Workspaces\personal\frame28-app`, leer su `HANDOFF.md`): (a) cerrar el **flujo de alta/entrada**
+(reintento por API o centro de administración) y que Javier cree **`sub-frame28-prod`** en el portal para mover allí el
+recurso del tenant, (b) el *spike* de un día (MCP remoto mínimo validando los JWT del tenant → `/mcp` en Claude Code con el
+cliente público `frame28-claude-code` → Paddle sandbox), (c) Paddle, R2, email, Google como proveedor, (d) la fase 1. En **este** repo, lo que toca para la plataforma es la
 **v0.5 del plugin como cáscara** (`.mcp.json` remoto, `hooks.json`, skills mínimas que llaman a `frame28_start`, `frame28
 deliver`, `frame28 context apply`, `frame28 license set/whoami`): se hace cuando el MCP del spike responda. Los puntos
 siguientes siguen valiendo; el 3 (formulario, Access, Turnstile) se hace sobre el sitio estático y se hereda en la app.
@@ -236,6 +244,9 @@ artículos de la KB y el curso siguen escritos para el servicio (reescribir con 
 | Bloqueo o duda | Dueño | Qué lo desbloquea |
 |---|---|---|
 | Token de API de Cloudflare: creado y en `CLOUDFLARE_API_TOKEN`, pero sin `Cloudflare Tunnel`, `Access: Organizations` ni `Email Routing` (401/403 comprobados) | Javier | Añadir esas tres filas al token (y `CLOUDFLARE_ACCOUNT_ID=237f15b5e4fa24ef5465ae87da6986de` al entorno), o hacer esos pasos en el panel |
+| Suscripción `sub-frame28-prod` (la API de facturación de la cuenta MOSP no la deja crear) | Javier | Portal → Suscripciones → Agregar; después Claude mueve o vincula `rg-frame28-identity-prod` (ver `frame28-app/HANDOFF.md` punto 2) |
+| Flujo de alta/entrada del tenant `frame28ciam` (Graph 400) | Claude / Javier | Reintentar `frame28-app/scripts/identidad/flow_devicecode.py` o crearlo en el centro de administración (dos minutos) |
+| «Entrar con Google» en el tenant | Javier | Cliente OAuth en Google Cloud (Think28) con el redirect del tenant (ver `frame28-app/HANDOFF.md` punto 4) |
 | Activación del Email Service (beta) y verificación del remitente `hola@frame28.app` | Javier al desplegar | Si la API no lo permite, un paso en el panel; el código solo toca `contact.js::sendMail` |
 | Despliegue automático al hacer push | Javier | Conectar GitHub en el panel de Pages (OAuth) o crear un segundo token estrecho (`Cloudflare Pages → Edit`) para una GitHub Action |
 | Decisión (b): versionar `clip-acrilico` anonimizado o dejarlo en `_private/` | Javier | Responderla al retomar (las muestras ya están copiadas en `_private/cliente-a/muestras/`) |
