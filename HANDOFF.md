@@ -108,8 +108,9 @@ Decisiones conscientes:
 
 1. **Precios y capas de `research/07` §2: validados por Javier el 2026-10-01** ("están bien"). Son la base de la
    landing, que será la fuente pública cuando exista; cualquier cambio futuro se hace primero en `research/07` §2.
-2. **Landing frame28.app**: no existe todavía la carpeta `site/`; el dominio está en Cloudflare; la arquitectura y
-   las rutas están en `research/07` §5. Es el día 2 del plan.
+2. **Landing frame28.app**: los textos están en `site/content/` (ES y EN); falta el HTML, el formulario (Pages
+   Functions + Email Service) y el despliegue en Cloudflare Pages con el dominio. Arquitectura y rutas en
+   `research/07` §5. Es el día 2 del plan.
 3. **Propuesta a Cliente A**: borrador en inglés en `research/07` anexo; no enviada. El caso (largo, shorts,
    portada, ES) existe en `poc/clip-grabado/out` pero no hay permiso para publicarlo.
 4. **Base de conocimiento y mini curso**: solo planificados (`research/07` §4); las fuentes ya existen en
@@ -149,9 +150,12 @@ Deuda técnica, por orden:
 
 Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
 
-1. **Día 1 — validar y escribir.** Precios validados (2026-10-01). Queda lo de Claude: textos de la landing en ES y EN
-   (promesa "Envías un vídeo. Recibes la campaña." / "Send the video. Get the campaign."), contrato base y
-   derechos (material del cliente, stock con licencia por vídeo, entregables del cliente).
+1. **Día 1 — validar y escribir.** Precios validados (2026-10-01). Textos de la landing en ES y EN escritos en
+   `site/content/landing.es.md` y `landing.en.md` (hero, para quién, tres pasos, entregables, precios con las cifras
+   de `research/07` §2, Fundadores, caso en dos versiones (con permiso / anónima), cómo lo hacemos, roadmap, FAQ,
+   contacto con microcopy del formulario, pie, páginas /fundadores y /contacto, textos cortos). Huecos `[[…]]`:
+   plazas de Fundadores, enlaces a las muestras, buzón `hola@frame28.app` por confirmar. Queda el **contrato base
+   y derechos** (material del cliente, stock con licencia por vídeo, entregables del cliente).
 2. **Día 2 — landing.** Carpeta `site/` con `/`, `/fundadores`, `/casos/cliente-a` (privada hasta el permiso),
    `/contacto` (Pages Functions + Email Service), redirecciones `/roadmap` y `/plugin`. Cloudflare Pages con raíz
    `site/` y dominio frame28.app (skills `cloudflare`, `wrangler`, `cloudflare-email-service` disponibles).
