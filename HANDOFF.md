@@ -44,10 +44,10 @@ que Javier va a crear (permisos acordados en §Cloudflare). La zona DNS de `fram
 | Sitio del producto | `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 5 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). **No desplegado** |
 | Web del plugin | frame28.t28.io `/`, `/roadmap/`, `/instalar/`, `/install.ps1` → HTTP 200 |
 | frame28.app | zona activa en Cloudflare; `curl` no obtiene respuesta (sin origen): esperado |
-| Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**39 hechos, 4 a medias, 22 pendientes**; los 9 hechos tras la 0.4.0 cuelgan de la 0.5.0); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai pendiente de republicar |
+| Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**39 hechos, 4 a medias, 22 pendientes**; los 9 hechos tras la 0.4.0 cuelgan de la 0.5.0); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai republicado (versión 6) |
 | Actualización de usuarios | **verificado en un entorno aislado**: `uv tool upgrade frame28` mueve una instalación desde git al último commit en 14 s aunque la versión no cambie; repetir el instalador (`--force`) también. `claude plugin update` solo actúa si cambia la versión del plugin |
 | Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); HyperFrames 0.8.72 pineado (0.8.105 publicada); GSAP 3.14.2 (3.15.0 publicada) |
-| Git | `main` 8 por delante de `origin/main`; `gh` con la cuenta personal `javierledesma28` activa (la correcta para push); rama `origin/main-ky21ae` obsoleta, borrable |
+| Git | `main` = `origin/main` (push del 2026-10-01 a las 21:05, 10 commits); CI de GitHub Actions en verde (`tests`, 19 s); `gh` vuelve a la cuenta corporativa tras cada push (`gh auth switch --user javierledesma28` antes del siguiente); rama `origin/main-ky21ae` obsoleta, borrable |
 | Casos reales | `poc/clip-javier`, `clip-auriculares`, `clip-whatsapp`, `clip-demo`, `clip-grabado` (versionados: README, storyboard, cuts) y **`poc/clip-acrilico` (solo local, nada versionado)** |
 
 ## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
@@ -129,8 +129,8 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 
 ## Lo que toca ahora (en este orden)
 
-1. **Push de los 8 commits.** `git fetch origin && git status -sb` (debe seguir `ahead 8`, sin `behind`),
-   `gh auth status` (activa `javierledesma28`; si no, `gh auth switch --user javierledesma28`), `git push origin main`.
+1. **Revisar la segunda muestra** del Cliente A en movimiento y de oído (lista en `_private/cliente-a/dia6-estado.md`;
+   copias en `_private/cliente-a/muestras/`). Hasta entonces no se envía nada.
 2. **Token de Cloudflare** (Javier lo crea con los permisos de §Cloudflare y lo deja en la variable de entorno de usuario
    `CLOUDFLARE_API_TOKEN`, más `CLOUDFLARE_ACCOUNT_ID`; hay que reiniciar la app de Claude para que la shell lo vea).
    Primero verificación de solo lectura: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
@@ -181,7 +181,7 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
    `--no-render` y los shorts se renderizaron uno a uno), `reframe-map` con gestos reales, `reframe --mode crop` con
    hablante en movimiento. `clips markers` sí se ejecutó sobre un vídeo real (`poc/clip-acrilico/work/markers.json`).
 8. **Fila de `doctor` «última release»** — propuesta, no hecha (punto 5 de la lista anterior).
-9. **CI** — `.github/workflows/tests.yml` pasa la suite del CLI en cada push; sin verificar todavía en GitHub (primer push pendiente).
+9. **CI** — `.github/workflows/tests.yml` pasa la suite del CLI en cada push (verificada en verde el 2026-10-01; la primera ejecución falló porque el checkout de Actions vive en `/home/runner/work/` y el filtro de conftest excluía rutas con «work»).
 
 ## Bloqueos y dudas
 
@@ -226,8 +226,7 @@ Browser Rendering, Secrets Store y Email Sending no figuraban en esa página.
 ## Para retomar sin sorpresas
 
 ```bash
-git fetch origin && git status -sb            # main...origin/main [ahead 8] y árbol limpio; si hay `behind`, mirar qué subió la nube antes de tocar nada
-git log --oneline origin/main..main           # los 8 commits de la tarde y el cierre del 2026-10-01
+git fetch origin && git status -sb            # main...origin/main y árbol limpio; si hay `behind`, mirar qué subió otra sesión antes de tocar nada
 frame28 doctor                                # "Todo listo."; filas gpu (transcripción) ✓, gpu (onnxruntime) y claves de B-roll en aspa (opcionales)
 claude plugin validate C:/Workspaces/personal/Skill-Director/plugin   # Validation passed (ruta absoluta: un `cd` previo en la sesión lo rompe)
 (cd plugin/cli && uv run --group dev pytest)  # 114 passed en ~3 s
