@@ -21,7 +21,7 @@ EXCL=(--exclude='site/src' --exclude='site/content' --exclude='site/functions' -
       --exclude='site/README.md' --exclude='site/wrangler.toml' --exclude='site/_headers' --exclude='site/_redirects')
 
 # sha256sum en Git Bash escribe «hash *ruta» (modo binario) y en Linux «hash  ruta»: se normaliza para comparar.
-norm() { sed -E 's/^([0-9a-f]{64}) \*?/\1  /'; }
+norm() { sed -E 's/^([0-9a-f]{64}) [ *]/\1  /'; }
 manifest_local() {
   local tmp; tmp=$(mktemp -d)
   git archive HEAD site | tar -x -f - -C "$tmp" "${EXCL[@]}"
