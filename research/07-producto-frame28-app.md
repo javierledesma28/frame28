@@ -132,6 +132,11 @@ frame28.app".
 | 6 | Montar el tutorial de acrílico del Cliente A como muestra del piloto, con español y alemán | Segunda muestra |
 | 7 | Enviar la propuesta al Cliente A (buzón de partners y fundador por LinkedIn; datos fuera del repo); abrir el programa Fundadores | Primer contacto hecho |
 
+**Estado al 2026-10-01 (sesión en la nube):** días 1–5 hechos salvo lo que exige el PC (claves de B-roll, render);
+día 6 preparado (brief, guion y plantilla, privados); día 7 preparado (paquete de envío privado y
+`site/content/lanzamiento.md`). Falta: desplegar el sitio con Access, grabar la lección 1, renderizar la muestra de
+acrílico y enviar.
+
 Dependencias del usuario: acceso a Cloudflare para Pages, Access y Email Service (lo despliega Javier o autoriza
 cada paso); permiso del Cliente A para publicar el caso (hasta entonces, la página del caso es privada);
 grabarse para la lección 1.

@@ -4,7 +4,8 @@ Estático, servido por **Cloudflare Pages** desde esta carpeta, sin build en el 
 con `build.py` y se commitea. El plugin abierto sigue en frame28.t28.io (GitHub Pages sobre `docs/`).
 
 ```
-content/      textos fuente: landing.{es,en}.md (referencia editorial), condiciones.es.md y terms.en.md (se convierten a HTML)
+content/      textos fuente: landing.{es,en}.md (referencia editorial), condiciones.es.md y terms.en.md (se convierten a HTML),
+              lanzamiento.md (posts y emails de lanzamiento y apertura de Fundadores; no se publica como página)
 content/kb/{es,en}/NN-slug.md       base de conocimiento (8 artículos por idioma) → /kb/<slug>/ y /en/kb/<slug>/
 content/curso/{es,en}/NN-slug.md    curso online (6 lecciones por idioma) → /curso/<slug>/ y /en/course/<slug>/
               cabecera de cada .md: title, summary, order, minutes, tier (all|team) y, en el curso, video (URL del

@@ -114,6 +114,10 @@ Anonimización del cliente en árbol e historial (ver §Confidencialidad); propu
 base de conocimiento (8×2) y curso online (6×2) en `site/`, incluidos en todas las capas de pago, con el
 generador extendido (`render_section`: índices, páginas, anterior/siguiente, bloque de vídeo, noindex).
 Día 5 (nube): `log.py` + `frame28 report`, `clips batch`, ganchos `statement`, fila de B-roll en `doctor`, 90 pruebas.
+Día 6 (nube): brief diferencial, guion de montaje con disparadores y plantilla de storyboard del segundo vídeo del
+cliente (privados); método capitalizado en `references/marca-y-promocional.md` §4. Día 7 (nube): paquete de envío
+privado y textos de lanzamiento públicos. **Estado del plan de siete días al cerrar la sesión:** días 1–5 hechos
+en lo que no exige el PC; 6 y 7 preparados y pendientes de ejecución por Javier (render de la muestra, envío).
 
 ## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
 
@@ -219,7 +223,11 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
    search`/`fetch` reales, y pasar `clips batch` con render sobre `poc/clip-demo` (en la nube no hay HyperFrames ni red al CDN).
 6. **Día 6 — muestra de acrílico.** `frame28 fetch` del segundo tutorial del Cliente A, flujo de vídeo producido
    (`graphics`, marca `cliente-a` regenerada con `brand from-site`), largo, shorts, portada, ES y DE.
-7. **Día 7 — enviar.** Propuesta al Cliente A (buzón de partners y fundador por LinkedIn; datos fuera del repo); abrir Fundadores.
+7. **Día 7 — enviar.** Preparado, no enviado (lo envía Javier): paquete privado con lista previa de 11 puntos,
+   email final, nota y mensaje de LinkedIn, seguimientos a los días 5 y 12 y respuestas según contesten (fuera del
+   repo). Textos públicos de lanzamiento y apertura de Fundadores en `site/content/lanzamiento.md` (LinkedIn ES/EN,
+   post corto, email a contactos, tarjeta t28.io). **Nada sale hasta que el sitio esté en vivo con Access activo,
+   las muestras en carpeta privada, las condiciones sin huecos y los tags del repo movidos.**
 
 Después de la semana: resto de la v0.4.0 (doblaje/TTS, marcadores de resultado, `hooks_for`) y
 mantener el roadmap cambiando el estado de cada ítem en el array `ROADMAP` de `docs/roadmap/index.html`, regenerar
