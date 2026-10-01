@@ -22,12 +22,16 @@ def transcribe(audio: str | Path, out_dir: str | Path, lang: str = "es", model: 
     if script:
         kw["initial_prompt"] = script[:800]
     segs, info = m.transcribe(str(audio), **kw)
-    words, phrases = [], []
+    words, segments = [], []
     for s in segs:
-        phrases.append({"start": round(s.start, 3), "end": round(s.end, 3), "text": s.text.strip()})
+        segments.append({"start": round(s.start, 3), "end": round(s.end, 3), "text": s.text.strip()})
         for w in (s.words or []):
             words.append({"text": w.word.strip(), "start": round(w.start, 3), "end": round(w.end, 3),
                           "prob": round(w.probability, 3)})
+    # captions.json por frase completa (partida por comas y conjunciones si no cabe en dos líneas), no por los
+    # segmentos de Whisper: cortan cada ~4,5 s a mitad de frase y rompen subtítulos, tramos de shorts y traducción
+    from .captions import phrase_captions
+    phrases = phrase_captions(words, lang=lang) if words else segments
     # 1) words.json (Frame28)
     (out / "words.json").write_text(json.dumps(words, indent=1, ensure_ascii=False), encoding="utf-8")
     # 2) captions.json: frases para subtítulos

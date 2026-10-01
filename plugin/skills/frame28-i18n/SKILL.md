@@ -17,11 +17,13 @@ frame28 i18n extract work/storyboard.json --captions work/captions.json -o work/
 frame28 i18n apply work/storyboard.json work/strings.en.json --lang en
 # → work/storyboard.en.json (+ work/words.en.json si los subtítulos son por palabras)
 frame28 build work/storyboard.en.json -o work/project-en && frame28 check work/project-en && frame28 render work/project-en -o out/video-en.mp4
-frame28 captions export work/words.en.json -o out/video-en.srt      # subtítulos aparte para la plataforma
+frame28 captions export work/storyboard.en.json -o out/video-en.srt # subtítulos aparte para la plataforma (por frase)
+frame28 captions export work/words.en.json -o out/video-en.srt      # ídem si son por palabras (pages/karaoke)
 ```
 
 `extract` da, por cada texto, la clave, el tipo de overlay, el instante y un **límite orientativo de caracteres**
-(`max_chars`): una caja de 26 caracteres en inglés no admite 40 en alemán. `apply` avisa si te pasas un 35 %.
+(`max_chars`): una caja de 26 caracteres en inglés no admite 40 en alemán. `apply` avisa si te pasas un 35 %, y de cada subtítulo traducido que pasa de 21 caracteres por segundo (con la
+densidad del original al lado): el español y el alemán salen un 15–30 % más largos y la frase dura lo mismo.
 
 ## Cómo traducir (criterio de subtitulador, no de traductor)
 
@@ -35,6 +37,12 @@ frame28 captions export work/words.en.json -o out/video-en.srt      # subtítulo
   palabras traducidas sobre los inicios de las palabras originales, así las pausas caen donde caían. Mantén el
   orden de ideas dentro de la frase para que "ahora" salga cuando el hablante dice "now".
 - **Puntuación**: conserva puntos y comas al final de frase; el paginado corta ahí.
+- **Condensa, no traduzcas palabra por palabra**: mide con `frame28 captions export work/storyboard.<lang>.json`
+  (`mean_cps`, `max_cps`). La referencia es no superar la densidad del original; una narradora rápida en inglés va ya
+  a 17 caracteres por segundo. "Eines meiner Lieblingsmaterialien," en 1,2 s no se lee; "Ein Lieblingsmaterial," sí.
+- **Cinéticos**: cada entrada `lines.N.M.text` es una palabra del original con su instante; se mantiene el número de
+  entradas, pero una entrada puede llevar dos palabras ("von Hand"). En alemán, dos palabras por línea como mucho.
+- **Español para varios mercados**: evita localismos ("mola", "coger el truco", "móvil"); "marcador", "teléfono".
 - **Tratamiento**: tú/usted según la marca (en su web); en duda, tú para DIY y consumo.
 - No traduzcas lo que esté quemado en el vídeo original (rótulos del editor): no puedes cambiarlo, y duplicarlo
   traducido encima confunde; si molesta, tápalo con un `box` en el nuevo idioma.

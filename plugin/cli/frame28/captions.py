@@ -187,6 +187,106 @@ def cues(words: list[dict], max_chars: int = 42, max_lines: int = 2, max_dur: fl
     return out
 
 
+# Palabras por las que se puede partir una frase larga sin romper una idea (la parte nueva empieza por ellas).
+JOINTS = {
+    "en": {"and", "so", "because", "where", "that", "once", "when", "until", "as", "to", "with", "into", "but", "or", "which", "while", "if", "anything"},
+    "es": {"y", "e", "pero", "porque", "que", "cuando", "donde", "para", "aunque", "mientras", "hasta", "como", "si", "o", "ni", "así", "con"},
+}
+
+
+def _text(ws: list[dict]) -> str:
+    return " ".join(w["text"].strip() for w in ws)
+
+
+def sentences(words: list[dict], max_gap: float = 1.5) -> list[list[dict]]:
+    """Palabras agrupadas por frase completa: corte en `. ! ? …` o en una pausa de más de `max_gap` s (transcripciones
+    sin puntuación). Es la unidad con la que se eligen tramos y se buscan momentos; los subtítulos la parten después."""
+    out: list[list[dict]] = []
+    cur: list[dict] = []
+    for w in words:
+        if cur and w["start"] - cur[-1]["end"] > max_gap:
+            out.append(cur); cur = []
+        cur.append(w)
+        if w["text"].strip()[-1:] in END_PUNCT:
+            out.append(cur); cur = []
+    if cur:
+        out.append(cur)
+    return out
+
+
+def _split_clause(ws: list[dict], max_chars: int, joints: set[str]) -> list[list[dict]]:
+    """Parte una frase larga por la coma o la conjunción más cercana al centro; nunca deja trozos de una o dos palabras."""
+    text = _text(ws)
+    if len(text) <= max_chars or len(ws) < 6:
+        return [ws]
+    best = None
+    for i in range(3, len(ws) - 2):
+        comma = ws[i - 1]["text"].strip()[-1:] in SOFT_PUNCT
+        if not comma and ws[i]["text"].strip(" .,;:!?¿¡").lower() not in joints:
+            continue
+        a = len(_text(ws[:i]))
+        score = abs(a - (len(text) - a - 1)) - (12 if comma else 0)
+        if best is None or score < best[0]:
+            best = (score, i)
+    i = best[1] if best else len(ws) // 2
+    return _split_clause(ws[:i], max_chars, joints) + _split_clause(ws[i:], max_chars, joints)
+
+
+def phrase_captions(words: list[dict], max_chars: int = 84, lang: str = "en", min_dur: float = 1.0) -> list[dict]:
+    """Subtítulos por frase a partir de las palabras: una entrada por frase completa y, si no cabe en dos líneas
+    (`max_chars`), partida por comas y conjunciones. Cada entrada lleva `sent` (índice de su frase) para que
+    `clips plan` y `clips markers` trabajen con frases enteras. Los segmentos de Whisper cortan cada ~4,5 s, a mitad
+    de frase cuando la transcripción trae pocas comas: no sirven ni para subtitular ni para traducir."""
+    joints = JOINTS.get(lang, set()) | (JOINTS["en"] if lang != "en" else set())
+    out: list[dict] = []
+    for n, sent in enumerate(sentences(words)):
+        for part in _split_clause(sent, max_chars, joints):
+            out.append({"start": round(part[0]["start"], 3), "end": round(part[-1]["end"], 3), "text": _text(part), "sent": n})
+    for k, c in enumerate(out):     # duración mínima cuando hay sitio, y sin solapes
+        nxt = out[k + 1]["start"] if k + 1 < len(out) else None
+        end = max(c["end"], c["start"] + min_dur)
+        c["end"] = round(min(end, nxt - 0.04) if nxt is not None else end, 3)
+        c["end"] = max(c["end"], round(c["start"] + 0.3, 3))
+    return out
+
+
+def group_sentences(caps: list[dict]) -> list[dict]:
+    """Frases completas a partir de entradas de captions.json: junta las que comparten `sent` y, si no lo traen
+    (transcripciones antiguas o segmentos de Whisper), las consecutivas hasta la puntuación final."""
+    out: list[dict] = []
+    cur: dict | None = None
+    for c in caps:
+        same = cur is not None and (c.get("sent") == cur.get("sent") if "sent" in c and "sent" in cur
+                                    else cur["text"].strip()[-1:] not in END_PUNCT)
+        if same:
+            cur["end"] = c["end"]; cur["text"] = cur["text"].rstrip() + " " + c["text"].strip()
+        else:
+            if cur is not None:
+                out.append(cur)
+            cur = {**c, "text": c["text"].strip()}
+    if cur is not None:
+        out.append(cur)
+    return out
+
+
+def caption_cues(caps: list[dict], max_chars: int = 42, max_lines: int = 2, max_cps: float = 17.0) -> list[dict]:
+    """Cues SRT/VTT a partir de subtítulos por frase ya decididos (los `captions` de un storyboard, traducido o no):
+    mismos tiempos, líneas equilibradas y los avisos de legibilidad de `cues()`."""
+    out = []
+    for c in caps:
+        text = (c.get("text") or "").strip()
+        if not text:
+            continue
+        lines = _split_lines(text, max_chars, max_lines)
+        dur = float(c["end"]) - float(c["start"])
+        cps = round(len(text.replace(" ", "")) / dur, 1) if dur > 0 else 0.0
+        warns = ([f"cps {cps} > {max_cps}"] if cps > max_cps else []) + \
+                ([f"línea de {max(map(len, lines))} > {max_chars}"] if max(map(len, lines)) > max_chars else [])
+        out.append({"start": round(float(c["start"]), 3), "end": round(float(c["end"]), 3), "text": text, "lines": lines,
+                    "cps": cps, "warnings": warns})
+    return out
+
+
 def _split_lines(text: str, max_chars: int, max_lines: int) -> list[str]:
     if len(text) <= max_chars:
         return [text]
@@ -228,11 +328,27 @@ def write_vtt(cs: list[dict], path: str | Path) -> Path:
 
 
 def export(words_path: str | Path, out_path: str | Path, **rules) -> dict:
-    """`frame28 captions export`: words.json → .srt o .vtt (por la extensión) con las reglas dadas."""
-    ws = load_words(words_path)
-    cs = cues(ws, **rules)
+    """`frame28 captions export`: words.json → .srt o .vtt (por la extensión) con las reglas dadas. También acepta un
+    storyboard: exporta sus subtítulos por frase tal cual (es la única fuente en una versión traducida, que no tiene
+    words.json propio) o, si son por palabras, sigue `caption_style.words`."""
+    src = Path(words_path)
+    data = _read_json(src)
+    ws: list[dict] = []
+    source = "words"
+    if isinstance(data, dict) and "overlays" in data:
+        style = data.get("caption_style") or {}
+        if style.get("words"):
+            ws = load_words(src.parent / style["words"])
+            cs = cues(ws, **rules)
+        else:
+            source = "storyboard"
+            cs = caption_cues(data.get("captions") or [], **{k: v for k, v in rules.items() if k in ("max_chars", "max_lines", "max_cps")})
+    else:
+        ws = normalize_words(data, source=src.name)
+        cs = cues(ws, **rules)
     out = Path(out_path)
     (write_vtt if out.suffix.lower() == ".vtt" else write_srt)(cs, out)
     warns = [f"cue {k + 1} ({c['start']}s): {'; '.join(c['warnings'])}" for k, c in enumerate(cs) if c["warnings"]]
-    return {"output": str(out), "cues": len(cs), "words": len(ws),
-            "max_cps": max((c["cps"] for c in cs), default=0.0), "warnings": warns}
+    cps = [c["cps"] for c in cs]
+    return {"output": str(out), "cues": len(cs), "words": len(ws), "source": source,
+            "max_cps": max(cps, default=0.0), "mean_cps": round(sum(cps) / len(cps), 1) if cps else 0.0, "warnings": warns}

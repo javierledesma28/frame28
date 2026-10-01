@@ -61,7 +61,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     graphics.py                   RapidOCR: texto ya presente en el vídeo, marca de agua, tarjetas, zonas libres 3x3, colisiones
     reframe.py                    apaisado → 9:16/1:1: crop siguiendo la cara (zona muerta, suavizado) o blur; map_gestures/map_canvas_point
                                   (`reframe-map`: pointers y puntos del lienzo apaisado al vertical sin repetir la detección)
-    captions.py                   default_canvas, paginado por palabras (pages/karaoke), cues SRT/VTT legibles
+    captions.py                   default_canvas, paginado por palabras (pages/karaoke), cues SRT/VTT legibles, subtítulos por frase
+                                  completa (`phrase_captions`, con `sent`) y exportación desde un storyboard (versiones traducidas)
     broll.py                      Pexels/Pixabay (claves en env o ~/.config/frame28/keys.json), sidecar de licencia, recorte
     clips.py                      fábrica de shorts: tramos por momentos, ganchos con la frase real (o la frase más fuerte del tramo),
                                   cut, scaffold, batch (variantes de gancho en lote: storyboard + build + check + render por gancho),
@@ -71,7 +72,7 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     i18n.py                       extract/apply de textos traducidos; retime_words sobre el ritmo original
     brandsite.py                  marca desde la web del cliente (colores CSS, fuente, logo con variantes)
     build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings)
-    render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto)
+    render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto que cubre el vídeo entero)
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
   cli/tests/                      pytest (grupo dev): conftest con fixtures de poc/ y datos sintéticos; test_captions, test_cut,
                                   test_clips, test_i18n, test_build, test_reframe, test_log, test_cli, test_release_check
@@ -131,10 +132,12 @@ frame28 cover out/x.mp4 --at 12.0 -o out/cover.png --title "Línea 1|Línea 2" -
 frame28 clips markers work/cut/captions.json --lang es --words work/cut/words.json --side right -o work/cut/markers.json   # overlays propuestos en frases de resultado y promesa
 frame28 clips plan work/captions.json --lang es -o work/clips.json   # shorts: cut, reframe, scaffold, build, render
 frame28 clips batch work/clips.json s4 --brand think28 --video vertical.mp4 -o out/shorts   # todas las variantes de gancho de una vez
+frame28 clips batch work/clips.json s4 --brand think28 --video vertical.mp4 -o out/shorts --keep   # renderiza los storyboard-hook<N>.json ya afinados, sin regenerarlos
 frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.json strings.en.json --lang en
+frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una versión traducida (subtítulos por frase del storyboard)
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (98 pruebas, ~3 s; módulos puros sin ffmpeg ni
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (110 pruebas, ~3 s; módulos puros sin ffmpeg ni
 modelos: captions, cut, clips (incluidos `batch --no-render` y `markers`), i18n, build.validate/platform_warnings/build_project,
 reframe.map_*, log/report, smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
 `scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
@@ -273,3 +276,25 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   cambia según la versión de la librería, así que el build ensucia el árbol en otra máquina. Escaparlos (`\_`).
 - **Lo "entregado fuera del repo" por una sesión en la nube puede no llegar al PC** (pasó con el script de tags, el
   bundle y las notas): lo que el siguiente paso necesite tiene que poder reconstruirse desde el repo.
+- **Los segmentos de Whisper no son frases**: cortan cada ~4,5 s y, si la transcripción trae pocas comas, a mitad de
+  frase. Con eso los subtítulos se parten mal, los tramos de `clips plan` empiezan a medias y la traducción trabaja
+  sobre fragmentos. `transcribe` escribe ahora `captions.json` por frase completa (`captions.phrase_captions`, con
+  `sent`); `clips plan --words` hace lo mismo con una transcripción antigua. En `clips markers`, `--words` solo afina
+  tiempos (puede ser parcial): no sirve como fuente de frases.
+- **La hoja de contacto del render enseñaba solo los primeros 20 s** (un fotograma por segundo, 4×5): en un vídeo de
+  160 s la revisión quedaba ciega. `media.sheet_plan` reparte hasta 48 fotogramas por toda la duración.
+- **`clips batch` reescribe los storyboards**: tras afinarlos a mano hay que usar `--keep` (o renderizar cada
+  `project-hook<N>` a mano); sin él se pierde el afinado.
+- **CTA sobre el vídeo en un vertical con blur**: la posición por defecto ("encima de los subtítulos") cae sobre la
+  mitad inferior del vídeo y tapa el resultado. `scaffold` lo manda a la franja libre de arriba si hay `reframe.json`.
+- **Marca por nombre desde la carpeta de un short**: solo se buscaba junto al proyecto y en su carpeta madre;
+  `resolve_brand` sube ahora hasta seis niveles (encuentra `work/brands/` desde `work/clips/<id>/project-hook0/`).
+- **Una traducción es más larga y la frase dura lo mismo**: `i18n apply` avisa de los subtítulos por encima de 21
+  caracteres por segundo. Se condensa hasta no superar la densidad del original (`captions export <storyboard>` da
+  `mean_cps`); el SRT de un idioma traducido sale del storyboard, no de un `words.<lang>.json` que no existe.
+- **El sidecar de `frame28 fetch`** (`input.source.json`: título, canal, URL) nombra al dueño del vídeo y no estaba
+  ignorado: `*.source.json` en `.gitignore`.
+- **Patrones de resultado**: "when you're done" (promesa en futuro) y "perfect for this" (idoneidad) no son el
+  momento del resultado; el encendido o el montaje final suelen decirse sin palabra clave ("lights up"): los
+  marcadores automáticos son una propuesta y el `before_t` se elige mirando fotogramas del mismo encuadre.
+- **Parches con heredoc de bash y comillas simples triples** siguen rompiéndose: escribir el `.py` con Write.

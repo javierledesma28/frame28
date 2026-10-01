@@ -90,3 +90,15 @@ def test_translate_project_end_to_end(tmp_path, grabado_short):
     ws = json.loads((tmp_path / "words.es.json").read_text(encoding="utf-8"))
     assert [w["text"] for w in ws] == ["mira", "eso"] and r["words_count"] == 2
     assert validate(out) == []
+
+
+def test_density_warnings_flag_translations_too_dense_to_read():
+    src = [{"start": 0.0, "end": 2.0, "text": "A short line."}, {"start": 2.0, "end": 3.0, "text": "Next one."}]
+    tr = [{"start": 0.0, "end": 2.0, "text": "Una línea corta."},
+          {"start": 2.0, "end": 3.0, "text": "La siguiente frase es bastante más larga que la original."}]
+    w = i18n.density_warnings(src, tr)
+    assert len(w) == 1 and w[0].startswith("captions.1:") and "condensa" in w[0]
+    many = [{"start": float(i), "end": i + 1.0, "text": "x" * 40} for i in range(9)]
+    w = i18n.density_warnings(many, many, show=3)
+    assert len(w) == 4 and "6 subtítulos más" in w[-1]
+    assert i18n.density_warnings(src, src) == []

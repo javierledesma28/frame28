@@ -36,6 +36,11 @@ texto impreso en objetos), las tarjetas a pantalla completa (color plano: tarjet
 ocupación de una rejilla 3×3 con ventanas libres por zona. Mira `graphics.png` y coloca tus overlays en zonas y
 momentos libres; en el paso 4 usa `frame28 build --graphics work/graphics.json` para que avise de colisiones.
 Si `burned_subtitles` es true, no pongas `captions`. Sobre fondos claros usa `kinetic` con `color` oscuro.
+Los rótulos del editor que ya trae el vídeo (`kind: text` en `graphics.json`: "Safety glasses", "Speed 1") son
+contenido resuelto: **no los repitas**. Tus overlays añaden lo que esos rótulos no dicen: la promesa con las palabras
+de la voz, el producto con su precio, los pasos sin rotular, el resultado y la prueba social. Si un overlay tuyo
+coincide en el tiempo con uno suyo, va a otra zona; y si no cabe sin tocarlo (la tarjeta de producto junto a su
+"Speed 1"), se mueve a un momento en que el producto esté en pantalla y no haya rótulo.
 
 ```bash
 frame28 prep <clip> -o work            # clip.mp4 (30 fps, sin audio), voice.wav (limpia y a −14 LUFS), audio16k.wav, probe.json
@@ -66,6 +71,9 @@ queda libre, si el fondo es fijo (necesario para `behind`), si hay gestos de se�
 frame28 transcribe work/audio16k.wav -o work --lang es      # words.json, captions.json, words.srt, transcript.json
 ```
 Lee `work/transcript.txt` y `work/words.json`. Si el usuario tiene guion, pásalo con `--script guion.txt`.
+`captions.json` sale por frase completa (con `sent`): es la unidad para subtitular, elegir tramos y traducir.
+**Si había un guion de montaje escrito antes de ver el vídeo, la transcripción manda**: se quita toda fila cuya
+frase no se diga (ni precio, ni "step by step", ni "it melts" si no se oyen) y se añade lo que el guion no previó.
 Corrige en `words.json` los nombres propios mal reconocidos antes de seguir (el ASR falla justo en marcas y nombres).
 
 ## 2b. Jump cuts (opcional, recomendado en clips de más de 30 s)
@@ -152,14 +160,18 @@ frame28 captions export work/words.json -o out/<nombre>.srt     # o .vtt; ≤ 42
 
 ## 5. Revisar como un director
 
-Mira la hoja de contacto `out/<nombre>_sheet.png`. Comprueba: (a) ningún overlay tapa la cara, (b) cada
+Mira la hoja de contacto `out/<nombre>_sheet.png` (cubre el vídeo entero: en un largo, un fotograma cada ~3 s). Para
+comprobar un overlay concreto, saca el fotograma de su instante: `frame28 frames out/<nombre>.mp4 -t 81.3 -o work/rev`.
+En un largo, itera con `frame28 render … --quality draft` y deja `high` para el definitivo. Comprueba: (a) ningún overlay tapa la cara, (b) cada
 overlay entra cuando se dice su palabra, (c) el texto detrás no se ve "delante", (d) subtítulos legibles, (e) ritmo:
 nada de tramos de más de 8 s sin evento. Si algo falla, edita **el storyboard** (nunca el HTML generado) y
 repite el paso 4. Entrega el MP4 y resume en dos líneas qué overlays lleva.
 
 ## 6. Portada y miniatura
 
-Cada vídeo entregado lleva su portada: la miniatura decide el clic. Un fotograma del propio vídeo (el resultado,
+Cada vídeo entregado lleva su portada: la miniatura decide el clic. El fotograma se toma del **clip limpio**
+(`work/clip.mp4`, o `work/cut/clip.mp4` si hubo cortes) cuando el montaje lleva subtítulos u overlays en ese instante:
+el render los tiene quemados y saldrían en la portada. Un fotograma del propio vídeo (el resultado,
 el producto en manos, la cara con expresión) más un título de dos líneas con resaltado, insignia y logo:
 ```bash
 frame28 cover out/video.mp4 --at 103.0 -o out/cover-yt.png --title "Engrave GLASS|the easy way" \
@@ -175,7 +187,9 @@ no el nombre de la marca (el logo ya está); mira el PNG antes de entregar, el t
 
 Con el vídeo aprobado, la segunda lengua cuesta minutos: `frame28 i18n extract` saca los textos, los traduces con
 criterio de subtitulado, `frame28 i18n apply --lang xx` los devuelve al storyboard con los mismos tiempos (y
-regenera los subtítulos por palabras sobre el ritmo original), y se vuelve a construir y renderizar.
+regenera los subtítulos por palabras sobre el ritmo original), y se vuelve a construir y renderizar. `apply` avisa de los subtítulos traducidos que no da tiempo a leer (más de 21
+caracteres por segundo): se condensan. El SRT del idioma sale del storyboard traducido:
+`frame28 captions export work/storyboard.es.json -o out/<nombre>-es.srt`.
 
 ## 8. Tiempo y coste del montaje
 

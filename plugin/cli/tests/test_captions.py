@@ -135,3 +135,61 @@ def test_export_srt_uses_lf_and_vtt_header(tmp_path):
 def test_ts_format():
     assert C._ts(3661.5) == "01:01:01,500"
     assert C._ts(0.04, ".") == "00:00:00.040"
+
+
+# ---------- subtítulos por frase completa (día 6: la transcripción venía troceada a mitad de frase) ----------
+LONG = ("Today we paint a small wooden box. First you sand every side until it feels smooth "
+        "and then you wipe the dust with a dry cloth because paint never sticks to a dusty surface. Done!")
+
+
+def test_sentences_split_on_final_punctuation_and_long_pauses():
+    ws = words_from("One two. Three four five|9.0 six seven")
+    assert [C._text(s) for s in C.sentences(ws)] == ["One two.", "Three four", "five six seven"]
+
+
+def test_phrase_captions_keep_sentences_whole_and_split_long_ones_at_joints():
+    caps = C.phrase_captions(words_from(LONG), max_chars=84, lang="en")
+    texts = [c["text"] for c in caps]
+    assert texts[0] == "Today we paint a small wooden box." and texts[-1] == "Done!"
+    assert all(len(t) <= 84 for t in texts)
+    middle = [c for c in caps if c["sent"] == 1]
+    assert len(middle) >= 2 and " ".join(c["text"] for c in middle).endswith("a dusty surface.")
+    assert all(c["text"].split()[0] in C.JOINTS["en"] for c in middle[1:])      # la parte nueva empieza en conjunción
+    assert [c["sent"] for c in caps] == sorted(c["sent"] for c in caps)
+    assert all(a["end"] <= b["start"] for a, b in zip(caps, caps[1:]))          # sin solapes
+    assert all(c["end"] - c["start"] >= 0.3 for c in caps)
+
+
+def test_phrase_captions_prefer_a_comma_and_know_spanish_joints():
+    es = "Primero lijas todas las caras hasta que queden suaves, luego quitas el polvo con un trapo seco porque la pintura no agarra."
+    caps = C.phrase_captions(words_from(es), max_chars=70, lang="es")
+    assert len(caps) >= 2 and all(len(c["text"]) <= 70 for c in caps)
+    assert caps[0]["text"].endswith("suaves,")
+
+
+def test_group_sentences_from_sent_index_and_from_punctuation():
+    caps = C.phrase_captions(words_from(LONG))
+    whole = C.group_sentences(caps)
+    assert [c["text"] for c in whole][0] == "Today we paint a small wooden box." and len(whole) == 3
+    assert whole[1]["start"] == caps[1]["start"] and whole[1]["text"].endswith("a dusty surface.")
+    old = [{"start": 0.0, "end": 2.0, "text": "This starts here and"}, {"start": 2.0, "end": 4.0, "text": "ends here. Another"},
+           {"start": 4.0, "end": 5.0, "text": "one."}]
+    merged = C.group_sentences(old)                                             # segmentos de Whisper, sin `sent`
+    assert [c["text"] for c in merged] == ["This starts here and ends here. Another one."]
+    assert merged[0]["start"] == 0.0 and merged[0]["end"] == 5.0
+
+
+def test_export_from_a_translated_storyboard_keeps_its_phrases_and_times(tmp_path):
+    sb = {"version": 1, "overlays": [], "captions": [
+        {"start": 1.0, "end": 3.0, "text": "Hoy pintamos una caja pequeña de madera."},
+        {"start": 3.2, "end": 4.0, "text": "Primero se lijan todas las caras hasta que queden suaves al tacto."}]}
+    p = write_json(tmp_path / "storyboard.es.json", sb)
+    r = C.export(p, tmp_path / "es.srt")
+    assert r["source"] == "storyboard" and r["cues"] == 2 and r["words"] == 0 and r["mean_cps"] > 0
+    assert any("cps" in w for w in r["warnings"])                               # la segunda frase no da tiempo a leerla
+    srt = (tmp_path / "es.srt").read_text(encoding="utf-8")
+    assert "00:00:01,000 --> 00:00:03,000" in srt and "caja pequeña" in srt
+    words = write_json(tmp_path / "words.json", words_from("uno dos tres."))
+    assert C.export(words, tmp_path / "w.srt")["source"] == "words"            # words.json sigue igual
+    per_word = write_json(tmp_path / "short.json", {"version": 1, "overlays": [], "caption_style": {"preset": "pages", "words": "words.json"}})
+    assert C.export(per_word, tmp_path / "s.srt")["words"] == 3                 # subtítulos por palabras: sigue caption_style.words

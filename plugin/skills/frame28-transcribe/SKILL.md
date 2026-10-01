@@ -15,14 +15,16 @@ Salidas en `work/`:
 | Fichero | Formato | Para qué |
 |---|---|---|
 | `words.json` | `[{text, start, end, prob}]` en segundos | fuente de verdad de los `at` del storyboard |
-| `captions.json` | `[{start, end, text}]` por frase | bloque `captions` del storyboard |
+| `captions.json` | `[{start, end, text, sent}]` por frase completa (partida por comas y conjunciones si pasa de 84 caracteres; `sent` = índice de su frase) | bloque `captions` del storyboard; `clips plan` y `clips markers` agrupan por `sent` |
 | `words.srt` | una palabra por cue, **LF** | importable en HyperFrames: `npx hyperframes transcribe words.srt --preserve-cues` |
 | `transcript.json` | `[{text, start, end, id}]` | el formato nativo de HyperFrames |
 | `transcript.txt` | texto plano | para leer el discurso de un vistazo |
 
 Derivados: `frame28 captions export work/words.json -o out/video.srt` (o `.vtt`) genera subtítulos legibles para la
 plataforma (≤ 42 caracteres por línea, 1–7 s, corte en puntuación y pausas); `frame28 captions pages` muestra el paginado
-por palabras que usan los presets `pages`/`karaoke` del storyboard.
+por palabras que usan los presets `pages`/`karaoke` del storyboard. `captions export` acepta también un storyboard
+(`frame28 captions export work/storyboard.es.json -o out/video-es.srt`): exporta sus subtítulos por frase con los mismos
+tiempos, que es la única fuente en una versión traducida.
 
 ## Reglas que aprendimos a golpes
 
@@ -35,3 +37,9 @@ por palabras que usan los presets `pages`/`karaoke` del storyboard.
 - **Palabras con el mismo `start`** consecutivo son un artefacto: reparte el intervalo a partes iguales.
 - Modelo: `medium` int8 en CPU ≈ 1,5× tiempo real. `small` si prima la velocidad; `large-v3` solo con GPU.
 - Los dígitos ("42", "$") no se alinean bien: en el guion escríbelos en palabras.
+- **Una frase que no cuadra es una palabra perdida** ("make a huge how smooth"): recorta ese tramo del audio
+  (`ffmpeg -ss 25.6 -to 30.2 -i work/audio16k.wav tramo.wav`) y transcríbelo suelto; sin el contexto anterior Whisper
+  suele recuperarla. Inserta la palabra en `words.json` repartiendo el intervalo de la palabra estirada y corrige la
+  frase en `captions.json`. Si dos pasadas no coinciden, déjalo anotado para que el usuario lo confirme de oído.
+- **Transcripciones anteriores a la 0.5** traen `captions.json` con los segmentos de Whisper (cortes cada ~4,5 s, a
+  mitad de frase): `frame28 clips plan --words work/words.json` trabaja con frases completas sin volver a transcribir.

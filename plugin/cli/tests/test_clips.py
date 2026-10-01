@@ -196,3 +196,73 @@ def test_markers_spanish_labels_and_no_results(tmp_path):
     assert res["overlays"][-1]["end"] <= 10.0 and res["overlays"][-1]["end"] - res["overlays"][-1]["start"] >= 1.5
     empty = clips.markers(_caps(tmp_path, [(0.0, 3.0, "Hola."), (3.0, 6.0, "Adiós.")]), lang="es")
     assert empty["markers"] == [] and empty["results"] == 0
+
+
+# ---------- día 6: frases completas, patrones de resultado, CTA en la franja libre y lote sin regenerar ----------
+def test_plan_and_markers_work_on_whole_sentences_even_if_captions_split_mid_sentence(tmp_path):
+    # captions.json troceado como los segmentos de Whisper: ninguna entrada empieza ni acaba en frase
+    caps = [{"start": 0.0, "end": 5.0, "text": "Welcome to the workshop today we paint"},
+            {"start": 5.0, "end": 10.0, "text": "a small box. This part is easy and"},
+            {"start": 10.0, "end": 15.0, "text": "anyone can do it. Sand every side"},
+            {"start": 15.0, "end": 20.0, "text": "slowly. That is it, look at that"},
+            {"start": 20.0, "end": 25.0, "text": "finish. See you next time."}]
+    p = write_json(tmp_path / "captions.json", caps)
+    old = clips.plan(p, target=20, count=2, lang="en", min_len=10, max_len=30)
+    assert old["clips"] and "a mitad de frase" in old["note"]                    # transcripción antigua: como antes, con aviso
+    wp = write_json(tmp_path / "words.json", words_from(" ".join(c["text"] for c in caps)))
+    plan = clips.plan(p, target=6, count=2, lang="en", min_len=3, max_len=12, words_path=wp)
+    assert plan["clips"] and "note" not in plan
+    for c in plan["clips"]:
+        assert c["phrases"][0][0].isupper() and c["phrases"][-1].rstrip()[-1] in ".!?"
+    from frame28.captions import load_words, phrase_captions
+    newp = write_json(tmp_path / "captions.new.json", phrase_captions(load_words(wp)))   # lo que escribe `transcribe`
+    m = clips.markers(newp, lang="en", words_path=wp)
+    assert m["markers"] and all(x["phrase"].rstrip()[-1] in ".!?" for x in m["markers"])
+    again = clips.plan(newp, target=6, count=2, lang="en", min_len=3, max_len=12)
+    assert "note" not in again and [c["start"] for c in again["clips"]] == [c["start"] for c in plan["clips"]]
+
+
+def test_result_patterns_skip_future_done_and_perfect_for():
+    def kinds(text):
+        return {m["kind"] for m in clips._moments([{"start": 0.0, "end": 3.0, "text": text}], "en", [])}
+
+    assert "result" not in kinds("Every stroke shows up when you're done.")
+    assert "result" not in kinds("Pine is perfect for this kind of project.")
+    assert "result" in kinds("Once the lid is done the box looks great.")
+    assert "result" in kinds("That's it, perfect!")
+
+
+def test_scaffold_puts_the_cta_in_the_free_top_band_of_a_blur_reframe(tmp_path, grabado_clips):
+    clip = grabado_clips["clips"][0]
+    d = tmp_path / "s1"; d.mkdir()
+    write_json(d / "words.json", words_from("hola mundo cruel", start=0.5))
+    cta = {"title": "Buy", "price": "$10"}
+    clips.scaffold(clip, d, cta=cta, video_name="vertical.mp4")
+    assert "y" not in json.loads((d / "storyboard.json").read_text(encoding="utf-8"))["overlays"][-1]   # sin reframe.json: por defecto
+    write_json(d / "reframe.json", {"mode": "blur", "out": [1080, 1920], "free_bands": [[0, 656], [1264, 1920]]})
+    clips.scaffold(clip, d, cta=cta, video_name="vertical.mp4")
+    c = json.loads((d / "storyboard.json").read_text(encoding="utf-8"))["overlays"][-1]
+    assert c["type"] == "cta" and int(0.08 * 1920) < c["y"] and c["y"] + clips.CTA_HEIGHT <= 656      # dentro de la franja y bajo la barra
+    clips.scaffold(clip, d, cta={**cta, "y": 900}, video_name="vertical.mp4")
+    assert json.loads((d / "storyboard.json").read_text(encoding="utf-8"))["overlays"][-1]["y"] == 900  # el del usuario manda
+    write_json(d / "reframe.json", {"mode": "crop", "out": [1080, 1920]})
+    assert clips._free_band_y(d, 1080, 1920) is None
+
+
+def test_batch_keep_renders_hand_tuned_storyboards_without_rescaffolding(tmp_path, grabado_clips):
+    clip = grabado_clips["clips"][0]
+    cdir = tmp_path / "clips"; d = cdir / clip["id"]; d.mkdir(parents=True)
+    (d / "clip.mp4").write_bytes(b"")
+    write_json(d / "words.json", words_from("look at that", start=1.0))
+    plan = write_json(tmp_path / "clips.json", {"clips": [clip]})
+    clips.batch(plan, None, cdir, tmp_path / "out", [0], brand="think28", render=False)
+    sp = d / "storyboard-hook0.json"
+    sb = json.loads(sp.read_text(encoding="utf-8"))
+    sb["overlays"].append({"type": "box", "id": "mio", "start": 1.0, "end": 2.0, "x": 90, "y": 470, "text": "Afinado a mano"})
+    write_json(sp, sb)
+    kept = clips.batch(plan, None, cdir, tmp_path / "out", [0], brand="think28", render=False, keep=True)
+    assert kept["variants"][0]["kept"] and kept["variants"][0]["ok"]
+    assert any(o["id"] == "mio" for o in json.loads(sp.read_text(encoding="utf-8"))["overlays"])
+    assert "Afinado a mano" in (d / "project-hook0" / "index.html").read_text(encoding="utf-8")
+    clips.batch(plan, None, cdir, tmp_path / "out", [0], brand="think28", render=False)
+    assert not any(o["id"] == "mio" for o in json.loads(sp.read_text(encoding="utf-8"))["overlays"])     # sin keep, se regenera

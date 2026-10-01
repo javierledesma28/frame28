@@ -176,7 +176,8 @@ USER_BRANDS = Path.home() / ".config" / "frame28" / "brands"
 
 
 def resolve_brand(name_or_path: str, near: Path | None = None) -> Path:
-    """Orden: ruta explícita -> ./brands/<n>.json junto al proyecto -> ~/.config/frame28/brands -> incluidas."""
+    """Orden: ruta explícita -> brands/<n>.json junto al proyecto o en las carpetas que lo contienen (un short en
+    work/clips/<id>/ encuentra la marca de work/brands/) -> ./brands -> ~/.config/frame28/brands -> incluidas."""
     p = Path(name_or_path)
     if p.suffix == ".json":
         for cand in ([p] + ([near / p, near.parent / p] if near and not p.is_absolute() else [])):
@@ -184,7 +185,7 @@ def resolve_brand(name_or_path: str, near: Path | None = None) -> Path:
                 return cand
     cands = []
     if near:
-        cands += [near / "brands" / f"{name_or_path}.json", near.parent / "brands" / f"{name_or_path}.json"]
+        cands += [d / "brands" / f"{name_or_path}.json" for d in [near, *near.parents][:6]]
     cands += [Path.cwd() / "brands" / f"{name_or_path}.json", USER_BRANDS / f"{name_or_path}.json", BUNDLED_BRANDS / f"{name_or_path}.json"]
     for c in cands:
         if c.exists():

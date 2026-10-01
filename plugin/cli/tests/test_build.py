@@ -109,3 +109,12 @@ def test_brand_resolution(tmp_path):
     assert build.resolve_brand(str(custom)) == custom
     with pytest.raises(SystemExit):
         build.resolve_brand("no-existe")
+
+
+def test_brand_by_name_is_found_from_a_short_folder(tmp_path):
+    # día 6: la marca vive en work/brands/ y el short en work/clips/<id>/project-hook0/
+    (tmp_path / "work" / "brands").mkdir(parents=True)
+    custom = write_json(tmp_path / "work" / "brands" / "acme.json", {"name": "acme"})
+    project = tmp_path / "work" / "clips" / "s1" / "project-hook0"
+    project.mkdir(parents=True)
+    assert build.resolve_brand("acme", near=project) == custom

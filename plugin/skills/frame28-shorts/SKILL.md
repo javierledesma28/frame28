@@ -19,7 +19,9 @@ Propone tramos que empiezan y terminan en frase, puntuados por momentos: **resul
 Cada tramo trae tres ganchos de tipos distintos hechos con **las palabras reales del hablante**: la cláusula donde
 ocurre el momento, sin relleno inicial ("I think", "so", "bueno"), en dos líneas de cinco palabras. Cada gancho
 lleva `quote` (la frase completa de origen) y `t` (cuándo se dice): úsalos para comprobar que el gancho no promete
-lo que el tramo no enseña. Léelos con el usuario: la puntuación ordena, no decide. Si un tramo no tiene momentos,
+lo que el tramo no enseña. Léelos con el usuario: la puntuación ordena, no decide. El plan es una propuesta: si mezcla dos proyectos en un
+tramo o se lleva la tarjeta final de la marca, elige tú los cortes (promesa, técnica, resultado) editando `start`,
+`end` y `hooks` de `clips.json`. Con una transcripción antigua (frases cortadas a medias) añade `--words work/words.json`. Si un tramo no tiene momentos,
 el gancho sale de la frase más fuerte del propio tramo (`statement`: preguntas, cifras, segunda persona); el de
 `curiosity` es la plantilla de último recurso y siempre merece reescritura.
 
@@ -36,7 +38,9 @@ frame28 render work/clips/s4/project -o out/shorts/s4-hook0.mp4
 `cut` deja `clip.mp4`, `voice.wav`, `words.json` y `captions.json` con los tiempos del short. `scaffold` escribe un
 storyboard que **ya construye**: `platform: tiktok`, gancho (uno de los tres), subtítulos por palabras (`pages`,
 a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son los campos del overlay `cta`
-(`title`, `price`, `old_price`, `discount`, `code`, `line`, `url`).
+(`title`, `price`, `old_price`, `discount`, `code`, `line`, `url`). En un vertical de `reframe --mode blur` el CTA va
+solo a la franja libre de arriba (lee `reframe.json`): encima del vídeo taparía justo el resultado, que suele caer
+en los últimos segundos. Las `box` también van arriba (`y` ~470), después del gancho y antes del CTA.
 
 ## Afinar el storyboard del short (lo que hace la diferencia)
 
@@ -61,7 +65,8 @@ a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son 
    Por cada short y cada gancho escribe `storyboard-hook<N>.json`, construye `project-hook<N>/`, pasa `check` y
    renderiza `out/shorts/<id>-hook<N>.mp4` con su hoja de contacto; `work/clips/batch.json` dice qué salió y qué
    falló (una variante rota no para el lote). `--hooks 0,2` limita los ganchos; `--no-render` deja solo storyboards y
-   proyectos para afinarlos antes. Si quieres afinar un gancho a mano, edita su `storyboard-hook<N>.json` y
+   proyectos para afinarlos antes; después `--keep` construye y renderiza esos mismos `storyboard-hook<N>.json` sin
+   regenerarlos (sin `--keep`, el lote los reescribe y se pierde el afinado). Si quieres afinar un gancho a mano, edita su `storyboard-hook<N>.json` y
    renderiza ese proyecto. Las plataformas queman un creativo en 7–14 días; se rota el gancho, no el cuerpo.
 
 ## Portada del short
@@ -75,3 +80,5 @@ con el mismo gancho de la variante; una portada por variante si los ganchos difi
 - Empezar por el logo o el saludo: el gancho es lo primero.
 - Poner texto bajo los iconos de la derecha o la descripción de abajo (`build` avisa con `platform`).
 - Repetir el CTA en cada short con la misma frase: cambia el ángulo (precio, garantía, "everything included").
+- Poner un `before_after` en la franja libre mientras el vídeo enseña el resultado en vivo: duplica y compite con
+  el CTA. En el largo sí (con `before_t` en el mismo encuadre que el `after_t`: el objeto ya colocado, sin encender).

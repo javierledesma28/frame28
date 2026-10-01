@@ -50,6 +50,14 @@ Frame28 está pensado para un plano de alguien hablando a cámara, pero trabaja 
   ni acento claro. `box` lleva fondo oscuro semitransparente y funciona en todas partes.
 - Sobre la tarjeta final del cliente (fondo de su color de acento): texto en tinta, no en acento.
 - Descarga el original a 1080p con `frame28 fetch <url>`; guarda el `.source.json` con el origen.
+- Los **rótulos del editor** del propio vídeo cuentan como overlays ya puestos: léelos todos en `graphics.json`
+  (`kind: text`) antes de escribir el storyboard y no los dupliques. Un tutorial bien editado ya rotula seguridad,
+  velocidad y materiales; lo que le falta es la capa de venta.
+- En un plano cenital de manos no hay zona vacía estable: las cajas de la franja inferior caerán sobre muñecas y
+  mangas (aceptable); nunca sobre el objeto, la herramienta ni un texto. Los cinéticos, solo sobre fondo liso.
+- El **resultado** de un proyecto que se enciende, se abre o se monta es un instante: el `before_after` usa como
+  "antes" el fotograma inmediatamente anterior en el **mismo encuadre** (búscalo con `frame28 frames` cada 0,3 s),
+  y entra justo después de la frase, no encima del momento en vivo.
 
 ## 4. Segunda muestra de la misma marca: plan antes de transcribir
 
@@ -69,6 +77,10 @@ que al transcribir solo falten los tiempos y las dos piezas se vean de la misma 
   no se traduce, formato de cifras) antes de traducir; el alemán es un 30 % más largo: cinéticos de dos palabras.
 - Cierra el montaje con `frame28 report note` y `frame28 report --rate`: el coste real del segundo vídeo es el que
   fija el precio del mensual.
+- El plan previo es una **hipótesis**: en la segunda muestra real, de 23 filas previstas 7 no tenían su frase y 2
+  ya las rotulaba el propio vídeo; no decía el precio ni la promesa del título y traía tres proyectos en vez de dos.
+  Sirvieron el sistema de ids y zonas, el glosario por idioma y la lista de entregables; los textos salieron de la
+  transcripción. Planifica zonas y entregables, no frases.
 
 ## 5. Legibilidad (reglas que salieron de los renders)
 
