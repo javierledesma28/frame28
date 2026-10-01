@@ -7,3 +7,13 @@
 
 /assets/*
   Cache-Control: public, max-age=86400
+
+# área de clientes: no indexar (el acceso lo controla Cloudflare Access)
+/kb/*
+  X-Robots-Tag: noindex, nofollow
+/curso/*
+  X-Robots-Tag: noindex, nofollow
+/en/kb/*
+  X-Robots-Tag: noindex, nofollow
+/en/course/*
+  X-Robots-Tag: noindex, nofollow

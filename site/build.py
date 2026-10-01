@@ -28,7 +28,7 @@ STRINGS = {
         "lang": "es", "home": "/", "alt_lang": "English", "alt_href": "/en/", "font_lang": "es",
         "nav": [("Cómo funciona", "/#como-funciona"), ("Precios", "/#precios"), ("Fundadores", "/fundadores/"), ("Preguntas", "/#faq")],
         "cta": ("Contacto", "/contacto/"),
-        "footer": [("Plugin abierto", "https://frame28.t28.io"), ("Roadmap", "https://frame28.t28.io/roadmap/"),
+        "footer": [("Área de clientes", "/kb/"), ("Curso online", "/curso/"), ("Plugin abierto", "https://frame28.t28.io"), ("Roadmap", "https://frame28.t28.io/roadmap/"),
                    ("Condiciones", "/condiciones/"), ("Contacto", "/contacto/"), ("GitHub", "https://github.com/javierledesma28/frame28")],
         "footer_line": "Frame28 es un producto de <a href=\"https://t28.io\">Think28</a> · © {year} Think28",
         "form": {
@@ -45,7 +45,7 @@ STRINGS = {
         "lang": "en", "home": "/en/", "alt_lang": "Español", "alt_href": "/", "font_lang": "en",
         "nav": [("How it works", "/en/#how"), ("Pricing", "/en/#pricing"), ("Founders", "/en/founders/"), ("FAQ", "/en/#faq")],
         "cta": ("Contact", "/en/contact/"),
-        "footer": [("Open plugin", "https://frame28.t28.io"), ("Roadmap", "https://frame28.t28.io/roadmap/"),
+        "footer": [("Customer area", "/en/kb/"), ("Online course", "/en/course/"), ("Open plugin", "https://frame28.t28.io"), ("Roadmap", "https://frame28.t28.io/roadmap/"),
                    ("Terms", "/en/terms/"), ("Contact", "/en/contact/"), ("GitHub", "https://github.com/javierledesma28/frame28")],
         "footer_line": "Frame28 is a <a href=\"https://t28.io\">Think28</a> product · © {year} Think28",
         "form": {
@@ -151,12 +151,12 @@ FORM_JS = """<script>
 </script>"""
 
 
-def layout(lang: str, title: str, description: str, body: str, path: str) -> str:
+def layout(lang: str, title: str, description: str, body: str, path: str, noindex: bool = False) -> str:
     s = STRINGS[lang]
     nav = "".join(f'<a href="{h}">{t}</a>' for t, h in s["nav"])
     foot = "".join(f'<a href="{h}">{t}</a>' for t, h in s["footer"])
     canonical = "https://frame28.app/" + path.replace("index.html", "")
-    alt = {"es": "https://frame28.app/en/", "en": "https://frame28.app/"}
+    robots = '<meta name="robots" content="noindex, nofollow">\n' if noindex else ""
     return f"""<!doctype html>
 <html lang="{s['lang']}">
 <head>
@@ -164,7 +164,7 @@ def layout(lang: str, title: str, description: str, body: str, path: str) -> str
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title}</title>
 <meta name="description" content="{description}">
-<link rel="canonical" href="{canonical}">
+{robots}<link rel="canonical" href="{canonical}">
 <link rel="alternate" hreflang="es" href="https://frame28.app/">
 <link rel="alternate" hreflang="en" href="https://frame28.app/en/">
 <meta property="og:title" content="{title}">
@@ -224,8 +224,99 @@ def terms_html(md_path: Path) -> tuple[str, str]:
     return h1, body
 
 
+# ---------- área de clientes: base de conocimiento y curso (tras Cloudflare Access) ----------
+SECTIONS = {
+    # clave: (idioma → ruta publicada, título, descripción del índice, etiqueta de minutos, texto de "volver")
+    "kb": {
+        "es": ("kb", "Base de conocimiento", "Lo que necesitas saber para sacarle partido a Frame28: qué mandar, cómo grabar, cómo revisar y qué puedes publicar.", "min de lectura", "Base de conocimiento"),
+        "en": ("en/kb", "Knowledge base", "What you need to get the most out of Frame28: what to send, how to shoot, how to review and what you can publish.", "min read", "Knowledge base"),
+    },
+    "curso": {
+        "es": ("curso", "Curso online", "Seis lecciones cortas, grabadas a cámara y montadas con Frame28. Incluido en Launch, Studio y Team.", "min", "Curso online"),
+        "en": ("en/course", "Online course", "Six short lessons, shot to camera and edited with Frame28. Included with Launch, Studio and Team.", "min", "Online course"),
+    },
+}
+GATE = {
+    "es": ("Área de clientes", "Acceso con el email con el que contrataste. Incluido en Launch (12 meses), Studio y Team.", "/contacto/", "¿Aún no eres cliente?"),
+    "en": ("Customer area", "Sign in with the email you ordered with. Included with Launch (12 months), Studio and Team.", "/en/contact/", "Not a customer yet?"),
+}
+TIER_LABEL = {"es": {"all": "todos los planes", "team": "solo Team"}, "en": {"all": "all plans", "team": "Team only"}}
+VIDEO_PENDING = {"es": "Vídeo en preparación: se graba a cámara y se monta con Frame28. Mientras tanto, el guion está debajo.",
+                 "en": "Video in preparation: shot to camera and edited with Frame28. The script is below in the meantime."}
+
+
+def front_matter(text: str) -> tuple[dict, str]:
+    m = re.match(r"---\n(.*?)\n---\n", text, re.S)
+    if not m:
+        return {}, text
+    meta = {}
+    for line in m.group(1).splitlines():
+        if ":" in line:
+            k, v = line.split(":", 1); meta[k.strip()] = v.strip()
+    return meta, text[m.end():]
+
+
+def render_md(text: str) -> str:
+    body = markdown.markdown(text, extensions=["tables", "sane_lists"])
+    return re.sub(r"\[\[(.+?)\]\]", r'<span class="todo">[[\1]]</span>', body)
+
+
+def gate_html(lang: str) -> str:
+    g = GATE[lang]
+    return f'<div class="gate"><span class="eyebrow">{g[0]}</span><span class="muted small">{g[1]} <a href="{g[2]}">{g[3]}</a></span></div>'
+
+
+def render_section(key: str, lang: str) -> list[str]:
+    base, title, desc, mins_label, back = SECTIONS[key][lang]
+    src = sorted((SITE / "content" / key / lang).glob("*.md"))
+    entries = []
+    for p in src:
+        meta, body = front_matter(p.read_text(encoding="utf-8"))
+        entries.append({"slug": p.stem.split("-", 1)[-1] if p.stem[:2].isdigit() else p.stem, "meta": meta, "body": body, "order": int(meta.get("order", 99))})
+    entries.sort(key=lambda e: e["order"])
+    out = []
+    # índice
+    cards = []
+    for e in entries:
+        m = e["meta"]; tier = m.get("tier", "all")
+        badge = f'<span class="tag">{TIER_LABEL[lang][tier]}</span>' if tier != "all" else ""
+        cards.append(f'<a class="card entry" href="/{base}/{e["slug"]}/"><span class="n">{e["order"]:02d} · {m.get("minutes", "")} {mins_label}</span>'
+                     f'<h3>{m.get("title", e["slug"])}</h3><p class="muted">{m.get("summary", "")}</p>{badge}</a>')
+    body = (f'<section class="hero"><div class="wrap" style="grid-template-columns:1fr"><div class="copy">{gate_html(lang)}'
+            f'<p class="eyebrow">{title}</p><h1>{title}</h1><p class="lead">{desc}</p></div></div></section>'
+            f'<section><div class="wrap"><div class="grid c2 entries">{"".join(cards)}</div></div></section>')
+    path = f"{base}/index.html"
+    (SITE / path).parent.mkdir(parents=True, exist_ok=True)
+    (SITE / path).write_text(layout(lang, f"{title} · Frame28", desc, body, path, noindex=True), encoding="utf-8", newline="\n"); out.append(path)
+    # páginas
+    for i, e in enumerate(entries):
+        m = e["meta"]; prev = entries[i - 1] if i > 0 else None; nxt = entries[i + 1] if i + 1 < len(entries) else None
+        video = ""
+        if key == "curso":
+            url = m.get("video", "")
+            video = (f'<div class="video"><iframe src="{url}" title="{m.get("title", "")}" allow="fullscreen" loading="lazy"></iframe></div>' if url
+                     else f'<div class="video pending"><span>{VIDEO_PENDING[lang]}</span></div>')
+        nav = '<nav class="pager">'
+        nav += f'<a href="/{base}/{prev["slug"]}/">← {prev["meta"].get("title", "")}</a>' if prev else "<span></span>"
+        nav += f'<a href="/{base}/">{back}</a>'
+        nav += f'<a href="/{base}/{nxt["slug"]}/">{nxt["meta"].get("title", "")} →</a>' if nxt else "<span></span>"
+        nav += "</nav>"
+        tier = m.get("tier", "all")
+        badge = f' <span class="tag">{TIER_LABEL[lang][tier]}</span>' if tier != "all" else ""
+        body = (f'<section><div class="wrap"><article class="prose">{gate_html(lang)}'
+                f'<p class="eyebrow">{title} · {e["order"]:02d} · {m.get("minutes", "")} {mins_label}{badge}</p>'
+                f'<h1>{m.get("title", "")}</h1><p class="lead">{m.get("summary", "")}</p>{video}{render_md(e["body"])}{nav}</article></div></section>')
+        path = f"{base}/{e['slug']}/index.html"
+        (SITE / path).parent.mkdir(parents=True, exist_ok=True)
+        (SITE / path).write_text(layout(lang, f"{m.get('title', '')} · {title} · Frame28", m.get("summary", ""), body, path, noindex=True), encoding="utf-8", newline="\n"); out.append(path)
+    return out
+
+
 def main() -> None:
     out_paths = []
+    for key in SECTIONS:
+        for lang in ("es", "en"):
+            out_paths += render_section(key, lang)
     for lang, frag, path, title, desc in PAGES:
         body = fill(lang, (SITE / "src" / lang / frag).read_text(encoding="utf-8"))
         html = layout(lang, title, desc, body, path)

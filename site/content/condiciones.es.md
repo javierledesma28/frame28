@@ -41,9 +41,9 @@ Las capas, con lo que incluye cada una y su precio vigente, se publican en frame
 
 | Capa | Incluye | Precio early adopter |
 |---|---|---|
-| **Launch** (pago único) | 1 vídeo largo montado de hasta 5 minutos · 4 shorts verticales con 2 ganchos cada uno (8 piezas) · portada de YouTube y versión 1:1 · subtítulos SRT · 1 idioma adicional en textos y subtítulos · 1 ronda de cambios · entrega en 5 días laborables | 990 USD (regular 1.490 USD) |
-| **Studio** (mensual, compromiso de 3 meses) | 4 vídeos largos · 12 shorts con 2 ganchos (24 piezas) · portadas y fichas · 2 idiomas · 2 rondas de cambios por pieza · informe mensual | 2.490 USD/mes (regular 3.490 USD/mes) |
-| **Team** (alta más cuota) | Instalación de Frame28 en 2 puestos · marca configurada · biblioteca de ganchos del sector · 2 sesiones de formación · base de conocimiento y mini curso · soporte por email y actualizaciones | 2.900 USD de alta + 490 USD/mes (regular 3.900 + 490) |
+| **Launch** (pago único) | 1 vídeo largo montado de hasta 5 minutos · 4 shorts verticales con 2 ganchos cada uno (8 piezas) · portada de YouTube y versión 1:1 · subtítulos SRT · 1 idioma adicional en textos y subtítulos · 1 ronda de cambios · entrega en 5 días laborables · acceso a la base de conocimiento y al curso online durante 12 meses | 990 USD (regular 1.490 USD) |
+| **Studio** (mensual, compromiso de 3 meses) | 4 vídeos largos · 12 shorts con 2 ganchos (24 piezas) · portadas y fichas · 2 idiomas · 2 rondas de cambios por pieza · informe mensual · base de conocimiento y curso online mientras el servicio esté activo | 2.490 USD/mes (regular 3.490 USD/mes) |
+| **Team** (alta más cuota) | Instalación de Frame28 en 2 puestos · marca configurada · biblioteca de ganchos del sector · 2 sesiones de formación · base de conocimiento y curso online · soporte por email y actualizaciones | 2.900 USD de alta + 490 USD/mes (regular 3.900 + 490) |
 
 Complementos: idioma adicional, 190 USD por vídeo largo con sus shorts; clip de creador o afiliado normalizado,
 79 USD por clip. Los precios early adopter se aplican a los miembros del programa Fundadores (cláusula 15) y quedan
@@ -123,7 +123,10 @@ de pedido, o cambios posteriores a la aprobación. Launch incluye 1 Ronda; Studi
   pague. Sin cuota, el Cliente conserva el software instalado (licencia MIT) pero no el soporte ni la marca
   configurada en nuevas versiones.
 - Medios de pago: transferencia bancaria o tarjeta [[Stripe u otro]]. Las facturas se emiten en la fecha del cargo.
-- El impago vencido suspende el servicio y el acceso a la base de conocimiento hasta su regularización.
+- El impago vencido suspende el servicio y el acceso a la base de conocimiento y al curso online hasta su regularización.
+- **Área de clientes.** La base de conocimiento y el curso online se sirven en frame28.app con acceso por el email
+  del Cliente (código de un solo uso). Son para uso interno del Cliente y sus empleados; no se pueden redistribuir
+  ni revender. En Launch el acceso dura 12 meses desde la entrega final; en Studio y Team, mientras el servicio esté activo.
 
 ## 9. Garantía de Launch
 

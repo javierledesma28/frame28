@@ -98,6 +98,7 @@ Para probar con un vídeo.
 - Subtítulos SRT
 - 1 idioma adicional en textos y subtítulos
 - 1 ronda de cambios
+- Base de conocimiento y curso online (12 meses)
 - Entrega en 5 días laborables
 
 **Botón:** Empezar con un vídeo
@@ -114,6 +115,7 @@ Para marcas con catálogo y calendario de contenido.
 - 2 idiomas
 - 2 rondas de cambios por pieza
 - Informe mensual: qué ganchos funcionaron y qué rotar
+- Base de conocimiento y curso online
 
 **Botón:** Hablar de Studio
 
@@ -127,7 +129,7 @@ Para empresas con equipo de marketing o formación propio.
 - Tu marca configurada
 - Biblioteca de ganchos de tu sector
 - 2 sesiones de formación
-- Base de conocimiento y mini curso
+- Base de conocimiento y curso online
 - Soporte por email y actualizaciones
 
 **Botón:** Hablar de Team

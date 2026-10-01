@@ -40,9 +40,9 @@ The tiers, what each includes and current pricing are published on frame28.app. 
 
 | Tier | Includes | Early-adopter price |
 |---|---|---|
-| **Launch** (one-time) | 1 edited long video up to 5 minutes · 4 vertical shorts with 2 hooks each (8 pieces) · YouTube cover and 1:1 version · SRT subtitles · 1 additional language for on-screen text and subtitles · 1 round of changes · delivery in 5 business days | 990 USD (regular 1,490 USD) |
-| **Studio** (monthly, 3-month commitment) | 4 long videos · 12 shorts with 2 hooks (24 pieces) · covers and product-page versions · 2 languages · 2 rounds of changes per piece · monthly report | 2,490 USD/month (regular 3,490 USD/month) |
-| **Team** (setup plus fee) | Frame28 installed on 2 workstations · brand configured · hook library for the industry · 2 training sessions · knowledge base and mini course · email support and updates | 2,900 USD setup + 490 USD/month (regular 3,900 + 490) |
+| **Launch** (one-time) | 1 edited long video up to 5 minutes · 4 vertical shorts with 2 hooks each (8 pieces) · YouTube cover and 1:1 version · SRT subtitles · 1 additional language for on-screen text and subtitles · 1 round of changes · delivery in 5 business days · access to the knowledge base and online course for 12 months | 990 USD (regular 1,490 USD) |
+| **Studio** (monthly, 3-month commitment) | 4 long videos · 12 shorts with 2 hooks (24 pieces) · covers and product-page versions · 2 languages · 2 rounds of changes per piece · monthly report · knowledge base and online course while the service is active | 2,490 USD/month (regular 3,490 USD/month) |
+| **Team** (setup plus fee) | Frame28 installed on 2 workstations · brand configured · hook library for the industry · 2 training sessions · knowledge base and online course · email support and updates | 2,900 USD setup + 490 USD/month (regular 3,900 + 490) |
 
 Add-ons: additional language, 190 USD per long video with its shorts; normalized creator or affiliate clip, 79 USD
 per clip. Early-adopter prices apply to members of the Founders program (clause 15) and are locked for twelve
@@ -120,7 +120,10 @@ approval. Launch includes 1 Round; Studio, 2 per Piece.
   Without the fee, the Customer keeps the installed software (MIT license) but not support nor its brand
   configuration in new versions.
 - Payment methods: bank transfer or card [[Stripe or other]]. Invoices are issued on the charge date.
-- Overdue payment suspends the service and access to the knowledge base until settled.
+- Overdue payment suspends the service and access to the knowledge base and online course until settled.
+- **Customer area.** The knowledge base and the online course are served on frame28.app with access by the
+  Customer's email (one-time code). They are for internal use by the Customer and its employees; they may not be
+  redistributed or resold. On Launch, access lasts 12 months from final delivery; on Studio and Team, while the service is active.
 
 ## 9. Launch guarantee
 

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Curso online · Frame28</title>
+<meta name="description" content="Seis lecciones cortas, grabadas a cámara y montadas con Frame28. Incluido en Launch, Studio y Team.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://frame28.app/curso/">
+<link rel="alternate" hreflang="es" href="https://frame28.app/">
+<link rel="alternate" hreflang="en" href="https://frame28.app/en/">
+<meta property="og:title" content="Curso online · Frame28">
+<meta property="og:description" content="Seis lecciones cortas, grabadas a cámara y montadas con Frame28. Incluido en Launch, Studio y Team.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://frame28.app/curso/">
+<meta property="og:image" content="https://frame28.app/assets/og.png">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">Frame28 <small>by Think28</small></a>
+    <nav class="nav"><a href="/#como-funciona">Cómo funciona</a><a href="/#precios">Precios</a><a href="/fundadores/">Fundadores</a><a href="/#faq">Preguntas</a><a class="lang" href="/en/" hreflang="en">English</a><a class="btn sm" href="/contacto/">Contacto</a></nav>
+  </div>
+</header>
+<main>
+<section class="hero"><div class="wrap" style="grid-template-columns:1fr"><div class="copy"><div class="gate"><span class="eyebrow">Área de clientes</span><span class="muted small">Acceso con el email con el que contrataste. Incluido en Launch (12 meses), Studio y Team. <a href="/contacto/">¿Aún no eres cliente?</a></span></div><p class="eyebrow">Curso online</p><h1>Curso online</h1><p class="lead">Seis lecciones cortas, grabadas a cámara y montadas con Frame28. Incluido en Launch, Studio y Team.</p></div></div></section><section><div class="wrap"><div class="grid c2 entries"><a class="card entry" href="/curso/que-es-frame28/"><span class="n">01 · 8 min</span><h3>Qué es Frame28 y qué vas a recibir</h3><p class="muted">La lección de arranque. Qué sale de un vídeo, cómo es el proceso y qué te toca a ti. Ocho minutos.</p></a><a class="card entry" href="/curso/grabar-bien/"><span class="n">02 · 8 min</span><h3>Grabar bien</h3><p class="muted">Las diez reglas de rodaje, con ejemplos de lo que pasa cuando no se cumplen. Ocho minutos.</p></a><a class="card entry" href="/curso/marca-y-brief/"><span class="n">03 · 8 min</span><h3>Marca y brief</h3><p class="muted">Las diez preguntas del brief, contestadas en directo con un ejemplo, y qué hacemos con cada respuesta. Ocho minutos.</p></a><a class="card entry" href="/curso/ganchos-shorts-y-cta/"><span class="n">04 · 8 min</span><h3>Ganchos, shorts y llamada a la acción</h3><p class="muted">Cómo se eligen los tramos de un vídeo largo, de dónde salen los ganchos y por qué cada short lleva dos. Ocho minutos.</p></a><a class="card entry" href="/curso/revisar-aprobar-publicar/"><span class="n">05 · 8 min</span><h3>Revisar, aprobar y publicar</h3><p class="muted">Cómo leer la hoja de contacto en un minuto, cómo escribir la ronda de cambios y qué publicar dónde. Ocho minutos.</p></a><a class="card entry" href="/curso/team-instalar-y-operar/"><span class="n">06 · 8 min</span><h3>Instalar y operar el plugin</h3><p class="muted">Para Team. Instalación en un puesto, primer montaje con Claude Code y cómo pedir cambios en lenguaje normal. Ocho minutos.</p><span class="tag">solo Team</span></a></div></div></section>
+</main>
+<footer>
+  <div class="wrap">
+    <a href="https://t28.io"><img src="/assets/think28-horizontal.svg" alt="Think28 · Digital Growth Partner" width="440" height="72"></a>
+    <div class="links"><a href="/kb/">Área de clientes</a><a href="/curso/">Curso online</a><a href="https://frame28.t28.io">Plugin abierto</a><a href="https://frame28.t28.io/roadmap/">Roadmap</a><a href="/condiciones/">Condiciones</a><a href="/contacto/">Contacto</a><a href="https://github.com/javierledesma28/frame28">GitHub</a></div>
+    <p>Frame28 es un producto de <a href="https://t28.io">Think28</a> · © 2026 Think28</p>
+  </div>
+</footer>
+<script>
+(function () {
+  // Formularios: envío por fetch con mensaje en la página; sin JS, el POST normal al mismo endpoint también funciona.
+  var q = new URLSearchParams(location.search);   // vuelta del envío sin JS: /contacto/?ok=1 o ?error=1
+  document.querySelectorAll('form.form').forEach(function (form) {
+    form.querySelector('input[name=page]').value = location.pathname;
+    if (q.has('ok') || q.has('error')) {
+      var m = form.querySelector('.msg'); m.textContent = q.has('ok') ? form.dataset.ok : form.dataset.err; m.className = 'msg ' + (q.has('ok') ? 'ok' : 'err');
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msg = form.querySelector('.msg'); var btn = form.querySelector('button[type=submit]'); var label = btn.textContent;
+      msg.className = 'msg'; form.classList.add('busy'); btn.textContent = form.dataset.sending;
+      var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+      fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function () { msg.textContent = form.dataset.ok; msg.className = 'msg ok'; form.reset(); })
+        .catch(function () { msg.textContent = form.dataset.err; msg.className = 'msg err'; })
+        .finally(function () { form.classList.remove('busy'); btn.textContent = label; });
+    });
+  });
+  // Los botones de precios preseleccionan el interés en el formulario de la misma página.
+  document.querySelectorAll('[data-plan]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var sel = document.querySelector('form.form select[name=interest]');
+      if (sel) sel.value = a.dataset.plan;
+    });
+  });
+})();
+</script>
+</body>
+</html>

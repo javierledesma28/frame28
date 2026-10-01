@@ -32,9 +32,9 @@ documentación (creadores técnicos). Ambos se enlazan; el plugin es la demo viv
 | Capa | Para quién | Qué incluye | Precio early adopter | Precio regular |
 |---|---|---|---|---|
 | **Open** | Creadores técnicos con Claude Code | Plugin y CLI, MIT, documentación pública | Gratis | Gratis |
-| **Launch** (paquete de arranque, pago único) | Marcas que quieren probar con un vídeo | 1 vídeo largo montado (hasta 5 min) · 4 shorts verticales con 2 ganchos cada uno (8 piezas) · portada de YouTube y versión 1:1 para ficha de producto · subtítulos SRT · 1 idioma adicional en textos y subtítulos · 1 ronda de cambios · entrega en 5 días laborables | **990 USD** | 1.490 USD |
-| **Studio** (mensual) | Marcas con catálogo y calendario de contenido | 4 vídeos largos · 12 shorts con 2 ganchos (24 piezas) · portadas y fichas · 2 idiomas · 2 rondas de cambios por pieza · informe mensual de qué ganchos funcionaron · compromiso de 3 meses | **2.490 USD/mes** | 3.490 USD/mes |
-| **Team** (alta más soporte) | Empresas con equipo de marketing o formación propio | Instalación en 2 puestos · marca del cliente configurada · biblioteca de ganchos de su sector · 2 sesiones de formación · base de conocimiento y mini curso · soporte por email y actualizaciones | **2.900 USD alta + 490 USD/mes** | 3.900 USD alta + 490 USD/mes |
+| **Launch** (paquete de arranque, pago único) | Marcas que quieren probar con un vídeo | 1 vídeo largo montado (hasta 5 min) · 4 shorts verticales con 2 ganchos cada uno (8 piezas) · portada de YouTube y versión 1:1 para ficha de producto · subtítulos SRT · 1 idioma adicional en textos y subtítulos · 1 ronda de cambios · entrega en 5 días laborables · base de conocimiento y curso online (12 meses) | **990 USD** | 1.490 USD |
+| **Studio** (mensual) | Marcas con catálogo y calendario de contenido | 4 vídeos largos · 12 shorts con 2 ganchos (24 piezas) · portadas y fichas · 2 idiomas · 2 rondas de cambios por pieza · informe mensual de qué ganchos funcionaron · base de conocimiento y curso online · compromiso de 3 meses | **2.490 USD/mes** | 3.490 USD/mes |
+| **Team** (alta más soporte) | Empresas con equipo de marketing o formación propio | Instalación en 2 puestos · marca del cliente configurada · biblioteca de ganchos de su sector · 2 sesiones de formación · base de conocimiento y curso online · soporte por email y actualizaciones | **2.900 USD alta + 490 USD/mes** | 3.900 USD alta + 490 USD/mes |
 
 Complementos: idioma adicional 190 USD por vídeo largo con sus shorts; clip de creador o afiliado normalizado con
 marca, gancho, código y llamada a la acción 79 USD por clip; doblaje con voz sintética en el roadmap (v0.4.0),
@@ -71,7 +71,11 @@ Piloto propuesto: un Launch sobre su segundo tutorial por material (el primero y
 muestra gratuita), con dos idiomas, en cinco días laborables, a 990 USD, con la garantía. Al aprobarlo, Studio
 mensual con precio de Fundadores.
 
-## 4. Base de conocimiento y mini curso (para clientes de pago y early adopters)
+## 4. Base de conocimiento y curso online (para clientes de pago y early adopters)
+
+**Decisión del 2026-10-01:** el curso online y la base de conocimiento están incluidos en **todas** las capas de pago
+(Launch 12 meses desde la entrega; Studio y Team mientras estén activos), no solo en Team. Es el argumento de
+formación que abre la puerta corporativa y el canal para que el cliente grabe mejor y pida menos cambios.
 
 Casi todo el contenido ya existe en las referencias del plugin; se publica como artículos y se graba como curso.
 Es también la primera demo del producto: **el curso se graba hablando a cámara y se monta con Frame28**.

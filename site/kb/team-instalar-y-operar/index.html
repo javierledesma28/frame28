@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instalar y operar Frame28 en tu equipo · Base de conocimiento · Frame28</title>
+<meta name="description" content="Para Team. Qué necesita un puesto, cómo se instala en diez minutos, cómo se monta el primer vídeo y qué hacer cuando algo falla.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://frame28.app/kb/team-instalar-y-operar/">
+<link rel="alternate" hreflang="es" href="https://frame28.app/">
+<link rel="alternate" hreflang="en" href="https://frame28.app/en/">
+<meta property="og:title" content="Instalar y operar Frame28 en tu equipo · Base de conocimiento · Frame28">
+<meta property="og:description" content="Para Team. Qué necesita un puesto, cómo se instala en diez minutos, cómo se monta el primer vídeo y qué hacer cuando algo falla.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://frame28.app/kb/team-instalar-y-operar/">
+<meta property="og:image" content="https://frame28.app/assets/og.png">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/">Frame28 <small>by Think28</small></a>
+    <nav class="nav"><a href="/#como-funciona">Cómo funciona</a><a href="/#precios">Precios</a><a href="/fundadores/">Fundadores</a><a href="/#faq">Preguntas</a><a class="lang" href="/en/" hreflang="en">English</a><a class="btn sm" href="/contacto/">Contacto</a></nav>
+  </div>
+</header>
+<main>
+<section><div class="wrap"><article class="prose"><div class="gate"><span class="eyebrow">Área de clientes</span><span class="muted small">Acceso con el email con el que contrataste. Incluido en Launch (12 meses), Studio y Team. <a href="/contacto/">¿Aún no eres cliente?</a></span></div><p class="eyebrow">Base de conocimiento · 08 · 6 min de lectura <span class="tag">solo Team</span></p><h1>Instalar y operar Frame28 en tu equipo</h1><p class="lead">Para Team. Qué necesita un puesto, cómo se instala en diez minutos, cómo se monta el primer vídeo y qué hacer cuando algo falla.</p><p>Con Team, Frame28 corre en vuestros propios ordenadores: el vídeo no sale de la empresa y el equipo produce sin
+depender de nadie. Nosotros instalamos los dos primeros puestos, configuramos vuestra marca y os formamos; este
+artículo es la chuleta para después.</p>
+<h2>Qué necesita un puesto</h2>
+<ul>
+<li>Windows 11 o macOS reciente. Linux también vale.</li>
+<li>16 GB de memoria; sin tarjeta gráfica dedicada todo funciona, solo más despacio.</li>
+<li>Una cuenta de Claude Code (de Anthropic) para la persona que dirige los montajes. Es quien decide qué va en
+  pantalla; el resto lo hace el motor en local.</li>
+<li>Conexión a internet para instalar y para que el render descargue sus scripts. El vídeo no se sube.</li>
+</ul>
+<h2>Instalar en diez minutos</h2>
+<p>Lo más sencillo: abre una terminal y pega el instalador. Pregunta antes de cada paso y comprueba al final.</p>
+<ul>
+<li>Windows (PowerShell): <code>irm https://frame28.t28.io/install.ps1 | iex</code></li>
+<li>macOS (Terminal): <code>curl -fsSL https://frame28.t28.io/install.sh | bash</code></li>
+</ul>
+<p>Instala tres programas de apoyo si faltan (ffmpeg para vídeo, Node.js para el render y uv para Python), el motor
+<code>frame28</code>, y el plugin dentro de Claude Code. En Mac, el primer paso puede pedirte la contraseña del ordenador.</p>
+<p>Otra forma, si ya usas Claude Code: pega esto en una sesión y deja que lo haga: <em>"Instala Frame28 siguiendo
+https://frame28.t28.io/instalar.md"</em>.</p>
+<p>Al terminar, en una terminal nueva: <code>frame28 doctor</code>. Cada línea con una marca verde es un requisito que está. Las
+dos aspas en "gpu" y "modelo RVM" son normales: la primera dice que no hay tarjeta gráfica (va más lento, no peor)
+y el modelo se descarga solo la primera vez que hace falta.</p>
+<h2>Tu marca</h2>
+<p>La dejamos configurada en la instalación. Para verla o cambiarla: <code>frame28 brand list</code> y <code>frame28 brand show
+&lt;nombre&gt;</code>. Si cambiáis de identidad, <code>frame28 brand from-site https://vuestra-web</code> propone colores, fuente y logo
+desde la web y lo revisáis juntos.</p>
+<h2>Montar el primer vídeo</h2>
+<ol>
+<li>Carpeta nueva con el clip dentro.</li>
+<li>Abre Claude Code en esa carpeta y escribe: <em>"Aquí está mi clip. Móntamelo con la marca {nombre}."</em></li>
+<li>Claude pregunta lo que necesite (destino, duración, idioma), transcribe, corta silencios y muletillas, decide
+   los textos y escribe el guion de montaje. Te lo enseña antes de renderizar.</li>
+<li>Revisa la hoja de contacto (<code>out/&lt;nombre&gt;_sheet.png</code>). Pide cambios en lenguaje normal: <em>"el rótulo del minuto
+   1:10 más corto"</em>, <em>"quita el contador"</em>. Cada cambio regenera solo lo necesario.</li>
+<li>Para shorts: <em>"Sácame tres shorts verticales con dos ganchos cada uno."</em> Para otro idioma: <em>"Versión en inglés."</em></li>
+</ol>
+<p>Los tiempos en un portátil sin tarjeta gráfica: transcribir un minuto de vídeo, alrededor de un minuto; renderizar
+un minuto de vídeo, dos o tres. Se puede dejar en segundo plano.</p>
+<h2>Cuando algo falla</h2>
+<table>
+<thead>
+<tr>
+<th>Síntoma</th>
+<th>Qué hacer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"frame28 no se reconoce"</td>
+<td>abre una terminal nueva; si sigue, <code>uv tool update-shell</code> y otra terminal nueva</td>
+</tr>
+<tr>
+<td>El render se queda sin red</td>
+<td>el render carga unos scripts de internet la primera vez; conecta y repite</td>
+</tr>
+<tr>
+<td>Un texto tapa la cara</td>
+<td>díselo a Claude: <em>"mueve el rótulo al otro lado"</em>; usa el lado libre que detecta <code>frame28 speaker</code></td>
+</tr>
+<tr>
+<td>Nombres mal transcritos</td>
+<td>pasa la lista de nombres y marcas en la petición; se corrigen y se reutilizan</td>
+</tr>
+<tr>
+<td>Vídeo congelado en el resultado</td>
+<td>no edites el HTML generado; pide regenerar desde el guion</td>
+</tr>
+<tr>
+<td>Algo no cuadra con la instalación</td>
+<td><code>frame28 doctor</code> dice qué falta y cómo instalarlo</td>
+</tr>
+</tbody>
+</table>
+<p>Soporte por email con respuesta en dos días laborables mientras la cuota esté activa. Las actualizaciones del
+motor llegan con <code>uv tool upgrade frame28</code>; las del plugin, desinstalando e instalando desde el marketplace.</p>
+<h2>Lo que el equipo aprende en las dos sesiones</h2>
+<p>Primera: grabar, brief, el primer montaje de principio a fin y cómo leer la hoja de contacto. Segunda: shorts con
+ganchos, versiones en otros idiomas, portadas, y cómo pedirle cambios a Claude de forma que salgan a la primera.</p><nav class="pager"><a href="/kb/derechos-stock-y-licencias/">← Derechos, stock y licencias</a><a href="/kb/">Base de conocimiento</a><span></span></nav></article></div></section>
+</main>
+<footer>
+  <div class="wrap">
+    <a href="https://t28.io"><img src="/assets/think28-horizontal.svg" alt="Think28 · Digital Growth Partner" width="440" height="72"></a>
+    <div class="links"><a href="/kb/">Área de clientes</a><a href="/curso/">Curso online</a><a href="https://frame28.t28.io">Plugin abierto</a><a href="https://frame28.t28.io/roadmap/">Roadmap</a><a href="/condiciones/">Condiciones</a><a href="/contacto/">Contacto</a><a href="https://github.com/javierledesma28/frame28">GitHub</a></div>
+    <p>Frame28 es un producto de <a href="https://t28.io">Think28</a> · © 2026 Think28</p>
+  </div>
+</footer>
+<script>
+(function () {
+  // Formularios: envío por fetch con mensaje en la página; sin JS, el POST normal al mismo endpoint también funciona.
+  var q = new URLSearchParams(location.search);   // vuelta del envío sin JS: /contacto/?ok=1 o ?error=1
+  document.querySelectorAll('form.form').forEach(function (form) {
+    form.querySelector('input[name=page]').value = location.pathname;
+    if (q.has('ok') || q.has('error')) {
+      var m = form.querySelector('.msg'); m.textContent = q.has('ok') ? form.dataset.ok : form.dataset.err; m.className = 'msg ' + (q.has('ok') ? 'ok' : 'err');
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msg = form.querySelector('.msg'); var btn = form.querySelector('button[type=submit]'); var label = btn.textContent;
+      msg.className = 'msg'; form.classList.add('busy'); btn.textContent = form.dataset.sending;
+      var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+      fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function () { msg.textContent = form.dataset.ok; msg.className = 'msg ok'; form.reset(); })
+        .catch(function () { msg.textContent = form.dataset.err; msg.className = 'msg err'; })
+        .finally(function () { form.classList.remove('busy'); btn.textContent = label; });
+    });
+  });
+  // Los botones de precios preseleccionan el interés en el formulario de la misma página.
+  document.querySelectorAll('[data-plan]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var sel = document.querySelector('form.form select[name=interest]');
+      if (sel) sel.value = a.dataset.plan;
+    });
+  });
+})();
+</script>
+</body>
+</html>

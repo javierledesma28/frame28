@@ -5,6 +5,10 @@ con `build.py` y se commitea. El plugin abierto sigue en frame28.t28.io (GitHub 
 
 ```
 content/      textos fuente: landing.{es,en}.md (referencia editorial), condiciones.es.md y terms.en.md (se convierten a HTML)
+content/kb/{es,en}/NN-slug.md       base de conocimiento (8 artículos por idioma) → /kb/<slug>/ y /en/kb/<slug>/
+content/curso/{es,en}/NN-slug.md    curso online (6 lecciones por idioma) → /curso/<slug>/ y /en/course/<slug>/
+              cabecera de cada .md: title, summary, order, minutes, tier (all|team) y, en el curso, video (URL del
+              reproductor; vacío = bloque "vídeo en preparación" y el guion debajo)
 src/{es,en}/  fragmentos HTML de cada página (lo que va dentro de <main>)
 build.py      plantilla común + fragmentos + condiciones → index.html, en/, fundadores/, contacto/, condiciones/, en/founders/, en/contact/, en/terms/
 assets/       site.css, favicon.svg (isotipo Think28), think28-horizontal.svg
@@ -34,8 +38,12 @@ _redirects, _headers, wrangler.toml
    aparece al desplegar, añadirlo en Settings → Bindings con el nombre `SEND_EMAIL`. [[verificar: el API de envío
    de Email Service está en beta; `functions/api/contact.js::sendMail` es el único sitio que tocar]]
 5. Probar el formulario en producción (ES y EN) y comprobar que el email llega con `Reply-To` del remitente.
-6. Base de conocimiento y curso (`/kb/*`, `/curso/*`, pendientes): Zero Trust → Access → aplicación sobre
-   `frame28.app/kb*` y `/curso*` con política "código de un solo uso por email" y la lista de clientes.
+6. Área de clientes (base de conocimiento y curso online, ya generadas): Zero Trust → Access → Applications → Add
+   → Self-hosted, con **cuatro rutas** en la misma aplicación: `frame28.app/kb`, `frame28.app/curso`,
+   `frame28.app/en/kb`, `frame28.app/en/course`. Política *Allow* con regla "Emails" (lista de clientes) o
+   "Emails ending in" (dominio del cliente); método de identidad *One-time PIN* (código por email; no hace falta
+   proveedor de identidad). Las páginas ya llevan `noindex` y `_headers` añade `X-Robots-Tag`. Sin Access
+   configurado, las páginas son públicas: configurarlo **antes** de anunciar el área de clientes.
 
 ## Pendiente antes de publicar
 

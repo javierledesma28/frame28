@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Installing and running Frame28 in your team · Knowledge base · Frame28</title>
+<meta name="description" content="For Team. What a workstation needs, how to install in ten minutes, how to edit the first video and what to do when something fails.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://frame28.app/en/kb/team-install-and-run/">
+<link rel="alternate" hreflang="es" href="https://frame28.app/">
+<link rel="alternate" hreflang="en" href="https://frame28.app/en/">
+<meta property="og:title" content="Installing and running Frame28 in your team · Knowledge base · Frame28">
+<meta property="og:description" content="For Team. What a workstation needs, how to install in ten minutes, how to edit the first video and what to do when something fails.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://frame28.app/en/kb/team-install-and-run/">
+<meta property="og:image" content="https://frame28.app/assets/og.png">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/en/">Frame28 <small>by Think28</small></a>
+    <nav class="nav"><a href="/en/#how">How it works</a><a href="/en/#pricing">Pricing</a><a href="/en/founders/">Founders</a><a href="/en/#faq">FAQ</a><a class="lang" href="/" hreflang="es">Español</a><a class="btn sm" href="/en/contact/">Contact</a></nav>
+  </div>
+</header>
+<main>
+<section><div class="wrap"><article class="prose"><div class="gate"><span class="eyebrow">Customer area</span><span class="muted small">Sign in with the email you ordered with. Included with Launch (12 months), Studio and Team. <a href="/en/contact/">Not a customer yet?</a></span></div><p class="eyebrow">Knowledge base · 08 · 6 min read <span class="tag">Team only</span></p><h1>Installing and running Frame28 in your team</h1><p class="lead">For Team. What a workstation needs, how to install in ten minutes, how to edit the first video and what to do when something fails.</p><p>With Team, Frame28 runs on your own computers: the video never leaves the company and the team produces without
+depending on anyone. We install the first two workstations, configure your brand and train you; this article is
+the cheat sheet for afterwards.</p>
+<h2>What a workstation needs</h2>
+<ul>
+<li>Windows 11 or a recent macOS. Linux works too.</li>
+<li>16 GB of memory; without a dedicated graphics card everything works, just slower.</li>
+<li>A Claude Code account (from Anthropic) for the person who directs the edits. They decide what goes on screen;
+  the engine does the rest locally.</li>
+<li>An internet connection to install and for the render to download its scripts. The video isn't uploaded.</li>
+</ul>
+<h2>Install in ten minutes</h2>
+<p>The simplest way: open a terminal and paste the installer. It asks before every step and checks at the end.</p>
+<ul>
+<li>Windows (PowerShell): <code>irm https://frame28.t28.io/install.ps1 | iex</code></li>
+<li>macOS (Terminal): <code>curl -fsSL https://frame28.t28.io/install.sh | bash</code></li>
+</ul>
+<p>It installs three supporting programs if missing (ffmpeg for video, Node.js for the render and uv for Python), the
+<code>frame28</code> engine, and the plugin inside Claude Code. On Mac, the first step may ask for your computer password.</p>
+<p>Another way, if you already use Claude Code: paste this into a session and let it do it: <em>"Install Frame28
+following https://frame28.t28.io/instalar.md"</em>.</p>
+<p>When done, in a new terminal: <code>frame28 doctor</code>. Every line with a green mark is a requirement that's present. The
+two crosses on "gpu" and "RVM model" are normal: the first says there's no graphics card (slower, not worse) and
+the model downloads itself the first time it's needed.</p>
+<h2>Your brand</h2>
+<p>We leave it configured at installation. To see or change it: <code>frame28 brand list</code> and <code>frame28 brand show &lt;name&gt;</code>.
+If you change your identity, <code>frame28 brand from-site https://your-website</code> proposes colors, font and logo from the
+website and you review it together.</p>
+<h2>Editing the first video</h2>
+<ol>
+<li>A new folder with the clip inside.</li>
+<li>Open Claude Code in that folder and type: <em>"Here's my clip. Edit it with the {name} brand."</em></li>
+<li>Claude asks what it needs (destination, duration, language), transcribes, cuts silences and fillers, decides the
+   text and writes the edit script. It shows it to you before rendering.</li>
+<li>Review the contact sheet (<code>out/&lt;name&gt;_sheet.png</code>). Ask for changes in plain language: <em>"the title at 1:10
+   shorter"</em>, <em>"remove the counter"</em>. Each change regenerates only what's needed.</li>
+<li>For shorts: <em>"Give me three vertical shorts with two hooks each."</em> For another language: <em>"Spanish version."</em></li>
+</ol>
+<p>Timings on a laptop without a graphics card: transcribing one minute of video, about a minute; rendering one minute
+of video, two or three. It can run in the background.</p>
+<h2>When something fails</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"frame28 is not recognized"</td>
+<td>open a new terminal; if it persists, <code>uv tool update-shell</code> and another new terminal</td>
+</tr>
+<tr>
+<td>The render has no network</td>
+<td>the render loads some scripts from the internet the first time; connect and retry</td>
+</tr>
+<tr>
+<td>A text covers the face</td>
+<td>tell Claude: <em>"move the title to the other side"</em>; it uses the free side that <code>frame28 speaker</code> detects</td>
+</tr>
+<tr>
+<td>Names transcribed wrong</td>
+<td>pass the list of names and brands in the request; they're fixed and reused</td>
+</tr>
+<tr>
+<td>Frozen video in the result</td>
+<td>don't edit the generated HTML; ask to regenerate from the script</td>
+</tr>
+<tr>
+<td>Something's off with the installation</td>
+<td><code>frame28 doctor</code> says what's missing and how to install it</td>
+</tr>
+</tbody>
+</table>
+<p>Email support with a two-business-day response while the fee is active. Engine updates come with <code>uv tool upgrade
+frame28</code>; plugin updates, by uninstalling and reinstalling from the marketplace.</p>
+<h2>What the team learns in the two sessions</h2>
+<p>First: shooting, the brief, the first edit end to end and how to read the contact sheet. Second: shorts with hooks,
+versions in other languages, covers, and how to ask Claude for changes so they land first time.</p><nav class="pager"><a href="/en/kb/rights-stock-and-licenses/">← Rights, stock and licenses</a><a href="/en/kb/">Knowledge base</a><span></span></nav></article></div></section>
+</main>
+<footer>
+  <div class="wrap">
+    <a href="https://t28.io"><img src="/assets/think28-horizontal.svg" alt="Think28 · Digital Growth Partner" width="440" height="72"></a>
+    <div class="links"><a href="/en/kb/">Customer area</a><a href="/en/course/">Online course</a><a href="https://frame28.t28.io">Open plugin</a><a href="https://frame28.t28.io/roadmap/">Roadmap</a><a href="/en/terms/">Terms</a><a href="/en/contact/">Contact</a><a href="https://github.com/javierledesma28/frame28">GitHub</a></div>
+    <p>Frame28 is a <a href="https://t28.io">Think28</a> product · © 2026 Think28</p>
+  </div>
+</footer>
+<script>
+(function () {
+  // Formularios: envío por fetch con mensaje en la página; sin JS, el POST normal al mismo endpoint también funciona.
+  var q = new URLSearchParams(location.search);   // vuelta del envío sin JS: /contacto/?ok=1 o ?error=1
+  document.querySelectorAll('form.form').forEach(function (form) {
+    form.querySelector('input[name=page]').value = location.pathname;
+    if (q.has('ok') || q.has('error')) {
+      var m = form.querySelector('.msg'); m.textContent = q.has('ok') ? form.dataset.ok : form.dataset.err; m.className = 'msg ' + (q.has('ok') ? 'ok' : 'err');
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msg = form.querySelector('.msg'); var btn = form.querySelector('button[type=submit]'); var label = btn.textContent;
+      msg.className = 'msg'; form.classList.add('busy'); btn.textContent = form.dataset.sending;
+      var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+      fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function () { msg.textContent = form.dataset.ok; msg.className = 'msg ok'; form.reset(); })
+        .catch(function () { msg.textContent = form.dataset.err; msg.className = 'msg err'; })
+        .finally(function () { form.classList.remove('busy'); btn.textContent = label; });
+    });
+  });
+  // Los botones de precios preseleccionan el interés en el formulario de la misma página.
+  document.querySelectorAll('[data-plan]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var sel = document.querySelector('form.form select[name=interest]');
+      if (sel) sel.value = a.dataset.plan;
+    });
+  });
+})();
+</script>
+</body>
+</html>

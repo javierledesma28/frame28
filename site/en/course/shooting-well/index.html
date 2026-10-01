@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shooting well · Online course · Frame28</title>
+<meta name="description" content="The ten shooting rules, with examples of what happens when they're broken. Eight minutes.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://frame28.app/en/course/shooting-well/">
+<link rel="alternate" hreflang="es" href="https://frame28.app/">
+<link rel="alternate" hreflang="en" href="https://frame28.app/en/">
+<meta property="og:title" content="Shooting well · Online course · Frame28">
+<meta property="og:description" content="The ten shooting rules, with examples of what happens when they're broken. Eight minutes.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://frame28.app/en/course/shooting-well/">
+<meta property="og:image" content="https://frame28.app/assets/og.png">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/en/">Frame28 <small>by Think28</small></a>
+    <nav class="nav"><a href="/en/#how">How it works</a><a href="/en/#pricing">Pricing</a><a href="/en/founders/">Founders</a><a href="/en/#faq">FAQ</a><a class="lang" href="/" hreflang="es">Español</a><a class="btn sm" href="/en/contact/">Contact</a></nav>
+  </div>
+</header>
+<main>
+<section><div class="wrap"><article class="prose"><div class="gate"><span class="eyebrow">Customer area</span><span class="muted small">Sign in with the email you ordered with. Included with Launch (12 months), Studio and Team. <a href="/en/contact/">Not a customer yet?</a></span></div><p class="eyebrow">Online course · 02 · 8 min</p><h1>Shooting well</h1><p class="lead">The ten shooting rules, with examples of what happens when they're broken. Eight minutes.</p><div class="video pending"><span>Video in preparation: shot to camera and edited with Frame28. The script is below in the meantime.</span></div><h2>What you'll learn</h2>
+<ul>
+<li>The ten shooting rules and why each one matters for the edit.</li>
+<li>The ten-second test before shooting for real.</li>
+<li>What to do if the video is already shot or edited.</li>
+</ul>
+<h2>Script outline</h2>
+<ol>
+<li><strong>Hook.</strong> "This shot is badly filmed. This one is fine. The difference is ten things and none of them cost money."</li>
+<li><strong>Fixed camera and background.</strong> Show text behind the speaker working; show what happens with a pan.</li>
+<li><strong>Light from the front.</strong> Compare sharp hands with semi-transparent hands in low light.</li>
+<li><strong>Air on one side.</strong> Show a title with room and one covering the face.</li>
+<li><strong>Mic close.</strong> Quiet audio can be fixed; background noise can't.</li>
+<li><strong>Short sentences with a pause.</strong> Show a clean subtitle versus one that cuts mid-idea.</li>
+<li><strong>Slow gestures.</strong> Point and hold: the callout appears. Quick gesture: it doesn't.</li>
+<li><strong>Proper nouns in writing.</strong> Example of a brand transcribed wrong and fixed.</li>
+<li><strong>One take per chapter.</strong> Change position between blocks.</li>
+<li><strong>1080p at 30 fps, horizontal.</strong> The verticals come from the horizontal.</li>
+<li><strong>No prior editing.</strong> What's already baked in can't be moved or translated.</li>
+<li><strong>The ten-second test.</strong> Shoot, watch on the phone, three questions.</li>
+<li><strong>If you already have the video.</strong> Voice-over tutorials, creator clips: they work too.</li>
+<li><strong>Closing.</strong> Homework and lesson three.</li>
+</ol>
+<h2>Key lines (they become kinetic titles on screen)</h2>
+<p>"Fixed camera, fixed background." · "Plenty of light from the front." · "Air on one side." · "Short sentences, one
+idea." · "Point and hold." · "Tell us the names." · "1080p, 30 fps, horizontal." · "No editing."</p>
+<h2>What the edit puts on screen</h2>
+<p>Numbered steps 1 to 10 with progress; before/after on rules 2, 3 and 6 with shots filmed badly and well on purpose;
+a callout on rule 7 that only appears with the right gesture.</p>
+<h2>Homework</h2>
+<p>Shoot the ten-second test with your phone following the rules and watch it: can you hear yourself? Is there air on
+one side? Is the light even?</p>
+<h2>Related articles</h2>
+<p>How to shoot so it comes out right · Formats and safe zones per platform.</p><nav class="pager"><a href="/en/course/what-frame28-is/">← What Frame28 is and what you'll receive</a><a href="/en/course/">Online course</a><a href="/en/course/brand-and-brief/">Brand and brief →</a></nav></article></div></section>
+</main>
+<footer>
+  <div class="wrap">
+    <a href="https://t28.io"><img src="/assets/think28-horizontal.svg" alt="Think28 · Digital Growth Partner" width="440" height="72"></a>
+    <div class="links"><a href="/en/kb/">Customer area</a><a href="/en/course/">Online course</a><a href="https://frame28.t28.io">Open plugin</a><a href="https://frame28.t28.io/roadmap/">Roadmap</a><a href="/en/terms/">Terms</a><a href="/en/contact/">Contact</a><a href="https://github.com/javierledesma28/frame28">GitHub</a></div>
+    <p>Frame28 is a <a href="https://t28.io">Think28</a> product · © 2026 Think28</p>
+  </div>
+</footer>
+<script>
+(function () {
+  // Formularios: envío por fetch con mensaje en la página; sin JS, el POST normal al mismo endpoint también funciona.
+  var q = new URLSearchParams(location.search);   // vuelta del envío sin JS: /contacto/?ok=1 o ?error=1
+  document.querySelectorAll('form.form').forEach(function (form) {
+    form.querySelector('input[name=page]').value = location.pathname;
+    if (q.has('ok') || q.has('error')) {
+      var m = form.querySelector('.msg'); m.textContent = q.has('ok') ? form.dataset.ok : form.dataset.err; m.className = 'msg ' + (q.has('ok') ? 'ok' : 'err');
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msg = form.querySelector('.msg'); var btn = form.querySelector('button[type=submit]'); var label = btn.textContent;
+      msg.className = 'msg'; form.classList.add('busy'); btn.textContent = form.dataset.sending;
+      var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+      fetch(form.action, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(data) })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+        .then(function () { msg.textContent = form.dataset.ok; msg.className = 'msg ok'; form.reset(); })
+        .catch(function () { msg.textContent = form.dataset.err; msg.className = 'msg err'; })
+        .finally(function () { form.classList.remove('busy'); btn.textContent = label; });
+    });
+  });
+  // Los botones de precios preseleccionan el interés en el formulario de la misma página.
+  document.querySelectorAll('[data-plan]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      var sel = document.querySelector('form.form select[name=interest]');
+      if (sel) sel.value = a.dataset.plan;
+    });
+  });
+})();
+</script>
+</body>
+</html>

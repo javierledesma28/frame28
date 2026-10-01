@@ -109,6 +109,11 @@ contrato base ES/EN (`site/content/condiciones.es.md`, `terms.en.md`) y el sitio
 redirecciones, cabeceras de seguridad, `wrangler.toml` y README de despliegue. Verificado con Chromium (Playwright)
 a 1280 y 390 px: sin desbordes ni errores de JS propios. Pendiente de Javier: desplegar en Cloudflare Pages.
 
+### Sesión 2026-10-01 (nube, continuación) — confidencialidad, propuesta, base de conocimiento y curso
+Anonimización del cliente en árbol e historial (ver §Confidencialidad); propuesta entregada fuera del repo; día 4:
+base de conocimiento (8×2) y curso online (6×2) en `site/`, incluidos en todas las capas de pago, con el
+generador extendido (`render_section`: índices, páginas, anterior/siguiente, bloque de vídeo, noindex).
+
 ## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
 
 El cliente objetivo **no se nombra en ningún fichero del repo ni del sitio** (el repo es público y la captación va
@@ -137,9 +142,12 @@ Decisiones conscientes:
    También falta `site/assets/og.png` (1200×630) y la página del caso (`CONFIG["case_public"]`).
 3. **Propuesta al Cliente A**: escrita el 2026-10-01 y entregada a Javier fuera del repo (no se versiona: nombra al
    cliente). El caso (largo, shorts, portada, ES) existe en `poc/clip-grabado/out` pero no hay permiso para publicarlo.
-4. **Base de conocimiento y mini curso**: solo planificados (`research/07` §4); las fuentes ya existen en
-   `plugin/skills/frame28-storyboard/references/` (`grabacion.md`, `ganchos.md`, `marca-y-promocional.md`,
-   `tecnicas.md`) y en `plugin/cli/frame28/STORYBOARD.md`.
+4. **Base de conocimiento y curso online**: escritos y generados en `site/` (día 4): 8 artículos ES/EN en
+   `site/content/kb/` y 6 lecciones ES/EN en `site/content/curso/` (lección 1 con guion completo de 8 min; 2–6 con
+   esquema, frases clave, qué pone el montaje en pantalla y tarea). Incluidos en **todas** las capas de pago (Launch 12
+   meses, Studio y Team activos): landing, condiciones y `research/07` §2/§4 actualizados. Faltan: grabar los vídeos
+   (campo `video:` de cada lección; Javier graba la 1 y se monta con Frame28) y activar Cloudflare Access sobre las
+   cuatro rutas (pasos en `site/README.md`); hasta entonces las páginas son públicas aunque lleven noindex.
 5. **Tarjeta de Frame28 en el ecosistema de t28.io**: pendiente (la web de Think28 no está en este repo).
 
 Deuda técnica, por orden:
@@ -198,8 +206,9 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
    tarjeta en t28.io.
 3. **Día 3 — propuesta y caso.** One-pager en inglés desde el anexo de `research/07`, enlaces a las muestras de
    `poc/clip-grabado/out` (subirlas a un sitio privado o al artefacto), página del caso.
-4. **Día 4 — base de conocimiento y lección 1.** Ocho artículos desde las referencias del plugin en `site/kb/`
-   tras Cloudflare Access (código por email); guion del curso; Javier graba la lección 1 y se monta con Frame28.
+4. **Día 4 — base de conocimiento y lección 1.** Hecho lo escrito (artículos, guiones, páginas); queda que Javier
+   grabe la lección 1 (guion en `site/content/curso/es/01-que-es-frame28.md`), montarla con Frame28 y poner la URL
+   en `video:`; y activar Access.
 5. **Día 5 — v0.4.0 mínima para el servicio.** Suite de pruebas hecha (adelantada); quedan claves de B-roll y prueba
    real, registro de coste y tiempo por vídeo, variantes de gancho en lote (`clips scaffold --hook N` para cada
    gancho y render en cadena).

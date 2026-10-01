@@ -98,6 +98,7 @@ To try it with one video.
 - SRT subtitles
 - 1 additional language for on-screen text and subtitles
 - 1 round of changes
+- Knowledge base and online course (12 months)
 - Delivered in 5 business days
 
 **Button:** Start with one video
@@ -114,6 +115,7 @@ For brands with a catalog and a content calendar.
 - 2 languages
 - 2 rounds of changes per piece
 - Monthly report: which hooks performed and what to rotate
+- Knowledge base and online course
 
 **Button:** Talk about Studio
 
@@ -127,7 +129,7 @@ For companies with their own marketing or training team.
 - Your brand configured
 - Hook library for your industry
 - 2 training sessions
-- Knowledge base and mini course
+- Knowledge base and online course
 - Email support and updates
 
 **Button:** Talk about Team
