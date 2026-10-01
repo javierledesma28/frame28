@@ -118,3 +118,17 @@ def test_brand_by_name_is_found_from_a_short_folder(tmp_path):
     project = tmp_path / "work" / "clips" / "s1" / "project-hook0"
     project.mkdir(parents=True)
     assert build.resolve_brand("acme", near=project) == custom
+
+
+def test_hook_line_that_will_wrap_is_reported(tmp_path, grabado_short):
+    # día 6: una línea de 21 caracteres a 96 px se partía en un lienzo de 1080 y dejaba una palabra huérfana
+    sb = json.loads(json.dumps(grabado_short)); sb["brand"] = "think28"
+    hook = next(o for o in sb["overlays"] if o["type"] == "hook")
+    hook.pop("text", None); hook.pop("size", None)
+    hook["lines"] = ["Turn the light on.", "Every single line glows."]
+    r = build.build_project(write_json(tmp_path / "storyboard.json", sb), tmp_path / "p")
+    w = [x for x in r["warnings"] if x.startswith("hook ")]
+    assert len(w) == 1 and "Every single line glows." in w[0] and "size <=" in w[0]
+    hook["size"] = 74
+    r = build.build_project(write_json(tmp_path / "storyboard.json", sb), tmp_path / "p2")
+    assert not [x for x in r["warnings"] if x.startswith("hook ")]

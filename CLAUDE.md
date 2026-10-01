@@ -137,7 +137,7 @@ frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.j
 frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una versión traducida (subtítulos por frase del storyboard)
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (110 pruebas, ~3 s; módulos puros sin ffmpeg ni
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (111 pruebas, ~3 s; módulos puros sin ffmpeg ni
 modelos: captions, cut, clips (incluidos `batch --no-render` y `markers`), i18n, build.validate/platform_warnings/build_project,
 reframe.map_*, log/report, smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
 `scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.

@@ -171,6 +171,7 @@ CSS = """
 """
 
 
+HOOK_EM = 0.465   # medido en un short real: 20 caracteres a 96 px caben en 960 px; 21 se parten
 BUNDLED_BRANDS = Path(__file__).with_name("brands")
 USER_BRANDS = Path.home() / ".config" / "frame28" / "brands"
 
@@ -490,6 +491,11 @@ class Builder:
         bg = o.get("bg", "accent")
         lines = o.get("lines") or [o["text"]]
         x = int(o.get("x", 60)); w = int(o.get("w", self.W - 2 * x)); y = int(o.get("y", 160 if self.narrow else 90))
+        for t in lines:
+            est = HOOK_EM * size * len(t) + 40   # negrita de titular: ~0,465 em por carácter, más el relleno del resaltado
+            if est > w:
+                self.warnings.append(f"hook {i}: '{t}' probablemente se parte en dos líneas (~{round(est)} px > {w}) y deja una "
+                                     f"palabra huérfana; acórtala o usa size <= {int((w - 40) / (HOOK_EM * len(t)))}")
         # cada línea por encima de la siguiente: los descendentes (g, y, p) se pintan sobre la caja de abajo, no debajo
         inner = "".join(f'<div style="position:relative; z-index:{100 - k}"><span class="hl" id="{i}-l{k}">{esc(t)}</span></div>' for k, t in enumerate(lines))
         color = f" color:{o['color']};" if o.get("color") else ""
