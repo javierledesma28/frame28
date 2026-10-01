@@ -29,7 +29,7 @@ públicos.
 3. **Pasos que se pueden seguir**: "Project 1 · …", "Melt the wax", "Heat 1 · low": cajas breves que un
    espectador podría pausar y copiar. Es lo que convierte un tutorial en "yo también puedo".
 4. **El resultado**: la frase de satisfacción ("That's it!", "the perfect gift") como cinético + `draw` check.
-5. **Prueba social** justo antes del cierre: "{N}K+ happy makers · {nota}★ · {N}-day guarantee".
+5. **Prueba social** justo antes del cierre: "{N}K+ happy makers · {nota}★ · {N}-day guarantee" (cifras reales de la web).
 6. **Cierre**: si el vídeo ya trae tarjeta final de la marca, respétala; si no, `brand_card`.
 
 Lo que **no**: repetir en un overlay lo que ya está escrito en pantalla, poner precio en cada plano, más de un

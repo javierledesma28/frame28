@@ -28,7 +28,7 @@ asistido por Claude Code).
 | Equipos de marketing con alguien técnico | Volumen de variantes para anuncios | Servicio o plataforma con cuentas | Plataforma, cuando exista |
 
 El segmento que paga más rápido y con menos fricción es el primero: no quiere una herramienta, quiere el vídeo.
-Es el que ya tenemos demostrado con Cliente A.
+Es el que ya tenemos demostrado con el Cliente A.
 
 ## 3. Los tres caminos, dimensionados
 
@@ -80,7 +80,7 @@ con un número de piezas (largo, shorts, portada, versión en otro idioma). El c
 
 | | |
 |---|---|
-| Tiempo hasta el primer ingreso | Días o semanas: el caso Cliente A ya es la demo |
+| Tiempo hasta el primer ingreso | Días o semanas: el caso del Cliente A ya es la demo |
 | Inversión | Una página de oferta, un formulario y dos o tres vídeos de muestra para marcas objetivo |
 | Ingreso potencial | Medio y recurrente: cuotas mensuales por marca; el margen viene de que el montaje está automatizado |
 | Riesgo | Es un negocio de servicios: escala con horas de Javier; necesita vender; cada cliente pide algo distinto |
@@ -105,7 +105,7 @@ y valida la plataforma en vez de apostar por ella a ciegas.
 ## 5. Recomendación: híbrido por fases
 
 1. **Ahora: servicio (C) con el plugin abierto (A) como canal.** El plugin sigue público y es la demo viva; Think28
-   vende vídeos montados a dos o tres marcas de referencia, Cliente A la primera. Todo lo aprendido se capitaliza en
+   vende vídeos montados a dos o tres marcas de referencia, el Cliente A la primera. Todo lo aprendido se capitaliza en
    el plugin, que mejora para ambos canales a la vez.
 2. **Con datos: decidir la plataforma (B).** Solo si el servicio muestra demanda recurrente y el cuello de botella
    es la entrega, no la venta. Entonces la v1.0.0 del roadmap (interfaz sobre el storyboard, director por API) deja
