@@ -113,3 +113,13 @@ def test_clips_markers_writes_json(tmp_path):
     assert "before_after" in r.output and "res1" in r.output and "prom1" in r.output
     data = json.loads((tmp_path / "markers.json").read_text(encoding="utf-8"))
     assert data["canvas"] == [1080, 1920] and data["results"] == 1
+
+
+def test_render_sheet_covers_the_whole_video():
+    # día 6: la hoja de un vídeo de 160 s enseñaba solo los primeros 20 s (un fotograma por segundo, 4×5)
+    from frame28.media import sheet_plan
+    assert sheet_plan(10.0) == (1.0, 4, 5)
+    for dur in (28.0, 60.0, 160.0, 600.0):
+        every, cols, rows = sheet_plan(dur)
+        assert 20 <= cols * rows <= 48 and abs(every * cols * rows - dur) < 0.05   # la rejilla llega al final
+    assert sheet_plan(160.0)[1:] == (6, 8) and sheet_plan(28.0)[1:] == (6, 4)

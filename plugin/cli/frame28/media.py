@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from pathlib import Path
 
@@ -52,6 +53,17 @@ def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | Non
         result.update({"voice": str(voice), "audio16k": str(a16)})
     (out / "probe.json").write_text(json.dumps(result, indent=1, ensure_ascii=False), encoding="utf-8")
     return result
+
+
+def sheet_plan(duration: float, max_frames: int = 48) -> tuple[float, int, int]:
+    """(every, cols, rows) para que la hoja de contacto cubra el vídeo entero: un fotograma por segundo en clips de
+    hasta 20 s (4×5) y, en los largos, entre 20 y `max_frames` repartidos por toda la duración (uno cada ~3 s).
+    Con el paso fijo de 1 s, la hoja de un vídeo de 160 s enseñaba solo los primeros 20."""
+    if duration <= 20.0:
+        return 1.0, 4, 5
+    cols = 6
+    rows = math.ceil(min(max_frames, max(20, math.ceil(duration / 3.0))) / cols)
+    return round(duration / (cols * rows), 3), cols, rows
 
 
 def sheet(video: str | Path, out_png: str | Path, every: float = 1.0, cols: int = 4, rows: int = 5, width: int = 480) -> Path:

@@ -520,17 +520,20 @@ def clips():
 @click.option("--min-len", default=15.0, show_default=True)
 @click.option("--max-len", default=45.0, show_default=True)
 @click.option("--keyword", "keywords", multiple=True, help="nombre del producto o marca (puntúa las frases que lo nombran); repetible")
+@click.option("--words", "words_path", type=click.Path(exists=True), default=None, help="words.json: frases completas con tiempos exactos (transcripciones antiguas, cortadas a mitad de frase)")
 @click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar clips.json")
 @click.option("--json", "as_json", is_flag=True)
-def clips_plan(captions, target, count, lang, min_len, max_len, keywords, out_json, as_json):
+def clips_plan(captions, target, count, lang, min_len, max_len, keywords, words_path, out_json, as_json):
     """Propone los tramos de 15–45 s con más momentos (resultado, promesa, objeción, cifras, producto) y tres ganchos por tramo."""
     from .clips import plan
-    r = plan(captions, target, count, lang, min_len, max_len, list(keywords))
+    r = plan(captions, target, count, lang, min_len, max_len, list(keywords), words_path=words_path)
     if out_json:
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
     if as_json:
         out(r, True); return
     click.echo(f"  {r['moments']} momentos en la transcripción · {len(r['clips'])} tramos propuestos")
+    if r.get("note"):
+        click.echo(f"  aviso: {r['note']}")
     for c in r["clips"]:
         kinds = ", ".join(sorted({m["kind"] for m in c["moments"]}))
         click.echo(f"  {c['id']}  {c['start']:6.1f}–{c['end']:6.1f}  {c['duration']:4.1f}s  puntos {c['score']:5.1f}  [{kinds}]")
@@ -626,20 +629,22 @@ def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_j
 @click.option("--cta", "cta_json", type=click.Path(exists=True), default=None, help="JSON con los campos del overlay cta")
 @click.option("--video", "video_name", default="clip.mp4", show_default=True, help="vídeo dentro de la carpeta del short (vertical.mp4 tras reframe)")
 @click.option("--no-render", is_flag=True, help="solo storyboards y proyectos construidos (sin check ni render)")
+@click.option("--keep", is_flag=True, help="no regenerar los storyboard-hook<N>.json que ya existan (afinados a mano): solo construir y renderizar")
 @click.option("--quality", default="high", show_default=True, type=click.Choice(["draft", "standard", "high"]))
 @click.option("--json", "as_json", is_flag=True)
-def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, quality, as_json):
+def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, keep, quality, as_json):
     """Variantes de gancho en lote: por cada short y cada gancho, storyboard + build (+ check + render) → <id>-hook<N>.mp4 y batch.json."""
     from .clips import batch
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
     hook_idx = None if hooks == "all" else [int(x) for x in hooks.split(",") if x.strip()]
-    r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality)
+    r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality, keep)
     if as_json:
         out(r, True); return
     for v in r["variants"]:
         mark = "✓" if v["ok"] else "✗"
-        click.echo(f"  {mark} {v['name']:<14} {v.get('output') or v['storyboard']}" + (f"  {v['error']}" if v.get("error") else ""))
+        click.echo(f"  {mark} {v['name']:<14} {v.get('output') or v['storyboard']}" + ("  (storyboard conservado)" if v.get("kept") else "")
+                   + (f"  {v['error']}" if v.get("error") else ""))
     click.echo(f"  {r['ok']} de {len(r['variants'])} variantes · manifiesto: {r['manifest']}")
     if r["skipped"]:
         click.echo("  sin carpeta (haz `clips cut` antes): " + ", ".join(r["skipped"]))
@@ -701,7 +706,8 @@ def captions():
 @click.option("--max-cps", default=17.0, show_default=True, help="caracteres por segundo tolerados (aviso si se supera)")
 @click.option("--json", "as_json", is_flag=True)
 def captions_export(words, out_path, max_chars, max_lines, max_dur, max_gap, max_cps, as_json):
-    """words.json → .srt/.vtt con cortes en puntuación y pausas, ≤ 42 caracteres por línea, 1–7 s por cue."""
+    """words.json → .srt/.vtt con cortes en puntuación y pausas, ≤ 42 caracteres por línea, 1–7 s por cue. WORDS puede
+    ser también un storyboard (p. ej. storyboard.es.json): exporta sus subtítulos por frase con los mismos tiempos."""
     from .captions import export
     out(export(words, out_path, max_chars=max_chars, max_lines=max_lines, max_dur=max_dur, max_gap=max_gap, max_cps=max_cps), as_json or True)
 

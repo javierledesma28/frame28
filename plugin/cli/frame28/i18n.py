@@ -162,8 +162,27 @@ def translate_project(storyboard_path: str | Path, strings_path: str | Path, lan
             wout.write_text(json.dumps(nw, indent=1, ensure_ascii=False), encoding="utf-8")
             new["caption_style"]["words"] = wout.name
             res["words"] = str(wout); res["words_count"] = len(nw)
+    warns.extend(density_warnings(sb.get("captions") or [], new.get("captions") or []))
     out.write_text(json.dumps(new, indent=1, ensure_ascii=False), encoding="utf-8")
     return res
+
+
+DENSE_CPS = 21.0     # por encima no da tiempo a leer; la referencia de subtitulado es 17
+
+
+def density_warnings(src: list[dict], tr: list[dict], limit: float = DENSE_CPS, show: int = 6) -> list[str]:
+    """Subtítulos por frase traducidos que no da tiempo a leer: la traducción suele ser más larga que el original y la
+    frase dura lo mismo. Avisa de las que pasan de `limit` caracteres por segundo, con la densidad del original."""
+    def cps(c):
+        d = float(c["end"]) - float(c["start"])
+        return len(c["text"].replace(" ", "")) / d if d > 0 else 0.0
+
+    dense = [(i, cps(t), cps(src[i]) if i < len(src) else 0.0) for i, t in enumerate(tr) if t.get("text") and cps(t) > limit]
+    out = [f"captions.{i}: {c:.0f} caracteres/s (original {o:.0f}); condensa la frase, dura {float(tr[i]['end']) - float(tr[i]['start']):.1f} s"
+           for i, c, o in dense[:show]]
+    if len(dense) > show:
+        out.append(f"y {len(dense) - show} subtítulos más por encima de {limit:.0f} caracteres/s")
+    return out
 
 
 def extract_with_captions(sb: dict, captions_path: str | Path | None) -> dict:

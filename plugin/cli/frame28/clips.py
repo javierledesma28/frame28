@@ -14,12 +14,12 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from .captions import load_captions, load_words
+from .captions import END_PUNCT, _text, group_sentences, load_captions, load_words, sentences
 
 MOMENTS = {
     "result": {
         "es": [r"\bqued[aó]\b", r"\bmira\b", r"\blisto\b", r"\bya está\b", r"\basí de fácil\b", r"\bperfecto\b", r"\bprecioso\b", r"\bterminad[oa]\b"],
-        "en": [r"\bthat'?s it\b", r"\bturned out\b", r"\blook at (that|this)\b", r"\bbeautiful\b", r"\bperfect\b", r"\bdone\b", r"\bfinished\b", r"\bhere (it|they) (is|are)\b", r"\bta-?da\b"],
+        "en": [r"\bthat'?s it\b", r"\bturned out\b", r"\blook at (that|this)\b", r"\bbeautiful\b", r"\bperfect\b(?! for\b)", r"(?<!when you're )(?<!once you're )\bdone\b", r"\bfinished\b", r"\bhere (it|they) (is|are)\b", r"\bta-?da\b"],
     },
     "promise": {
         "es": [r"\bcualquiera\b", r"\bfácil\b", r"\bsencill[oa]\b", r"\bsin experiencia\b", r"\ben \d+ minutos\b", r"\bprincipiante"],
@@ -51,9 +51,26 @@ def _moments(caps: list[dict], lang: str, keywords: list[str]) -> list[dict]:
     return out
 
 
-def plan(captions_path: str | Path, target: float = 30.0, count: int = 5, lang: str = "en",
-         min_len: float = 15.0, max_len: float = 45.0, keywords: list[str] | None = None, brand: str | None = None) -> dict:
+def whole_sentences(captions_path: str | Path, words_path: str | Path | None = None) -> tuple[list[dict], str | None]:
+    """Frases completas con tiempos exactos para elegir tramos y buscar momentos: de `words.json` si se pasa, o de un
+    captions.json que traiga `sent` (el que escribe `frame28 transcribe`). Con una transcripción antigua (segmentos de
+    Whisper, cortados a mitad de frase) devuelve las entradas tal cual y una nota: agruparlas daría bloques enormes."""
     caps = load_captions(captions_path)
+    if words_path:
+        return [{"start": s[0]["start"], "end": s[-1]["end"], "text": _text(s)} for s in sentences(load_words(words_path))], None
+    if caps and all("sent" in c for c in caps):
+        return group_sentences(caps), None
+    mid = sum(1 for c in caps if c["text"].strip()[-1:] not in END_PUNCT)
+    note = (f"{mid} de {len(caps)} entradas de captions.json acaban a mitad de frase: pasa --words work/words.json "
+            f"(o vuelve a transcribir) para que los tramos empiecen y acaben en frase") if mid > 0.3 * len(caps) else None
+    return caps, note
+
+
+def plan(captions_path: str | Path, target: float = 30.0, count: int = 5, lang: str = "en",
+         min_len: float = 15.0, max_len: float = 45.0, keywords: list[str] | None = None, brand: str | None = None,
+         words_path: str | Path | None = None) -> dict:
+    # frases completas: un tramo que empieza o acaba a mitad de frase no sirve como short
+    caps, note = whole_sentences(captions_path, words_path)
     keywords = [k for k in (keywords or []) if k]
     moments = _moments(caps, lang, keywords)
     cands = []
@@ -88,7 +105,8 @@ def plan(captions_path: str | Path, target: float = 30.0, count: int = 5, lang: 
     for k, c in enumerate(chosen, 1):
         c["id"] = f"s{k}"
         c["hooks"] = hooks_for(c, lang, brand)
-    return {"captions": str(captions_path), "lang": lang, "target": target, "moments": len(moments), "clips": chosen}
+    return {"captions": str(captions_path), "lang": lang, "target": target, "moments": len(moments), "clips": chosen,
+            **({"note": note} if note else {})}
 
 
 FILLERS_START = {
@@ -303,6 +321,9 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
             sb["brand"] = brand
     if cta:
         c = {"type": "cta", "id": "cta", "start": round(max(dur - 5.0, 3.5), 2), "end": dur, "at": round(max(dur - 4.9, 3.6), 2), **cta}
+        y = _free_band_y(d, W, H)
+        if y is not None and "y" not in cta:
+            c["y"] = y  # vertical con fondo desenfocado: el CTA va a la franja libre de arriba, no encima del vídeo
         sb["overlays"].append(c)
     sb["duration"] = dur
     sb["meta"]["title"] = f"Short {clip['id']} · gancho {hook_index + 1}: " + " / ".join(hook["lines"])
@@ -311,15 +332,37 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
     return {"storyboard": str(p), "duration": dur, "hook": hook, "hook_index": hook_index}
 
 
+CTA_HEIGHT = 440  # alto que reserva el generador para la tarjeta del CTA (build.cta_box)
+
+
+def _free_band_y(clip_dir: Path, W: int, H: int) -> int | None:
+    """`y` para un overlay alto (el CTA) dentro de la franja libre superior que deja `frame28 reframe --mode blur`
+    (reframe.json junto al short), por debajo de la barra de la plataforma. None si no hay franja o no cabe."""
+    rp = Path(clip_dir) / "reframe.json"
+    if not rp.exists():
+        return None
+    try:
+        r = json.loads(rp.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    bands = r.get("free_bands") or []
+    if r.get("mode") != "blur" or list(r.get("out") or []) != [W, H] or not bands:
+        return None
+    top0, top1 = bands[0]
+    y = max(int(top0), int(0.08 * H) + 36)
+    return y if y + CTA_HEIGHT <= int(top1) else None
+
+
 def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | Path = "work/clips", out_dir: str | Path = "out/shorts",
           hook_indexes: list[int] | None = None, canvas: tuple[int, int] = (1080, 1920), platform: str = "tiktok",
           brand: str | dict | None = None, cta: dict | None = None, video_name: str = "clip.mp4", render: bool = True,
-          quality: str = "high") -> dict:
+          quality: str = "high", keep: bool = False) -> dict:
     """Variantes de gancho en lote: para cada short (ya recortado con `clips cut`) y cada gancho, escribe
     `storyboard-hook<N>.json`, construye `project-hook<N>/` y, con `render`, pasa `check` y renderiza a
     `<out>/<id>-hook<N>.mp4` con su hoja de contacto. Deja `batch.json` en la carpeta de clips con el resultado de
     cada variante: lo que falla no detiene al resto. Las plataformas queman un creativo en 7–14 días: se rota el
-    gancho, no el cuerpo, y esto deja todas las rotaciones listas de una vez."""
+    gancho, no el cuerpo, y esto deja todas las rotaciones listas de una vez. Con `keep`, un `storyboard-hook<N>.json`
+    que ya exista no se regenera: se construye y renderiza tal cual (los afinados a mano tras `--no-render`)."""
     from .build import build_project
     plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
     cdir = Path(clips_dir); odir = Path(out_dir)
@@ -336,9 +379,14 @@ def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | P
             name = f"{c['id']}-hook{k}"
             v: dict = {"clip": c["id"], "hook_index": k, "name": name, "ok": False}
             try:
-                s = scaffold(c, d, canvas, platform, brand, cta, k, video_name, name=f"storyboard-hook{k}.json")
-                v["storyboard"] = s["storyboard"]; v["hook"] = s["hook"]["lines"]; v["type"] = s["hook"]["type"]
-                b = build_project(s["storyboard"], d / f"project-hook{k}")
+                sp = d / f"storyboard-hook{k}.json"
+                if keep and sp.exists():
+                    hk = c["hooks"][k]
+                    v["storyboard"] = str(sp); v["hook"] = hk["lines"]; v["type"] = hk.get("type"); v["kept"] = True
+                else:
+                    s = scaffold(c, d, canvas, platform, brand, cta, k, video_name, name=sp.name)
+                    v["storyboard"] = s["storyboard"]; v["hook"] = s["hook"]["lines"]; v["type"] = s["hook"].get("type")
+                b = build_project(v["storyboard"], d / f"project-hook{k}")
                 v["project"] = b["project"]; v["warnings"] = b["warnings"]
                 if render:
                     from .render import check as _check, render as _render
@@ -428,7 +476,7 @@ def markers(captions_path: str | Path, lang: str = "en", words_path: str | Path 
     palabra que lo dice y un `kinetic` con la frase real; por cada promesa, un `kinetic`. Las posiciones son
     orientativas (`side` = lado libre de `frame28 speaker`, o la franja superior en vertical): el director las
     ajusta y comprueba `before_t` con `frame28 frames` (el "antes" debe ser el objeto sin tocar)."""
-    caps = load_captions(captions_path)
+    caps, _ = whole_sentences(captions_path)   # words.json aquí solo afina los `at` (puede cubrir un tramo nada más)
     words = load_words(words_path) if words_path else []
     total = round(max(c["end"] for c in caps), 3) if caps else 0.0
     moms = [m for m in _moments(caps, lang, []) if m["kind"] in ("result", "promise")]

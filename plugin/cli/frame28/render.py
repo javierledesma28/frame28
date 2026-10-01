@@ -7,7 +7,7 @@ from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
 from .env import env_with_ffmpeg, npx
-from .media import sheet
+from .media import probe, sheet, sheet_plan
 
 
 def _hf(args: list[str], cwd: Path, timeout: int = 1800) -> subprocess.CompletedProcess:
@@ -40,5 +40,7 @@ def render(project: str | Path, output: str | Path, quality: str = "high", crf: 
     m = re.search(r"rendered in ([\dm\s.]+s)", out)
     res = {"ok": ok, "output": str(output), "time": m.group(1).strip() if m else None, "log_tail": out[-1500:]}
     if ok and make_sheet:
-        res["sheet"] = str(sheet(output, output.with_name(output.stem + "_sheet.png")))
+        every, cols, rows = sheet_plan(probe(output)["duration"])
+        res["sheet"] = str(sheet(output, output.with_name(output.stem + "_sheet.png"), every, cols, rows))
+        res["sheet_every"] = every
     return res
