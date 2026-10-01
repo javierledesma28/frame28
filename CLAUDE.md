@@ -27,13 +27,17 @@ HTTPS forzado): `https://frame28.t28.io/` → guía `/presentacion/`, asistente 
 instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude instale `/instalar.md`, roadmap por
 versiones `/roadmap/`.
 
-**Desde el 2026-09-30 Frame28 es también un producto monetizable** del ecosistema Think28, con dominio
-**frame28.app** (zona DNS activa en Cloudflare, cuenta T28, plan Free, confirmado el 2026-10-01; el sitio del producto
-está **construido** en `site/` y **pendiente de desplegar** en Cloudflare Pages con un token de API que Javier va a
-crear: permisos acordados en `HANDOFF.md` §Cloudflare). Se vende como servicio operado por Think28 (Launch, Studio), implantación en el cliente (Team) y,
-solo con demanda demostrada, plataforma (Cloud). Primer cliente objetivo: **Cliente A** (nombre en clave: el cliente real no se escribe en ningún fichero del repo ni del sitio; ver HANDOFF §Confidencialidad). Definición, precios propuestos
-y plan en `research/07-producto-frame28-app.md`; caminos evaluados en `research/06-monetizacion.md`. El plugin y el
-CLI siguen MIT y públicos: son la demo viva y el canal de adopción.
+**Desde el 2026-09-30 Frame28 es también un producto monetizable** del ecosistema Think28, con dominio **frame28.app**
+(sitio estático en vivo desde el 2026-10-01 en el VPS t28server, ver `deploy/`). **Giro del 2026-10-01 (noche), decidido
+por Javier:** Frame28 deja de venderse como servicio («nos envías el vídeo») y pasa a ser **una plataforma: plugin de pago
+en el Claude Code del cliente + frame28.app como panel de control** de la cuenta, la membresía, la **Memoria de marca**
+(brand kit, historia, voz, catálogo, ganchos, idiomas) y las **campañas**; el plugin se autentica con el mismo usuario
+(MCP remoto con OAuth) y recibe ese contexto para montar vídeos de la marca. Definición, arquitectura, stack, diseño,
+modelo y plan en **`research/08-plataforma-frame28-app.md`** (sustituye a `research/07` §2–3; el resto de 07 sigue
+vigente). Think28 mantiene un tier *Studio* operado por nosotros. **La landing en vivo todavía vende el servicio**: su
+reescritura es la fase 0. Primer cliente objetivo: **Cliente A** (nombre en clave: el cliente real no se escribe en ningún
+fichero del repo ni del sitio; ver HANDOFF §Confidencialidad). El plugin y el CLI siguen MIT y públicos (open core): son la
+demo viva y el canal de adopción; lo que se paga es la cuenta.
 
 **Regla de trabajo del usuario:** cada aprendizaje de un caso, un vídeo de ejemplo o un diagnóstico se capitaliza en
 el plugin (código del CLI, `doctor`, validaciones, skills y referencias), no en docs ni en el HANDOFF. Ante cada
@@ -89,7 +93,10 @@ scripts/release-check.py          versiones en los cuatro sitios, árbol limpio,
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
                                   06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
-                                  Fundadores, KB y curso, sitio, plan de 7 días; la propuesta al cliente vive fuera del repo)
+                                  Fundadores, KB y curso, sitio, plan de 7 días; la propuesta al cliente vive fuera del repo),
+                                  08 PLATAFORMA (giro del 2026-10-01: plugin de pago + frame28.app como panel; Memoria de marca,
+                                  campañas, MCP remoto con OAuth, arquitectura, stack Next.js + FastAPI + Think28 ID + Paddle + R2,
+                                  diseño, tiers a validar, plan por fases, referencias web verificadas)
 site/                             sitio del producto frame28.app, estático para Cloudflare Pages (root `site`, sin build en el despliegue).
                                   build.py (plantilla común + CONFIG: plazas, buzón, caso público) ensambla src/{es,en}/*.html y convierte
                                   content/condiciones.es.md + terms.en.md → index.html, en/, fundadores/, contacto/, condiciones/, en/founders/,
@@ -203,9 +210,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   publicados, cambios en el DNS o en el sitio en vivo que afecten a clientes, gastar dinero, instalar software en la
   máquina de Javier). Lo demás se hace, y se explica en pocas frases qué se hizo y cómo se comprueba: Javier quiere
   entender cada etapa, no ejecutarla él.
-- Los análisis de negocio (`research/06`, `07`) se versionan en este repo público por decisión del usuario; los
-  **precios** de `research/07` §2 están validados por él (2026-10-01). Un cambio de precios se hace ahí primero y
-  después en la landing; no se inventan ni redondean cifras en ningún otro sitio.
+- Los análisis de negocio (`research/06`, `07`, `08`) se versionan en este repo público por decisión del usuario. Los
+  **precios** de `research/07` §2 (servicio) fueron validados por él el 2026-10-01 y son los que aún muestra la landing;
+  `research/08` §11 propone la estructura de tiers de la plataforma con **cifras a validar**. Un cambio de precios se hace
+  en `research/08` primero y después en la landing; no se inventan ni redondean cifras en ningún otro sitio.
 - Precios y oferta se expresan en USD (el primer cliente es estadounidense); la landing es la fuente pública de
   precios cuando exista; `research/07` es la propuesta.
 - Parches al CLI: escribir el parche a un `.py` en el scratchpad y ejecutarlo (ver Trampas), luego `ast.parse`.
