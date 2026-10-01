@@ -256,6 +256,8 @@ const ROADMAP = [
       { t: "Títulos con resaltado: avisos y tildes", d: "build avisa cuando una línea del gancho se va a partir; las mayúsculas con tilde en segunda línea ya no pierden el acento (portada y gancho).", s: "hecho", e: "S", val: "medio" },
       { t: "Confidencialidad en release-check", d: "Fila bloqueante que busca los términos de _private/confidencial.txt en ficheros, historia, tags y releases de GitHub.", s: "hecho", e: "S", val: "alto" },
       { t: "CI mínima", d: "GitHub Actions pasa la suite del CLI en cada push y pull request.", s: "hecho", e: "S", val: "medio" },
+      { t: "doctor avisa de la última release", d: "Compara la versión instalada con la última release de GitHub y dice cómo actualizar el CLI y el plugin.", s: "hecho", e: "S", val: "medio" },
+      { t: "Comparador antes/después en la web", d: "Un vídeo de demostración sin Frame28 y con Frame28, lado a lado con barra deslizante (SBS en canvas, sin dependencias); research y POC hechos, falta el vídeo y colocarlo en la landing.", s: "medias", why: "research/09 y POC listos; sin vídeo de demostración ni integración en la landing", e: "S", val: "alto" },
       { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
       { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
       { t: "Gráfica de barras en vertical con más de tres filas", d: "El lienzo estrecho compacta la gráfica; con muchas filas se sale.", s: "pendiente", e: "S", val: "bajo" },
@@ -270,7 +272,7 @@ const ROADMAP = [
       { t: "Música y efectos con ducking", d: "Pixabay y Freesound CC0, beats con librosa, la voz por encima.", s: "pendiente", e: "M", val: "medio", ref: "R4 #12" },
       { t: "Técnicas pendientes del catálogo", d: "Mosaico de píxeles, carrera de terminales, rejilla de puntos, barras 3D, PiP en tarjeta, rueda de textos, karaoke de párrafo, texturas.", s: "pendiente", e: "M", val: "medio", ref: "T4, T9, T10a, T10b, T11–T14" },
       { t: "Frame28 Team: implantación en el equipo del cliente", d: "Instalación, marca configurada, biblioteca de ganchos del sector, formación y soporte para que el equipo del cliente opere el plugin.", s: "pendiente", e: "M", val: "alto" },
-      { t: "HyperFrames al día", d: "Subir del 0.8.72 pineado a la versión publicada, con clip-javier y clip-grabado como regresión.", s: "pendiente", e: "S", val: "medio" },
+      { t: "HyperFrames al día", d: "Subido del 0.8.72 al 0.8.105 (y GSAP 3.15) con clip-javier como regresión; clip-grabado pendiente de pasar.", s: "medias", why: "solo se pasó una de las dos regresiones", e: "S", val: "medio" },
       { t: "Render sin red", d: "GSAP empaquetado en el proyecto generado en vez de cargado por CDN.", s: "pendiente", e: "S", val: "bajo" }
     ] },
   { v: "v1.0.0", name: "Frame28 Cloud, si la demanda lo pide", date: "condicional", state: "cond",

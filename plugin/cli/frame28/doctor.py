@@ -38,6 +38,36 @@ def cdn_reachable(url: str = GSAP_CDN, timeout: float = 5.0) -> bool:
         return False
 
 
+RELEASES_API = "https://api.github.com/repos/javierledesma28/frame28/releases/latest"
+UPGRADE_HINT = ("uv tool upgrade frame28  (o repetir el instalador) y, para las skills, "
+                "claude plugin marketplace update think28 && claude plugin update frame28@think28")
+
+
+def _vtuple(v: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in v.strip().lstrip("v").split(".") if x.isdigit())
+
+
+def release_newer(current: str, latest: str | None) -> bool | None:
+    """True si la release publicada es más nueva que el código instalado; False si está al día; None si no se sabe."""
+    if not latest:
+        return None
+    a, b = _vtuple(current), _vtuple(latest)
+    if not a or not b:        # una etiqueta sin números ("rc") no dice nada
+        return None
+    return b > a
+
+
+def latest_release(url: str = RELEASES_API, timeout: float = 5.0) -> str | None:
+    """Tag de la última release pública (None sin red o si GitHub no responde)."""
+    try:
+        import json
+        req = urllib.request.Request(url, headers={"User-Agent": f"frame28/{__version__}", "Accept": "application/vnd.github+json"})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8")).get("tag_name")
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def doctor() -> list[dict]:
     rows = []
 
@@ -88,6 +118,11 @@ def doctor() -> list[dict]:
             "opcional: PEXELS_API_KEY / PIXABAY_API_KEY en el entorno o en ~/.config/frame28/keys.json (gratis en pexels.com/api y pixabay.com/api/docs); sin ellas `frame28 broll search` no busca", optional=True)
     except Exception as e:  # noqa: BLE001
         add("claves de B-roll", False, str(e)[:80], "revisa ~/.config/frame28/keys.json", optional=True)
+    latest = latest_release()
+    newer = release_newer(__version__, latest)
+    add("última release", newer is not True,
+        (f"{latest} publicada, {__version__} instalada" if newer else (f"{__version__} al día" if newer is False else "sin respuesta de GitHub")),
+        UPGRADE_HINT if newer else "", optional=True)
     net = cdn_reachable()
     add("red (GSAP por CDN)", net, f"gsap@{GSAP_VERSION} en cdn.jsdelivr.net" + ("" if net else ": sin acceso"),
         "el render y la portada cargan GSAP por internet: conecta la red antes de `frame28 render` o `frame28 cover`", optional=True)

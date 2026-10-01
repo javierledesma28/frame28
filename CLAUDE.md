@@ -95,7 +95,9 @@ scripts/release-check.py          versiones en los cuatro sitios, árbol limpio,
                                   --notes: commits desde el último tag
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
-                                  06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
+                                  06 monetización (tres caminos, recomendación), 09 comparador de vídeo antes/después para la web
+                                  (research del usuario: arquitectura SBS en canvas, librerías, POC en poc/clip-javier/comparador-web),
+                                  07 producto Frame28.app (oferta, precios,
                                   Fundadores, KB y curso, sitio, plan de 7 días; la propuesta al cliente vive fuera del repo),
                                   08 PLATAFORMA (giro del 2026-10-01: plugin de pago + frame28.app como panel; Memoria de marca,
                                   campañas, MCP remoto con OAuth, arquitectura, stack Next.js + FastAPI + Think28 ID + Paddle + R2,
@@ -224,7 +226,7 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 
 ## Decisiones técnicas
 
-- **HyperFrames 0.8.72** (Apache-2.0) como compositor, pineado (0.8.105 publicada el 2026-10-01; subir exige pasar las
+- **HyperFrames 0.8.105** (Apache-2.0) como compositor, pineado (subido del 0.8.72 el 2026-10-01 pasando la regresión de clip-javier; subir exige pasar las
   regresiones de `poc/clip-javier` y `poc/clip-grabado`); Remotion descartado (licencia de empresa >3 personas).
   PoC comparativa en `research/03-poc-compositores.md`.
 - **faster-whisper** (CPU, medium int8) para tiempos por palabra; WhisperX/stable-ts con guion son mejora pendiente.

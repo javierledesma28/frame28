@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comparador Original vs Recut</title>
+<style>
+/* Layout: one centered stage, the comparison video first, a slim control bar under it */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --fg:#14161a; --muted:#5d6370; --line:#d9dce2;
+  --accent:#2f6bff; --handle:#ffffff;
+  --f-display:"Archivo",system-ui,sans-serif; --f-body:"Archivo",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1014;--surface:#171a20;--fg:#e9ebef;--muted:#99a0ad;--line:#2a2f38;--accent:#6b95ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1014;--surface:#171a20;--fg:#e9ebef;--muted:#99a0ad;--line:#2a2f38;--accent:#6b95ff;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body)}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:28px 40px;display:grid;gap:16px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(20px,3vw,28px);margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{margin:4px 0 0;color:var(--muted);font-size:14px;max-width:65ch}
+.stage{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#000;border-radius:10px;overflow:hidden;touch-action:none;user-select:none;cursor:ew-resize}
+canvas{display:block;width:100%;height:100%;object-fit:contain}
+.stage:fullscreen{border-radius:0}
+.tag{position:absolute;top:12px;font:600 11px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.55);padding:7px 9px;border-radius:4px;pointer-events:none;transition:opacity .2s}
+.tag.l{left:12px}.tag.r{right:12px}
+.divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--handle);box-shadow:0 0 0 1px rgba(0,0,0,.25);pointer-events:none}
+.knob{position:absolute;top:50%;left:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:var(--handle);box-shadow:0 2px 10px rgba(0,0,0,.35);display:grid;place-items:center;pointer-events:none}
+.knob svg{width:22px;height:22px}
+.stage:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.bigplay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.25);border:0;cursor:pointer;color:#fff}
+.bigplay span{width:76px;height:76px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center}
+.bar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;flex-wrap:wrap}
+.btn{appearance:none;border:0;background:transparent;color:var(--fg);width:36px;height:36px;border-radius:8px;display:grid;place-items:center;cursor:pointer}
+.btn:hover{background:var(--line)}.btn:focus-visible{outline:2px solid var(--accent)}
+.btn svg{width:20px;height:20px;fill:currentColor}
+input[type=range]{accent-color:var(--accent)}
+#seek{flex:1;min-width:120px}
+.time{font:500 12px var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hint{font-size:13px;color:var(--muted);margin:0}
+@media (max-width:520px){.tag{top:8px;font-size:10px;padding:5px 7px}.tag.l{left:8px}.tag.r{right:8px}.knob{width:36px;height:36px;margin:-18px 0 0 -18px}}
+@media (prefers-reduced-motion:reduce){.tag{transition:none}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+
+</head>
+<body style="margin:0">
+<div class="wrap">
+  <header>
+    <h1>Original vs. editado</h1>
+    <p class="sub">Arrastra la línea blanca mientras se reproduce. A la izquierda ves el vídeo original y a la derecha el mismo clip con el producto aplicado.</p>
+  </header>
+
+  <div class="stage" id="stage" tabindex="0" role="slider" aria-label="Posición de la comparación" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+    <canvas id="cv" width="1920" height="1080"></canvas>
+    <span class="tag l" id="tagL">Original</span>
+    <span class="tag r" id="tagR">Con producto</span>
+    <div class="divider" id="div" style="left:50%">
+      <div class="knob"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6" fill="none" stroke="#14161a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <button class="bigplay" id="big" aria-label="Reproducir"><span><svg viewBox="0 0 24 24" width="34" height="34" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span></button>
+  </div>
+
+  <div class="bar">
+    <button class="btn" id="play" aria-label="Reproducir"><svg viewBox="0 0 24 24"><path id="pi" d="M8 5v14l11-7z"/></svg></button>
+    <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Posición del vídeo">
+    <span class="time" id="time">0:00 / 0:00</span>
+    <button class="btn" id="mute" aria-label="Activar sonido"><svg viewBox="0 0 24 24"><path id="mi" d="M3 9v6h4l5 5V4L7 9H3zm13.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"/></svg></button>
+    <button class="btn" id="loop" aria-label="Repetir activado" aria-pressed="true" style="color:var(--accent)"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
+    <button class="btn" id="fs" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
+  </div>
+  <p class="hint">También puedes usar las flechas ← → del teclado sobre el vídeo, y la barra espaciadora para pausar.</p>
+</div>
+
+<video id="v" src="comparativa_sbs.mp4" playsinline muted loop preload="auto" crossorigin="anonymous" hidden></video>
+
+<script>
+(()=>{
+const v=document.getElementById('v'),cv=document.getElementById('cv'),ctx=cv.getContext('2d'),
+stage=document.getElementById('stage'),div=document.getElementById('div'),big=document.getElementById('big'),
+seek=document.getElementById('seek'),time=document.getElementById('time'),pi=document.getElementById('pi'),
+mi=document.getElementById('mi'),tagL=document.getElementById('tagL'),tagR=document.getElementById('tagR');
+let split=.5,seeking=false;
+const PLAY='M8 5v14l11-7z',PAUSE='M6 5h4v14H6zm8 0h4v14h-4z',
+MUTED='M3 9v6h4l5 5V4L7 9H3zm13.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z',
+SOUND='M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z';
+
+function draw(){
+  if(v.readyState<2)return;
+  const W=cv.width,H=cv.height,hw=v.videoWidth/2,vh=v.videoHeight,x=Math.round(W*split),sx=hw*split;
+  // left: original (left half of source) ; right: edited (right half of source)
+  if(x>0)ctx.drawImage(v,0,0,sx,vh,0,0,x,H);
+  if(x<W)ctx.drawImage(v,hw+sx,0,hw-sx,vh,x,0,W-x,H);
+}
+function loop(){draw();if('requestVideoFrameCallback' in v)v.requestVideoFrameCallback(loop);else requestAnimationFrame(loop)}
+v.addEventListener('loadeddata',()=>{cv.width=v.videoWidth/2;cv.height=v.videoHeight;draw();loop()},{once:true});
+v.addEventListener('seeked',draw);
+
+function setSplit(p){
+  split=Math.min(1,Math.max(0,p));
+  div.style.left=(split*100)+'%';
+  stage.setAttribute('aria-valuenow',Math.round(split*100));
+  tagL.style.opacity=split<.12?0:1; tagR.style.opacity=split>.88?0:1;
+  draw();
+}
+function fromEvent(e){const r=stage.getBoundingClientRect();setSplit((e.clientX-r.left)/r.width)}
+let dragging=false;
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('.bigplay'))return;dragging=true;stage.setPointerCapture(e.pointerId);fromEvent(e)});
+stage.addEventListener('pointermove',e=>{if(dragging)fromEvent(e)});
+['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,()=>dragging=false));
+stage.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){setSplit(split-.05);e.preventDefault()}
+  else if(e.key==='ArrowRight'){setSplit(split+.05);e.preventDefault()}
+  else if(e.key===' '){toggle();e.preventDefault()}
+});
+
+function toggle(){v.paused?v.play().catch(()=>{}):v.pause()}
+function syncPlay(){const p=v.paused;pi.setAttribute('d',p?PLAY:PAUSE);document.getElementById('play').setAttribute('aria-label',p?'Reproducir':'Pausar');big.hidden=!p||v.currentTime>0}
+big.addEventListener('click',()=>{v.muted=false;syncMute();v.play().catch(()=>{v.muted=true;syncMute();v.play()})});
+document.getElementById('play').addEventListener('click',toggle);
+v.addEventListener('play',syncPlay);v.addEventListener('pause',()=>{syncPlay();big.hidden=true});
+
+function fmt(t){t=Math.max(0,t||0);return Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0')}
+v.addEventListener('timeupdate',()=>{if(!seeking)seek.value=v.duration?v.currentTime/v.duration*1000:0;time.textContent=fmt(v.currentTime)+' / '+fmt(v.duration)});
+v.addEventListener('loadedmetadata',()=>time.textContent='0:00 / '+fmt(v.duration));
+seek.addEventListener('input',()=>{seeking=true;if(v.duration)v.currentTime=seek.value/1000*v.duration});
+seek.addEventListener('change',()=>seeking=false);
+
+function syncMute(){mi.setAttribute('d',v.muted?MUTED:SOUND);document.getElementById('mute').setAttribute('aria-label',v.muted?'Activar sonido':'Silenciar')}
+document.getElementById('mute').addEventListener('click',()=>{v.muted=!v.muted;syncMute()});
+const lb=document.getElementById('loop');
+lb.addEventListener('click',()=>{v.loop=!v.loop;lb.setAttribute('aria-pressed',v.loop);lb.style.color=v.loop?'var(--accent)':'';lb.setAttribute('aria-label',v.loop?'Repetir activado':'Repetir desactivado')});
+document.getElementById('fs').addEventListener('click',()=>{
+  if(document.fullscreenElement)document.exitFullscreen();
+  else (stage.requestFullscreen?stage.requestFullscreen():Promise.reject()).catch(()=>{});
+});
+})();
+</script>
+
+</body>
+</html>

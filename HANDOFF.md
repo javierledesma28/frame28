@@ -45,17 +45,17 @@ vende el servicio: reescribirla es la **fase 0**.
 | Identidad (Think28 ID para Frame28) | **Tenant externo `frame28ciam.onmicrosoft.com`** (`e26abf56-cc6a-4338-9fbf-732c7cc9bc94`, Entra External ID, Europa/ES) creado el 2026-10-01 por API con la sesión de `javier@t28.io`; apps `frame28-api` (scope `frame28.access`), `frame28-web`, `frame28-claude-code` (público, PKCE) y `frame28-admin-tools` con preautorización y consentimiento. **Pendientes**: flujo de alta/entrada (Graph 400), secreto de la web, Google, y mover el recurso Azure de `sub-azurehub-prod` a una `sub-frame28-prod` que Javier debe crear en el portal. Todo en `C:\Workspaces\personal\frame28-app` (`docs/identidad.md`, `scripts/identidad/`, su HANDOFF) |
 | Versión publicada | **v0.4.0** (release en GitHub, tag en `4e7a6cb`); 0.4.0 en `__init__.py`, `plugin.json`, `marketplace.json`, README |
 | CLI | `frame28 --version` 0.4.0 (editable, con extra `gpu`); `frame28 doctor` «Todo listo», incluida la fila nueva **gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN**; opcionales en aspa: gpu (onnxruntime) y claves de B-roll |
-| Pruebas | **114 passed en ~3,7 s** (`cd plugin/cli && uv run --group dev pytest`) |
+| Pruebas | **116 passed en ~3 s** (`cd plugin/cli && uv run --group dev pytest`) |
 | Plugin | `claude plugin validate <ruta absoluta>/plugin` pasa; caché instalado 0.4.0 (18:31) **idéntico** a `plugin/skills/`; `claude plugin update frame28@think28` → «already at the latest version (0.4.0)» |
 | Storyboards | 11 de 11 versionados válidos (`frame28 storyboard validate`) |
 | Regresión | `poc/clip-javier/storyboard-gsap.json`: build sin avisos, check ✓, **render 1 m 16 s con `--workers 10`** (89–105 s con los trabajadores por defecto); hoja de contacto correcta |
 | `release-check.py` | 4 bloqueos esperados (árbol, tag local, tag remoto, release «ya existe») hasta subir `__version__`; **confidencialidad: sin rastro** en ficheros, historia, tags y releases |
-| Sitio del producto | `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 5 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). **No desplegado** |
+| Sitio del producto | `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 25 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). En vivo (fila frame28.app) |
 | Web del plugin | frame28.t28.io `/`, `/roadmap/`, `/instalar/`, `/install.ps1` → HTTP 200 |
 | frame28.app | **EN VIVO desde el 2026-10-01 a las 19:55** desde t28server: `/opt/frame28` con `frame28-web` (nginx) y `frame28-tunnel` arriba, `site/` = HEAD por hash (`deploy/deploy.sh --check`); CNAME `frame28.app` y `www` → túnel `frame28` (id `8d6534bd-e051-4b5f-9a94-8b8c87aa0b8a`), rutas puestas por Javier en el panel. Verificado desde fuera: `/`, `/en/`, `/fundadores/`, `/contacto/`, `/condiciones/` y assets → 200 con CSP, HSTS, nosniff, DENY; `/founders`→`/en/founders/` 301, `/roadmap`→frame28.t28.io 302, `/casos/*`→`/contacto/` 302, `www`→apex 301; `/kb`, `/curso`, `/en/course`, `/src`, `/content` → 404 (a propósito); `/api/contact` → 503 (hasta el Worker) |
 | Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**40 hechos, 3 a medias, 22 pendientes**; «Página de producto en frame28.app» cerrada el 2026-10-01 al salir en vivo); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai en la versión 6: **republicar** desde la sesión que lo posee (URL en §Qué se ha hecho) |
 | Actualización de usuarios | **verificado en un entorno aislado**: `uv tool upgrade frame28` mueve una instalación desde git al último commit en 14 s aunque la versión no cambie; repetir el instalador (`--force`) también. `claude plugin update` solo actúa si cambia la versión del plugin |
-| Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); HyperFrames 0.8.72 pineado (0.8.105 publicada); GSAP 3.14.2 (3.15.0 publicada) |
+| Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); **HyperFrames 0.8.105 y GSAP 3.15.0** desde el 2026-10-01 (regresión de clip-javier en verde) |
 | Git | `main` = `origin/main`; CI de GitHub Actions en verde (`tests`, 19 s); **remoto SSH `github-jl28`** (`ssh -T git@github-jl28` → «Hi javierledesma28!», `git ls-remote origin` verificado): el push ya no depende de la credencial HTTPS guardada en Windows, que es la corporativa y daba 403. `gh` tiene la corporativa activa: `gh auth switch --user javierledesma28` solo para `gh release` y `gh api`. Rama `origin/main-ky21ae` obsoleta, borrable |
 | Casos reales | `poc/clip-javier`, `clip-auriculares`, `clip-whatsapp`, `clip-demo`, `clip-grabado` (versionados: README, storyboard, cuts) y **`poc/clip-acrilico` (solo local, nada versionado)** |
 
@@ -182,8 +182,8 @@ cliente público `frame28-claude-code` → Paddle sandbox), (c) Paddle, R2, emai
 **v0.5 del plugin como cáscara** (`.mcp.json` remoto, `hooks.json`, skills mínimas que llaman a `frame28_start`, `frame28
 deliver`, `frame28 context apply`, `frame28 license set/whoami`): se hace cuando el MCP del spike responda. Los puntos
 siguientes siguen valiendo; el 3 (formulario, Access, Turnstile) se hace sobre el sitio estático y se hereda en la app.
-Pendientes menores de la fase 0: `assets/og.png` aún lleva el claim antiguo (regenerar desde `og.html` con Chromium), y los
-artículos de la KB y el curso siguen escritos para el servicio (reescribir con la Memoria de marca cuando exista la app).
+Pendiente menor de la fase 0: los artículos de la KB y el curso siguen escritos para el servicio (reescribir con la
+Memoria de marca cuando exista la app); `og.png` ya está regenerada con el claim de la plataforma.
 
 1. **Revisar la segunda muestra** del Cliente A en movimiento y de oído (lista en `_private/cliente-a/dia6-estado.md`;
    copias en `_private/cliente-a/muestras/`). Hasta entonces no se envía nada.
@@ -203,10 +203,9 @@ artículos de la KB y el curso siguen escritos para el servicio (reescribir con 
    - (b) `poc/clip-acrilico`: versionar README + storyboard + `clips.json` anonimizados como los otros casos, o dejar
      todo en `_private/`. En cualquier caso: copiar `out/` (3 MP4, 6 shorts, 4 portadas, 3 SRT) a
      `_private/cliente-a/muestras/` y anotar `frame28 report note "director" --tokens <n>` en `poc/clip-acrilico/`.
-5. **Capitalizar la actualización en el plugin:** fila opcional de `doctor` que lea
-   `https://api.github.com/repos/javierledesma28/frame28/releases/latest`, compare con `__version__` y, si hay versión
-   nueva, imprima `uv tool upgrade frame28` y `claude plugin marketplace update think28 && claude plugin update
-   frame28@think28` (misma forma que la fila de red de GSAP en `plugin/cli/frame28/doctor.py`).
+5. **KB y curso para la plataforma**: siguen escritos para el servicio (tiers Launch/Studio/Team, «lo que tienes que
+   mandar»); se reescriben con la Memoria de marca cuando exista la app. `og.png` ya lleva el claim de la plataforma
+   (regenerada el 2026-10-01 desde `site/assets/og.html` con Chrome headless).
 6. **Condiciones**: rellenar los 48 `[[…]]` de `site/content/condiciones.es.md` y `terms.en.md` (datos fiscales, fuero,
    buzón, IVA, idioma que prevalece, música, arrastre en Studio, medio de pago), pasarlas por el asesor y regenerar.
 7. **Grabar la lección 1** del curso (`site/content/curso/es/01-que-es-frame28.md`), montarla con Frame28 y poner la URL
@@ -215,9 +214,9 @@ artículos de la KB y el curso siguen escritos para el servicio (reescribir con 
    el día que el sitio esté en vivo con Access.
 9. Claves de Pexels y Pixabay en `~/.config/frame28/keys.json` y una búsqueda real; `clips batch` **con render** sobre
    `poc/clip-demo`; `reframe-map` con un `gestures.json` real.
-10. **Deuda pequeña (0.5.0):** HyperFrames 0.8.72 → 0.8.105 pasando las dos
-    regresiones, GSAP 3.15, quitar `poc/remotion/package-lock.json` y la rama `origin/main-ky21ae`, decidir sobre
-    versionar `uv.lock`, OpenCV instalado por triplicado en el entorno, `onnxruntime-gpu` opcional.
+10. **Deuda pequeña (0.5.0):** la rama `origin/main-ky21ae` (borrar con tu visto bueno), decidir sobre versionar
+    `uv.lock`, OpenCV instalado por triplicado en el entorno, `onnxruntime-gpu` opcional; `clip-grabado` como segunda
+    regresión de HyperFrames 0.8.105 (solo se pasó clip-javier).
 
 ## Qué quedó a medias o sin hacer
 
@@ -236,7 +235,9 @@ artículos de la KB y el curso siguen escritos para el servicio (reescribir con 
 7. **Sin probar en real** — `broll search/fetch` (sin claves), `clips batch` con render de verdad (hoy se usó con
    `--no-render` y los shorts se renderizaron uno a uno), `reframe-map` con gestos reales, `reframe --mode crop` con
    hablante en movimiento. `clips markers` sí se ejecutó sobre un vídeo real (`poc/clip-acrilico/work/markers.json`).
-8. **Fila de `doctor` «última release»** — propuesta, no hecha (punto 5 de la lista anterior).
+8. **Comparador de vídeo antes/después para la web** — research del usuario en `research/09-comparador-video.md` y POC en
+   `poc/clip-javier/comparador-web/` (`index.html` versionado; el `comparativa_sbs.mp4` de 14 MB no). Pendiente: elegir el
+   vídeo de demostración (sin Frame28 / con Frame28), producir el SBS y colocarlo en la landing.
 9. **CI** — `.github/workflows/tests.yml` pasa la suite del CLI en cada push (verificada en verde el 2026-10-01; la primera ejecución falló porque el checkout de Actions vive en `/home/runner/work/` y el filtro de conftest excluía rutas con «work»).
 
 ## Bloqueos y dudas
@@ -291,7 +292,7 @@ deploy/deploy.sh --check                      # «el servidor tiene exactamente 
 curl -sI https://frame28.app/ | head -1       # HTTP/1.1 200 OK (Server: cloudflare); /kb/ → 404 y /api/contact → 503 son a propósito
 frame28 doctor                                # "Todo listo."; filas gpu (transcripción) ✓, gpu (onnxruntime) y claves de B-roll en aspa (opcionales)
 claude plugin validate C:/Workspaces/personal/Skill-Director/plugin   # Validation passed (ruta absoluta: un `cd` previo en la sesión lo rompe)
-(cd plugin/cli && uv run --group dev pytest)  # 114 passed en ~3 s
+(cd plugin/cli && uv run --group dev pytest)  # 116 passed en ~3 s
 python scripts/release-check.py --notes       # con la 0.4.0 publicada: tag y release "ya existe" hasta subir __version__; confidencialidad "sin rastro"
 uv run --with markdown python site/build.py   # 40 páginas · plazas Fundadores: 5 · caso público: False · huecos en condiciones: 48 (no ensucia el árbol)
 cd poc/clip-javier && frame28 build storyboard-gsap.json -o work/f28-gsap && frame28 check work/f28-gsap && frame28 render work/f28-gsap -o out/test.mp4 --workers 10   # ~1 m 16 s de render

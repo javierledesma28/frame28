@@ -158,3 +158,12 @@ def test_intermediate_encoder_is_x264_unless_nvenc_requested(monkeypatch):
     assert a[:2] == ["-c:v", "h264_nvenc"] and a[a.index("-cq") + 1] == "18" and env.use_gpu_encoder()
     assert env.use_gpu_encoder(False) is False and env.encoder_args()[1] == "libx264"
     assert env.use_gpu_encoder(True) is True
+
+
+def test_doctor_release_row_compares_versions():
+    # HANDOFF (2026-10-01): un usuario con una instalación vieja no sabía que había versión nueva ni cómo actualizar
+    from frame28.doctor import release_newer
+    assert release_newer("0.4.0", "v0.5.0") is True
+    assert release_newer("0.4.0", "v0.4.0") is False
+    assert release_newer("0.10.0", "v0.9.9") is False          # compara números, no texto
+    assert release_newer("0.4.0", None) is None and release_newer("0.4.0", "rc") is None
