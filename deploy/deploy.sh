@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Despliega frame28.app en t28server (/opt/frame28) desde HEAD (no desde el working tree): sube deploy/ y site/,
+# con copia de seguridad del sitio anterior, verifica por hash que el servidor tiene exactamente lo de HEAD y
+# levanta nginx (+ túnel si el servidor tiene .env con el token). Se ejecuta desde el PC, en Git Bash:
+#
+#   deploy/deploy.sh            # despliega HEAD y comprueba https://frame28.app
+#   deploy/deploy.sh --check    # solo compara los hashes del servidor con HEAD (no toca nada)
+#
+# Requisitos: alias SSH `t28server` (~/.ssh/config) con la clave local; árbol commiteado (lo que no está en HEAD
+# no se despliega: `git status` te lo recuerda).
+set -euo pipefail
+HOST=${FRAME28_HOST:-t28server}
+DIR=/opt/frame28
+cd "$(git rev-parse --show-toplevel)"
+
+# Lo que NO forma parte del sitio publicado: fuentes del generador, Markdown de la KB y el curso, y los ficheros de
+# Cloudflare Pages (nginx.conf los traduce). deploy/nginx.conf los deniega además por si acaso.
+EXCL=(--exclude='site/src' --exclude='site/content' --exclude='site/functions' --exclude='site/build.py'
+      --exclude='site/README.md' --exclude='site/wrangler.toml' --exclude='site/_headers' --exclude='site/_redirects')
+
+manifest_local() {
+  local tmp; tmp=$(mktemp -d)
+  git archive HEAD site | tar -x -f - -C "$tmp" "${EXCL[@]}"
+  (cd "$tmp" && find site -type f | LC_ALL=C sort | xargs sha256sum)
+  rm -rf "$tmp"
+}
+manifest_remote() {
+  ssh -o BatchMode=yes "$HOST" "cd $DIR 2>/dev/null && [ -d site ] && find site -type f | LC_ALL=C sort | xargs sha256sum" || true
+}
+compare() {
+  if diff <(manifest_local) <(manifest_remote) >/dev/null; then
+    echo "✓ el servidor tiene exactamente el site/ de HEAD ($(git rev-parse --short HEAD))"
+  else
+    echo "✗ el servidor NO coincide con HEAD:"; diff <(manifest_local) <(manifest_remote) | head -20; return 1
+  fi
+}
+
+if [[ "${1:-}" == "--check" ]]; then compare; exit $?; fi
+
+if [[ -n "$(git status --porcelain site deploy)" ]]; then
+  echo "aviso: hay cambios sin commitear en site/ o deploy/; se despliega HEAD, no el working tree"
+fi
+
+echo "1/4 ficheros de despliegue → $HOST:$DIR"
+ssh -o BatchMode=yes "$HOST" "mkdir -p $DIR"
+git archive HEAD deploy | ssh -o BatchMode=yes "$HOST" "cd $DIR && tar x -f - --strip-components=1 && chmod +x remote-up.sh"
+
+echo "2/4 sitio → $HOST:$DIR/site (copia de seguridad del anterior, se conservan las 3 últimas)"
+ssh -o BatchMode=yes "$HOST" "cd $DIR && if [ -d site ]; then mv site .deploy-bak-site-\$(date +%Y%m%d-%H%M%S); fi; ls -d .deploy-bak-site-* 2>/dev/null | head -n -3 | xargs -r rm -rf"
+git archive HEAD site | ssh -o BatchMode=yes "$HOST" "cd $DIR && tar x -f - ${EXCL[*]}"
+
+echo "3/4 verificación por hash"
+compare
+
+echo "4/4 nginx (+ túnel)"
+ssh -o BatchMode=yes "$HOST" "sh $DIR/remote-up.sh"
+
+echo "— comprobación pública —"
+for p in / /en/ /fundadores/ /founders /healthz /kb/ /api/contact; do
+  printf "  %-14s " "$p"; curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" --max-time 20 "https://frame28.app$p"
+done

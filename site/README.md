@@ -27,13 +27,22 @@ _redirects, _headers, wrangler.toml
    fallará con error visible porque no hay `/api/contact`; eso es lo esperado). Con wrangler:
    `npx wrangler pages dev site` sirve también la función (sin binding de email, escribe el mensaje en el log).
 
-## Desplegar en Cloudflare Pages (una vez)
+## Desplegar (t28server, por túnel de Cloudflare)
 
-1. Workers & Pages → Create → Pages → **Connect to Git** → repo `javierledesma28/frame28`, rama `main`.
-2. Build settings: framework **None**, build command vacío, **root directory `site`**, build output directory `/`
-   (o `.`); Pages detecta `functions/` y `wrangler.toml` dentro de `site/`.
-3. Custom domains → `frame28.app` (y `www.frame28.app` → redirección). El dominio ya está en Cloudflare, así que
-   el CNAME lo crea solo.
+El sitio se sirve desde el VPS `t28server` (Hetzner) con el mismo patrón que los demás sitios de Think28:
+`nginx:alpine` + `cloudflared` en `/opt/frame28`, sin puertos abiertos; el HTTPS lo pone Cloudflare. Los ficheros
+están en [`../deploy/`](../deploy/): `docker-compose.yml`, `nginx.conf` (traduce `_headers` y `_redirects`: si
+cambian, cambia también), `remote-up.sh` y `deploy.sh`.
+
+1. **Una vez**: túnel `frame28` en Zero Trust → Networks → Tunnels, con dos *Public Hostnames* (`frame28.app` y
+   `www.frame28.app` → HTTP `web:80`); su token en `/opt/frame28/.env` del servidor (`CLOUDFLARE_TUNNEL_TOKEN`,
+   permisos 600, nunca en el repo). Los CNAME de la zona apuntan a `<id-del-túnel>.cfargotunnel.com` (proxied).
+2. **Cada publicación**: commitear y `deploy/deploy.sh` desde Git Bash (sube HEAD, no el working tree; copia de
+   seguridad del sitio anterior; verifica por hash; `nginx -t` antes de recrear; comprueba las URL públicas).
+   `deploy/deploy.sh --check` solo compara servidor y HEAD.
+3. Mientras no exista Access, `nginx.conf` devuelve 404 en `/kb`, `/curso`, `/en/kb` y `/en/course`; mientras no
+   exista el Worker de `/api/contact`, devuelve 503 y el formulario enseña su fallback. (La vía Cloudflare Pages
+   sigue siendo posible: `functions/`, `_headers`, `_redirects` y `wrangler.toml` se conservan.)
 4. Email: en el panel de Cloudflare, Email → verificar el dominio frame28.app como remitente y crear el buzón o
    la ruta de `hola@frame28.app` (Email Routing hacia el buzón real de Javier). Si el binding `send_email` no
    aparece al desplegar, añadirlo en Settings → Bindings con el nombre `SEND_EMAIL`. [[verificar: el API de envío

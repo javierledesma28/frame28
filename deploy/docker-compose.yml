@@ -1,0 +1,41 @@
+name: frame28
+
+# frame28.app — sitio estático del producto + Cloudflare Tunnel, en t28server (/opt/frame28).
+# Mismo patrón que el resto de proyectos del servidor (tino, ramplas, savia…): sin puertos al host, la entrada es
+# solo por cloudflared (que además pone el HTTPS), autocontenido y desechable. El sitio y estos ficheros llegan
+# con `deploy/deploy.sh` desde el repo; el token del túnel vive solo en el `.env` del servidor (ver .env.example).
+
+services:
+  web:
+    image: nginx:alpine
+    container_name: frame28-web
+    restart: unless-stopped
+    mem_limit: 64m
+    mem_reservation: 16m
+    cpus: 0.5
+    volumes:
+      - ./site:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - frame28-net
+    expose:
+      - "80"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: frame28-tunnel
+    restart: unless-stopped
+    mem_limit: 96m
+    cpus: 0.5
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - web
+    networks:
+      - frame28-net
+    # Solo arranca con `--profile tunnel` (remote-up.sh lo activa si .env trae el token): así se puede probar el
+    # nginx antes de tener túnel.
+    profiles:
+      - tunnel
+
+networks:
+  frame28-net: {}
