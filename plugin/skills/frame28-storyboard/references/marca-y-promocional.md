@@ -51,7 +51,26 @@ Frame28 está pensado para un plano de alguien hablando a cámara, pero trabaja 
 - Sobre la tarjeta final del cliente (fondo de su color de acento): texto en tinta, no en acento.
 - Descarga el original a 1080p con `frame28 fetch <url>`; guarda el `.source.json` con el origen.
 
-## 4. Legibilidad (reglas que salieron de los renders)
+## 4. Segunda muestra de la misma marca: plan antes de transcribir
+
+Cuando ya hay un montaje aprobado de la marca, el siguiente vídeo se planifica **antes** de tener el vídeo, para
+que al transcribir solo falten los tiempos y las dos piezas se vean de la misma familia:
+
+- Reutiliza el **sistema de ids y zonas** del storyboard aprobado (`lt`, `k_*`, `b_*`, `p1..`, `prod`, `proof`;
+  cajas a `y` 840 izquierda/derecha, cinéticos arriba en tinta). El cliente reconoce el estilo; tú no decides dos veces.
+- Escribe una tabla **overlay · texto · disparador · zona**, donde el disparador es la frase que esperas
+  ("speed one", "that's it"). Guárdala también como storyboard con tiempos estimados y un campo `cue` por overlay
+  (el generador ignora las claves que no conoce y `validate` pasa): tras `transcribe`, se sustituyen `start`/`end`
+  buscando el `cue` en `words.json` y se borra lo que el vídeo no diga. **La transcripción manda**: una fila sin frase
+  es una fila que se quita, nunca se inventa.
+- Haz un **brief diferencial**: qué cambia respecto al vídeo anterior (material, riesgo que contesta, proyecto
+  natural, producto a vender, promesa literal probable). Lo que no cambia no se vuelve a investigar.
+- Si hay idiomas nuevos, deja el **glosario de la marca** por idioma (términos del oficio, nombre del producto que
+  no se traduce, formato de cifras) antes de traducir; el alemán es un 30 % más largo: cinéticos de dos palabras.
+- Cierra el montaje con `frame28 report note` y `frame28 report --rate`: el coste real del segundo vídeo es el que
+  fija el precio del mensual.
+
+## 5. Legibilidad (reglas que salieron de los renders)
 
 - Texto blanco solo sobre fondos oscuros o con sombra fuerte; sobre fondos claros, tinta.
 - Acento sobre acento no existe: ni texto ámbar sobre tarjeta ámbar ni logo ámbar sobre fondo ámbar (usa la
