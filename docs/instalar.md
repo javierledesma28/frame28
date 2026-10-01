@@ -41,3 +41,14 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
 Si la persona prefiere no ir paso a paso, el instalador interactivo hace exactamente esto:
 `irm https://frame28.t28.io/install.ps1 | iex` (Windows) o `curl -fsSL https://frame28.t28.io/install.sh | bash` (macOS).
 Puedes lanzarlo tú desde su terminal con su permiso; en Mac, Homebrew seguirá pidiéndole la contraseña a la persona.
+
+## Para actualizar
+
+Si Frame28 ya está instalado y la persona quiere la versión nueva, no hace falta repetir la instalación:
+
+1. **CLI**: `uv tool upgrade frame28` (lo reinstala desde GitHub en unos 15 segundos, aunque el número de versión no haya
+   cambiado). Comprueba `frame28 --version` contra https://github.com/javierledesma28/frame28/releases/latest.
+2. **Plugin**: `claude plugin marketplace update think28` y después `claude plugin update frame28@think28`. Solo actúa si el
+   número de versión del plugin cambió; «already at the latest version» significa que no había nada nuevo. Hay que reiniciar
+   Claude Code para que cargue las skills nuevas.
+3. `frame28 doctor` para confirmar que todo sigue en su sitio.

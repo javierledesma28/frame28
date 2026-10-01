@@ -121,6 +121,38 @@ frame28 doctor
 ```
 
 `frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable ./plugin/cli`.
+Para ponerlo al día más adelante, mira [Actualizar](#actualizar).
+
+## Actualizar
+
+Frame28 son dos piezas y se actualizan por separado. Las dos órdenes son seguras de repetir.
+
+**El plugin (las skills de Claude Code):**
+
+```bash
+claude plugin marketplace update think28
+claude plugin update frame28@think28
+```
+
+Reinicia Claude Code para que cargue la versión nueva. `plugin update` solo hace algo cuando el número de versión del
+plugin ha cambiado (cada release lo sube); si no hay nada nuevo responde «already at the latest version».
+
+**El CLI (`frame28`):**
+
+```bash
+uv tool upgrade frame28
+```
+
+Lo reinstala desde GitHub en unos 15 segundos. Si lo instalaste con el instalador de una línea, también vale volver a
+ejecutarlo: solo toca lo que haya cambiado.
+
+**Comprueba** que todo está al día: `frame28 --version` debe decir la versión de la
+[última release](https://github.com/javierledesma28/frame28/releases/latest) y `frame28 doctor` debe acabar en «Todo listo».
+
+¿Lo tienes instalado desde un clon con `--editable`? `git pull`; si cambió `pyproject.toml` o la versión,
+`uv tool install --editable ./plugin/cli --python 3.12 --reinstall`; si cambiaron las skills con la misma versión,
+`claude plugin uninstall frame28@think28 && claude plugin install frame28@think28` (con la misma versión, `update` no
+refresca el caché).
 
 ## Uso
 
@@ -182,8 +214,9 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 | `research/04-roadmap-features.md` | investigación de features y repos a integrar, con roadmap priorizado |
 | `research/06-monetizacion.md`, `research/07-producto-frame28-app.md` | cómo se monetiza Frame28 y la definición del producto frame28.app (oferta, precios propuestos, plan) |
 | `docs/roadmap/` | el roadmap por versiones, publicado en [frame28.t28.io/roadmap](https://frame28.t28.io/roadmap/); los datos viven en el propio `index.html` |
-| `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde |
-| `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, menos de un segundo) |
+| `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde y confidencialidad |
+| `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, 114 pruebas en unos 3 segundos) |
+| `site/` | el sitio del producto [frame28.app](https://frame28.app) (estático, para Cloudflare Pages; se regenera con `uv run --with markdown python site/build.py`): landing ES/EN, condiciones, base de conocimiento y curso |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
 
