@@ -41,6 +41,7 @@ def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | Non
     vf = f"fps={fps}" + (f",scale={width}:-2" if width else "")
     clip = out / "clip.mp4"
     r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vf", vf, "-an", "-c:v", "libx264", "-crf", "16",
+             "-g", str(fps), "-keyint_min", str(fps),  # un fotograma clave por segundo: HyperFrames avisa de saltos si van espaciados
              "-pix_fmt", "yuv420p", str(clip)])
     if r.returncode != 0:
         raise SystemExit(r.stderr)

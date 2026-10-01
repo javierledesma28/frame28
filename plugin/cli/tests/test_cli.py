@@ -123,3 +123,15 @@ def test_render_sheet_covers_the_whole_video():
         every, cols, rows = sheet_plan(dur)
         assert 20 <= cols * rows <= 48 and abs(every * cols * rows - dur) < 0.05   # la rejilla llega al final
     assert sheet_plan(160.0)[1:] == (6, 8) and sheet_plan(28.0)[1:] == (6, 4)
+
+
+def test_render_args_workers_raise_node_heap_and_gpu_flag(tmp_path):
+    # día 6: el render solo usaba 6 de 16 núcleos; con más trabajadores hay que subir el heap de Node
+    from frame28.render import NODE_HEAP_MB, render_args
+    args, env = render_args(tmp_path / "x.mp4")
+    assert args[:2] == ["render", "-o"] and "-w" not in args and "--gpu" not in args and env == {}
+    args, env = render_args(tmp_path / "x.mp4", workers=10, gpu=True, node_options="--no-warnings")
+    assert args[args.index("-w") + 1] == "10" and args[-1] == "--gpu"
+    assert env["NODE_OPTIONS"] == f"--no-warnings --max-old-space-size={NODE_HEAP_MB}"
+    assert render_args(tmp_path / "x.mp4", workers=4)[1] == {}                                   # pocos trabajadores: heap por defecto
+    assert render_args(tmp_path / "x.mp4", workers=10, node_options="--max-old-space-size=6000")[1] == {}   # el del usuario manda

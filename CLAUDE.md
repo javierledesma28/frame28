@@ -137,7 +137,7 @@ frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.j
 frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una versión traducida (subtítulos por frase del storyboard)
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (111 pruebas, ~3 s; módulos puros sin ffmpeg ni
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (112 pruebas, ~3 s; módulos puros sin ffmpeg ni
 modelos: captions, cut, clips (incluidos `batch --no-render` y `markers`), i18n, build.validate/platform_warnings/build_project,
 reframe.map_*, log/report, smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
 `scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
@@ -216,7 +216,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   8.1.1 pasó a 9.0.2): `export PATH="$(ls -d /c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin | tail -1):/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe:$HOME/.local/bin:$PATH"`
   (el CLI los localiza solo; la shell no).
 - **PyAV**: uv resolvía `av` 19, que rompe faster-whisper (`metadata_errors`); `av` 14 no tiene wheel Windows → pin `<18`.
-- **Sin CUDA** en la máquina: faster-whisper y onnxruntime en CPU. No asumir GPU.
+- **La GPU está (RTX 4060 Laptop, 8 GB) pero casi nada la usa**: faltan las librerías CUDA (`cublas64_12.dll`,
+  `cudnn64_9.dll`) para faster-whisper, aunque ctranslate2 ya detecta el dispositivo, y onnxruntime es la compilación
+  de CPU (matte y OCR). Lo que sí funciona sin instalar nada: NVENC en ffmpeg (`h264_nvenc`) y la GPU del navegador en
+  HyperFrames, que la detecta sola. No asumir GPU en la máquina de un usuario: todo tiene que ir también por CPU.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
 - **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
   escapes se comen; también los heredoc bash con comillas. Escribir el parche a un `.py` (Write) y ejecutarlo.
@@ -298,3 +301,13 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   momento del resultado; el encendido o el montaje final suelen decirse sin palabra clave ("lights up"): los
   marcadores automáticos son una propuesta y el `before_t` se elige mirando fotogramas del mismo encuadre.
 - **Parches con heredoc de bash y comillas simples triples** siguen rompiéndose: escribir el `.py` con Write.
+- **El render no se acelera con la GPU, sino con trabajadores**: el tiempo se va en capturar cada fotograma con
+  Chrome (~0,4 s por fotograma), que ya usa la GPU del navegador. La captura rápida de HyperFrames no se activa
+  porque los overlays animan `clip-path` y máscaras. Medido con el clip de 10 s (16 núcleos, 32 GB): 6 trabajadores
+  (por defecto) 81 s; `--workers 10` 68 s; 14, 76 s (se pisan); `--gpu` (NVENC) 73 s; `--workers 10 --gpu` 57 s con
+  un fichero un 47 % mayor. Con más de 5 trabajadores hay que subir el heap de Node (`render` lo hace).
+- **`check` tarda ~49 s y no hace falta repetirlo** cuando solo cambian textos o posiciones de un storyboard ya
+  comprobado (versiones traducidas, re-renders tras revisar): en un vídeo real se pasó 11 veces, el 16 % del tiempo.
+- **Trabajar en el CLI mientras hay renders en marcha**: en un worktree de git (`git worktree add <ruta> -b <rama>`);
+  los renders siguen importando el código intacto y las pruebas se pasan en la copia. `uv run --project
+  <worktree>/plugin/cli frame28 …` ejecuta esa versión desde cualquier carpeta.
