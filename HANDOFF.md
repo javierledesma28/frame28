@@ -106,8 +106,8 @@ Sin validación de precios todavía, se adelantó lo del día 5 que no depende d
 
 Decisiones conscientes:
 
-1. **Precios y capas de `research/07` sin validar por el usuario.** Los commits ya están en `origin/main` (repo
-   público): si Javier corrige los números, se edita `research/07` §2 y la landing será la fuente pública.
+1. **Precios y capas de `research/07` §2: validados por Javier el 2026-10-01** ("están bien"). Son la base de la
+   landing, que será la fuente pública cuando exista; cualquier cambio futuro se hace primero en `research/07` §2.
 2. **Landing frame28.app**: no existe todavía la carpeta `site/`; el dominio está en Cloudflare; la arquitectura y
    las rutas están en `research/07` §5. Es el día 2 del plan.
 3. **Propuesta a Cliente A**: borrador en inglés en `research/07` anexo; no enviada. El caso (largo, shorts,
@@ -136,7 +136,7 @@ Deuda técnica, por orden:
 
 | Bloqueo o duda | Dueño | Qué lo desbloquea |
 |---|---|---|
-| Validar precios, capas, garantía y programa Fundadores (`research/07` §2) | Javier | Su OK o sus correcciones; entonces push y landing |
+| ~~Validar precios, capas, garantía y programa Fundadores (`research/07` §2)~~ | Javier | **Validados el 2026-10-01**: desbloquea landing, contrato y propuesta |
 | Acceso a Cloudflare (Pages, Access, Email Service) para frame28.app | Javier | Autorizar cada paso o desplegar él; Claude prepara `site/` y la configuración |
 | Permiso de Cliente A para publicar el caso | Javier con Cliente A | Hasta entonces la página del caso es privada |
 | Claves de Pexels y Pixabay | Javier | Crearlas en pexels.com/api y pixabay.com/api/docs |
@@ -149,10 +149,9 @@ Deuda técnica, por orden:
 
 Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
 
-1. **Día 1 — validar y escribir.** Javier valida `research/07` §2. Claude: textos de la landing en ES y EN
+1. **Día 1 — validar y escribir.** Precios validados (2026-10-01). Queda lo de Claude: textos de la landing en ES y EN
    (promesa "Envías un vídeo. Recibes la campaña." / "Send the video. Get the campaign."), contrato base y
-   derechos (material del cliente, stock con licencia por vídeo, entregables del cliente). Push de los commits
-   pendientes: `gh auth switch --user javierledesma28 && git push origin main && gh auth switch --user javierledesmasmc`.
+   derechos (material del cliente, stock con licencia por vídeo, entregables del cliente).
 2. **Día 2 — landing.** Carpeta `site/` con `/`, `/fundadores`, `/casos/cliente-a` (privada hasta el permiso),
    `/contacto` (Pages Functions + Email Service), redirecciones `/roadmap` y `/plugin`. Cloudflare Pages con raíz
    `site/` y dominio frame28.app (skills `cloudflare`, `wrangler`, `cloudflare-email-service` disponibles).
