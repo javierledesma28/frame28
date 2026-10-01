@@ -85,8 +85,10 @@ site/                             sitio del producto frame28.app, estático para
                                   build.py (plantilla común + CONFIG: plazas, buzón, caso público) ensambla src/{es,en}/*.html y convierte
                                   content/condiciones.es.md + terms.en.md → index.html, en/, fundadores/, contacto/, condiciones/, en/founders/,
                                   en/contact/, en/terms/ (HTML commiteado). content/landing.{es,en}.md = referencia editorial.
+                                  content/kb/{es,en}/ (8 artículos) y content/curso/{es,en}/ (6 lecciones con guion; `video:` vacío
+                                  = pendiente de grabar) → /kb, /curso, /en/kb, /en/course con noindex, tras Cloudflare Access.
                                   functions/api/contact.js (formulario → email con binding send_email), _redirects, _headers, wrangler.toml,
-                                  README.md (pasos de despliegue). Regenerar: `uv run --with markdown python site/build.py`
+                                  README.md (pasos de despliegue y de Access). Regenerar: `uv run --with markdown python site/build.py`
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
