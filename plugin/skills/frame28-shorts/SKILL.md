@@ -19,8 +19,9 @@ Propone tramos que empiezan y terminan en frase, puntuados por momentos: **resul
 Cada tramo trae tres ganchos de tipos distintos hechos con **las palabras reales del hablante**: la cláusula donde
 ocurre el momento, sin relleno inicial ("I think", "so", "bueno"), en dos líneas de cinco palabras. Cada gancho
 lleva `quote` (la frase completa de origen) y `t` (cuándo se dice): úsalos para comprobar que el gancho no promete
-lo que el tramo no enseña. Léelos con el usuario: la puntuación ordena, no decide; el de `curiosity` es una
-plantilla de reserva y suele merecer reescritura.
+lo que el tramo no enseña. Léelos con el usuario: la puntuación ordena, no decide. Si un tramo no tiene momentos,
+el gancho sale de la frase más fuerte del propio tramo (`statement`: preguntas, cifras, segunda persona); el de
+`curiosity` es la plantilla de último recurso y siempre merece reescritura.
 
 Por cada tramo elegido:
 ```bash
@@ -49,8 +50,16 @@ a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son 
 4. **Prueba social** en 2 s si cabe (`counter` con la cifra real de la web de la marca).
 5. **CTA**: precio y descuento reales del sitio; `url` para el QR si el vídeo se verá en pantalla grande o en
    YouTube; "Link in bio" si es TikTok/Reels. Nunca antes de haber enseñado el resultado.
-6. **Variantes**: renderiza el mismo short con `--hook 0`, `--hook 1`, `--hook 2` → `s4-hook0.mp4`,
-   `s4-hook1.mp4`, `s4-hook2.mp4`. Las plataformas queman un creativo en 7–14 días; se rota el gancho, no el cuerpo.
+6. **Variantes en lote**: con los shorts ya recortados (y reencuadrados si toca), una sola orden deja todas las
+   rotaciones hechas:
+   ```bash
+   frame28 clips batch work/clips.json s4 s2 --brand <marca> --cta work/cta.json --video vertical.mp4 -o out/shorts
+   ```
+   Por cada short y cada gancho escribe `storyboard-hook<N>.json`, construye `project-hook<N>/`, pasa `check` y
+   renderiza `out/shorts/<id>-hook<N>.mp4` con su hoja de contacto; `work/clips/batch.json` dice qué salió y qué
+   falló (una variante rota no para el lote). `--hooks 0,2` limita los ganchos; `--no-render` deja solo storyboards y
+   proyectos para afinarlos antes. Si quieres afinar un gancho a mano, edita su `storyboard-hook<N>.json` y
+   renderiza ese proyecto. Las plataformas queman un creativo en 7–14 días; se rota el gancho, no el cuerpo.
 
 ## Portada del short
 

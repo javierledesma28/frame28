@@ -83,6 +83,42 @@ def test_trim_trailing_stopwords():
     assert clips._trim_trailing("queda precioso en tu", "es") == "queda precioso"
 
 
+def test_hooks_without_moments_use_the_strongest_phrase():
+    clip = {"id": "s9", "start": 10.0, "end": 40.0, "moments": [], "phrases": [
+        "so today we are going to talk about the general setup of the workshop and the tools that we use every single day",
+        "Have you ever wondered why your lines come out crooked?",
+        "we clean the table.",
+    ]}
+    hooks = clips.hooks_for(clip, "en")
+    assert hooks[0]["type"] == "statement"
+    assert hooks[0]["lines"][0].lower().startswith("have you ever wondered")
+    assert hooks[0]["quote"].startswith("Have you ever") and hooks[0]["t"] == 10.0
+    assert all(len(line) <= clips.MAX_LINE_CHARS for line in hooks[0]["lines"])
+    assert hooks[-1]["type"] == "curiosity"  # la plantilla sigue de relleno hasta tres
+    assert clips.strongest_phrase({"phrases": []}, "en") is None
+    assert clips.hooks_for({"id": "x", "start": 0, "moments": [], "phrases": []}, "es")[0]["type"] == "curiosity"
+
+
+def test_batch_builds_a_project_per_hook_without_rendering(tmp_path, grabado_clips):
+    clip = grabado_clips["clips"][0]
+    cdir = tmp_path / "clips"; d = cdir / clip["id"]; d.mkdir(parents=True)
+    (d / "clip.mp4").write_bytes(b"")  # basta con que exista: sin render no se abre
+    write_json(d / "words.json", words_from("look at that", start=1.0))
+    plan = write_json(tmp_path / "clips.json", {"clips": [clip, {**clip, "id": "s2"}]})
+    r = clips.batch(plan, None, cdir, tmp_path / "out", None, brand="think28", render=False)
+    assert r["skipped"] == ["s2"] and not r["rendered"]
+    assert len(r["variants"]) == len(clip["hooks"]) and r["ok"] == len(clip["hooks"])
+    for k, v in enumerate(r["variants"]):
+        assert v["name"] == f"{clip['id']}-hook{k}" and v["hook"] == clip["hooks"][k]["lines"]
+        sb = json.loads((d / f"storyboard-hook{k}.json").read_text(encoding="utf-8"))
+        assert validate(sb) == [] and sb["overlays"][0]["lines"] == clip["hooks"][k]["lines"]
+        assert (d / f"project-hook{k}" / "index.html").exists()
+    manifest = json.loads((cdir / "batch.json").read_text(encoding="utf-8"))
+    assert manifest["ok"] == r["ok"]
+    only = clips.batch(plan, [clip["id"]], cdir, tmp_path / "out", [1], brand="think28", render=False)
+    assert [v["hook_index"] for v in only["variants"]] == [1]
+
+
 def test_scaffold_writes_a_storyboard_that_validates(tmp_path, grabado_clips):
     clip = grabado_clips["clips"][0]
     d = tmp_path / "s1"; d.mkdir()

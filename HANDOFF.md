@@ -113,6 +113,7 @@ a 1280 y 390 px: sin desbordes ni errores de JS propios. Pendiente de Javier: de
 Anonimización del cliente en árbol e historial (ver §Confidencialidad); propuesta entregada fuera del repo; día 4:
 base de conocimiento (8×2) y curso online (6×2) en `site/`, incluidos en todas las capas de pago, con el
 generador extendido (`render_section`: índices, páginas, anterior/siguiente, bloque de vídeo, noindex).
+Día 5 (nube): `log.py` + `frame28 report`, `clips batch`, ganchos `statement`, fila de B-roll en `doctor`, 90 pruebas.
 
 ## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
 
@@ -155,9 +156,11 @@ Deuda técnica, por orden:
 6. **Suite de pruebas: hecha** (82, ver §Estado). Fuera de ella: render, `matte`, `gestures`, `graphics` (OCR), `reframe`
    con vídeo real, `broll` contra la API. Regla: cada bug nuevo entra con su prueba en `plugin/cli/tests/`.
 7. **B-roll sin probar contra la API real**: faltan claves de Pexels/Pixabay (`~/.config/frame28/keys.json` o
-   `PEXELS_API_KEY`/`PIXABAY_API_KEY`); `plugin/cli/frame28/broll.py::search`.
+   `PEXELS_API_KEY`/`PIXABAY_API_KEY`); `plugin/cli/frame28/broll.py::search`. `frame28 doctor` ya avisa (fila opcional).
+   **`clips batch` con render sin probar en real** (solo `--no-render` en la suite): primera prueba sobre `poc/clip-demo`.
+   **Tokens del director**: el CLI no los ve; el director los anota con `frame28 report note --tokens` (skill, paso 8).
 8. **Pendientes pequeños**: `reframe-map` hecho pero sin probar con un `gestures.json` real (solo sintético en tests);
-   `clips.py:176 hooks_for` da plantilla de curiosidad en tramos sin momentos; `chart bar` en vertical con más de
+   `chart bar` en vertical con más de
    tres filas; `reframe --mode crop` sin probar con hablante en movimiento; cuadrado 1:1 sin caso documentado
    (`research/05` #7); marcadores de resultado (`research/05` #8); `docs/install.sh` sin Mac real.
 9. **Deuda menor**: GSAP por CDN sin copia local ni SRI (`build.py` líneas 785–801, `cover.py:89`; el render
@@ -209,9 +212,11 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
 4. **Día 4 — base de conocimiento y lección 1.** Hecho lo escrito (artículos, guiones, páginas); queda que Javier
    grabe la lección 1 (guion en `site/content/curso/es/01-que-es-frame28.md`), montarla con Frame28 y poner la URL
    en `video:`; y activar Access.
-5. **Día 5 — v0.4.0 mínima para el servicio.** Suite de pruebas hecha (adelantada); quedan claves de B-roll y prueba
-   real, registro de coste y tiempo por vídeo, variantes de gancho en lote (`clips scaffold --hook N` para cada
-   gancho y render en cadena).
+5. **Día 5 — v0.4.0 mínima para el servicio.** Hecho en la nube: suite (90 pruebas), registro de tiempo por orden y
+   `frame28 report` (+ `report note` para tokens y minutos de persona; `--rate` estima el coste), `frame28 clips
+   batch` (variantes de gancho en lote con manifiesto), ganchos `statement` para tramos sin momentos, fila de claves
+   de B-roll en `doctor`. Queda lo que exige el PC de Javier: crear las claves de Pexels/Pixabay y probar `broll
+   search`/`fetch` reales, y pasar `clips batch` con render sobre `poc/clip-demo` (en la nube no hay HyperFrames ni red al CDN).
 6. **Día 6 — muestra de acrílico.** `frame28 fetch` del segundo tutorial del Cliente A, flujo de vídeo producido
    (`graphics`, marca `cliente-a` regenerada con `brand from-site`), largo, shorts, portada, ES y DE.
 7. **Día 7 — enviar.** Propuesta al Cliente A (buzón de partners y fundador por LinkedIn; datos fuera del repo); abrir Fundadores.

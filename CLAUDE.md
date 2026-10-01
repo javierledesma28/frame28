@@ -63,7 +63,9 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   (`reframe-map`: pointers y puntos del lienzo apaisado al vertical sin repetir la detección)
     captions.py                   default_canvas, paginado por palabras (pages/karaoke), cues SRT/VTT legibles
     broll.py                      Pexels/Pixabay (claves en env o ~/.config/frame28/keys.json), sidecar de licencia, recorte
-    clips.py                      fábrica de shorts: tramos por momentos, ganchos con la frase real, cut, scaffold
+    clips.py                      fábrica de shorts: tramos por momentos, ganchos con la frase real (o la frase más fuerte del tramo),
+                                  cut, scaffold, batch (variantes de gancho en lote: storyboard + build + check + render por gancho)
+    log.py                        registro de tiempo por orden (.frame28/log.jsonl, FRAME28_LOG) y `frame28 report` (+ `report note`)
     cover.py                      portada/miniatura: composición estática + hyperframes snapshot
     i18n.py                       extract/apply de textos traducidos; retime_words sobre el ritmo original
     brandsite.py                  marca desde la web del cliente (colores CSS, fuente, logo con variantes)
@@ -123,11 +125,13 @@ frame28 matte work/cut/clip.mp4 --start 4.3 --end 6.8 -o work/cut/alpha.webm    
 frame28 build work/cut/storyboard.json -o work/cut/project [--graphics work/graphics.json] && frame28 check work/cut/project && frame28 render work/cut/project -o out/x.mp4
 frame28 cover out/x.mp4 --at 12.0 -o out/cover.png --title "Línea 1|Línea 2" --brand think28
 frame28 clips plan work/captions.json --lang es -o work/clips.json   # shorts: cut, reframe, scaffold, build, render
+frame28 clips batch work/clips.json s4 --brand think28 --video vertical.mp4 -o out/shorts   # todas las variantes de gancho de una vez
 frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.json strings.en.json --lang en
+frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (82 pruebas, < 1 s; módulos puros sin ffmpeg ni
-modelos: captions, cut, clips, i18n, build.validate/platform_warnings/build_project, reframe.map_*, smoke del CLI con
-`CliRunner`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (90 pruebas, ~1 s; módulos puros sin ffmpeg ni
+modelos: captions, cut, clips (incluido `batch --no-render`), i18n, build.validate/platform_warnings/build_project,
+reframe.map_*, log/report, smoke del CLI con `CliRunner`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
 `scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
 Lo que no cubre (render, matte, gestos, OCR) se prueba con `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
 Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards reales completos: `poc/clip-demo/`
