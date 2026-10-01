@@ -176,8 +176,12 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   2026-10-01: reinstala desde el último commit de GitHub en ~15 s aunque la versión no cambie) y `claude plugin marketplace
   update think28 && claude plugin update frame28@think28` (solo actúa si cambió la versión del plugin: por eso cada release
   sube los cuatro sitios). Pendiente: fila de `doctor` que compare con la última release de GitHub y diga esas dos órdenes.
-- Push: el repo es de la cuenta **javierledesma28**; `gh` tiene también la corporativa `javierledesmasmc` y a veces es
-  la activa (push → 403). `gh auth switch --user javierledesma28`, push, y volver a dejar la que estaba.
+- **Git lo gestiona Claude de principio a fin** (commits, ramas, push, PRs, tags y releases), como en el resto de repos de
+  Think28 (Synapse28, TheValley28): Javier no pega comandos. El remoto es **SSH con el alias `github-jl28`**
+  (`git@github-jl28:javierledesma28/frame28.git`; clave dedicada sin passphrase de `~/.ssh/config`, creada para que Claude
+  Code pueda pushear): `ssh -T git@github-jl28` debe decir «Hi javierledesma28!». `gh` solo hace falta para `gh release` y
+  `gh api`: tiene dos cuentas y la activa suele ser la corporativa; `gh auth switch --user javierledesma28` antes y volver
+  a dejarla después. Validado el 2026-10-01 tras un 403 por HTTPS (ver Trampas).
 - Finales de línea LF (`.gitattributes`); el `words.srt` que importa HyperFrames **solo funciona con LF**.
 - `docs/install.ps1` **solo ASCII**: Windows PowerShell 5.1 lee la web en Latin-1.
 - Descripciones YAML de las skills entre comillas simples (los `:` rompen el frontmatter y la skill no se dispara).
@@ -191,8 +195,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - Salidas, medios (`*.mp4 *.wav *.webm`), `work*/`, `node_modules/`, modelos y `_private/` van en `.gitignore`.
   Caras, logos y material de terceros **nunca** entran en el repo (el historial ya se limpió una vez por esto); la
   marca `cliente-a` vive en `poc/clip-grabado/work/brands/` (no versionada) y se regenera con `frame28 brand from-site`.
-- Acciones persistentes (push, tags, cambios de visibilidad, DNS, instalar cosas en la máquina del usuario) se
-  proponen antes de ejecutarlas; el usuario pidió acompañamiento paso a paso y explicaciones de cada etapa.
+- Lo que sí se confirma antes: lo destructivo o irreversible (reescribir historia o `push --force`, borrar ramas o tags ya
+  publicados, cambios en el DNS o en el sitio en vivo que afecten a clientes, gastar dinero, instalar software en la
+  máquina de Javier). Lo demás se hace, y se explica en pocas frases qué se hizo y cómo se comprueba: Javier quiere
+  entender cada etapa, no ejecutarla él.
 - Los análisis de negocio (`research/06`, `07`) se versionan en este repo público por decisión del usuario; los
   **precios** de `research/07` §2 están validados por él (2026-10-01). Un cambio de precios se hace ahí primero y
   después en la landing; no se inventan ni redondean cifras en ningún otro sitio.
@@ -291,8 +297,11 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   `cut plan` con el fixture de clip-javier en milisegundos.
 - **El render necesita red**: GSAP y sus plugins se cargan desde jsdelivr (`GSAP_VERSION`, en `__init__.py`); `doctor` lo
   comprueba como fila opcional. "Tu vídeo no sale de tu máquina" sigue siendo cierto: solo se descargan los scripts.
-- **`gh` con la cuenta corporativa activa** da 403 en push, tag y release: `gh auth switch --user javierledesma28` antes
-  y volver a la que estaba después (`release-check` lo avisa).
+- **Push por HTTPS → 403 «denied to javierledesmasmc»** (2026-10-01): git no se autentica con `gh` sino con Git Credential
+  Manager (`credential.helper = manager`), que guarda **una** credencial por host y la última en entrar fue la corporativa;
+  `gh auth switch` no cambia eso. Solución aplicada y validada: remoto por SSH `git@github-jl28:…` (como Synapse28). `gh`
+  con la corporativa activa sigue dando 403 en `gh release create` y `gh api`: `gh auth switch --user javierledesma28`
+  antes (`release-check` lo avisa) y volver a dejarla después.
 - **El nombre del cliente se cuela por donde el árbol no mira**: tras anonimizar el árbol y reescribir el historial seguía
   en las notas de la release v0.3.0, en los tags viejos y en una carpeta bajada de la nube sin ignorar dentro del repo (a
   un `git add -A` de publicarse). La fila `confidencialidad` de `release-check` cubre los cuatro sitios; necesita

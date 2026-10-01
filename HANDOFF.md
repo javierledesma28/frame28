@@ -6,9 +6,9 @@ estructura, cómo se ejecuta, convenciones, decisiones, trampas). Este fichero e
 sesiones, lo que quedó a medias, los bloqueos y lo que toca ahora. Lo que no esté aquí o en `CLAUDE.md` no existe para
 la sesión siguiente.
 
-**Cómo quedó git al cerrar:** rama `main`, **8 commits por delante de `origin/main`** (4 de la tarde + 4 de este cierre),
-**sin push** (acción persistente: la convención del repo es proponerla antes; está lista en §Para retomar). Árbol limpio
-tras el último commit. Tag `v0.4.0` en `4e7a6cb`, release publicada.
+**Cómo quedó git al cerrar:** rama `main` = `origin/main` (todo subido), árbol limpio, tag `v0.4.0` en `4e7a6cb`, release
+publicada. **Desde el 2026-10-01 (noche) el remoto va por SSH** (`git@github-jl28:javierledesma28/frame28.git`), igual que
+los demás repos de Think28, y **git lo gestiona Claude** (commits, ramas, push, PRs, releases): ver `CLAUDE.md` §Convenciones.
 
 ## Qué es esto y por qué
 
@@ -47,7 +47,7 @@ que Javier va a crear (permisos acordados en §Cloudflare). La zona DNS de `fram
 | Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**39 hechos, 4 a medias, 22 pendientes**; los 9 hechos tras la 0.4.0 cuelgan de la 0.5.0); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai republicado (versión 6) |
 | Actualización de usuarios | **verificado en un entorno aislado**: `uv tool upgrade frame28` mueve una instalación desde git al último commit en 14 s aunque la versión no cambie; repetir el instalador (`--force`) también. `claude plugin update` solo actúa si cambia la versión del plugin |
 | Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); HyperFrames 0.8.72 pineado (0.8.105 publicada); GSAP 3.14.2 (3.15.0 publicada) |
-| Git | `main` = `origin/main` (push del 2026-10-01 a las 21:05, 10 commits); CI de GitHub Actions en verde (`tests`, 19 s); `gh` vuelve a la cuenta corporativa tras cada push (`gh auth switch --user javierledesma28` antes del siguiente); rama `origin/main-ky21ae` obsoleta, borrable |
+| Git | `main` = `origin/main`; CI de GitHub Actions en verde (`tests`, 19 s); **remoto SSH `github-jl28`** (`ssh -T git@github-jl28` → «Hi javierledesma28!», `git ls-remote origin` verificado): el push ya no depende de la credencial HTTPS guardada en Windows, que es la corporativa y daba 403. `gh` tiene la corporativa activa: `gh auth switch --user javierledesma28` solo para `gh release` y `gh api`. Rama `origin/main-ky21ae` obsoleta, borrable |
 | Casos reales | `poc/clip-javier`, `clip-auriculares`, `clip-whatsapp`, `clip-demo`, `clip-grabado` (versionados: README, storyboard, cuts) y **`poc/clip-acrilico` (solo local, nada versionado)** |
 
 ## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
@@ -124,8 +124,12 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 2. **README §Actualizar** (pedido expreso de Javier), `docs/instalar.md` §Para actualizar y una línea en el asistente web
    `docs/instalar/index.html`, con órdenes **verificadas** (ver §Estado). Fila de `doctor` «última release» pendiente.
 3. **Permisos del token de Cloudflare** acordados (§Cloudflare); Javier los crea.
-4. **Commits de cierre** (sin push): `.gitignore` + log fuera del índice; GPU en `transcribe`; docs de actualización;
-   `CLAUDE.md` y este traspaso. Memoria de la cuenta de Claude actualizada (no viaja: todo lo duradero está aquí).
+4. **Commits de cierre**: `.gitignore` + log fuera del índice; GPU en `transcribe`; docs de actualización; `CLAUDE.md` y
+   este traspaso. Memoria de la cuenta de Claude actualizada (no viaja: todo lo duradero está aquí).
+5. **Forma de trabajar con git, validada contra Synapse28 y TheValley28** (Javier: «siempre lo has gestionado vos»; en esos
+   repos Claude commitea, pushea y abre PRs sin que él pegue comandos): remoto cambiado a SSH `github-jl28`, convención
+   escrita en `CLAUDE.md`. El 403 del push por HTTPS era Git Credential Manager con la credencial corporativa guardada, no
+   `gh`. Chapita no es un repo git.
 
 ## Lo que toca ahora (en este orden)
 
@@ -227,6 +231,7 @@ Browser Rendering, Secrets Store y Email Sending no figuraban en esa página.
 
 ```bash
 git fetch origin && git status -sb            # main...origin/main y árbol limpio; si hay `behind`, mirar qué subió otra sesión antes de tocar nada
+ssh -T git@github-jl28                        # «Hi javierledesma28!»: el remoto es SSH; si falla, falta la clave id_ed25519_github_jl28 o GitHub la revocó
 frame28 doctor                                # "Todo listo."; filas gpu (transcripción) ✓, gpu (onnxruntime) y claves de B-roll en aspa (opcionales)
 claude plugin validate C:/Workspaces/personal/Skill-Director/plugin   # Validation passed (ruta absoluta: un `cd` previo en la sesión lo rompe)
 (cd plugin/cli && uv run --group dev pytest)  # 114 passed en ~3 s
