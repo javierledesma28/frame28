@@ -15,7 +15,8 @@ import markdown
 
 SITE = Path(__file__).resolve().parent
 CONFIG = {
-    "seats": 5,                      # plazas libres de Fundadores
+    "seats": 25,                     # plazas libres del acceso anticipado (programa Fundadores de la plataforma)
+    "terms_draft": True,             # aviso «versión en revisión» en las condiciones hasta adaptarlas a la plataforma (SaaS)
     "mail": "hola@frame28.app",      # buzón que responde (y remite del formulario)
     "case_public": False,            # True solo con permiso escrito del cliente; el nombre real nunca se escribe aquí hasta entonces
     "case_brand": "[[marca]]",       # nombre público del cliente del caso cuando case_public sea True
@@ -26,15 +27,16 @@ CONFIG = {
 STRINGS = {
     "es": {
         "lang": "es", "home": "/", "alt_lang": "English", "alt_href": "/en/", "font_lang": "es",
-        "nav": [("Cómo funciona", "/#como-funciona"), ("Precios", "/#precios"), ("Fundadores", "/fundadores/"), ("Preguntas", "/#faq")],
+        "nav": [("Cómo funciona", "/#como-funciona"), ("Memoria de marca", "/#memoria"), ("Precios", "/#precios"), ("Fundadores", "/fundadores/"), ("Preguntas", "/#faq")],
         "cta": ("Contacto", "/contacto/"),
         "footer": [("Área de clientes", "/kb/"), ("Curso online", "/curso/"), ("Plugin abierto", "https://frame28.t28.io"), ("Roadmap", "https://frame28.t28.io/roadmap/"),
                    ("Condiciones", "/condiciones/"), ("Contacto", "/contacto/"), ("GitHub", "https://github.com/javierledesma28/frame28")],
         "footer_line": "Frame28 es un producto de <a href=\"https://t28.io\">Think28</a> · © {year} Think28",
         "form": {
             "name": "Nombre", "email": "Email", "brand": "Marca o web", "video": "Enlace al vídeo (YouTube, Drive, lo que tengas)",
-            "interest": "Qué te interesa", "options": [("launch", "Launch · paquete de arranque"), ("studio", "Studio · mensual"),
-                                                        ("team", "Team · en tu equipo"), ("founders", "Fundadores"), ("cloud", "Lista de espera de Cloud")],
+            "interest": "Qué te interesa", "options": [("early", "Acceso anticipado (Fundadores)"), ("creator", "Creator · 1 marca"),
+                                                        ("brand", "Brand · 3 marcas"), ("agency", "Agency · varias marcas"),
+                                                        ("studio", "Studio · lo hacéis vosotros"), ("cloud", "Lista de espera de Cloud")],
             "message": "Mensaje (opcional)", "send": "Enviar", "sending": "Enviando…",
             "privacy": "Solo usamos estos datos para responderte. Nada de listas ni terceros.",
             "ok": "Recibido. Te escribimos en un día laborable desde {mail}.",
@@ -43,15 +45,16 @@ STRINGS = {
     },
     "en": {
         "lang": "en", "home": "/en/", "alt_lang": "Español", "alt_href": "/", "font_lang": "en",
-        "nav": [("How it works", "/en/#how"), ("Pricing", "/en/#pricing"), ("Founders", "/en/founders/"), ("FAQ", "/en/#faq")],
+        "nav": [("How it works", "/en/#how"), ("Brand Memory", "/en/#memory"), ("Pricing", "/en/#pricing"), ("Founders", "/en/founders/"), ("FAQ", "/en/#faq")],
         "cta": ("Contact", "/en/contact/"),
         "footer": [("Customer area", "/en/kb/"), ("Online course", "/en/course/"), ("Open plugin", "https://frame28.t28.io"), ("Roadmap", "https://frame28.t28.io/roadmap/"),
                    ("Terms", "/en/terms/"), ("Contact", "/en/contact/"), ("GitHub", "https://github.com/javierledesma28/frame28")],
         "footer_line": "Frame28 is a <a href=\"https://t28.io\">Think28</a> product · © {year} Think28",
         "form": {
             "name": "Name", "email": "Email", "brand": "Brand or website", "video": "Link to the video (YouTube, Drive, whatever you have)",
-            "interest": "What you're interested in", "options": [("launch", "Launch · starter package"), ("studio", "Studio · monthly"),
-                                                                  ("team", "Team · in-house"), ("founders", "Founders"), ("cloud", "Cloud waitlist")],
+            "interest": "What you're interested in", "options": [("early", "Early access (Founders)"), ("creator", "Creator · 1 brand"),
+                                                                  ("brand", "Brand · 3 brands"), ("agency", "Agency · several brands"),
+                                                                  ("studio", "Studio · done for you"), ("cloud", "Cloud waitlist")],
             "message": "Message (optional)", "send": "Send", "sending": "Sending…",
             "privacy": "We only use this to reply to you. No lists, no third parties.",
             "ok": "Received. We'll write to you within one business day from {mail}.",
@@ -62,13 +65,13 @@ STRINGS = {
 
 PAGES = [
     # (idioma, fragmento, ruta publicada, title, description)
-    ("es", "index.html", "index.html", "Frame28 · Envías un vídeo. Recibes la campaña.",
-     "Convertimos un vídeo de tu marca en el largo montado, shorts verticales con ganchos distintos, portada, ficha de producto, subtítulos y versiones en otros idiomas. Generado por código, revisado por una persona, entregado en días."),
-    ("es", "fundadores.html", "fundadores/index.html", "Fundadores · Frame28", "Cinco marcas con el precio de lanzamiento congelado doce meses, voto en el roadmap y canal directo."),
-    ("es", "contacto.html", "contacto/index.html", "Contacto · Frame28", "Cuéntanos qué vendes y mándanos un vídeo. Respondemos en un día laborable."),
-    ("en", "index.html", "en/index.html", "Frame28 · Send the video. Get the campaign.",
-     "We turn one brand video into the edited long version, vertical shorts with different hooks, a cover, a product-page version, subtitles and translated versions. Generated by code, reviewed by a person, delivered in days."),
-    ("en", "founders.html", "en/founders/index.html", "Founders · Frame28", "Five brands with launch pricing locked for twelve months, a vote on the roadmap and a direct line."),
+    ("es", "index.html", "index.html", "Frame28 · Tu Claude Code, convertido en el estudio de vídeo de tu marca",
+     "Frame28 recuerda tu marca, tu voz y tus productos y monta tus campañas de vídeo dentro de tu Claude Code: el largo, los shorts con gancho, las portadas, los subtítulos y los idiomas. Plugin de pago con tu panel en frame28.app."),
+    ("es", "fundadores.html", "fundadores/index.html", "Fundadores · acceso anticipado · Frame28", "Las primeras marcas entran con el precio de lanzamiento congelado doce meses, su Memoria de marca redactada con nosotros, voto en el roadmap y canal directo."),
+    ("es", "contacto.html", "contacto/index.html", "Contacto · Frame28", "Cuéntanos tu marca y mándanos un vídeo. Respondemos en un día laborable."),
+    ("en", "index.html", "en/index.html", "Frame28 · Your Claude Code, turned into your brand's video studio",
+     "Frame28 remembers your brand, your voice and your products and edits your video campaigns inside your Claude Code: the long cut, the hook-led shorts, the covers, the subtitles and the languages. A paid plugin with your dashboard on frame28.app."),
+    ("en", "founders.html", "en/founders/index.html", "Founders · early access · Frame28", "The first brands get launch pricing locked for twelve months, their Brand Memory drafted with us, a vote on the roadmap and a direct line."),
     ("en", "contact.html", "en/contact/index.html", "Contact · Frame28", "Tell us what you sell and send us a video. We reply within one business day."),
 ]
 TERMS = [
@@ -82,16 +85,16 @@ CASE = {
       <p class="muted" style="margin-top:12px">{brand} vende kits de grabado a cientos de miles de clientes y publica tutoriales por material. Tomamos su tutorial de vidrio (3:17) y, sin grabar nada nuevo, salió el paquete completo: el largo con pasos en pantalla, notas de seguridad, tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada de YouTube y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos.</p>
       <p style="margin-top:20px"><a class="btn" href="/casos/{slug}/">Ver el caso completo</a></p>""",
         False: """<h2>Caso: un fabricante de kits de grabado</h2>
-      <p class="muted" style="margin-top:12px">Un tutorial de 3:17 ya publicado, sin grabar nada nuevo. Salió el largo con pasos en pantalla, notas de seguridad, tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos. Pídenos la muestra y te la enseñamos.</p>
-      <p style="margin-top:20px"><a class="btn" href="#contacto" data-plan="launch">Pedir la muestra</a></p>""",
+      <p class="muted" style="margin-top:12px">Un tutorial de 3:17 ya publicado, sin grabar nada nuevo. Salió el largo con pasos en pantalla, notas de seguridad, tarjeta de producto y prueba social; tres shorts de treinta segundos con un gancho distinto cada uno; la portada y la versión 1:1 para la ficha; y la versión en español con los mismos tiempos. Lo montó Think28 con Frame28, con la Memoria de esa marca: lo mismo que el plugin hace en tu ordenador. Pídenos la muestra y te la enseñamos.</p>
+      <p style="margin-top:20px"><a class="btn" href="#contacto" data-plan="early">Pedir la muestra</a></p>""",
     },
     "en": {
         True: """<h2>Case: {brand}</h2>
       <p class="muted" style="margin-top:12px">{brand} sells engraving kits to hundreds of thousands of customers and publishes one tutorial per material. We took their glass tutorial (3:17) and, without shooting anything new, the whole package came out: the long video with on-screen steps, safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the YouTube cover and the 1:1 product-page version; and a Spanish version with the same timing.</p>
       <p style="margin-top:20px"><a class="btn" href="/en/cases/{slug}/">See the full case</a></p>""",
         False: """<h2>Case: an engraving-kit brand</h2>
-      <p class="muted" style="margin-top:12px">A 3:17 tutorial already published, nothing new shot. Out came the long video with on-screen steps, safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the cover and the 1:1 product-page version; and a Spanish version with the same timing. Ask for the sample and we'll show you.</p>
-      <p style="margin-top:20px"><a class="btn" href="#contact" data-plan="launch">Ask for the sample</a></p>""",
+      <p class="muted" style="margin-top:12px">A 3:17 tutorial already published, nothing new shot. Out came the long video with on-screen steps, safety notes, product card and social proof; three thirty-second shorts, each with a different hook; the cover and the 1:1 product-page version; and a Spanish version with the same timing. Think28 edited it with Frame28 and that brand's Memory: exactly what the plugin does on your machine. Ask for the sample and we'll show you.</p>
+      <p style="margin-top:20px"><a class="btn" href="#contact" data-plan="early">Ask for the sample</a></p>""",
     },
 }
 
@@ -205,7 +208,7 @@ def fill(lang: str, html: str) -> str:
     seats = str(CONFIG["seats"])
     html = html.replace("{{SEATS}}", seats)
     html = html.replace("{{FORM_ES}}", form_html("es")).replace("{{FORM_EN}}", form_html("en"))
-    html = html.replace("{{FORM_ES_FOUNDERS}}", form_html("es", "founders")).replace("{{FORM_EN_FOUNDERS}}", form_html("en", "founders"))
+    html = html.replace("{{FORM_ES_FOUNDERS}}", form_html("es", "early")).replace("{{FORM_EN_FOUNDERS}}", form_html("en", "early"))
     case = {k: CASE[k][CONFIG["case_public"]].replace("{brand}", CONFIG["case_brand"]).replace("{slug}", CONFIG["case_slug"]) for k in ("es", "en")}
     if CONFIG["case_public"]:
         assert "[[" not in CONFIG["case_brand"], "case_public=True exige el nombre real del cliente en CONFIG['case_brand'] (con su permiso escrito)"
@@ -228,17 +231,21 @@ def terms_html(md_path: Path) -> tuple[str, str]:
 SECTIONS = {
     # clave: (idioma → ruta publicada, título, descripción del índice, etiqueta de minutos, texto de "volver")
     "kb": {
-        "es": ("kb", "Base de conocimiento", "Lo que necesitas saber para sacarle partido a Frame28: qué mandar, cómo grabar, cómo revisar y qué puedes publicar.", "min de lectura", "Base de conocimiento"),
-        "en": ("en/kb", "Knowledge base", "What you need to get the most out of Frame28: what to send, how to shoot, how to review and what you can publish.", "min read", "Knowledge base"),
+        "es": ("kb", "Base de conocimiento", "Lo que necesitas saber para sacarle partido a Frame28: tu Memoria de marca, cómo grabar, cómo revisar y qué puedes publicar.", "min de lectura", "Base de conocimiento"),
+        "en": ("en/kb", "Knowledge base", "What you need to get the most out of Frame28: your Brand Memory, how to shoot, how to review and what you can publish.", "min read", "Knowledge base"),
     },
     "curso": {
-        "es": ("curso", "Curso online", "Seis lecciones cortas, grabadas a cámara y montadas con Frame28. Incluido en Launch, Studio y Team.", "min", "Curso online"),
-        "en": ("en/course", "Online course", "Six short lessons, shot to camera and edited with Frame28. Included with Launch, Studio and Team.", "min", "Online course"),
+        "es": ("curso", "Curso online", "Seis lecciones cortas, grabadas a cámara y montadas con Frame28. Incluido en todos los planes.", "min", "Curso online"),
+        "en": ("en/course", "Online course", "Six short lessons, shot to camera and edited with Frame28. Included with every plan.", "min", "Online course"),
     },
 }
 GATE = {
-    "es": ("Área de clientes", "Acceso con el email con el que contrataste. Incluido en Launch (12 meses), Studio y Team.", "/contacto/", "¿Aún no eres cliente?"),
-    "en": ("Customer area", "Sign in with the email you ordered with. Included with Launch (12 months), Studio and Team.", "/en/contact/", "Not a customer yet?"),
+    "es": ("Área de clientes", "Incluido en todos los planes de Frame28. Entra con tu cuenta.", "/contacto/", "¿Aún no tienes cuenta?"),
+    "en": ("Customer area", "Included with every Frame28 plan. Sign in with your account.", "/en/contact/", "No account yet?"),
+}
+TERMS_NOTICE = {
+    "es": "Versión en revisión (octubre de 2026): estas condiciones describen el servicio Studio y se están adaptando a la plataforma Frame28 (plugin y cuenta). Los huecos marcados se completan tras la revisión legal; hasta entonces, cualquier contratación se formaliza por escrito.",
+    "en": "Version under review (October 2026): these terms describe the Studio service and are being adapted to the Frame28 platform (plugin and account). The marked gaps are completed after legal review; until then, any engagement is formalized in writing.",
 }
 TIER_LABEL = {"es": {"all": "todos los planes", "team": "solo Team"}, "en": {"all": "all plans", "team": "Team only"}}
 VIDEO_PENDING = {"es": "Vídeo en preparación: se graba a cámara y se monta con Frame28. Mientras tanto, el guion está debajo.",
@@ -323,7 +330,8 @@ def main() -> None:
         p = SITE / path; p.parent.mkdir(parents=True, exist_ok=True); p.write_text(html, encoding="utf-8", newline="\n"); out_paths.append(path)
     for lang, md, path, title in TERMS:
         h1, body = terms_html(SITE / md)
-        body = f'<section><div class="wrap"><article class="prose"><h1>{h1}</h1>{body}</article></div></section>'
+        notice = f'<div class="notice">{TERMS_NOTICE[lang]}</div>' if CONFIG.get("terms_draft") else ""
+        body = f'<section><div class="wrap"><article class="prose"><h1>{h1}</h1>{notice}{body}</article></div></section>'
         html = layout(lang, title, title, body, path)
         p = SITE / path; p.parent.mkdir(parents=True, exist_ok=True); p.write_text(html, encoding="utf-8", newline="\n"); out_paths.append(path)
     print("\n".join(f"  {p}" for p in out_paths))

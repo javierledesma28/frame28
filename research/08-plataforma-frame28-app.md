@@ -24,8 +24,9 @@ stacks de las webs de referencia (HTML real), y lo que Think28 ya opera en Synap
    Memoria aprende (ganchos, promesas, objeciones).
 6. El **motor** (CLI + HyperFrames, MIT) es el mismo en el portátil del cliente hoy y en la nube de Frame28 mañana: el
    contrato es el **storyboard JSON** y la **Memoria de marca**.
-7. **Modelo**: open core. CLI y plugin base abiertos (demo, adopción, confianza); la cuenta es lo que se paga (memoria,
-   campañas, contexto por MCP, biblioteca, equipo, cloud). Think28 mantiene un tier *Studio* operado por nosotros.
+7. **Modelo**: open core **con control de uso**. El **motor** (CLI) es MIT; el **plugin** es una cáscara que solo funciona
+   autenticado contra frame28.app (cuenta gratuita para probar, membresía para todo lo demás): el criterio del director y la
+   Memoria se sirven desde el servidor por MCP, nunca dentro del plugin (§7 bis). Think28 mantiene un tier *Studio* operado.
 8. **Stack**: Next.js + Tailwind + GSAP + un shader en el hero (web); FastAPI + Postgres + MCP en Python (API; comparte
    el paquete `frame28`); Think28 ID sobre Entra External ID (el CIAM de Synapse28); Paddle (reutilizado); R2 para vídeo;
    Docker + túnel de Cloudflare en t28server (ya desplegado así el sitio actual).
@@ -222,18 +223,56 @@ Cambios en el plugin de Frame28:
    con `${user_config.api_token}` para el perfil Team/CI). Herramientas: `account.me`, `brands.list`, `context.get(brand,
    campaign)`, `campaigns.list/get`, `campaigns.note`, `deliverables.upload_url(kind, lang, hook)`, `deliverables.submit`,
    `hooks.search`, `report.submit`. El MCP es **el único puente autenticado**; el CLI no necesita credenciales.
-2. **Skills**: la directora empieza por `account.me`. Sin cuenta o sin membresía → **modo demo** (marca Think28, tarjeta
-   final «Hecho con Frame28», sin Memoria ni campañas). Con membresía → pide `context.get` y trabaja con el brief. Las
-   skills de storyboard, shorts e i18n leen la voz, el glosario, los ganchos aprobados y las reglas legales de la Memoria.
+2. **Skills mínimas (cáscara)**: cada skill del plugin se reduce a «llama a la herramienta `frame28_start` con lo que pide el
+   usuario y sigue al pie de la letra el método que devuelva». El **método del director** (lo que hoy son 863 líneas de
+   skills y referencias: técnicas, ganchos, marca y promocional, grabación) se sirve desde el MCP, por sesión, ya fundido
+   con la Memoria de la marca y el brief de la campaña, y **según el plan**: la cuenta gratuita recibe el método demo (marca
+   Think28, tarjeta final «Hecho con Frame28», tres campañas); la membresía recibe el completo. Sin sesión, `frame28_start`
+   devuelve solo «entra en frame28.app». Las skills de storyboard, shorts e i18n leen la voz, el glosario, los ganchos
+   aprobados y las reglas legales de la Memoria porque vienen dentro de ese método. Ver §7 bis.
 3. **Comandos**: `/frame28:campaña [nombre]` (lista y elige campaña), `/frame28:entregar` (sube lo que haya en `out/`),
    `/frame28:memoria` (muestra lo que el plugin sabe de la marca y dónde cambiarlo).
 4. **CLI**: `frame28 deliver <fichero> --to <url firmada>` (PUT a R2 con reintentos y hash), `frame28 context apply
    <brief.json>` (escribe `work/brands/<marca>.json` y `work/brief.md` a partir de lo que dio el MCP), `frame28 publish-copy`
    (plantillas de copy por plataforma desde el storyboard y la Memoria). Todo MIT, como hoy.
-5. **Distribución**: el plugin sigue público en el marketplace `think28` (GitHub). Lo de pago no es el código: es la cuenta.
-   Hay que ser honestos con el límite: el motor es MIT y cualquiera puede quitar la tarjeta final; la ventaja competitiva es la
-   Memoria, las campañas, el aprendizaje y, después, la nube. Si algún día se quiere código cerrado, las versiones nuevas del
-   plugin pueden cambiar de licencia (las publicadas quedan MIT).
+5. **Distribución**: el plugin sigue público en el marketplace `think28` (GitHub), pero desde la v0.5 **no lleva nada que
+   valga sin cuenta**: ni el método del director ni la Memoria (§7 bis). Lo de pago no es el código: es la cuenta y lo que el
+   servidor le sirve. El motor (CLI) es MIT: cualquiera puede renderizar un storyboard con él; nadie obtiene sin membresía el
+   criterio actualizado, la Memoria, las campañas, la entrega, el aprendizaje ni la nube.
+
+## 7 bis. Control de uso: solo quien se autentica y tiene membresía puede usar el plugin
+
+Pregunta de Javier (2026-10-01, noche): *«tenemos que tener la certeza de que la persona que instale nuestro plugin no sea
+cualquier persona… solo será posible instalarlo o utilizarlo si se autentica con nuestra web, identifica que es un usuario
+válido, su membresía y toda su historia»*.
+
+**Lo que Claude Code permite y lo que no (verificado en su documentación):**
+
+- Un plugin son ficheros (Markdown, JSON, scripts) que Claude Code copia al ordenador del usuario. **Todo lo que viaje dentro
+  del plugin es legible y copiable.** No hay plugins cifrados ni un marketplace de pago nativo. Un marketplace privado en
+  GitHub exigiría dar acceso al repo a cada cliente: inviable para vender a marcas.
+- No se puede impedir que alguien **instale** un plugin público ni que use el motor MIT ya publicado (v0.1–v0.4) con sus
+  propias marcas. Sí se puede impedir que obtenga **lo que vendemos**. El control vive en el servidor, y el plugin se diseña
+  para que **sin servidor no sepa hacer nada**.
+
+**Diseño en cuatro capas, de más a menos fuerte:**
+
+| Capa | Qué hace | Qué impide |
+|---|---|---|
+| 1. **Cáscara + MCP** | El plugin publicado lleva `.mcp.json` (MCP remoto con OAuth), `hooks.json` y skills de dos líneas. El **método del director** (técnicas, ganchos, marca, reglas de montaje) y la **Memoria** se sirven por MCP, por sesión, solo con token válido y según el plan. El MCP comprueba en cada llamada la membresía (estado de Paddle) y la pertenencia de la marca y la campaña a esa cuenta | Que alguien sin cuenta, o con la suscripción caducada, tenga el criterio y el contexto que hacen el vídeo. Es la capa que de verdad controla: no hay nada que copiar del plugin |
+| 2. **Hooks de sesión** | `SessionStart` ejecuta `frame28 whoami` y añade al contexto «Frame28: sin cuenta, solo demo» o «cuenta X, plan Brand, marcas …»; `PreToolUse` sobre Bash bloquea `frame28 build/render` con marca ajena a la cuenta cuando no hay licencia válida (exit 2 con el motivo) | El uso por descuido o por costumbre sin sesión; da la experiencia por defecto gated. Son ficheros editables: refuerzan, no sostienen |
+| 3. **Licencia en el motor** | El MCP emite un **token de licencia firmado** (JWT, 72 h, ligado a la cuenta, el plan y las marcas; renovación automática) que la skill entrega al CLI (`frame28 license set`). Sin token válido el CLI renderiza en modo demo: marca Think28, tarjeta final «Hecho con Frame28», sin i18n ni variantes en lote; con token, todo. Límite de dispositivos por puesto | Compartir un render premium sin cuenta y seguir usando funciones de pago tras caducar. El CLI es MIT y alguien puede quitar la comprobación: solo gana la tarjeta final, no el criterio ni la Memoria |
+| 4. **El servidor manda en tiempo real** | Webhook de Paddle → estado de la suscripción → el MCP responde `payment_required` y deja de servir método, Memoria y entregas al instante; la licencia caduca en 72 h | Que una baja o un impago sigan produciendo vídeo. Y cada token lleva el `sub` de la cuenta: un token compartido se detecta (dos dispositivos, dos IP, dos marcas ajenas) |
+
+**Opcional, si se quiere apretar más (sin cambiar la arquitectura):** paquete `frame28-pro` cerrado en un índice privado
+(`https://pypi.frame28.app/simple/`) que solo se puede instalar y actualizar con token de cuenta; y, llegado el caso,
+cambiar la licencia de las versiones nuevas del CLI (las publicadas quedan MIT). Se decide cuando haya datos de uso.
+
+**Consecuencia sobre la decisión 4 (open core):** se mantiene, con este matiz. El **motor** sigue MIT (adopción, confianza,
+demo técnica). El **plugin** deja de llevar las skills completas desde la v0.5 y **exige cuenta siempre**: la prueba gratuita
+es un **plan Open con cuenta** (tres campañas de prueba, marca Think28, tarjeta final), no un modo anónimo. Así cada persona
+que use el plugin está identificada desde el primer render, su historia queda en su cuenta, y el embudo comercial tiene su
+email. La landing lo dice así desde la fase 0.
 
 ---
 
@@ -336,26 +375,31 @@ precios → acceso anticipado → preguntas → pie.
 
 ---
 
-## 11. Modelo de negocio y precios (estructura decidida, cifras a validar)
+## 11. Modelo de negocio y precios (decididos el 2026-10-01: Javier pidió una propuesta cerrada e implementarla; se retoca al final si hace falta)
 
-**Open core**: CLI y plugin base **MIT y gratis** (modo demo con marca Think28 y tarjeta final). Lo que se paga es la
-**cuenta**: Memoria de marca, campañas, contexto por MCP, biblioteca, aprendizaje, equipo y, después, nube.
+**Open core** (decisión 4): CLI y plugin base **MIT y gratis** (modo demo con marca Think28 y tarjeta final). Lo que se paga
+es la **cuenta**: Memoria de marca, campañas, contexto por MCP, biblioteca, aprendizaje, equipo y, después, nube.
 
-| Tier (propuesta) | Incluye | Cifra orientativa, **a validar** |
+| Tier | Incluye | Precio de lanzamiento (USD, sin IVA) |
 |---|---|---|
-| Open | CLI + plugin en modo demo, KB pública | 0 |
-| Creator | 1 marca, Memoria, campañas ilimitadas con el propio portátil, KB y curso | 49–99 USD/mes |
-| Brand | 3 marcas, 3 puestos, revisión y aprobación, biblioteca, aprendizaje de ganchos | 149–249 USD/mes |
-| Agency | marcas y puestos ampliados, tarjeta final propia, enlaces de revisión para clientes | 399–599 USD/mes |
-| Studio (servicio) | Think28 opera con Frame28; la cuenta es el registro | lo de `research/07` (2.490 USD/mes) |
-| Cloud (fase 3) | minutos de render en la nube, sin Claude Code | por minuto o paquete |
+| Open (cuenta gratuita, obligatoria para usar el plugin) | 3 campañas de prueba, marca Think28, tarjeta final «Hecho con Frame28», KB pública; el motor (CLI) es MIT | 0 |
+| **Creator** | 1 marca, 1 puesto; Memoria; campañas ilimitadas en el propio ordenador; largo, shorts, portadas, 1:1, subtítulos, idiomas, copy de publicación; KB y curso | **79 /mes** o 790 /año |
+| **Brand** (recomendado) | 3 marcas, 3 puestos; todo Creator; campañas con brief, revisión y aprobación en la web; catálogo; biblioteca de ganchos y storyboards; aprendizaje; soporte por email | **199 /mes** o 1.990 /año |
+| **Agency** | 10 marcas, 10 puestos; todo Brand por marca; enlaces de revisión para clientes; tarjeta final propia; roles; token de API; soporte prioritario | **499 /mes** o 4.990 /año |
+| **Studio** (servicio, Think28 opera sobre la misma cuenta) | Primera campaña: 1 largo, 4 shorts × 2 ganchos, portada, 1:1, SRT, 1 idioma más, 5 días laborables, garantía de devolución a 30 días si no se publica la mitad · Mensual: 4 largos, 12 shorts, 2 idiomas, informe de ganchos | **990** pago único · **2.490 /mes** (los validados en `research/07`) |
+| Cloud (fase 3) | minutos de render en la nube, sin Claude Code | lista de espera; por minuto o paquete |
 
-Fundadores pasa de «cinco marcas con el servicio» a **acceso anticipado**: precio congelado doce meses, voto en el roadmap
-y canal directo, a cambio de caso publicable y feedback. El Cliente A encaja en Brand con Think28 operando (Studio) o en
-Team: su propuesta en curso no se cae, cambia el envoltorio.
+Lógica de las cifras: el anual regala dos meses (×10); Creator queda entre Claude Pro y Claude Max, que el cliente paga
+aparte; Brand cuesta menos que un solo vídeo editado por un freelance al mes; Agency se amortiza con el primer cliente de
+la agencia. Precios de lanzamiento congelados doce meses para el acceso anticipado; «precio regular» no se anuncia hasta
+tener datos. Se retocan al final si hace falta: primero aquí, después en la landing.
 
-Las cifras definitivas se fijan en este documento primero y después en la landing, como siempre; mientras tanto la landing
-nueva puede salir con «acceso anticipado» y sin tabla de precios.
+**Fundadores** pasa de «cinco marcas con el servicio» a **acceso anticipado de la plataforma**: 25 plazas
+(`site/build.py` `CONFIG["seats"]`), precio congelado doce meses, Memoria de marca redactada con nosotros, voto en el
+roadmap, logo y canal directo, a cambio de caso publicable, testimonio y dos sesiones de feedback.
+
+**Cliente A** (decisión 6, resuelta): su propuesta en curso sigue tal cual como **Studio**; cuando la plataforma exista se
+le ofrece Brand con su Memoria ya hecha. Nada que cambiar ni frenar.
 
 ---
 
@@ -372,8 +416,10 @@ en la web.
 1. *Spike* (1 día): Think28 ID + MCP remoto + Claude Code `/mcp` de punta a punta; Paddle en sandbox con `product=frame28`.
 2. Repo `frame28-app` (monorepo: `web/` Next.js, `api/` FastAPI + MCP, `db/`, `deploy/`): cuenta, membresía, Memoria v1
    con onboarding asistido, campañas y entregables, R2, revisión básica.
-3. Plugin v0.5: `.mcp.json`, skills con contexto, comandos `/frame28:campaña` y `/frame28:entregar`, `frame28 deliver`,
-   `frame28 context apply`, modo demo. Pruebas de las nuevas órdenes.
+3. Plugin v0.5 (cáscara, §7 bis): `.mcp.json` remoto, `hooks.json` (SessionStart avisa del estado de la cuenta; PreToolUse
+   bloquea render con marca ajena sin licencia), skills mínimas que llaman a `frame28_start`; el MCP sirve el método del
+   director por plan y la Memoria; CLI: `frame28 deliver`, `frame28 context apply`, `frame28 license set/whoami` (token de
+   72 h) y modo demo. Pruebas de las nuevas órdenes.
 4. Landing nueva en Next.js con el hero vivo y migración de KB y curso (MDX) tras la membresía.
 5. Despliegue en `/opt/frame28` (compose nuevo), Turnstile, Plausible, uptime-kuma; `deploy.sh` evoluciona a imágenes.
 

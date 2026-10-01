@@ -31,6 +31,13 @@ p { margin: 0; }
 .muted { color: var(--fg-2); }
 .lead { font-size: 1.15rem; color: var(--fg-2); max-width: 62ch; }
 .small { font-size: 0.85rem; }
+/* terminal de Claude Code (sección «Dentro de tu Claude Code») y aviso de las condiciones en revisión */
+.term { margin: 0; background: #0A0A0A; color: #F2F1EC; border: 1px solid #2A2A26; border-radius: var(--radius); padding: 22px 24px;
+        font-family: var(--mono); font-size: 0.82rem; line-height: 1.6; white-space: pre-wrap; overflow: auto; }
+.term .p { color: var(--accent); font-weight: 700; }
+.term .k { color: var(--accent); }
+.notice { margin: 20px 0 28px; padding: 14px 18px; border-left: 4px solid var(--accent); background: var(--bg-2); border-radius: 0 var(--radius) var(--radius) 0;
+          font-size: 0.95rem; color: var(--fg-2); }
 
 /* cabecera */
 .top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px);
