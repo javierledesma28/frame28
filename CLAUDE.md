@@ -28,8 +28,9 @@ instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude insta
 versiones `/roadmap/`.
 
 **Desde el 2026-09-30 Frame28 es también un producto monetizable** del ecosistema Think28, con dominio
-**frame28.app** (comprado en Cloudflare; sitio del producto pendiente de construir en `site/` y desplegar en
-Cloudflare Pages). Se vende como servicio operado por Think28 (Launch, Studio), implantación en el cliente (Team) y,
+**frame28.app** (zona DNS activa en Cloudflare, cuenta T28, plan Free, confirmado el 2026-10-01; el sitio del producto
+está **construido** en `site/` y **pendiente de desplegar** en Cloudflare Pages con un token de API que Javier va a
+crear: permisos acordados en `HANDOFF.md` §Cloudflare). Se vende como servicio operado por Think28 (Launch, Studio), implantación en el cliente (Team) y,
 solo con demanda demostrada, plataforma (Cloud). Primer cliente objetivo: **Cliente A** (nombre en clave: el cliente real no se escribe en ningún fichero del repo ni del sitio; ver HANDOFF §Confidencialidad). Definición, precios propuestos
 y plan en `research/07-producto-frame28-app.md`; caminos evaluados en `research/06-monetizacion.md`. El plugin y el
 CLI siguen MIT y públicos: son la demo viva y el canal de adopción.
@@ -51,9 +52,11 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   faster-whisper, av>=11,<18 (ver Trampas), mediapipe, rapidocr, segno
   cli/frame28/
     __init__.py                   __version__ (única fuente de la versión del CLI; pyproject la lee con hatch), HYPERFRAMES_VERSION, GSAP_VERSION
-    env.py                        localiza ffmpeg/uv/npx (WinGet), caché ~/.cache/frame28, modelo RVM
+    env.py                        localiza ffmpeg/uv/npx (WinGet), caché ~/.cache/frame28, modelo RVM; `cuda_ready()` y
+                                  `enable_cuda_dlls()` (librerías CUDA del extra `gpu`, para faster-whisper)
     media.py                      probe, prep (30 fps sin audio + voz limpia), sheet, frame_at, cut, fetch_url (yt-dlp vía uvx)
-    transcribe.py                 faster-whisper → words.json, captions.json, words.srt (LF), transcript.json
+    transcribe.py                 faster-whisper (`--device auto`: GPU NVIDIA si cuBLAS/cuDNN están, si no CPU; si la GPU falla
+                                  a mitad repite en CPU) → words.json, captions.json (por frase), words.srt (LF), transcript.json
     cut.py                        jump cuts: silencios (también dentro de palabras estiradas), muletillas, falsos arranques; apply remapea
     audio.py                      measure / clean (highpass, afftdn|rnnoise, loudnorm 2 pasadas) / compare
     matte.py                      RobustVideoMatting (alfa) y speaker_layout (bbox del hablante en el lienzo)
@@ -98,7 +101,9 @@ site/                             sitio del producto frame28.app, estático para
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
-                                  clip-grabado (tutorial de YouTube de una marca: brief, storyboard, shorts, i18n)
+                                  clip-grabado (tutorial de YouTube de una marca: brief, storyboard, shorts, i18n),
+                                  clip-acrilico (segundo tutorial de la misma marca, montado el 2026-10-01 en EN/ES/DE con 6 shorts
+                                  y 4 portadas: TODO en carpetas ignoradas, nada versionado todavía; ver HANDOFF §A medias)
 _private/                         NO versionado: caras, fotogramas y transcripción del vídeo de referencia; `confidencial.txt` (términos
                                   que `release-check` busca); `cliente-a/` (propuesta, brief, guion y envío que nombran al cliente)
 ```
@@ -108,6 +113,8 @@ _private/                         NO versionado: caras, fotogramas y transcripci
 Instalación de desarrollo (hecha en esta máquina, Windows 11, sin CUDA):
 ```bash
 uv tool install --editable ./plugin/cli --python 3.12     # CLI editable → ~/.local/bin/frame28
+uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --reinstall   # opcional: librerías CUDA (>1 GB) para transcribir en
+                                                           # GPU NVIDIA; es lo que hay instalado en esta máquina (2,5 GB en %APPDATA%/uv/tools/frame28)
 claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # marketplace local "think28"
 claude plugin install frame28@think28 --scope user
 claude plugin validate ./plugin                             # SIEMPRE antes de commitear skills
@@ -120,7 +127,7 @@ Pipeline manual (lo que hace la skill directora):
 ```bash
 frame28 fetch <url> -o input.mp4           # opcional: YouTube/Vimeo con yt-dlp (uvx, sin instalar)
 frame28 prep input.mp4 -o work             # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav
-frame28 transcribe work/audio16k.wav -o work --lang es
+frame28 transcribe work/audio16k.wav -o work --lang es   # --device auto (GPU si `doctor` la da por lista, si no CPU); --script nombres.txt sesga nombres propios
 frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json && frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
 frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 --path work/cut/reframe.json [--mode blur]   # solo si el destino es vertical
 frame28 reframe-map work/cut/reframe.json --gestures work/cut/gestures.json -o work/cut/gestures-vertical.json   # pointers del apaisado al vertical
@@ -137,7 +144,7 @@ frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.j
 frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una versión traducida (subtítulos por frase del storyboard)
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (113 pruebas, ~3 s; módulos puros sin ffmpeg ni
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (114 pruebas, ~3 s; módulos puros sin ffmpeg ni
 modelos: captions, cut, clips (incluidos `batch --no-render` y `markers`), i18n, build.validate/platform_warnings/build_project,
 reframe.map_*, log/report, smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
 `scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
@@ -165,6 +172,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - Versión y release: `__version__` en `plugin/cli/frame28/__init__.py` (pyproject la lee), `plugin/.claude-plugin/plugin.json`,
   `.claude-plugin/marketplace.json` y el README. `python scripts/release-check.py` antes de etiquetar; `--notes` da el
   punto de partida de las notas. Luego `git tag -a vX.Y.Z`, push del tag y `gh release create` con la cuenta personal.
+- Cómo actualizan los usuarios (README §Actualizar y `docs/instalar.md`): `uv tool upgrade frame28` (verificado el
+  2026-10-01: reinstala desde el último commit de GitHub en ~15 s aunque la versión no cambie) y `claude plugin marketplace
+  update think28 && claude plugin update frame28@think28` (solo actúa si cambió la versión del plugin: por eso cada release
+  sube los cuatro sitios). Pendiente: fila de `doctor` que compare con la última release de GitHub y diga esas dos órdenes.
 - Push: el repo es de la cuenta **javierledesma28**; `gh` tiene también la corporativa `javierledesmasmc` y a veces es
   la activa (push → 403). `gh auth switch --user javierledesma28`, push, y volver a dejar la que estaba.
 - Finales de línea LF (`.gitattributes`); el `words.srt` que importa HyperFrames **solo funciona con LF**.
@@ -191,12 +202,16 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 
 ## Decisiones técnicas
 
-- **HyperFrames 0.8.72** (Apache-2.0) como compositor, pineado; Remotion descartado (licencia de empresa >3 personas).
+- **HyperFrames 0.8.72** (Apache-2.0) como compositor, pineado (0.8.105 publicada el 2026-10-01; subir exige pasar las
+  regresiones de `poc/clip-javier` y `poc/clip-grabado`); Remotion descartado (licencia de empresa >3 personas).
   PoC comparativa en `research/03-poc-compositores.md`.
 - **faster-whisper** (CPU, medium int8) para tiempos por palabra; WhisperX/stable-ts con guion son mejora pendiente.
 - **RobustVideoMatting ONNX** (GPL-3, ejecutado como proceso, modelo descargado a `~/.cache/frame28/`) para el
   alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos y reencuadre; **RapidOCR** (PaddleOCR en ONNX,
   Apache-2.0, modelos dentro del wheel) para el texto ya presente en vídeos producidos; **segno** (BSD) para QR.
+- **GPU opcional, nunca obligatoria**: el extra `frame28[gpu]` (`nvidia-cublas-cu12`, `nvidia-cudnn-cu12`) da a faster-whisper
+  las librerías CUDA; `transcribe --device auto` usa la GPU si `env.cuda_ready()` lo confirma (float16) y cae a CPU (int8) si
+  falla a mitad. onnxruntime sigue en CPU (matte, OCR). El render se acelera con `--workers`, no con la GPU (`--gpu` solo codifica).
 - **GSAP 3.13+** es gratis con plugins: `build.py` carga SplitText/DrawSVG solo cuando el storyboard los usa.
 - Limpieza de audio: `highpass 80` + `afftdn` (o `rnnoise` con modelo BSD en caché) + `loudnorm` en dos pasadas.
 - Marca por nombre (`"brand": "think28"`) o por ruta (`.json`, también relativa al storyboard); búsqueda `./brands/`
@@ -205,9 +220,11 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
 - Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
   o "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md" pegado en Claude Code.
-- Sitio del producto (decidido, no construido): frame28.app en **Cloudflare Pages** desde `site/` de este repo
-  (dominio ya en Cloudflare); base de conocimiento y curso tras **Cloudflare Access** con código por email;
-  formulario con Pages Functions y Cloudflare Email Service. frame28.t28.io sigue en GitHub Pages para el plugin.
+- Sitio del producto (construido, **no desplegado**): frame28.app en **Cloudflare Pages** desde `site/` de este repo, por
+  subida directa con `wrangler pages deploy site/` usando un token de API (la integración Pages↔GitHub es un OAuth del
+  panel que un token no puede hacer; si se quiere despliegue al hacer push, GitHub Action con un segundo token estrecho);
+  base de conocimiento y curso tras **Cloudflare Access** con código por email; formulario con Pages Functions, Cloudflare
+  Email Service y Turnstile (previsto). frame28.t28.io sigue en GitHub Pages para el plugin.
 - El roadmap público vive en `docs/roadmap/index.html` con sus datos inline; no hay otra copia de los estados.
 
 ## Trampas ya sufridas (no repetir)
@@ -216,10 +233,11 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   8.1.1 pasó a 9.0.2): `export PATH="$(ls -d /c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin | tail -1):/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe:$HOME/.local/bin:$PATH"`
   (el CLI los localiza solo; la shell no).
 - **PyAV**: uv resolvía `av` 19, que rompe faster-whisper (`metadata_errors`); `av` 14 no tiene wheel Windows → pin `<18`.
-- **La GPU está (RTX 4060 Laptop, 8 GB) pero casi nada la usa**: faltan las librerías CUDA (`cublas64_12.dll`,
-  `cudnn64_9.dll`) para faster-whisper, aunque ctranslate2 ya detecta el dispositivo, y onnxruntime es la compilación
-  de CPU (matte y OCR). Lo que sí funciona sin instalar nada: NVENC en ffmpeg (`h264_nvenc`) y la GPU del navegador en
-  HyperFrames, que la detecta sola. No asumir GPU en la máquina de un usuario: todo tiene que ir también por CPU.
+- **La GPU (RTX 4060 Laptop, 8 GB) ya transcribe**: las librerías CUDA van en el extra `gpu` y `doctor` lo confirma
+  («gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN»); hubo una transcripción real en GPU el 2026-10-01 pero la ganancia
+  frente a los 179 s de CPU en un clip de 160 s **no está medida**. onnxruntime sigue siendo la compilación de CPU (matte y
+  OCR). NVENC en ffmpeg (`render --gpu`) y la GPU del navegador en HyperFrames funcionan sin instalar nada. No asumir GPU en
+  la máquina de un usuario: todo tiene que ir también por CPU.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
 - **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
   escapes se comen; también los heredoc bash con comillas. Escribir el parche a un `.py` (Write) y ejecutarlo.
@@ -314,3 +332,14 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **Trabajar en el CLI mientras hay renders en marcha**: en un worktree de git (`git worktree add <ruta> -b <rama>`);
   los renders siguen importando el código intacto y las pruebas se pasan en la copia. `uv run --project
   <worktree>/plugin/cli frame28 …` ejecuta esa versión desde cualquier carpeta.
+- **Cada `frame28 …` escribe `.frame28/log.jsonl` en el directorio actual**: lanzado desde la raíz del repo, el log aparece
+  ahí (ignorado). Llegó a estar versionado (lo añadió una sesión en la nube antes de la regla del `.gitignore`) y se quitó
+  del índice el 2026-10-01: si reaparece como modificado, es que alguien corrió el CLI desde la raíz, no un cambio real.
+- **Un `cd` dentro de un comando Bash cambia el directorio de las órdenes siguientes de la sesión**: `claude plugin validate
+  ./plugin` falló buscando `plugin/cli/plugin` tras un `cd plugin/cli` anterior. Rutas absolutas, o el `cd` en el mismo comando.
+- **`poc/clip-acrilico/input.source.json` nombra el canal del cliente** y lo único que lo mantiene fuera de `git add -A` es la
+  línea `*.source.json` del `.gitignore` (commiteada el 2026-10-01). Las sesiones que descarguen vídeos de clientes deben
+  comprobar `git status` antes de añadir nada.
+- **El HANDOFF puede quedarse atrás en un mismo día**: el del 2026-10-01 (mediodía) decía «árbol limpio» mientras la tarde
+  dejó 4 commits sin subir, 8 ficheros sin commitear y una muestra entera renderizada sin anotar. Antes de fiarse, `git status
+  -sb`, `git log origin/main..main` y mirar los `.frame28/log.jsonl` de `poc/*/` (son la bitácora real de lo que se ejecutó).
