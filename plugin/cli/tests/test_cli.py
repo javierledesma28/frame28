@@ -135,3 +135,14 @@ def test_render_args_workers_raise_node_heap_and_gpu_flag(tmp_path):
     assert env["NODE_OPTIONS"] == f"--no-warnings --max-old-space-size={NODE_HEAP_MB}"
     assert render_args(tmp_path / "x.mp4", workers=4)[1] == {}                                   # pocos trabajadores: heap por defecto
     assert render_args(tmp_path / "x.mp4", workers=10, node_options="--max-old-space-size=6000")[1] == {}   # el del usuario manda
+
+
+def test_transcribe_device_auto_picks_gpu_only_when_ready():
+    # la máquina tenía GPU y todo iba por CPU: `auto` la usa si hay dispositivo y librerías, y si no, CPU como siempre
+    from frame28.transcribe import pick_device
+    assert pick_device('auto', 'auto', ready=(True, '1 GPU CUDA con cuBLAS y cuDNN'))[:2] == ('cuda', 'float16')
+    dev, comp, why = pick_device('auto', 'auto', ready=(False, 'GPU detectada, falta cudnn64_9.dll'))
+    assert (dev, comp) == ('cpu', 'int8') and 'cudnn' in why
+    assert pick_device('cpu', 'auto')[:2] == ('cpu', 'int8')
+    assert pick_device('auto', 'int8_float16', ready=(True, 'ok'))[:2] == ('cuda', 'int8_float16')   # el cómputo explícito manda
+    assert pick_device('cpu', 'int8')[2] == 'elegido a mano'
