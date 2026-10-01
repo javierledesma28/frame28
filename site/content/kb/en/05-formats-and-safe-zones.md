@@ -41,7 +41,7 @@ subtitles sit above the bottom 16 %.
 
 - Short: between 15 and 45 seconds; 30 is the target. It starts and ends on a full sentence, never mid-word.
 - Long video: as long as the content needs; from five minutes we treat it as two pieces.
-- Welcome video ("first time here?"): 20 to 35 seconds, aimed at "start today".
+- Welcome video ("new here?"): 20 to 35 seconds, aimed at "start today".
 
 ## Cover
 
