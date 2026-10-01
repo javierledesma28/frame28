@@ -45,3 +45,5 @@ _private/
 site/*.png
 site/node_modules/
 .frame28/
+# Sidecar de `frame28 fetch` (título, canal y URL del vídeo descargado): nombra al dueño del vídeo
+*.source.json
