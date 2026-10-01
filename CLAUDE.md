@@ -74,12 +74,14 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto)
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
   cli/tests/                      pytest (grupo dev): conftest con fixtures de poc/ y datos sintéticos; test_captions, test_cut,
-                                  test_clips, test_i18n, test_build, test_reframe, test_cli
+                                  test_clips, test_i18n, test_build, test_reframe, test_log, test_cli, test_release_check
 docs/                             GitHub Pages: presentacion/ (deck + engine/), instalar/ (asistente web), instalar.md,
                                   install.ps1, install.sh, guion-demo.md, guia-plugin.md, brand/, CNAME, .nojekyll, index.html
   roadmap/index.html              roadmap por versiones (Think28): los datos viven en el array ROADMAP del propio fichero
                                   (estado hecho/medias/pendiente por ítem); marcadores artifact:head/body para publicarlo como artefacto
-scripts/release-check.py          versiones en los cuatro sitios, árbol limpio, tag libre, cuenta gh, plugin validado, pytest en verde; --notes: commits desde el último tag
+scripts/release-check.py          versiones en los cuatro sitios, árbol limpio, tag libre, cuenta gh, plugin validado, pytest en verde y
+                                  confidencialidad (términos de `_private/confidencial.txt` en ficheros, historia, tags y releases);
+                                  --notes: commits desde el último tag
 research/                         01 análisis del vídeo de referencia (resumen), 02 repos, 03 PoC compositores,
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
                                   06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
@@ -96,7 +98,8 @@ poc/                              casos reales, cada uno con README, storyboard(
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
                                   clip-grabado (tutorial de YouTube de una marca: brief, storyboard, shorts, i18n)
-_private/                         NO versionado: caras, fotogramas y transcripción del vídeo de referencia
+_private/                         NO versionado: caras, fotogramas y transcripción del vídeo de referencia; `confidencial.txt` (términos
+                                  que `release-check` busca); `cliente-a/` (propuesta, brief, guion y envío que nombran al cliente)
 ```
 
 ## Cómo se ejecuta
@@ -131,9 +134,9 @@ frame28 clips batch work/clips.json s4 --brand think28 --video vertical.mp4 -o o
 frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.json strings.en.json --lang en
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (94 pruebas, ~1 s; módulos puros sin ffmpeg ni
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (98 pruebas, ~3 s; módulos puros sin ffmpeg ni
 modelos: captions, cut, clips (incluidos `batch --no-render` y `markers`), i18n, build.validate/platform_warnings/build_project,
-reframe.map_*, log/report, smoke del CLI con `CliRunner`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
+reframe.map_*, log/report, smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-grabado/*.json`).
 `scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
 Lo que no cubre (render, matte, gestos, OCR) se prueba con `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
 Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards reales completos: `poc/clip-demo/`
@@ -148,8 +151,8 @@ pendiente; `next: true` marca el siguiente). Comprobar con `node --check` el scr
 artefacto de claude.ai (URL en HANDOFF) con la variante sin doctype (contenido entre los marcadores
 `artifact:head` y `artifact:body`).
 
-Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tags, cuenta gh, release, CLI, plugin;
-`--notes` lista los commits desde el último tag). Notas con el formato de `gh release view v0.3.0`.
+Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tags, cuenta gh, release, CLI, plugin,
+pruebas, confidencialidad; `--notes` lista los commits desde el último tag). Notas con el formato de `gh release view v0.4.0`.
 
 ## Convenciones
 
@@ -262,3 +265,11 @@ Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tag
   comprueba como fila opcional. "Tu vídeo no sale de tu máquina" sigue siendo cierto: solo se descargan los scripts.
 - **`gh` con la cuenta corporativa activa** da 403 en push, tag y release: `gh auth switch --user javierledesma28` antes
   y volver a la que estaba después (`release-check` lo avisa).
+- **El nombre del cliente se cuela por donde el árbol no mira**: tras anonimizar el árbol y reescribir el historial seguía
+  en las notas de la release v0.3.0, en los tags viejos y en una carpeta bajada de la nube sin ignorar dentro del repo (a
+  un `git add -A` de publicarse). La fila `confidencialidad` de `release-check` cubre los cuatro sitios; necesita
+  `_private/confidencial.txt`. Lo que se baje y nombre al cliente va a `_private/`.
+- **Guiones bajos seguidos en el Markdown del sitio** (líneas de firma): Python-Markdown los toma por énfasis y el HTML
+  cambia según la versión de la librería, así que el build ensucia el árbol en otra máquina. Escaparlos (`\_`).
+- **Lo "entregado fuera del repo" por una sesión en la nube puede no llegar al PC** (pasó con el script de tags, el
+  bundle y las notas): lo que el siguiente paso necesite tiene que poder reconstruirse desde el repo.
