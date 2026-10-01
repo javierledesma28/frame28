@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """Checklist de release de Frame28 (solo biblioteca estándar): la versión en los cuatro sitios, el árbol limpio,
-el tag libre, la cuenta activa de `gh`, el CLI instalado, el manifiesto del plugin y la suite de pruebas en verde.
+el tag libre, la cuenta activa de `gh`, el CLI instalado, el manifiesto del plugin, la suite de pruebas en verde y
+la confidencialidad (términos que no pueden aparecer en nada público).
 
     python scripts/release-check.py            # comprueba; sale con 1 si algo bloquea
     python scripts/release-check.py --notes    # además lista los commits desde el último tag (punto de partida de las notas)
 
 Nace de la 0.3.0: el bump de ficheros se olvidó de `__init__.py` y `frame28 --version` siguió diciendo 0.2.0.
+La fila de confidencialidad nace de la 0.4.0: el nombre de un cliente se limpió del árbol y del historial, pero
+seguía en las notas de una release y en una carpeta sin ignorar. Los términos viven en `_private/confidencial.txt`
+(no versionado): uno por línea, texto o expresión regular, sin distinguir mayúsculas; `#` comenta.
 """
 from __future__ import annotations
 
@@ -18,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OWNER = "javierledesma28"          # cuenta dueña del repo; con la corporativa activa el push da 403
 REPO = f"{OWNER}/frame28"
+CONF_FILE = ROOT / "_private" / "confidencial.txt"   # no versionado: los términos no pueden estar en el repo
 
 for _s in (sys.stdout, sys.stderr):
     try:
@@ -48,6 +53,97 @@ def versions() -> dict[str, str | None]:
     found = sorted(set(re.findall(r"\bv(\d+\.\d+\.\d+)\b", readme)))
     v["README.md"] = ", ".join(found) if found else None
     return v
+
+
+def git(*args: str) -> tuple[int, str]:
+    """git sin shell: los formatos con `%` y las salidas grandes no pasan por cmd.exe."""
+    try:
+        r = subprocess.run(["git", "-c", "core.quotepath=false", *args], cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace")
+        return r.returncode, r.stdout
+    except FileNotFoundError:
+        return 127, ""
+
+
+def load_patterns(path: Path) -> re.Pattern | None:
+    """Términos confidenciales (nombre de un cliente, de su producto, de su gente) como una sola expresión."""
+    if not path.is_file():
+        return None
+    terms = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines()]
+    terms = [t for t in terms if t and not t.startswith("#")]
+    return re.compile("|".join(f"(?:{t})" for t in terms), re.I) if terms else None
+
+
+def find_hits(rx: re.Pattern, files: dict[str, str], log: str, tags: dict[str, str], releases: dict[str, str]) -> dict[str, list[str]]:
+    """Dónde aparece algún término. Devuelve sitios (ruta, commit, tag, release), nunca el término: la salida se pega en público."""
+    hits: dict[str, list[str]] = {}
+
+    def hit(kind: str, where: str):
+        where = rx.sub("***", where)
+        if where not in hits.setdefault(kind, []):
+            hits[kind].append(where)
+
+    for rel, text in files.items():
+        if rx.search(rel) or rx.search(text):
+            hit("ficheros", rel)
+    commit = "?"
+    for ln in log.splitlines():
+        if ln.startswith("@@commit "):
+            commit = ln[9:].strip()
+        elif rx.search(ln):
+            hit("commits", commit)
+    for name, text in tags.items():
+        if rx.search(name) or rx.search(text):
+            hit("tags", name)
+    for name, text in releases.items():
+        if rx.search(name) or rx.search(text):
+            hit("releases", name)
+    return hits
+
+
+def _json_stream(raw: str) -> list:
+    """`gh api --paginate` concatena un documento JSON por página."""
+    dec, i, out = json.JSONDecoder(), 0, []
+    while i < len(raw):
+        if raw[i].isspace():
+            i += 1
+            continue
+        doc, i = dec.raw_decode(raw, i)
+        out.extend(doc if isinstance(doc, list) else [doc])
+    return out
+
+
+def confidential_hits(rx: re.Pattern) -> tuple[dict[str, list[str]], list[str]]:
+    """Reúne lo público o a un `git add` de serlo: ficheros versionados y sin ignorar, historia de todos los refs
+    (mensajes y diffs), tags, y títulos y notas de las releases y descripción del repo en GitHub."""
+    skipped: list[str] = []
+    files: dict[str, str] = {}
+    _, listing = git("ls-files", "--cached", "--others", "--exclude-standard")
+    for rel in listing.splitlines():
+        p = ROOT / rel
+        try:
+            files[rel] = p.read_bytes().decode("utf-8", errors="ignore") if p.is_file() else ""
+        except OSError:
+            files[rel] = ""
+    code, log = git("log", "--exclude=refs/stash", "--all", "-p", "--format=@@commit %h%n%B")
+    if code != 0:
+        skipped.append("historia")
+    tags: dict[str, str] = {}
+    for name in git("tag", "-l")[1].split():
+        tags[name] = git("tag", "-l", "--format=%(contents)", name)[1]
+    releases: dict[str, str] = {}
+    try:
+        code, raw = sh("gh", "api", f"repos/{REPO}/releases", "--paginate")
+        for r in _json_stream(raw) if code == 0 else []:
+            releases[str(r.get("tag_name"))] = f"{r.get('name') or ''}\n{r.get('body') or ''}"
+        code2, raw = sh("gh", "api", f"repos/{REPO}")
+        if code2 == 0:
+            r = _json_stream(raw)[0]
+            releases["descripción del repo"] = f"{r.get('description') or ''}\n{r.get('homepage') or ''}\n{' '.join(r.get('topics') or [])}"
+        if code != 0 or code2 != 0:
+            skipped.append("GitHub")
+    except (ValueError, IndexError, AttributeError):
+        skipped.append("GitHub")
+    return find_hits(rx, files, log, tags, releases), skipped
 
 
 def main() -> int:
@@ -92,6 +188,15 @@ def main() -> int:
     code, tests = sh("uv", "run", "--group", "dev", "pytest", "--no-header", "-p", "no:cacheprovider", cwd=ROOT / "plugin/cli")
     summary = next((ln for ln in reversed(tests.splitlines()) if "passed" in ln or "failed" in ln or "error" in ln.lower()), tests[-80:])
     add(code == 0, "pytest (plugin/cli/tests)", summary.strip()[:80] or "sin salida")
+
+    rx = load_patterns(CONF_FILE)
+    if rx is None:
+        add(False, "confidencialidad", f"sin términos en {CONF_FILE.relative_to(ROOT).as_posix()}: no se comprueba", blocking=False)
+    else:
+        hits, skipped = confidential_hits(rx)
+        detail = "; ".join(f"{k}: {', '.join(v[:4])}{' …' if len(v) > 4 else ''}" for k, v in hits.items())
+        detail = detail or "sin rastro en ficheros, historia, tags y releases"
+        add(not hits, "confidencialidad", detail + (f" (sin consultar: {', '.join(skipped)})" if skipped else ""))
 
     width = max(len(n) for _, _, n, _ in rows) + 2
     for ok, blocking, name, detail in rows:
