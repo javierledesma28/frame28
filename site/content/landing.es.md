@@ -203,7 +203,9 @@ versión 1:1 para la ficha; y la versión en español con los mismos tiempos. P�
 
 - **Dirección con criterio.** Cada vídeo se analiza entero: qué se dice, dónde se señala, qué frase vende. Con eso
   se escribe un guion de montaje y de ahí sale cada pieza. No hay plantillas que rellenar.
-- **Tu vídeo no sale de nuestras máquinas.** Se procesa en local. No se sube a servicios de terceros para montarlo.
+- **Tu vídeo se procesa en nuestras máquinas.** No se sube a ninguna plataforma de edición. Para dirigir el
+  montaje usamos modelos de lenguaje con la transcripción y los fotogramas de revisión, bajo términos que no
+  permiten entrenar con tus datos. Lo explicamos con detalle en las [condiciones](/condiciones).
 - **Material con licencia.** El B-roll de stock lleva licencia comercial por vídeo y queda documentado en la entrega.
   Tu material es tuyo; nosotros no lo reutilizamos.
 - **Los entregables son tuyos.** Ficheros finales, subtítulos y versiones. Sin marca de agua, sin dependencia.
@@ -277,7 +279,7 @@ Te respondemos en un día laborable con una propuesta concreta: qué piezas sald
 ## 12. Pie
 
 Frame28 es un producto de [Think28](https://t28.io) · Plugin abierto: [frame28.t28.io](https://frame28.t28.io) ·
-[Roadmap](https://frame28.t28.io/roadmap/) · [Contacto](#contacto) · [English](/en/) · © 2026 Think28
+[Roadmap](https://frame28.t28.io/roadmap/) · [Condiciones](/condiciones) · [Contacto](#contacto) · [English](/en/) · © 2026 Think28
 
 ---
 

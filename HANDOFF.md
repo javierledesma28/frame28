@@ -154,8 +154,17 @@ Plan de siete días de `research/07` §6, con lo necesario para ejecutarlo:
    `site/content/landing.es.md` y `landing.en.md` (hero, para quién, tres pasos, entregables, precios con las cifras
    de `research/07` §2, Fundadores, caso en dos versiones (con permiso / anónima), cómo lo hacemos, roadmap, FAQ,
    contacto con microcopy del formulario, pie, páginas /fundadores y /contacto, textos cortos). Huecos `[[…]]`:
-   plazas de Fundadores, enlaces a las muestras, buzón `hola@frame28.app` por confirmar. Queda el **contrato base
-   y derechos** (material del cliente, stock con licencia por vídeo, entregables del cliente).
+   plazas de Fundadores, enlaces a las muestras, buzón `hola@frame28.app` por confirmar. **Contrato base** escrito
+   en `site/content/condiciones.es.md` y `terms.en.md` (18 cláusulas con la misma numeración en ES y EN: capas y
+   precios, proceso con aprobación tácita a 10 días laborables, garantías del cliente sobre su material, rondas de
+   cambios, stock y herramientas (incluye el uso de Claude con transcripción y fotogramas), pago, garantía de Launch,
+   propiedad intelectual (cesión al pago; Think28 conserva software, storyboards y know-how), confidencialidad,
+   RGPD con encargo y subencargados, responsabilidad limitada, Fundadores, ley española; anexos: hoja de pedido,
+   lista de comprobación de derechos, encargo del tratamiento). **Pendiente de revisión por un asesor legal** y de
+   las decisiones marcadas `[[…]]`: datos fiscales, ciudad del fuero, idioma que prevalece, música como complemento,
+   arrastre de vídeos en Studio, medio de pago, tratamiento fiscal fuera de la UE, términos vigentes de Anthropic.
+   La landing enlaza `/condiciones` y `/terms` y ya no dice "tu vídeo no sale de nuestras máquinas" a secas: dice
+   que se procesa en nuestros equipos y que la dirección usa modelos de lenguaje con transcripción y fotogramas.
 2. **Día 2 — landing.** Carpeta `site/` con `/`, `/fundadores`, `/casos/cliente-a` (privada hasta el permiso),
    `/contacto` (Pages Functions + Email Service), redirecciones `/roadmap` y `/plugin`. Cloudflare Pages con raíz
    `site/` y dominio frame28.app (skills `cloudflare`, `wrangler`, `cloudflare-email-service` disponibles).

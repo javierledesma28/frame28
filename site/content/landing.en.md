@@ -203,7 +203,9 @@ product-page version; and a Spanish version with the same timing. Ask for the sa
 
 - **Direction with judgment.** Every video is analyzed end to end: what is said, where you point, which sentence
   sells. From that we write an edit script, and every piece comes from it. No templates to fill in.
-- **Your video never leaves our machines.** It's processed locally. It isn't uploaded to third-party services to be edited.
+- **Your video is processed on our machines.** It isn't uploaded to any editing platform. To direct the edit we
+  use language models with the transcript and the review frames, under terms that don't allow training on your
+  data. The details are in the [terms](/terms).
 - **Licensed material.** Stock B-roll carries a per-video commercial license, documented in the delivery. Your
   footage is yours; we don't reuse it.
 - **The deliverables are yours.** Final files, subtitles and versions. No watermark, no lock-in.
@@ -277,7 +279,7 @@ have them.
 ## 12. Footer
 
 Frame28 is a [Think28](https://t28.io) product · Open plugin: [frame28.t28.io](https://frame28.t28.io) ·
-[Roadmap](https://frame28.t28.io/roadmap/) · [Contact](#contact) · [Español](/) · © 2026 Think28
+[Roadmap](https://frame28.t28.io/roadmap/) · [Terms](/terms) · [Contact](#contact) · [Español](/) · © 2026 Think28
 
 ---
 

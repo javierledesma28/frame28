@@ -111,6 +111,7 @@ Pages sigue sirviendo `docs/` en frame28.t28.io. Rutas:
 | `/roadmap` | Redirección a frame28.t28.io/roadmap/ hasta moverlo |
 | `/kb/*`, `/curso/*` | Base de conocimiento y curso, tras Cloudflare Access |
 | `/contacto` | Formulario con Pages Functions y envío por email (Cloudflare Email Service) |
+| `/condiciones`, `/terms` | Condiciones del servicio (contrato base) en ES y EN; la hoja de pedido las referencia |
 | `/plugin` | Redirección a frame28.t28.io |
 
 Tarjeta en t28.io, sección Ecosistema: "Frame28 · Vídeo que vende, generado por código · EN PRODUCCIÓN ·
