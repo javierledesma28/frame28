@@ -81,7 +81,8 @@ research/                         01 análisis del vídeo de referencia (resumen
                                   04 roadmap de features (18 ítems), 05 vídeo que vende productos DIY (Cliente A),
                                   06 monetización (tres caminos, recomendación), 07 producto Frame28.app (oferta, precios,
                                   Fundadores, KB y curso, sitio, plan de 7 días, propuesta a Cliente A)
-site/                             (pendiente de crear) sitio del producto frame28.app para Cloudflare Pages; ver research/07 §5
+site/                             sitio del producto frame28.app para Cloudflare Pages (research/07 §5). content/landing.{es,en}.md son
+                                  la fuente de los textos (todas las secciones de /, /fundadores, /contacto, microcopy); el HTML aún no existe
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
