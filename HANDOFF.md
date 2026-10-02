@@ -50,13 +50,13 @@ vende el servicio: reescribirla es la **fase 0**.
 | Storyboards | 11 de 11 versionados válidos (`frame28 storyboard validate`) |
 | Regresión | `poc/clip-javier/storyboard-gsap.json`: build sin avisos, check ✓, **render 1 m 16 s con `--workers 10`** (89–105 s con los trabajadores por defecto); hoja de contacto correcta |
 | `release-check.py` | 4 bloqueos esperados (árbol, tag local, tag remoto, release «ya existe») hasta subir `__version__`; **confidencialidad: sin rastro** en ficheros, historia, tags y releases |
-| Sitio del producto | `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 25 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). En vivo (fila frame28.app) |
+| Sitio del producto | **Se rehace en Next.js en el repo `frame28-app` (`web/`, 2026-10-02)**: landing nueva con entrada animada, comparador y storyboard en vivo, compilada y revisada en local, **sin publicar** (falta el visto bueno de Javier; su `deploy/` sustituye a este). Lo de aquí sigue siendo lo que está en vivo: `uv run --with markdown python site/build.py` → 40 páginas · plazas Fundadores 25 · caso público False · **48 huecos `[[…]]`** en condiciones; el build es determinista (no ensucia el árbol). En vivo (fila frame28.app) |
 | Web del plugin | frame28.t28.io `/`, `/roadmap/`, `/instalar/`, `/install.ps1` → HTTP 200 |
 | frame28.app | **EN VIVO desde el 2026-10-01 a las 19:55** desde t28server: `/opt/frame28` con `frame28-web` (nginx) y `frame28-tunnel` arriba, `site/` = HEAD por hash (`deploy/deploy.sh --check`); CNAME `frame28.app` y `www` → túnel `frame28` (id `8d6534bd-e051-4b5f-9a94-8b8c87aa0b8a`), rutas puestas por Javier en el panel. Verificado desde fuera: `/`, `/en/`, `/fundadores/`, `/contacto/`, `/condiciones/` y assets → 200 con CSP, HSTS, nosniff, DENY; `/founders`→`/en/founders/` 301, `/roadmap`→frame28.t28.io 302, `/casos/*`→`/contacto/` 302, `www`→apex 301; `/kb`, `/curso`, `/en/course`, `/src`, `/content` → 404 (a propósito); `/api/contact` → 503 (hasta el Worker) |
-| Roadmap | `docs/roadmap/index.html`: 6 versiones, 65 ítems (**40 hechos, 3 a medias, 22 pendientes**; «Página de producto en frame28.app» cerrada el 2026-10-01 al salir en vivo); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai en la versión 6: **republicar** desde la sesión que lo posee (URL en §Qué se ha hecho) |
+| Roadmap | `docs/roadmap/index.html`: 6 versiones, 67 ítems (**42 hechos, 4 a medias, 21 pendientes**; «Página de producto en frame28.app» cerrada el 2026-10-01 al salir en vivo); siguiente: «B-roll probado contra la API real». Artefacto de claude.ai en la versión 6: **republicar** desde la sesión que lo posee (URL en §Qué se ha hecho) |
 | Actualización de usuarios | **verificado en un entorno aislado**: `uv tool upgrade frame28` mueve una instalación desde git al último commit en 14 s aunque la versión no cambie; repetir el instalador (`--force`) también. `claude plugin update` solo actúa si cambia la versión del plugin |
-| Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); **HyperFrames 0.8.105 y GSAP 3.15.0** desde el 2026-10-01 (regresión de clip-javier en verde) |
-| Git | `main` = `origin/main`; CI de GitHub Actions en verde (`tests`, 19 s); **remoto SSH `github-jl28`** (`ssh -T git@github-jl28` → «Hi javierledesma28!», `git ls-remote origin` verificado): el push ya no depende de la credencial HTTPS guardada en Windows, que es la corporativa y daba 403. `gh` tiene la corporativa activa: `gh auth switch --user javierledesma28` solo para `gh release` y `gh api`. Rama `origin/main-ky21ae` obsoleta, borrable |
+| Dependencias | solo `av` 17.1 → 19 desactualizado (pin `<18` deliberado); **HyperFrames 0.8.105 y GSAP 3.15.0** desde el 2026-10-01 (regresiones de clip-javier y clip-grabado en verde) |
+| Git | `main` = `origin/main`; CI de GitHub Actions en verde (`tests`, 19 s); **remoto SSH `github-jl28`** (`ssh -T git@github-jl28` → «Hi javierledesma28!», `git ls-remote origin` verificado): el push ya no depende de la credencial HTTPS guardada en Windows, que es la corporativa y daba 403. `gh` tiene la corporativa activa: `gh auth switch --user javierledesma28` solo para `gh release` y `gh api`. La rama obsoleta `origin/main-ky21ae` se borró el 2026-10-02 con el visto bueno de Javier |
 | Casos reales | `poc/clip-javier`, `clip-auriculares`, `clip-whatsapp`, `clip-demo`, `clip-grabado` (versionados: README, storyboard, cuts) y **`poc/clip-acrilico` (solo local, nada versionado)** |
 
 ## Confidencialidad del primer cliente (regla de Javier, 2026-10-01)
@@ -214,9 +214,8 @@ Memoria de marca cuando exista la app); `og.png` ya está regenerada con el clai
    el día que el sitio esté en vivo con Access.
 9. Claves de Pexels y Pixabay en `~/.config/frame28/keys.json` y una búsqueda real; `clips batch` **con render** sobre
    `poc/clip-demo`; `reframe-map` con un `gestures.json` real.
-10. **Deuda pequeña (0.5.0):** la rama `origin/main-ky21ae` (borrar con tu visto bueno), decidir sobre versionar
-    `uv.lock`, OpenCV instalado por triplicado en el entorno, `onnxruntime-gpu` opcional; `clip-grabado` como segunda
-    regresión de HyperFrames 0.8.105 (solo se pasó clip-javier).
+10. **Deuda pequeña (0.5.0):** decidir sobre versionar `uv.lock`, OpenCV instalado por triplicado en el entorno,
+    `onnxruntime-gpu` opcional.
 
 ## Qué quedó a medias o sin hacer
 
