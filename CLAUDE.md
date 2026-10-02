@@ -244,6 +244,9 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
 - Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
   o "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md" pegado en Claude Code.
+- **Desde el 2026-10-02 frame28.app es la landing en Next.js del repo `frame28-app` (`web/`), publicada con su
+  `deploy/deploy.sh`**; `site/` y `deploy/` de aquí quedan como histórico y vuelta atrás (`deploy/deploy.sh` se niega a
+  subir salvo con `FRAME28_LEGACY_SITE=1`). Lo que sigue describe la base común, que no cambia:
 - Sitio del producto: frame28.app se sirve desde el **VPS t28server** (Hetzner, Ubuntu 24.04) con el patrón de todos los
   sitios de Think28: `nginx:alpine` + túnel `cloudflared` en `/opt/frame28`, cero puertos abiertos, HTTPS de Cloudflare;
   CNAME apex y `www` → `<id-túnel>.cfargotunnel.com` (proxied). Publicar = commitear y `deploy/deploy.sh` (decidido el
