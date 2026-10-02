@@ -176,7 +176,7 @@ en `index.html`: normalizar a LF antes de commitear (git lo hace solo, pero deja
 
 Roadmap: editar el array `ROADMAP` de `docs/roadmap/index.html` (estado `s` de cada ítem: hecho | medias |
 pendiente; `next: true` marca el siguiente). Comprobar con `node --check` el script extraído y republicar el
-artefacto de claude.ai (URL en HANDOFF) con la variante sin doctype (contenido entre los marcadores
+artefacto de claude.ai (https://claude.ai/artifact/CxhtKMffGhQRsKUhAqwUS8, «Frame28 Roadmap»; leerlo antes con la acción read) con la variante sin doctype (contenido entre los marcadores
 `artifact:head` y `artifact:body`).
 
 Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tags, cuenta gh, release, CLI, plugin,
