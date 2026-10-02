@@ -182,6 +182,9 @@ el plugin instalado: `frame28_start` responde con su cuenta, plan Gratis (reglas
 Frame28») y el método. Pendiente de la v0.5 en adelante: hooks de sesión y licencia en el CLI (research/08 §7 bis, capas 2
 y 3), planes de pago con Paddle, la Memoria de marca servida por el MCP.
 
+**Panel web en vivo (2026-10-02, repo `frame28-app`)**: `frame28.app/app/` para entrar con Frame28 ID y editar la Memoria
+de marca (login BFF, cookie HttpOnly, sesiones en la base, historial de versiones). La landing tiene «Entrar».
+
 **Memoria de marca en vivo (2026-10-02, repo `frame28-app`)**: cada cuenta de pago guarda la Memoria de sus marcas
 (Context Pack v1, versionada, Postgres con seguridad por fila) y el MCP la sirve al plugin (`frame28_memoria`); el método
 la usa al montar y tiene una tarea `memoria` para crearla desde la web de la marca. Sin cambios en el plugin público.
