@@ -265,6 +265,14 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 
 ## Trampas ya sufridas (no repetir)
 
+- **Plugin v0.5 y su MCP (probado de verdad el 2026-10-02)**: (1) un servidor añadido a mano con la misma URL que el del plugin
+  (`claude mcp add … https://frame28.app/mcp`) hace que Claude Code **oculte** `plugin:frame28:frame28`; para probar como un
+  cliente, solo el del plugin. (2) Claude Code no abre el navegador desde una consola sin escritorio (SSH, ConPTY): lo dice
+  en el registro (`--debug`: «Browser didn't open automatically») y enseña la URL en `/mcp`; las skills lo explican. (3)
+  `claude -p` lanzado desde la shell de la app de escritorio responde «401 OAuth access token is invalid»: es el login de
+  Claude Code de la terminal contra Anthropic, no Frame28; la prueba con el plugin se hace en una sesión nueva de la app.
+  (4) `claude mcp get` no acepta nombres de servidores de plugin; `claude mcp list` sí los enseña con su estado.
+
 - **ffmpeg y uv no siempre están en el PATH de la sesión Bash** (y WinGet cambia la carpeta de ffmpeg en cada actualización:
   8.1.1 pasó a 9.0.2): `export PATH="$(ls -d /c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin | tail -1):/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe:$HOME/.local/bin:$PATH"`
   (el CLI los localiza solo; la shell no).
