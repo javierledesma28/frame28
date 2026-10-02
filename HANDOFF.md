@@ -173,10 +173,14 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 
 ## Lo que toca ahora (en este orden)
 
-**Novedad 2026-10-02:** en `frame28-app` quedaron hechos el flujo de alta y entrada de Frame28 ID, el *spike* y su
-despliegue: el **MCP está en vivo en `https://frame28.app/mcp`** con login de Frame28 ID (validado en producción). La v0.5
-del plugin ya puede hacerse: su `.mcp.json` es solo `{"type": "http", "url": "https://frame28.app/mcp"}` (sin client id:
-la fachada OAuth del servidor se encarga; ver `frame28-app/api/README.md`).
+**Novedad 2026-10-02: v0.5.0 publicada.** El plugin es una cáscara que entra con la cuenta de Frame28: `.mcp.json` →
+`https://frame28.app/mcp` (login de Frame28 ID con email y código; la fachada OAuth del servidor hace que no haga falta
+client id) y ocho skills que piden el método a la cuenta con `frame28_start(tarea)`. El método del director (cuerpos de las
+skills y las cinco referencias) se mudó al repo privado `frame28-app` (`api/frame28_api/metodo/`), que es ahora la fuente de
+verdad: **cambiar el criterio de montaje = editar allí y desplegar**. Probado por Javier en una sesión nueva de la app con
+el plugin instalado: `frame28_start` responde con su cuenta, plan Gratis (reglas de demo: marca think28 y «Hecho con
+Frame28») y el método. Pendiente de la v0.5 en adelante: hooks de sesión y licencia en el CLI (research/08 §7 bis, capas 2
+y 3), planes de pago con Paddle, la Memoria de marca servida por el MCP.
 
 **Antes que nada: la plataforma.** Las seis decisiones de `research/08` §14 están respondidas, la **fase 0 está hecha** (la
 landing en vivo vende la plataforma) y la **identidad está creada** (tenant `frame28ciam` y sus apps). Lo siguiente vive en el
