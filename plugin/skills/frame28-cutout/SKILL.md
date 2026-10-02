@@ -5,24 +5,14 @@ description: 'Recorta al hablante del fondo (máscara alfa por fotograma con Rob
 
 # Frame28 · Recorte del hablante
 
-```bash
-frame28 matte work/clip.mp4 --start 4.3 --end 6.8 -o work/alpha_4.3.webm
-frame28 speaker work/clip.mp4        # bbox del hablante y lado libre (usa el mismo modelo, 6 fotogramas)
-```
+El método de esta tarea no viaja en el plugin: lo sirve tu cuenta de Frame28 desde el servidor MCP `frame28`
+(`https://frame28.app/mcp`), siempre al día y según tu plan.
 
-- Genera **solo el tramo** que lo necesita (`--start/--end` con 0,2 s de margen a cada lado): en CPU va a
-  2–3,5 fps a 1080p, así que 3 s de tramo son ~30 s de cálculo; el clip entero de 60 s serían 10 min.
-- Salida: WebM VP9 con canal alfa (`yuva420p`), que HyperFrames y Chrome reproducen con transparencia. Con
-  `--keep-png dir` conserva la secuencia PNG RGBA por si hace falta retocar.
-- El modelo (`rvm_mobilenetv3_fp32.onnx`, 15 MB, GPL-3.0) se descarga solo a `~/.cache/frame28/` y se ejecuta
-  como proceso separado; no se enlaza su código.
-- Con GPU NVIDIA: `uv pip install onnxruntime-gpu` en el entorno del CLI y `doctor` mostrará CUDA; el matting pasa a tiempo real.
-
-## Qué sale bien y qué no
-
-- Bien: pelo, barba, hombros, fondo fijo, hablante quieto o con gestos lentos.
-- Mal: **manos en movimiento rápido** (salen semitransparentes por el desenfoque), fondo en movimiento, cambios
-  de plano dentro del tramo, luz muy baja. Si el fotograma de control (`frame28 frames`) muestra halos, cambia el
-  tramo o pide otra toma con más luz.
-- Para verificar el alfa con ffmpeg hay que forzar el decodificador: `ffmpeg -c:v libvpx-vp9 -i alpha.webm ...`;
-  el decodificador nativo descarta el canal alfa y parece que "no recortó".
+1. Llama a la herramienta `frame28_start` del servidor `frame28` con `tarea: "cutout"`.
+2. Si la herramienta no aparece o pide autenticación, para y dile al usuario que entre con su cuenta de Frame28: en
+   Claude Code, `/mcp` → el servidor `frame28` de este plugin → *Authenticate*. Si no tiene cuenta, la crea gratis en ese
+   mismo paso con su email y un código de un solo uso. Sin cuenta, Frame28 no monta.
+3. Sigue al pie de la letra el método que devuelve. Las **reglas de su plan** prevalecen sobre el método. Los documentos
+   que cite se piden con `frame28_metodo`; otras tareas, con `frame28_start` y su nombre.
+4. Los pasos deterministas los hace el CLI `frame28` (código abierto, MIT). Si no está instalado, `frame28 doctor` dice qué
+   falta y el instalador está en https://frame28.t28.io.
