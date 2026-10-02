@@ -173,6 +173,11 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 
 ## Lo que toca ahora (en este orden)
 
+**Novedad 2026-10-02:** en `frame28-app` quedaron hechos el flujo de alta y entrada de Frame28 ID, el *spike* y su
+despliegue: el **MCP está en vivo en `https://frame28.app/mcp`** con login de Frame28 ID (validado en producción). La v0.5
+del plugin ya puede hacerse: su `.mcp.json` es solo `{"type": "http", "url": "https://frame28.app/mcp"}` (sin client id:
+la fachada OAuth del servidor se encarga; ver `frame28-app/api/README.md`).
+
 **Antes que nada: la plataforma.** Las seis decisiones de `research/08` §14 están respondidas, la **fase 0 está hecha** (la
 landing en vivo vende la plataforma) y la **identidad está creada** (tenant `frame28ciam` y sus apps). Lo siguiente vive en el
 repo **`frame28-app`** (`C:\Workspaces\personal\frame28-app`, leer su `HANDOFF.md`): (a) cerrar el **flujo de alta/entrada**
