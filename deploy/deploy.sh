@@ -9,6 +9,13 @@
 # Requisitos: alias SSH `t28server` (~/.ssh/config) con la clave local; árbol commiteado (lo que no está en HEAD
 # no se despliega: `git status` te lo recuerda). Fichero en LF: con CRLF bash no lo ejecuta.
 set -euo pipefail
+# Desde el 2026-10-02 frame28.app se publica desde el repo frame28-app (web/ en Next.js + su deploy/deploy.sh), en el
+# mismo /opt/frame28. Este script subiría encima la landing estática antigua: solo con FRAME28_LEGACY_SITE=1 (vuelta atrás).
+if [[ "${FRAME28_LEGACY_SITE:-}" != "1" && "${1:-}" != "--check" ]]; then
+  echo "frame28.app se publica ahora desde frame28-app (web/ + deploy/deploy.sh); este script pisaría la web nueva."
+  echo "Para volver a la landing antigua a propósito: FRAME28_LEGACY_SITE=1 deploy/deploy.sh"
+  exit 1
+fi
 HOST=${FRAME28_HOST:-t28server}
 DIR=/opt/frame28
 # -T: el alias lleva RequestTTY yes y sin terminal ssh avisaría en cada llamada
