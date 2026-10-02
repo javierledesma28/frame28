@@ -20,7 +20,8 @@ comando, cómo se comprueba y qué puede salir mal. Vamos tachando.
 ```
 .claude-plugin/marketplace.json     catálogo (este mismo repo, source: ./plugin)
 plugin/.claude-plugin/plugin.json   manifiesto
-plugin/skills/frame28-*/SKILL.md    ocho skills
+plugin/skills/frame28-*/SKILL.md    ocho skills (desde la v0.5, cáscaras que piden el método al MCP)
+plugin/.mcp.json                    servidor MCP remoto https://frame28.app/mcp (login con Frame28 ID)
 plugin/cli/                         paquete Python
 ```
 Comprobación: `claude plugin validate .` → `Validation passed`.

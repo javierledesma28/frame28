@@ -5,80 +5,14 @@ description: 'Convierte un vídeo largo (tutorial, demo, charla) en varios short
 
 # Frame28 · Shorts que venden
 
-Un vídeo largo tiene 3–6 tramos que funcionan solos. Este flujo los encuentra, los recorta y los deja montados
-con la estructura que convierte (gancho → demostración → resultado → acción). Los datos y plantillas están en
-`../frame28-storyboard/references/ganchos.md` y `research/05-video-venta-diy.md`.
+El método de esta tarea no viaja en el plugin: lo sirve tu cuenta de Frame28 desde el servidor MCP `frame28`
+(`https://frame28.app/mcp`), siempre al día y según tu plan.
 
-## Flujo
-
-```bash
-frame28 clips plan work/captions.json --lang en --keyword <producto> --keyword <marca> -o work/clips.json --target 30 --count 5
-```
-Propone tramos que empiezan y terminan en frase, puntuados por momentos: **resultado** ("that's it", "turned out"),
-**promesa** ("beginner", "easy"), **objeción** ("isn't it", "what if"), **cifras** y **producto** (los `--keyword`).
-Cada tramo trae tres ganchos de tipos distintos hechos con **las palabras reales del hablante**: la cláusula donde
-ocurre el momento, sin relleno inicial ("I think", "so", "bueno"), en dos líneas de cinco palabras. Cada gancho
-lleva `quote` (la frase completa de origen) y `t` (cuándo se dice): úsalos para comprobar que el gancho no promete
-lo que el tramo no enseña. Léelos con el usuario: la puntuación ordena, no decide. El plan es una propuesta: si mezcla dos proyectos en un
-tramo o se lleva la tarjeta final de la marca, elige tú los cortes (promesa, técnica, resultado) editando `start`,
-`end` y `hooks` de `clips.json`. Con una transcripción antigua (frases cortadas a medias) añade `--words work/words.json`. Si un tramo no tiene momentos,
-el gancho sale de la frase más fuerte del propio tramo (`statement`: preguntas, cifras, segunda persona); el de
-`curiosity` es la plantilla de último recurso y siempre merece reescritura.
-
-Por cada tramo elegido:
-```bash
-frame28 clips cut work/clips.json s4 work/clip.mp4 --audio work/voice.wav --words work/words.json --captions work/captions.json
-frame28 reframe work/clips/s4/clip.mp4 -o work/clips/s4/vertical.mp4 --mode crop     # hablante a cámara
-frame28 reframe work/clips/s4/clip.mp4 -o work/clips/s4/vertical.mp4 --mode blur     # manos, producto, vídeo producido
-frame28 reframe-map work/clips/s4/reframe.json --gestures work/clips/s4/gestures.json -o work/clips/s4/gestures-vertical.json   # si hay gestos del apaisado (reframe con --path)
-frame28 clips scaffold work/clips.json s4 --brand <marca> --cta work/cta.json --hook 0 --video vertical.mp4
-frame28 build work/clips/s4/storyboard.json -o work/clips/s4/project && frame28 check work/clips/s4/project
-frame28 render work/clips/s4/project -o out/shorts/s4-hook0.mp4
-```
-`cut` deja `clip.mp4`, `voice.wav`, `words.json` y `captions.json` con los tiempos del short. `scaffold` escribe un
-storyboard que **ya construye**: `platform: tiktok`, gancho (uno de los tres), subtítulos por palabras (`pages`,
-a 18 % del borde inferior) y `cta` en los últimos 4–5 s. `work/cta.json` son los campos del overlay `cta`
-(`title`, `price`, `old_price`, `discount`, `code`, `line`, `url`). En un vertical de `reframe --mode blur` el CTA va
-solo a la franja libre de arriba (lee `reframe.json`): encima del vídeo taparía justo el resultado, que suele caer
-en los últimos segundos. Las `box` también van arriba (`y` ~470), después del gancho y antes del CTA.
-
-## Afinar el storyboard del short (lo que hace la diferencia)
-
-1. **Gancho**: parte de las líneas propuestas (ya son palabras del hablante) y afina: quita lo que sobre, cambia
-   el orden si la palabra fuerte no va la primera, ≤ 5 palabras por línea, 2 líneas. Sin cifras inventadas.
-2. **Demostración**: si el tramo tiene pasos, añade `steps` (`items` con `at` de cada paso) y una o dos `box`
-   con el dato que se dice (velocidad, broca, material). En vertical, todo arriba (`y` 400–700 con `blur`, franja
-   superior con `crop`).
-3. **Resultado**: `before_after` con `before_t`/`after_t` del propio short (el primer plano del objeto y el final)
-   justo después de la frase de resultado, más `draw` check + `kinetic` con la frase real. Los propone
-   `frame28 clips markers work/clips/s4/captions.json --lang en --words work/clips/s4/words.json --canvas 1080x1920 -o work/clips/s4/markers.json`
-   (tiempos del short ya recortado): pega los overlays de `markers` en el storyboard y comprueba con
-   `frame28 frames` que `before_t` enseña el objeto sin tocar (`--lead` lo adelanta si el tramo empieza tarde).
-4. **Prueba social** en 2 s si cabe (`counter` con la cifra real de la web de la marca).
-5. **CTA**: precio y descuento reales del sitio; `url` para el QR si el vídeo se verá en pantalla grande o en
-   YouTube; "Link in bio" si es TikTok/Reels. Nunca antes de haber enseñado el resultado.
-6. **Variantes en lote**: con los shorts ya recortados (y reencuadrados si toca), una sola orden deja todas las
-   rotaciones hechas:
-   ```bash
-   frame28 clips batch work/clips.json s4 s2 --brand <marca> --cta work/cta.json --video vertical.mp4 -o out/shorts
-   ```
-   Por cada short y cada gancho escribe `storyboard-hook<N>.json`, construye `project-hook<N>/`, pasa `check` y
-   renderiza `out/shorts/<id>-hook<N>.mp4` con su hoja de contacto; `work/clips/batch.json` dice qué salió y qué
-   falló (una variante rota no para el lote). `--hooks 0,2` limita los ganchos; `--no-render` deja solo storyboards y
-   proyectos para afinarlos antes; después `--keep` construye y renderiza esos mismos `storyboard-hook<N>.json` sin
-   regenerarlos (sin `--keep`, el lote los reescribe y se pierde el afinado). Si quieres afinar un gancho a mano, edita su `storyboard-hook<N>.json` y
-   renderiza ese proyecto. Las plataformas queman un creativo en 7–14 días; se rota el gancho, no el cuerpo.
-
-## Portada del short
-
-`frame28 cover out/shorts/s4-hook0.mp4 --at 1.0 -o out/shorts/s4-cover.png --title "<gancho>" --size 1080x1920 --brand <marca>`
-con el mismo gancho de la variante; una portada por variante si los ganchos difieren.
-
-## Qué no hacer
-
-- Shorts de más de 45 s ni de menos de 15 (salvo un vídeo de bienvenida de 20–35 s a propósito).
-- Empezar por el logo o el saludo: el gancho es lo primero.
-- Poner texto bajo los iconos de la derecha o la descripción de abajo (`build` avisa con `platform`).
-- Repetir el CTA en cada short con la misma frase: cambia el ángulo (precio, garantía, "everything included").
-- Poner un `before_after` en la franja libre mientras el vídeo enseña el resultado en vivo: duplica y compite con
-  el CTA. En el largo sí (con `before_t` en el mismo encuadre que el `after_t`: el objeto ya colocado, sin encender).
+1. Llama a la herramienta `frame28_start` del servidor `frame28` con `tarea: "shorts"`.
+2. Si la herramienta no aparece o pide autenticación, para y dile al usuario que entre con su cuenta de Frame28: en
+   Claude Code, `/mcp` → el servidor `frame28` de este plugin → *Authenticate*. Si no tiene cuenta, la crea gratis en ese
+   mismo paso con su email y un código de un solo uso. Sin cuenta, Frame28 no monta.
+3. Sigue al pie de la letra el método que devuelve. Las **reglas de su plan** prevalecen sobre el método. Los documentos
+   que cite se piden con `frame28_metodo`; otras tareas, con `frame28_start` y su nombre.
+4. Los pasos deterministas los hace el CLI `frame28` (código abierto, MIT). Si no está instalado, `frame28 doctor` dice qué
+   falta y el instalador está en https://frame28.t28.io.

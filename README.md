@@ -23,7 +23,7 @@
   <a href="https://t28.io">t28.io</a>
 </p>
 
-<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.4.0 · MIT</sub></p>
+<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.5.0 · MIT</sub></p>
 
 ---
 
@@ -120,6 +120,13 @@ uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plug
 frame28 doctor
 ```
 
+**Desde la v0.5 el plugin entra con tu cuenta de Frame28** (gratis para empezar). La primera vez, en Claude Code:
+`/mcp` → el servidor `frame28` del plugin → *Authenticate*; se abre el navegador y te das de alta con tu email y un código
+de un solo uso. El método del director (qué poner en pantalla, ganchos, marca) se sirve desde tu cuenta y según tu plan:
+la cuenta gratuita monta en modo demo (marca Think28 y tarjeta final «Hecho con Frame28»); la Memoria de tu marca y lo demás
+llegan con los planes de [frame28.app](https://frame28.app/#precios). El motor (el CLI `frame28`) sigue siendo código abierto
+y no necesita cuenta.
+
 `frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable ./plugin/cli`.
 Para ponerlo al día más adelante, mira [Actualizar](#actualizar).
 
@@ -180,12 +187,13 @@ frame28 build work/storyboard.json -o work/project && frame28 render work/projec
 ## Cómo grabar para que salga bien
 
 Cámara fija, fondo fijo, luz de frente, aire a un lado para los textos, frases cortas, gestos lentos. Diez consejos
-concretos en [la guía de grabación](plugin/skills/frame28-storyboard/references/grabacion.md). Y si quieres grabar una
+concretos en la guía de grabación que Frame28 te da al empezar (documento `grabacion` del método). Y si quieres grabar una
 demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que decir y qué gesto hacer](docs/guion-demo.md).
 
 ## Estado y roadmap
 
-v0.4.0 funciona de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
+v0.5.0 conecta el plugin con tu cuenta de Frame28: identidad, plan y método servidos desde frame28.app. El motor funciona
+de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
 recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
 gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts con variantes de gancho en lote, portada y versión
 en otro idioma. Probado con un tutorial real de una marca DTC de kits de grabado además de los clips del autor. Y es
@@ -204,7 +212,7 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 
 | Ruta | Qué es |
 |---|---|
-| `plugin/` | el plugin: manifiesto, ocho skills y el CLI `frame28`. Es lo único que se instala |
+| `plugin/` | el plugin: manifiesto, `.mcp.json` (servidor de Frame28), ocho skills que piden el método a tu cuenta y el CLI `frame28`. Es lo único que se instala |
 | `.claude-plugin/marketplace.json` | este repo es su propio marketplace |
 | `docs/guia-plugin.md` | el ciclo completo del plugin: crear, probar, publicar, consumir, securizar |
 | `docs/brand/` | logos de Think28 (del [press kit](https://t28.io/press-kit.html)) |

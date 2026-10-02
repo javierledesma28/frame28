@@ -1,7 +1,7 @@
 {
   "name": "frame28",
-  "version": "0.4.0",
-  "description": "Frame28 by Think28: de un clip hablando a cámara a un video con rótulos, títulos cinéticos, texto detrás del hablante, callouts y subtítulos sincronizados con la voz. Skills + CLI sobre HyperFrames.",
+  "version": "0.5.0",
+  "description": "Frame28 by Think28: tu Claude Code, convertido en el estudio de vídeo de tu marca. Requiere cuenta en frame28.app (gratis para empezar): el método del director se sirve desde tu cuenta por MCP; el motor (CLI frame28 sobre HyperFrames) es código abierto.",
   "author": {
     "name": "Think28",
     "url": "https://t28.io"
@@ -9,13 +9,15 @@
   "repository": "https://github.com/javierledesma28/frame28",
   "license": "MIT",
   "keywords": [
-    "video",
-    "talking-head",
+    "brand-video",
     "explainer",
     "hyperframes",
-    "whisper",
     "matting",
-    "motion-graphics"
+    "mcp",
+    "motion-graphics",
+    "talking-head",
+    "video",
+    "whisper"
   ],
   "homepage": "https://frame28.t28.io"
 }

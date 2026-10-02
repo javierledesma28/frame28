@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "frame28": {
+      "type": "http",
+      "url": "https://frame28.app/mcp"
+    }
+  }
+}

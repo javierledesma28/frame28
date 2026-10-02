@@ -53,8 +53,10 @@ hallazgo: "¿qué parte del CLI o de qué skill cambia para que esto no vuelva a
 plugin/                           EL PLUGIN (solo esto se instala; el resto del repo no se copia)
   .claude-plugin/plugin.json      manifiesto (name frame28; sin displayName: no está en el esquema; una sesión lo vio rechazado,
                                   con 2.1.126 valida, pero no aporta nada)
-  skills/frame28-*/SKILL.md       ocho skills; frame28-storyboard/references/ = tecnicas.md, grabacion.md,
-                                  ejemplo-storyboard.json, marca-y-promocional.md, ganchos.md
+  skills/frame28-*/SKILL.md       ocho skills: desde la v0.5 (2026-10-02) son cáscaras (descripción + «llama a frame28_start con la
+                                  tarea»); el método (cuerpos y referencias) vive en el repo privado frame28-app (api/frame28_api/metodo/)
+                                  y lo sirve el MCP. Cambiar el criterio de montaje = editar allí y desplegar, no aquí
+  .mcp.json                       servidor MCP remoto `frame28` → https://frame28.app/mcp (OAuth con Frame28 ID, sin client id)
   cli/pyproject.toml              paquete Python (uv); deps: click, numpy, opencv-python-headless, onnxruntime,
                                   faster-whisper, av>=11,<18 (ver Trampas), mediapipe, rapidocr, segno
   cli/frame28/

@@ -5,53 +5,14 @@ description: 'Saca la versión de un montaje de Frame28 en otro idioma con los m
 
 # Frame28 · Versión en otro idioma
 
-El vídeo ya está montado y aprobado en un idioma. La segunda lengua no se remonta: **mismos tiempos, mismos
-overlays, textos traducidos**. La voz sigue siendo la original (el doblaje es otro paso, pendiente); lo que cambia
-es todo lo que se lee, que en redes es el 70 % del mensaje.
+El método de esta tarea no viaja en el plugin: lo sirve tu cuenta de Frame28 desde el servidor MCP `frame28`
+(`https://frame28.app/mcp`), siempre al día y según tu plan.
 
-## Flujo
-
-```bash
-frame28 i18n extract work/storyboard.json --captions work/captions.json -o work/strings.json
-# → traduces los valores "text" del JSON (mismas claves) y lo guardas como work/strings.en.json
-frame28 i18n apply work/storyboard.json work/strings.en.json --lang en
-# → work/storyboard.en.json (+ work/words.en.json si los subtítulos son por palabras)
-frame28 build work/storyboard.en.json -o work/project-en && frame28 check work/project-en && frame28 render work/project-en -o out/video-en.mp4
-frame28 captions export work/storyboard.en.json -o out/video-en.srt # subtítulos aparte para la plataforma (por frase)
-frame28 captions export work/words.en.json -o out/video-en.srt      # ídem si son por palabras (pages/karaoke)
-```
-
-`extract` da, por cada texto, la clave, el tipo de overlay, el instante y un **límite orientativo de caracteres**
-(`max_chars`): una caja de 26 caracteres en inglés no admite 40 en alemán. `apply` avisa si te pasas un 35 %, y de cada subtítulo traducido que pasa de 21 caracteres por segundo (con la
-densidad del original al lado): el español y el alemán salen un 15–30 % más largos y la frase dura lo mismo.
-
-## Cómo traducir (criterio de subtitulador, no de traductor)
-
-- **Corto y hablado**: el espectador lee en el tiempo que dura la frase. Si el original dice "I think I just made
-  the perfect customized gift ever", en español cabe "Creo que acabo de hacer el regalo personalizado perfecto",
-  no una paráfrasis más larga.
-- **Nombres, marcas, cifras y códigos intactos**: Engraver Pro™, la marca, 59,99 $, GLASS30. Adapta el formato de
-  precio al mercado solo si el usuario lo pide (€ con coma decimal, etc.).
-- **Gancho y CTA con las mismas reglas del original**: ≤ 5 palabras por línea, verbo primero, sin cifras nuevas.
-- **Subtítulos por palabras** (`pages`/`karaoke`): traduce la **frase** de `captions.N.text`; `apply` reparte las
-  palabras traducidas sobre los inicios de las palabras originales, así las pausas caen donde caían. Mantén el
-  orden de ideas dentro de la frase para que "ahora" salga cuando el hablante dice "now".
-- **Puntuación**: conserva puntos y comas al final de frase; el paginado corta ahí.
-- **Condensa, no traduzcas palabra por palabra**: mide con `frame28 captions export work/storyboard.<lang>.json`
-  (`mean_cps`, `max_cps`). La referencia es no superar la densidad del original; una narradora rápida en inglés va ya
-  a 17 caracteres por segundo. "Eines meiner Lieblingsmaterialien," en 1,2 s no se lee; "Ein Lieblingsmaterial," sí.
-- **Cinéticos**: cada entrada `lines.N.M.text` es una palabra del original con su instante; se mantiene el número de
-  entradas, pero una entrada puede llevar dos palabras ("von Hand"). En alemán, dos palabras por línea como mucho.
-- **Español para varios mercados**: evita localismos ("mola", "coger el truco", "móvil"); "marcador", "teléfono".
-- **Tratamiento**: tú/usted según la marca (en su web); en duda, tú para DIY y consumo.
-- No traduzcas lo que esté quemado en el vídeo original (rótulos del editor): no puedes cambiarlo, y duplicarlo
-  traducido encima confunde; si molesta, tápalo con un `box` en el nuevo idioma.
-
-## Comprueba antes de renderizar
-
-`frame28 build` avisa de cajas que se salen del lienzo (los textos crecen al traducir); `check` avisa de solapes.
-Mira la hoja de contacto: un cinético de dos líneas en inglés puede necesitar tres en alemán → baja `size`.
-
-## Portada
-
-`frame28 cover … --title "<gancho traducido>"`: una portada por idioma, mismo fotograma.
+1. Llama a la herramienta `frame28_start` del servidor `frame28` con `tarea: "i18n"`.
+2. Si la herramienta no aparece o pide autenticación, para y dile al usuario que entre con su cuenta de Frame28: en
+   Claude Code, `/mcp` → el servidor `frame28` de este plugin → *Authenticate*. Si no tiene cuenta, la crea gratis en ese
+   mismo paso con su email y un código de un solo uso. Sin cuenta, Frame28 no monta.
+3. Sigue al pie de la letra el método que devuelve. Las **reglas de su plan** prevalecen sobre el método. Los documentos
+   que cite se piden con `frame28_metodo`; otras tareas, con `frame28_start` y su nombre.
+4. Los pasos deterministas los hace el CLI `frame28` (código abierto, MIT). Si no está instalado, `frame28 doctor` dice qué
+   falta y el instalador está en https://frame28.t28.io.

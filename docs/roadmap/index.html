@@ -156,8 +156,9 @@
     <div class="stop done"><div class="v">v0.1.0</div><div class="w">29 sep · funciona de punta a punta</div></div>
     <div class="stop done"><div class="v">v0.2.0</div><div class="w">30 sep · suena y se instala bien</div></div>
     <div class="stop done"><div class="v">v0.3.0</div><div class="w">30 sep · del clip al vídeo que vende</div></div>
-    <div class="stop done here"><div class="v">v0.4.0</div><div class="w">1 oct · fiable para entregar a clientes</div><span class="here-tag">Estás aquí</span></div>
-    <div class="stop"><div class="v">v0.5.0</div><div class="w">calidad y alcance</div></div>
+    <div class="stop done"><div class="v">v0.4.0</div><div class="w">1 oct · fiable para entregar a clientes</div></div>
+    <div class="stop done here"><div class="v">v0.5.0</div><div class="w">2 oct · conectado a tu cuenta</div><span class="here-tag">Estás aquí</span></div>
+    <div class="stop"><div class="v">v0.6.0</div><div class="w">calidad y alcance</div></div>
     <div class="stop"><div class="v">v1.0.0</div><div class="w">Frame28 Cloud, si la demanda lo pide</div></div>
   </nav>
 
@@ -229,7 +230,7 @@ const ROADMAP = [
       { t: "Marca desde la web del cliente", d: "Colores del CSS, fuente y logo con variantes para fondo oscuro y de acento.", s: "hecho", e: "S", val: "medio" },
       { t: "Higiene de mantenimiento", d: "Versión única, cargador tolerante de transcripciones, doctor con deriva de versión y red, checklist de release.", s: "hecho", e: "S", val: "medio" }
     ] },
-  { v: "v0.4.0", name: "Fiable para entregar a clientes", date: "1 oct 2026", state: "pub", here: true,
+  { v: "v0.4.0", name: "Fiable para entregar a clientes", date: "1 oct 2026", state: "pub",
     goal: "Un vídeo para un cliente sale sin sorpresas, con todo lo que vende, y sabemos lo que cuesta producirlo.",
     close: "Publicada como release v0.4.0: suite de pruebas en verde, coste por vídeo medible, variantes de gancho en lote y el sitio del producto con condiciones, base de conocimiento y curso; lo que no entró pasa a la 0.5.0.",
     items: [
@@ -243,10 +244,13 @@ const ROADMAP = [
       { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" },
       { t: "Marcadores de resultado", d: "frame28 clips markers: en cada frase de resultado de la transcripción propone el antes/después con dos instantes del clip, el check y el cinético con la frase real; en cada promesa, el cinético.", s: "hecho", e: "S", val: "medio", ref: "R5 #8" }
     ] },
-  { v: "v0.5.0", name: "Calidad y alcance", date: "siguiente", state: "next",
-    goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
-    close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
+  { v: "v0.5.0", name: "Conectado a tu cuenta", date: "2 oct 2026", state: "pub", here: true,
+    goal: "El plugin deja de ser un paquete de skills y pasa a ser la puerta de tu cuenta: identidad, plan y método servidos desde frame28.app.",
+    close: "Publicada como release v0.5.0: el plugin entra con Frame28 ID, el método se sirve por MCP según el plan, y las mejoras del motor de esta etapa (frases completas, GPU, hoja de contacto entera, CI).",
     items: [
+      { t: "El plugin entra con tu cuenta", d: "Desde la v0.5 el plugin es una cáscara: .mcp.json hacia https://frame28.app/mcp y ocho skills que piden el método a la cuenta. Sin cuenta no monta; la cuenta gratuita trae un modo demo (marca Think28 y tarjeta «Hecho con Frame28»).", s: "hecho", e: "M", val: "alto" },
+      { t: "El método del director se sirve por MCP", d: "Las técnicas, los ganchos, la marca y lo promocional y la grabación ya no viajan en el plugin: el servidor de Frame28 los sirve por sesión, siempre al día y según el plan (frame28_start y frame28_metodo).", s: "hecho", e: "M", val: "alto" },
+      { t: "Frame28 ID: alta y entrada", d: "Cuentas de cliente con email y código de un solo uso (Microsoft Entra External ID) y una fachada OAuth en frame28.app para que Claude Code entre sin configurar nada; probado de punta a punta en producción.", s: "hecho", e: "M", val: "alto" },
       { t: "Subtítulos y tramos por frase completa", d: "transcribe escribe captions.json por frase (partida por comas y conjunciones si no cabe en dos líneas); clips plan y markers trabajan con frases enteras; clips plan --words lo resuelve para transcripciones antiguas.", s: "hecho", e: "S", val: "alto" },
       { t: "Hoja de contacto del vídeo entero", d: "El render reparte hasta 48 fotogramas por toda la duración; antes enseñaba solo los primeros 20 s.", s: "hecho", e: "S", val: "medio" },
       { t: "Render con más trabajadores y codificación por GPU", d: "render --workers N (un largo de 160 s pasa de 11,5 a 7 min con 10) y --gpu (NVENC); prep, reframe y cut --gpu para los intermedios.", s: "hecho", e: "S", val: "alto" },
@@ -257,6 +261,12 @@ const ROADMAP = [
       { t: "Confidencialidad en release-check", d: "Fila bloqueante que busca los términos de _private/confidencial.txt en ficheros, historia, tags y releases de GitHub.", s: "hecho", e: "S", val: "alto" },
       { t: "CI mínima", d: "GitHub Actions pasa la suite del CLI en cada push y pull request.", s: "hecho", e: "S", val: "medio" },
       { t: "doctor avisa de la última release", d: "Compara la versión instalada con la última release de GitHub y dice cómo actualizar el CLI y el plugin.", s: "hecho", e: "S", val: "medio" },
+      { t: "HyperFrames al día", d: "Subido del 0.8.72 al 0.8.105 (y GSAP 3.15) con las dos regresiones en verde: clip-javier y clip-grabado (render y hoja de contacto).", s: "hecho", e: "S", val: "medio" }
+    ] },
+  { v: "v0.6.0", name: "Calidad y alcance", date: "siguiente", state: "next",
+    goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
+    close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
+    items: [
       { t: "Comparador antes/después en la web", d: "Un vídeo de demostración sin Frame28 y con Frame28, lado a lado con barra deslizante (SBS en canvas, sin dependencias); research y POC hechos, integrado en la landing nueva con el clip de 10 s.", s: "medias", why: "integrado en la landing nueva (Next.js), pendiente de publicar; falta un vídeo de demostración más largo", e: "S", val: "alto" },
       { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
       { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
@@ -272,7 +282,6 @@ const ROADMAP = [
       { t: "Música y efectos con ducking", d: "Pixabay y Freesound CC0, beats con librosa, la voz por encima.", s: "pendiente", e: "M", val: "medio", ref: "R4 #12" },
       { t: "Técnicas pendientes del catálogo", d: "Mosaico de píxeles, carrera de terminales, rejilla de puntos, barras 3D, PiP en tarjeta, rueda de textos, karaoke de párrafo, texturas.", s: "pendiente", e: "M", val: "medio", ref: "T4, T9, T10a, T10b, T11–T14" },
       { t: "Frame28 Team: implantación en el equipo del cliente", d: "Instalación, marca configurada, biblioteca de ganchos del sector, formación y soporte para que el equipo del cliente opere el plugin.", s: "pendiente", e: "M", val: "alto" },
-      { t: "HyperFrames al día", d: "Subido del 0.8.72 al 0.8.105 (y GSAP 3.15) con las dos regresiones en verde: clip-javier y clip-grabado (render y hoja de contacto).", s: "hecho", e: "S", val: "medio" },
       { t: "Render sin red", d: "GSAP empaquetado en el proyecto generado en vez de cargado por CDN.", s: "pendiente", e: "S", val: "bajo" }
     ] },
   { v: "v1.0.0", name: "Frame28 Cloud, si la demanda lo pide", date: "condicional", state: "cond",

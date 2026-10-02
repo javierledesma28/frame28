@@ -5,79 +5,14 @@ description: 'Decide el montaje de un video hablado y lo escribe como storyboard
 
 # Frame28 · Storyboard
 
-Entrada: `work/words.json`, `work/captions.json`, `work/transcript.txt`, salida de `frame28 speaker` y de `frame28 gestures`, hoja de
-contacto del clip y, si hay, el brief del usuario. Salida: `work/storyboard.json` válido
-(`frame28 storyboard schema` imprime el formato; `references/ejemplo-storyboard.json` es uno real).
+El método de esta tarea no viaja en el plugin: lo sirve tu cuenta de Frame28 desde el servidor MCP `frame28`
+(`https://frame28.app/mcp`), siempre al día y según tu plan.
 
-## Método (en este orden)
-
-1. **Lee el discurso entero** y márcalo en *beats*: cada frase o grupo de frases con una idea. Para cada beat
-   decide su función: presentar (quién habla), afirmar (una idea fuerte), enumerar (lista), señalar (gesto a
-   algo), contrastar (A vs B), cifra (número), mostrar (una UI o imagen), cerrar.
-2. **Asigna una técnica por función** con esta tabla. No mezcles dos técnicas grandes en el mismo beat.
-
-   | Función | Técnica (type) | Cuándo entra |
-   |---|---|---|
-   | presentar | `lower_third` | 0,3 s tras la primera palabra, dura 2,5–4 s |
-   | afirmar / palabra clave | `kinetic` (2 líneas máx.) o `behind` (una palabra) | cada palabra en su `start` |
-   | enumerar | `list_focus` (3–5 ítems) | el foco salta en el `start` de cada ítem |
-   | señalar con la mano | `pointer` | copia la sugerencia de `frame28 gestures` (`confidence: high`) |
-   | dato corto / matiz | `box` | `at` = primera palabra del dato |
-   | comparar / cifra fuerte | `chart` (`bar` con `hero`, `counter`) | 3–6 s; el ganador entra el último |
-   | frase-lema, cambio de capítulo | `card` (negro o acento) o `card_words` | tapa al hablante 1,5–3 s |
-   | mostrar algo | `image` | `at` = cuando lo nombra |
-   | abrir o cerrar con marca | `brand_card` | 2–3 s; al final, con `duration` raíz mayor que el clip |
-   | enganchar (vídeo que vende) | `hook` | segundos 0,2–3; dos líneas; ver `references/ganchos.md` |
-   | seguir un tutorial | `steps` | píldora "2 / 3 · paso" desde el primer paso hasta el último |
-   | "sale bien" | `before_after` (+ `draw` check + `kinetic`) | `before_t`/`after_t` del propio clip; 2–4 s, tras la frase de resultado. `frame28 clips markers work/captions.json --lang es --words work/words.json --canvas … --side <free_side>` propone los tres en cada frase de resultado (y un `kinetic` en cada promesa); comprueba `before_t` con `frame28 frames` |
-   | comprar | `cta` | últimos 3–5 s: precio, descuento, código, QR o "link in bio"; nunca antes de la demostración |
-   | todo el video | `captions` (frase) o `caption_style` (`pages`/`karaoke`, por palabras) | por frase de `captions.json`; por palabras de `words.json` |
-
-3. **Coloca** cada overlay en el lado libre (`free_side` de `frame28 speaker`). En 1920×1080: con hablante a la
-   izquierda, `x` entre 1100 y 1750; a la derecha, `x` entre 90 y 800; centrado, usa esquinas y `behind`. Nunca sobre la
-   cara (`face_box` de `frame28 gestures` o `bbox_canvas` de `frame28 speaker`; ambos ya vienen en píxeles del lienzo).
-   Los `pointer` salen de `frame28 gestures`; si hay que ajustar uno, mira el fotograma con `frame28 frames`.
-   **Vertical (1080×1920)**: el hablante ocupa el centro; las zonas libres son la franja superior (`y` 40–260, encima
-   del pelo), la inferior (`y` 1150–1650, sobre el torso; los subtítulos van de 1650 abajo) y poco a los lados. Usa
-   `box`/`kinetic` arriba, `pointer` con la caja sobre el torso, `card`/`counter` a pantalla completa para tapar
-   silencios, y `caption_style` `pages` en vez de `captions` por frase. Nada de `chart bar` con más de 3 filas.
-   Si el vertical viene de `frame28 reframe --mode blur`, las franjas `free_bands` (arriba y abajo del vídeo) son
-   el sitio natural de cinéticos, cajas y subtítulos; el vídeo queda en la banda central. Con `--mode crop` el
-   hablante llena el ancho: `behind` apenas se ve (la palabra queda tapada) y los gestos laterales salen del
-   encuadre, así que la palabra clave va en `kinetic` arriba y los "aquí" señalados se resuelven con texto.
-4. **Ritmo**: un evento visual cada 2–4 s; ningún tramo de más de 8 s sin nada; máximo un overlay grande a la
-   vez, más subtítulos. Los overlays se solapan solo si están en zonas distintas.
-5. **Tiempos**: `start` = 0,05 s antes del `at`; `end` = fin de la frase o inicio del siguiente overlay en la
-   misma zona. `at` de cada palabra = su `start` en `words.json`, sin redondear.
-6. Escribe el JSON, valida con `frame28 storyboard validate` y haz una pasada de lectura en voz alta: ¿cada
-   overlay dice algo que la voz está diciendo en ese instante? Si no, fuera.
-
-## Reglas de estilo (del análisis del video de referencia)
-
-- Cajas: 2–4 palabras. Cinéticos: hasta 5 palabras por línea, 2 líneas. `behind`: una palabra en mayúsculas.
-- Una palabra de acento por overlay como mucho (`accent: true`), la que lleva la carga.
-- Revelado: `reveal: "rise"` para titulares de impacto (máscara por palabra), `"chars"` para una sola palabra o marca, `fade` para el resto. No mezclar los tres en la misma escena.
-- `draw` (icono que se dibuja) solo con propósito: un check al confirmar, un subrayado bajo la palabra clave, una flecha hacia lo señalado. Uno por escena.
-- Pizarras: fondo negro para afirmaciones, acento para "producto", blanco para listas.
-- El dato ganador entra el último y destacado; nunca una tabla entera de golpe.
-- Todo en el idioma del hablante; nombres propios tal como los escribe el usuario.
-- **Legibilidad**: texto blanco solo sobre fondo oscuro; sobre fondos claros (mesas, telas, exteriores) `kinetic`
-  con `color` = tinta de la marca. Nunca acento sobre acento (texto ámbar sobre tarjeta ámbar). Las `box` llevan
-  fondo oscuro y funcionan en cualquier fondo; `frame28 build` avisa si una caja se sale del lienzo.
-- **No repitas lo que ya está en pantalla** (rótulos del propio vídeo, texto de un envase que se enseña). Si hay
-  `work/graphics.json` (de `frame28 graphics`), cada overlay va a una zona cuya `free_windows` cubra su tramo, y
-  ningún `card`/`chart` a pantalla completa sobre una `card` del vídeo salvo que quieras taparla a propósito.
-- **Promocional**: gancho → promesa con las palabras de la marca → pasos copiables con `steps` → resultado con
-  `before_after` → prueba social → `cta`. Detalle en `references/marca-y-promocional.md` y `references/ganchos.md`.
-- **Plataforma**: pon `"platform": "tiktok" | "reels" | "shorts"` en vertical; `frame28 build` avisa de overlays
-  bajo los iconos de la derecha, la descripción de abajo o la barra de arriba, y de subtítulos demasiado bajos.
-
-## Referencias
-
-- `references/tecnicas.md`: las 16 técnicas del video de referencia, cómo se logran y cuándo usarlas.
-- `references/grabacion.md`: qué pedirle al usuario para que el material funcione.
-- `references/ejemplo-storyboard.json`: storyboard real de un clip de 10 s (webcam, español).
-- `references/marca-y-promocional.md`: qué investigar de la marca del cliente, checklist de storytelling para
-  vídeos que venden, cómo montar sobre un vídeo ya producido y reglas de legibilidad salidas de renders reales.
-- `references/ganchos.md`: los diez tipos de gancho con plantillas ES/EN y ejemplos medidos, el arco de 30 s con
-  su overlay en cada momento, y cómo sacar tres ganchos distintos de una transcripción.
+1. Llama a la herramienta `frame28_start` del servidor `frame28` con `tarea: "storyboard"`.
+2. Si la herramienta no aparece o pide autenticación, para y dile al usuario que entre con su cuenta de Frame28: en
+   Claude Code, `/mcp` → el servidor `frame28` de este plugin → *Authenticate*. Si no tiene cuenta, la crea gratis en ese
+   mismo paso con su email y un código de un solo uso. Sin cuenta, Frame28 no monta.
+3. Sigue al pie de la letra el método que devuelve. Las **reglas de su plan** prevalecen sobre el método. Los documentos
+   que cite se piden con `frame28_metodo`; otras tareas, con `frame28_start` y su nombre.
+4. Los pasos deterministas los hace el CLI `frame28` (código abierto, MIT). Si no está instalado, `frame28 doctor` dice qué
+   falta y el instalador está en https://frame28.t28.io.
