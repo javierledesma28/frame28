@@ -260,6 +260,14 @@ Cualquier cambio se hace primero en `research/08` §11 y después en la landing.
 | **¿Ya usa Claude Code?** | Baja-media | Media-alta | La más alta | Media-baja |
 | **Prioridad** | **Foco** | **Canal en paralelo** | Visibilidad y contenido | **Aparcar** |
 
+### Decisión de Javier (2026-10-03)
+
+**El foco es la marca DTC** (P1): marca *direct-to-consumer* que vende su propio producto por su web, Amazon o TikTok
+Shop, sin intermediarios, y que vive de los anuncios y del vídeo. Dentro de ella, la «educativa», que ya tiene
+tutoriales grabados. Siguiente paso: validarlo con 5–10 marcas candidatas y una muestra hecha con su propio vídeo
+(`research/12`). Mientras la relación con el Cliente A esté en curso, **no se prospecta a sus competidores directos**
+(grabado y corte láser).
+
 ### Recomendación [I]
 
 - **Foco de los próximos 6 meses: P1.** Es el caso validado (Cliente A) y el que más aprovecha lo que solo nosotros
