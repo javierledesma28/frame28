@@ -177,6 +177,16 @@ def doctor() -> list[dict]:
     except Exception:  # noqa: BLE001
         pass
     try:
+        from .env import encoder_mode, nvenc_ready
+        mode = encoder_mode()
+        ok_nv, why_nv = nvenc_ready()
+        uses = "NVENC (GPU)" if (mode == "nvenc" or (mode == "auto" and ok_nv)) else "libx264 (CPU)"
+        add("codificador", True, f"{uses} · FRAME28_ENCODER={mode} · {why_nv}",
+            "" if ok_nv or mode == "cpu" else "opcional: con una GPU NVIDIA y su driver, prep, reframe, cut y render codifican ~5x más rápido sin pedirlo",
+            optional=True)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
         from .env import cuda_ready
         ok_gpu, why_gpu = cuda_ready()
         add("gpu (transcripción)", ok_gpu, why_gpu, 'opcional: uv tool install --editable "<ruta>/plugin/cli[gpu]" --python 3.12 --reinstall (librerías CUDA, más de 1 GB); sin ellas `transcribe` va por CPU', optional=True)
