@@ -750,6 +750,40 @@ def sb_validate(path):
     if errs:
         click.echo("Storyboard inválido:\n  - " + "\n  - ".join(errs)); raise SystemExit(1)
     click.echo("Storyboard válido.")
+    from .brandcheck import check, load
+    sb, rules, brand = load(Path(path))
+    if not rules.empty():
+        r = check(sb, rules, brand)
+        click.echo(f"Nota de marca: {r['score']}/100 · {r['errors']} error(es), {len(r['issues']) - r['errors']} aviso(s)"
+                   + ("  (detalle: frame28 storyboard brandcheck)" if r["issues"] else ""))
+
+
+@storyboard.command("brandcheck")
+@click.argument("path", type=click.Path(exists=True))
+@click.option("--brief", type=click.Path(exists=True), default=None, help="brief de la Memoria y la campaña (por defecto busca brief.md junto al storyboard o más arriba)")
+@click.option("--memoria", type=click.Path(exists=True), default=None, help="Memoria de marca en JSON (Context Pack v1), además del brief")
+@click.option("--lang", default=None, help="idioma del storyboard para el glosario (por defecto meta.lang)")
+@click.option("--min", "min_score", default=90, show_default=True, help="nota mínima: por debajo, sale con código 1")
+@click.option("--json", "as_json", is_flag=True)
+def sb_brandcheck(path, brief, memoria, lang, min_score, as_json):
+    """Nota de marca del storyboard antes del render: claims legales, palabras prohibidas, ganchos prohibidos, glosario,
+    largo de frase, lo que la campaña tiene que decir, contraste y zonas seguras. Sale con 1 si hay errores o la nota no llega."""
+    from .brandcheck import check, load
+    sb, rules, brand = load(Path(path), Path(brief) if brief else None, Path(memoria) if memoria else None)
+    r = check(sb, rules, brand, lang)
+    if as_json:
+        click.echo(json.dumps(r, ensure_ascii=False, indent=2))
+    else:
+        src = ", ".join(rules.sources) or "sin reglas de marca (ni voice en la marca ni brief.md)"
+        click.echo(f"Nota de marca: {r['score']}/100  ·  reglas: {src}" + (f"  ·  idioma {r['lang']}" if r["lang"] else ""))
+        for i in r["issues"]:
+            mark = "✗" if i["severity"] == "error" else "!"
+            text = f" «{i['text'][:60]}»" if i["text"] else ""
+            click.echo(f"  {mark} {i['rule']:<16} {i['id']} ({i['type']}){text}: {i['message']}\n      → {i['fix']}")
+        if not r["issues"]:
+            click.echo("  Sin fallos." if not rules.empty() else "  Nada que comprobar: pide la Memoria con frame28_memoria y guarda el brief en work/brief.md.")
+    if r["errors"] or r["score"] < min_score:
+        raise SystemExit(1)
 
 
 @storyboard.command("schema")

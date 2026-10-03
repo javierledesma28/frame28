@@ -84,6 +84,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     i18n.py                       extract/apply de textos traducidos; retime_words sobre el ritmo original
     brandsite.py                  marca desde la web del cliente (colores CSS, fuente, logo con variantes)
     build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings)
+    brandcheck.py                 nota de marca del storyboard antes del render (`storyboard brandcheck`): textos en pantalla
+                                  contra la marca, el brief.md del montaje (Memoria + campaña) y la Memoria en JSON
     render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto que cubre el vídeo entero)
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
   cli/tests/                      pytest (grupo dev): conftest con fixtures de poc/ y datos sintéticos; test_captions, test_cut,
