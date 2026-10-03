@@ -179,6 +179,8 @@ Cada fila dice dónde cae en nuestro producto (CLI y plugin en este repo; estudi
 | 8 | **Voz aprendida de ejemplos** (frases que sí y que no) y **voz por plataforma** | Lo hacen Typeface, HubSpot, OwlyWriter y Canva | Memoria v2 (`voice.samples`, `voice.by_platform`) |
 | 9 | **Personas de audiencia** con su dolor y sus objeciones | Jasper, Adobe y brandsystem las tienen; mejoran ganchos y callouts | Memoria v2 (`audience.personas`) |
 
+| 9b | **Otros motores de IA** además de Claude (Codex, Gemini CLI y otros agentes que hablen MCP): el método y la Memoria ya viajan por MCP; falta empaquetar el plugin para cada uno y probar el método | Decisión de Javier (2026-10-03): hoy solo Claude, en el roadmap el resto. OpusClip y Cardboard ya están en Codex | Plugin y método |
+
 ### Después
 
 | # | Qué | Por qué |
@@ -200,7 +202,7 @@ por MCP más adelante si lo piden.
 
 - **Clippers de entrada** (15–39 USD/mes): Creator a 79 cuesta entre 2 y 5 veces más. La persona sola gasta en IA 30–50
   USD/mes ([Metricool](https://metricool.com/what-to-spend-on-ai-tools-social-media/), 2026-09-15). **[I]** A ella solo
-  se le vende Creator como sustituto del editor, no como «otra herramienta más».
+  se le vende Creator como el asistente que le quita horas de edición, no como «otra herramienta más».
 - **Planes de equipo** (39–150 USD): Brand a 199 está por encima de casi todos, salvo de Rask Business (249) y Cardboard
   Pro (175–250).
 - **Personas**: 20 shorts al mes con un freelance cuestan unos 2.000 USD; una agencia de nivel medio, 1.500–5.000 USD al
@@ -251,7 +253,7 @@ Cualquier cambio se hace primero en `research/08` §11 y después en la landing.
 |---|---|---|---|---|
 | **Quién** | Head of Content o Growth, o el fundador. Marca de EE. UU. de 2–50 M USD en Shopify o Amazon con producto que se aprende (DIY, herramientas, hobby, cosmética técnica) | Fundador u *ops lead* de una agencia social o UGC de 3–20 personas con 5–15 clientes | Content o PMM de una SaaS de 20–500 personas | Experto independiente con cursos o consultoría |
 | **Situación** | Archivo de tutoriales largos; le faltan shorts, anuncios e idiomas | Vive del margen sobre horas de edición | Webinars, demos y vídeos del fundador | Graba mucho, publica poco |
-| **Trabajo** | «De cada tutorial, 6–10 shorts y anuncios con la marca en EN/ES/DE sin otro editor» | «Más piezas por cliente con el mismo equipo; idiomas como extra» | «Cada webinar convertido en clips para LinkedIn con la marca» | «Publicar con constancia» |
+| **Trabajo** | «De cada tutorial, 6–10 shorts y anuncios con la marca en EN/ES/DE con el equipo que ya tengo» | «Más piezas por cliente con el mismo equipo; idiomas como extra» | «Cada webinar convertido en clips para LinkedIn con la marca» | «Publicar con constancia» |
 | **Hoy paga** | Freelance (75–200 USD por short) o agencia (1.500–5.000 USD/mes) + Opus o CapCut | Editores en Upwork o Fiverr + Descript u Opus | Opus o Descript (30–65 USD) | 30–50 USD/mes en IA + Fiverr |
 | **Objeciones** | «No tenemos Claude Code», instalar en el portátil, «¿respeta la marca?», calidad frente a un humano | Que sus editores lo aprendan, licencia por puestos, verlo como competidor | Precio frente a Descript | Precio |
 | **Disparador** | Lanzamiento, mercado nuevo, se va el editor, fatiga creativa | Cliente nuevo, presión sobre el margen | Lanzamiento, programa de vídeos del fundador | — |
@@ -268,6 +270,35 @@ tutoriales grabados. Siguiente paso: validarlo con 5–10 marcas candidatas y un
 (`research/12`). Mientras la relación con el Cliente A esté en curso, **no se prospecta a sus competidores directos**
 (grabado y corte láser).
 
+### Quién compra, quién usa y cómo nos presentamos (Javier, 2026-10-03)
+
+En una marca DTC hay dos papeles, y el mensaje tiene que servir a los dos:
+
+| Papel | Quién es | Qué le importa |
+|---|---|---|
+| **Quien compra** | Fundador, Head of Marketing o Growth de la marca | Más creatividades y más mercados con el mismo presupuesto; que todo salga con su marca |
+| **Quien lo usa** | Quien lleva la edición, el diseño o el contenido: editor o diseñador interno, content lead, o el freelance o la agencia que trabaja para la marca | Quitarse el trabajo repetitivo (cortes, subtítulos, versiones, formatos, idiomas) y dedicar el tiempo a lo creativo |
+
+**Reglas de posicionamiento:**
+
+1. **Frame28 potencia a los editores, no los reemplaza.** Ahorra horas de edición, genera más piezas y deja al editor
+   el criterio y el acabado. Nunca «sin editores», «0 editores» ni «reemplaza a tu editor». Si el editor lo ve como una
+   amenaza, perdemos a quien tiene que usarlo y recomendarlo.
+2. **Facilitamos el trabajo con IA.** La Memoria de marca y el estudio de prompting convierten «usar IA» en algo
+   ordenado: la marca queda escrita una vez y cualquier persona del equipo obtiene resultados con su voz.
+3. **Hoy con Claude; mañana, con más motores.** Hoy Frame28 trabaja con Claude (Claude Code). Adaptarlo a otros
+   motores de IA está en el roadmap. El contexto (Memoria y campañas por MCP) ya es un estándar abierto que esos motores
+   empiezan a hablar.
+
+**Mensaje para quien compra:** *«Tus tutoriales, convertidos cada semana en shorts, anuncios e idiomas con tu marca.
+Tu equipo produce más sin crecer, y el vídeo no sale de tu ordenador.»*
+
+**Mensaje para quien lo usa:** *«Lo repetitivo lo hace Frame28: cortes, subtítulos, versiones, formatos e idiomas. Tú
+decides y das el acabado.»*
+
+**Revisar con este criterio** el copy de la landing (repo `frame28-app`, `web/src/content/landing.ts`) y la métrica
+«0 editores» de `research/08` §10.
+
 ### Recomendación [I]
 
 - **Foco de los próximos 6 meses: P1.** Es el caso validado (Cliente A) y el que más aprovecha lo que solo nosotros
@@ -281,8 +312,7 @@ tutoriales grabados. Siguiente paso: validarlo con 5–10 marcas candidatas y un
   vídeo es pequeño. Le sirve el contenido «cómo montamos esto con Claude Code».
 - **P4, aparcado.** Muy sensible al precio, compite con Opus a 15–29 USD, pide mucho soporte y se va enseguida.
 
-**Mensaje para P1 [I]:** *«Tus tutoriales ya grabados, convertidos cada semana en shorts, anuncios e idiomas con tu marca.
-El vídeo no sale de tu ordenador.»*
+**Mensaje para P1:** ver «Quién compra, quién usa y cómo nos presentamos», más arriba.
 
 Su vocabulario: *creative volume, hook rate, thumb-stop, creative testing, ad fatigue*.
 
