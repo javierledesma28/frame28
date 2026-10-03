@@ -192,7 +192,15 @@ def doctor() -> list[dict]:
         add("gpu (transcripción)", ok_gpu, why_gpu, 'opcional: uv tool install --editable "<ruta>/plugin/cli[gpu]" --python 3.12 --reinstall (librerías CUDA, más de 1 GB); sin ellas `transcribe` va por CPU', optional=True)
     except Exception:  # noqa: BLE001
         pass
-    add("modelo RVM", RVM_MODEL_PATH.exists(), str(RVM_MODEL_PATH), "se descarga solo (15 MB) la primera vez que se use `frame28 matte`", optional=True)
+    from .audio import RNNOISE_MODEL_PATH, RNNOISE_MODEL_SHA256
+    from .env import RVM_MODEL_SHA256, model_ok
+    from .pose import POSE_MODEL_PATH, POSE_MODEL_SHA256
+    for label, path, sha, when in (("modelo RVM", RVM_MODEL_PATH, RVM_MODEL_SHA256, "la primera vez que se use `frame28 matte` (15 MB)"),
+                                   ("modelo de pose", POSE_MODEL_PATH, POSE_MODEL_SHA256, "con `speaker`, `gestures` o `reframe` (5 MB)"),
+                                   ("modelo RNNoise", RNNOISE_MODEL_PATH, RNNOISE_MODEL_SHA256, "con `prep --denoise rnnoise`")):
+        ok = model_ok(path, sha)
+        add(label, ok, str(path) + ("" if ok or not path.exists() else " (incompleto o corrupto)"),
+            f"se descarga solo {when}" + (" y sustituye al corrupto" if path.exists() and not ok else ""), optional=True)
     try:
         from .broll import providers_available
         provs = providers_available()

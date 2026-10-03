@@ -11,6 +11,7 @@ from pathlib import Path
 CACHE_DIR = Path(os.environ.get("FRAME28_CACHE", Path.home() / ".cache" / "frame28"))
 RVM_MODEL_URL = "https://github.com/PeterL1n/RobustVideoMatting/releases/download/v1.0.0/rvm_mobilenetv3_fp32.onnx"
 RVM_MODEL_PATH = CACHE_DIR / "rvm_mobilenetv3_fp32.onnx"
+RVM_MODEL_SHA256 = "88d4531297118f595bf2fd60f6f566aec2e559393802d1f436c380f0cbbd2828"
 
 
 def _winget_candidates(exe: str) -> list[str]:
@@ -214,17 +215,74 @@ def note(msg: str) -> None:
     print(msg, file=sys.stderr, flush=True)
 
 
-def download(url: str, dest: Path, label: str) -> Path:
-    """Descarga un modelo a la caché avisando por stderr. Único punto de descarga de modelos (F28-82 lo hará atómico)."""
+def sha256_file(path: Path) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+_VERIFIED: set[str] = set()
+
+
+def model_ok(path: Path, sha256: str | None) -> bool:
+    """¿Está el modelo y es el que debe ser? (una vez por proceso: 15 MB se comprueban en milisegundos)."""
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    if not sha256 or str(path) in _VERIFIED:
+        return True
+    ok = sha256_file(path) == sha256
+    if ok:
+        _VERIFIED.add(str(path))
+    return ok
+
+
+def fetch_atomic(url: str, dest: Path, sha256: str | None = None, timeout: int = 120, headers: dict | None = None,
+                 attempts: int = 2) -> Path:
+    """Descarga a `<dest>.part-<pid>`, comprueba que llegaron todos los bytes (Content-Length) y el SHA-256 si lo hay, y
+    solo entonces lo mueve a `dest` de golpe. Una descarga cortada ya no deja un fichero truncado que parezca bueno."""
+    import hashlib
     import urllib.request
 
     dest.parent.mkdir(parents=True, exist_ok=True)
+    part = dest.with_name(f"{dest.name}.part-{os.getpid()}")
+    last: Exception | None = None
+    for _ in range(max(1, attempts)):
+        try:
+            h, got = hashlib.sha256(), 0
+            req = urllib.request.Request(url, headers=headers or {"User-Agent": "frame28"})
+            with urllib.request.urlopen(req, timeout=timeout) as r, open(part, "wb") as f:
+                expected = int(r.headers.get("Content-Length") or 0)
+                for chunk in iter(lambda: r.read(1 << 16), b""):
+                    f.write(chunk); h.update(chunk); got += len(chunk)
+            if expected and got != expected:
+                raise IOError(f"descarga incompleta: {got} de {expected} bytes")
+            if sha256 and h.hexdigest() != sha256:
+                raise IOError(f"el fichero descargado no es el esperado (SHA-256 {h.hexdigest()[:12]}…, se esperaba {sha256[:12]}…)")
+            os.replace(part, dest)
+            return dest
+        except Exception as e:  # noqa: BLE001  (red o fichero malo: se reintenta una vez y luego se cuenta claro)
+            last = e
+        finally:
+            if part.exists():
+                part.unlink()
+    raise SystemExit(f"No se pudo descargar {url}: {last}. Comprueba la conexión y repite la orden.")
+
+
+def download(url: str, dest: Path, label: str, sha256: str | None = None) -> Path:
+    """Asegura un modelo en la caché: si está y su SHA-256 cuadra, se usa; si falta o está corrupto (una descarga cortada
+    dejaba un .onnx truncado y matte/speaker fallaban para siempre con un error de protobuf), se baja de nuevo, atómico."""
+    if model_ok(dest, sha256):
+        return dest
+    if dest.exists():
+        note(f"{label} en {dest} está incompleto o corrupto: se descarga de nuevo")
     note(f"Descargando {label} a {dest} ...")
-    urllib.request.urlretrieve(url, dest)
+    fetch_atomic(url, dest, sha256)
+    _VERIFIED.add(str(dest))
     return dest
 
 
 def ensure_rvm_model() -> Path:
-    if RVM_MODEL_PATH.exists():
-        return RVM_MODEL_PATH
-    return download(RVM_MODEL_URL, RVM_MODEL_PATH, "modelo RVM (15 MB)")
+    return download(RVM_MODEL_URL, RVM_MODEL_PATH, "modelo RVM (15 MB)", RVM_MODEL_SHA256)

@@ -19,7 +19,10 @@ import numpy as np
 
 from .env import CACHE_DIR, ffmpeg, run
 
-RNNOISE_MODEL_URL = "https://raw.githubusercontent.com/GregorR/rnnoise-models/master/somnolent-hogwash-2018-09-01/sh.rnnn"
+# fijado a un commit (antes la rama master, que puede cambiar) y con su SHA-256
+RNNOISE_MODEL_URL = ("https://raw.githubusercontent.com/GregorR/rnnoise-models/3eee541a283fd3b8f81b85b1748e3b9ccbefa04d/"
+                     "somnolent-hogwash-2018-09-01/sh.rnnn")
+RNNOISE_MODEL_SHA256 = "70bb6685eb0c2a1d18e2918dca3fbfbd39317010b1802eb1b6ea73a92f3fdec0"
 RNNOISE_MODEL_PATH = CACHE_DIR / "rnnoise-sh.rnnn"
 
 
@@ -59,9 +62,8 @@ def _denoise_filter(engine: str, strength: int) -> str | None:
         # nr en dB (6–30); nf = suelo de ruido estimado; tn = seguimiento del ruido
         return f"afftdn=nr={strength}:nf=-45:tn=1"
     if engine == "rnnoise":
-        if not RNNOISE_MODEL_PATH.exists():
-            from .env import download
-            download(RNNOISE_MODEL_URL, RNNOISE_MODEL_PATH, "modelo RNNoise")
+        from .env import download
+        download(RNNOISE_MODEL_URL, RNNOISE_MODEL_PATH, "modelo RNNoise", RNNOISE_MODEL_SHA256)
         # la ruta del modelo se pasa relativa: ffmpeg se ejecuta con cwd=CACHE_DIR (los dos puntos de "C:" rompen el filtergraph)
         return f"arnndn=m={RNNOISE_MODEL_PATH.name}:mix=0.9"
     raise SystemExit(f"motor de ruido desconocido: {engine} (none, afftdn, rnnoise, deepfilter)")

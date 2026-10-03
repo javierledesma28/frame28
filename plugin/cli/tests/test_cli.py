@@ -263,7 +263,8 @@ def test_avisos_de_descarga_por_stderr(tmp_path, monkeypatch, capsys):
     from pathlib import Path
     # F28-83: «Descargando modelo…» salía por stdout y rompía el JSON de matte/speaker/gestures/prep en la primera ejecución
     from frame28 import env
-    monkeypatch.setattr("urllib.request.urlretrieve", lambda url, dest: Path(dest).write_bytes(b"modelo"))
+    monkeypatch.setattr(env, "fetch_atomic", lambda url, dest, sha=None, **k: (Path(dest).parent.mkdir(parents=True, exist_ok=True),
+                                                                         Path(dest).write_bytes(b"modelo")))
     got = env.download("https://example.invalid/m.onnx", tmp_path / "sub" / "m.onnx", "modelo de prueba")
     out = capsys.readouterr()
     assert got.read_bytes() == b"modelo" and out.out == "" and "Descargando modelo de prueba" in out.err
@@ -365,3 +366,60 @@ def test_check_command_exit_code(monkeypatch, tmp_path):
     assert r.exit_code == 0 and "✓ check pasó" in r.output and "aviso de contraste" in r.output
     r = CliRunner().invoke(main, ["check", str(tmp_path), "--json"])
     assert r.exit_code == 0 and json.loads(r.output)["passed"] is True
+
+
+# ── F28-82: descargas atómicas y con SHA-256 ─────────────────────────────────────────────────────────────────────────
+class _Resp:
+    def __init__(self, data, length=None):
+        self.data, self.headers = data, {"Content-Length": str(len(data) if length is None else length)}
+        self.pos = 0
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def read(self, n):
+        chunk = self.data[self.pos:self.pos + n]; self.pos += n
+        return chunk
+
+
+def test_fetch_atomic_complete_truncated_and_bad_hash(tmp_path, monkeypatch):
+    import hashlib
+    from frame28 import env
+    good = b"x" * 200_000
+    sha = hashlib.sha256(good).hexdigest()
+    monkeypatch.setattr("urllib.request.urlopen", lambda req, timeout: _Resp(good))
+    dest = tmp_path / "m" / "model.onnx"
+    assert env.fetch_atomic("https://h/m", dest, sha) == dest and dest.read_bytes() == good
+    calls = []
+    def cut(req, timeout):                       # el servidor anuncia 200 000 bytes y la conexión se corta a la mitad
+        calls.append(1); return _Resp(good[:100_000], length=len(good))
+    monkeypatch.setattr("urllib.request.urlopen", cut)
+    other = tmp_path / "otro.onnx"
+    with pytest.raises(SystemExit, match="incompleta"):
+        env.fetch_atomic("https://h/m", other, sha)
+    assert not other.exists() and len(calls) == 2 and not list(tmp_path.glob("*.part-*"))   # reintenta y no deja restos
+    monkeypatch.setattr("urllib.request.urlopen", lambda req, timeout: _Resp(b"y" * 10))
+    with pytest.raises(SystemExit, match="no es el esperado"):
+        env.fetch_atomic("https://h/m", other, sha)
+    assert not other.exists()
+
+
+def test_download_replaces_a_corrupt_model(tmp_path, monkeypatch, capsys):
+    import hashlib
+    from frame28 import env
+    good = b"modelo bueno"
+    sha = hashlib.sha256(good).hexdigest()
+    dest = tmp_path / "rvm.onnx"
+    dest.write_bytes(b"model")                                       # lo que deja una descarga cortada
+    assert not env.model_ok(dest, sha)
+    monkeypatch.setattr("urllib.request.urlopen", lambda req, timeout: _Resp(good))
+    env.download("https://h/m", dest, "modelo de prueba", sha)
+    assert dest.read_bytes() == good and env.model_ok(dest, sha) and "corrupto" in capsys.readouterr().err
+    monkeypatch.setattr("urllib.request.urlopen", lambda req, timeout: (_ for _ in ()).throw(AssertionError("no debía bajar")))
+    assert env.download("https://h/m", dest, "modelo de prueba", sha) == dest   # bueno: no se vuelve a bajar
+    assert not env.model_ok(tmp_path / "no-existe.onnx", sha)
+
+
+def test_models_are_pinned_with_hashes():
+    from frame28 import audio, env, pose
+    for sha in (env.RVM_MODEL_SHA256, pose.POSE_MODEL_SHA256, audio.RNNOISE_MODEL_SHA256):
+        assert len(sha) == 64 and int(sha, 16) >= 0
+    assert "/master/" not in audio.RNNOISE_MODEL_URL                   # fijado a un commit, no a una rama que cambia
