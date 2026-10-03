@@ -71,6 +71,17 @@ escalonadas, SplitText de GSAP). Los tiempos siguen siendo los `at` de cada pala
 la propone a partir de la web (colores del CSS, fuente, logo con variantes para fondo oscuro y de acento); `frame28 brand list` las enumera.
 El `lower_third` muestra el isotipo de la marca; las `card` con `bg: accent` usan su color; la `brand_card` usa logo, tagline y endorsement.
 
+## Nota de marca (antes del render)
+
+`frame28 storyboard brandcheck <storyboard>` puntúa de 0 a 100 los textos en pantalla contra la marca y lista cada fallo
+con su arreglo; sale con código 1 si hay errores o la nota no llega a `--min` (90). Reglas: `voice.avoid` y
+`voice.max_words_per_sentence` del JSON de marca, el `brief.md` del montaje (lo busca junto al storyboard o más arriba:
+«Nunca digas», reglas legales, ganchos prohibidos, glosario, lo que la campaña tiene que decir y lo que no) y, con
+`--memoria`, la Memoria en JSON. Errores: claims legales, palabras prohibidas, ganchos prohibidos, acento sobre acento.
+Avisos: glosario en el idioma de `meta.lang`, frases largas, cajas con demasiadas palabras, lo que la campaña pide y no
+sale, contraste bajo y zonas seguras. De los subtítulos (la voz) solo avisa si dicen un claim legal. `storyboard
+validate` enseña la nota en una línea.
+
 ## Capas (z-index) que aplica el generador
 
 1 fondo (clip) · 2 texto `behind` · 3 vídeo alfa del hablante · 4 overlays sobre el hablante · 5 pizarras · 9 subtítulos.
