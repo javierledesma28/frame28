@@ -7,13 +7,13 @@ import subprocess
 from pathlib import Path
 
 from . import HYPERFRAMES_VERSION
-from .env import env_with_ffmpeg, npx
+from .env import env_with_ffmpeg, npx_cmd
 from .media import probe, sheet, sheet_plan
 
 
 def _hf(args: list[str], cwd: Path, timeout: int = 1800, extra_env: dict | None = None) -> subprocess.CompletedProcess:
     env = env_with_ffmpeg(); env.update(extra_env or {})
-    return subprocess.run([npx(), "--yes", f"hyperframes@{HYPERFRAMES_VERSION}", *args], cwd=str(cwd), env=env,
+    return subprocess.run([*npx_cmd(), "--yes", f"hyperframes@{HYPERFRAMES_VERSION}", *args], cwd=str(cwd), env=env,
                           text=True, capture_output=True, encoding="utf-8", errors="replace", timeout=timeout, stdin=subprocess.DEVNULL)
 
 

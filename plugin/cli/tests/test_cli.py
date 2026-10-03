@@ -494,3 +494,17 @@ def test_run_prints_short_errors_and_debug_shows_the_trace(monkeypatch, capsys):
     monkeypatch.setenv("FRAME28_DEBUG", "1")
     with pytest.raises(ZeroDivisionError):
         cli.run()
+
+
+def test_npx_cmd_skips_cmd_exe_on_windows(tmp_path):
+    # F28-87: npx.cmd lanzado por cmd.exe partía una ruta con & (C:\Clientes\R&D\) y ejecutaba el resto como otra orden
+    from frame28.env import npx_cmd
+    d = tmp_path / "nodejs"
+    (d / "node_modules" / "npm" / "bin").mkdir(parents=True)
+    (d / "npx.cmd").write_text("@echo off", encoding="ascii")
+    (d / "node.exe").write_bytes(b"")
+    (d / "node_modules" / "npm" / "bin" / "npx-cli.js").write_text("", encoding="utf-8")
+    assert npx_cmd(str(d / "npx.cmd")) == [str(d / "node.exe"), str(d / "node_modules" / "npm" / "bin" / "npx-cli.js")]
+    (d / "node_modules" / "npm" / "bin" / "npx-cli.js").unlink()
+    assert npx_cmd(str(d / "npx.cmd")) == [str(d / "npx.cmd")]          # sin npx-cli.js: el .cmd tal cual
+    assert npx_cmd("/usr/bin/npx.sh") == ["/usr/bin/npx.sh"]              # fuera de Windows, npx tal cual
