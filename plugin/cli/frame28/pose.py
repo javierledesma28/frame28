@@ -16,6 +16,7 @@ from .env import CACHE_DIR
 
 POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task"
 POSE_MODEL_PATH = CACHE_DIR / "pose_landmarker_lite.task"
+POSE_MODEL_SHA256 = "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a"
 
 # índices de landmarks de MediaPipe Pose
 NOSE, L_SHOULDER, R_SHOULDER, L_ELBOW, R_ELBOW, L_WRIST, R_WRIST, L_INDEX, R_INDEX = 0, 11, 12, 13, 14, 15, 16, 19, 20
@@ -24,10 +25,8 @@ POINT_WORDS = {"aquí", "acá", "ahí", "allí", "allá", "esto", "esta", "este"
 
 
 def ensure_pose_model() -> Path:
-    if not POSE_MODEL_PATH.exists():
-        from .env import download
-        download(POSE_MODEL_URL, POSE_MODEL_PATH, "modelo de pose (5 MB)")
-    return POSE_MODEL_PATH
+    from .env import download
+    return download(POSE_MODEL_URL, POSE_MODEL_PATH, "modelo de pose (5 MB)", POSE_MODEL_SHA256)
 
 
 def _landmarker():

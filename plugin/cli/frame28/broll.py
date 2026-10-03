@@ -147,14 +147,9 @@ def fetch(item: dict, out_dir: str | Path, trim_in: float = 0.0, duration: float
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     ext = ".mp4" if item["kind"] == "video" else ".jpg"
     dst = out / f"{item['id']}{ext}"
-    if not dst.exists():
-        req = urllib.request.Request(item["url"], headers={"User-Agent": UA})
-        with urllib.request.urlopen(req, timeout=120) as r, open(dst, "wb") as f:
-            while True:
-                chunk = r.read(1 << 16)
-                if not chunk:
-                    break
-                f.write(chunk)
+    if not dst.exists():   # atómico y con todos los bytes: un corte ya no deja un vídeo truncado que parezca bueno
+        from .env import fetch_atomic
+        fetch_atomic(item["url"], dst, timeout=120, headers={"User-Agent": UA})
     side = {k: item.get(k) for k in ("id", "provider", "kind", "page", "author", "license", "width", "height", "duration")}
     side["file"] = dst.name
     (out / f"{item['id']}.json").write_text(json.dumps(side, indent=1, ensure_ascii=False), encoding="utf-8")
