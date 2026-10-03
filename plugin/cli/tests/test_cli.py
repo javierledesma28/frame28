@@ -167,3 +167,57 @@ def test_doctor_release_row_compares_versions():
     assert release_newer("0.4.0", "v0.4.0") is False
     assert release_newer("0.10.0", "v0.9.9") is False          # compara números, no texto
     assert release_newer("0.4.0", None) is None and release_newer("0.4.0", "rc") is None
+    assert release_newer(None, "v0.5.0") is None
+
+
+def test_doctor_release_cache(tmp_path, monkeypatch):
+    # F28-11: sin red, doctor esperaba el timeout de GitHub en cada ejecución; y sin token GitHub da 60 consultas por hora
+    from frame28 import doctor as D
+    calls = []
+    answer = {"tag": "v0.6.0"}
+    monkeypatch.setattr(D, "_fetch_release", lambda url, timeout: calls.append(url) or answer["tag"])
+    cache = tmp_path / "release.json"
+    assert D.latest_release(cache=cache, now=1000) == "v0.6.0" and len(calls) == 1
+    assert D.latest_release(cache=cache, now=1000 + D.RELEASE_TTL - 1) == "v0.6.0" and len(calls) == 1   # de la caché
+    answer["tag"] = None                                                                                  # se cae la red
+    assert D.latest_release(cache=cache, now=1000 + D.RELEASE_TTL + 1) is None and len(calls) == 2
+    assert D.latest_release(cache=cache, now=1000 + D.RELEASE_TTL + 60) is None and len(calls) == 2     # el fallo también se recuerda
+    answer["tag"] = "v0.7.0"
+    assert D.latest_release(cache=cache, now=1000 + D.RELEASE_TTL + D.RELEASE_FAIL_TTL + 2) == "v0.7.0" and len(calls) == 3
+    assert D.latest_release(url="https://otra", cache=cache, now=1000 + D.RELEASE_TTL + D.RELEASE_FAIL_TTL + 3) == "v0.7.0"
+    assert len(calls) == 4                                                                                 # otra URL: no vale la caché
+    cache.write_text("{roto", encoding="utf-8")
+    assert D.latest_release(cache=cache, now=0) == "v0.7.0" and len(calls) == 5                         # caché rota: se pregunta
+
+
+def test_doctor_plugin_installed(tmp_path):
+    from frame28.doctor import plugin_installed
+    f = tmp_path / "installed_plugins.json"
+    assert plugin_installed(f) == (False, None)                                                            # sin Claude Code
+    f.write_text('{"version": 2, "plugins": {"frame28@think28": [{"scope": "user", "version": "0.4.0"},'
+                 ' {"scope": "project", "version": "0.5.0"}], "otro@x": [{"version": "9.9.9"}]}}', encoding="utf-8")
+    assert plugin_installed(f) == (True, "0.5.0")                                                          # la más nueva de las dos
+    f.write_text('{"frame28@think28": {"version": "0.3.1"}}', encoding="utf-8")                           # formato plano antiguo
+    assert plugin_installed(f) == (True, "0.3.1")
+    f.write_text('{"plugins": {"otro@x": [{"version": "1.0.0"}]}}', encoding="utf-8")
+    assert plugin_installed(f) == (True, None)                                                             # Claude Code sí, el plugin no
+    f.write_text("[1, 2]", encoding="utf-8")
+    assert plugin_installed(f) == (True, None)
+    f.write_text("no es json", encoding="utf-8")
+    assert plugin_installed(f) == (True, None)
+
+
+def test_doctor_version_rows():
+    from frame28.doctor import CLI_UPGRADE, PLUGIN_INSTALL, PLUGIN_UPGRADE, version_rows
+    cli, plug = version_rows("0.5.0", "v0.6.0", (True, "0.4.0"))
+    assert cli["name"] == "última release (CLI)" and not cli["ok"] and cli["fix"] == CLI_UPGRADE and "v0.6.0 publicada" in cli["detail"]
+    assert plug["name"] == "plugin (Claude Code)" and not plug["ok"] and plug["fix"] == PLUGIN_UPGRADE and plug["detail"].startswith("0.4.0")
+    assert all(r["optional"] for r in (cli, plug))                                                        # nunca bloquean «Todo listo»
+    cli, plug = version_rows("0.6.0", "v0.6.0", (True, "0.6.0"))
+    assert cli["ok"] and plug["ok"] and cli["fix"] == plug["fix"] == "" and plug["detail"] == "0.6.0 al día"
+    cli, plug = version_rows("0.6.0", None, (True, "0.6.0"))                                              # sin red
+    assert cli["ok"] and plug["ok"] and "sin respuesta" in cli["detail"]
+    _, plug = version_rows("0.6.0", "v0.6.0", (True, None))
+    assert not plug["ok"] and plug["fix"] == PLUGIN_INSTALL
+    _, plug = version_rows("0.6.0", "v0.6.0", (False, None))
+    assert not plug["ok"] and plug["fix"].endswith(PLUGIN_INSTALL) and "Claude Code" in plug["detail"]

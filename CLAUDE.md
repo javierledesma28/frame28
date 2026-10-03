@@ -193,7 +193,9 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - Cómo actualizan los usuarios (README §Actualizar y `docs/instalar.md`): `uv tool upgrade frame28` (verificado el
   2026-10-01: reinstala desde el último commit de GitHub en ~15 s aunque la versión no cambie) y `claude plugin marketplace
   update think28 && claude plugin update frame28@think28` (solo actúa si cambió la versión del plugin: por eso cada release
-  sube los cuatro sitios). Pendiente: fila de `doctor` que compare con la última release de GitHub y diga esas dos órdenes.
+  sube los cuatro sitios). `frame28 doctor` lo dice solo: filas «última release (CLI)» y «plugin (Claude Code)» (lee
+  `~/.claude/plugins/installed_plugins.json`), cada una con su orden; la consulta a GitHub se guarda 12 h (1 h si falla) en
+  `~/.cache/frame28/release.json` para no esperar el timeout sin red ni gastar el límite de 60 consultas por hora.
 - **Git lo gestiona Claude de principio a fin** (commits, ramas, push, PRs, tags y releases), como en el resto de repos de
   Think28 (Synapse28, TheValley28): Javier no pega comandos. El remoto es **SSH con el alias `github-jl28`**
   (`git@github-jl28:javierledesma28/frame28.git`; clave dedicada sin passphrase de `~/.ssh/config`, creada para que Claude

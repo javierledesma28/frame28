@@ -132,7 +132,8 @@ Para ponerlo al día más adelante, mira [Actualizar](#actualizar).
 
 ## Actualizar
 
-Frame28 son dos piezas y se actualizan por separado. Las dos órdenes son seguras de repetir.
+Frame28 son dos piezas y se actualizan por separado. Las dos órdenes son seguras de repetir. `frame28 doctor` te avisa
+cuando hay una versión nueva de cualquiera de las dos y te dice cuál de estas órdenes toca.
 
 **El plugin (las skills de Claude Code):**
 
