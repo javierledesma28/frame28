@@ -12,7 +12,6 @@ import re
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 import wave
 from pathlib import Path
 
@@ -61,9 +60,8 @@ def _denoise_filter(engine: str, strength: int) -> str | None:
         return f"afftdn=nr={strength}:nf=-45:tn=1"
     if engine == "rnnoise":
         if not RNNOISE_MODEL_PATH.exists():
-            CACHE_DIR.mkdir(parents=True, exist_ok=True)
-            print(f"Descargando modelo RNNoise a {RNNOISE_MODEL_PATH} ...")
-            urllib.request.urlretrieve(RNNOISE_MODEL_URL, RNNOISE_MODEL_PATH)
+            from .env import download
+            download(RNNOISE_MODEL_URL, RNNOISE_MODEL_PATH, "modelo RNNoise")
         # la ruta del modelo se pasa relativa: ffmpeg se ejecuta con cwd=CACHE_DIR (los dos puntos de "C:" rompen el filtergraph)
         return f"arnndn=m={RNNOISE_MODEL_PATH.name}:mix=0.9"
     raise SystemExit(f"motor de ruido desconocido: {engine} (none, afftdn, rnnoise, deepfilter)")

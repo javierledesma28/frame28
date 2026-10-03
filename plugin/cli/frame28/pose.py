@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import math
-import urllib.request
 from pathlib import Path
 
 import cv2
@@ -26,9 +25,8 @@ POINT_WORDS = {"aquí", "acá", "ahí", "allí", "allá", "esto", "esta", "este"
 
 def ensure_pose_model() -> Path:
     if not POSE_MODEL_PATH.exists():
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        print(f"Descargando modelo de pose (5 MB) a {POSE_MODEL_PATH} ...")
-        urllib.request.urlretrieve(POSE_MODEL_URL, POSE_MODEL_PATH)
+        from .env import download
+        download(POSE_MODEL_URL, POSE_MODEL_PATH, "modelo de pose (5 MB)")
     return POSE_MODEL_PATH
 
 

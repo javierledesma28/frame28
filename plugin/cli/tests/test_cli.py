@@ -221,3 +221,23 @@ def test_doctor_version_rows():
     assert not plug["ok"] and plug["fix"] == PLUGIN_INSTALL
     _, plug = version_rows("0.6.0", "v0.6.0", (False, None))
     assert not plug["ok"] and plug["fix"].endswith(PLUGIN_INSTALL) and "Claude Code" in plug["detail"]
+
+
+def test_avisos_de_descarga_por_stderr(tmp_path, monkeypatch, capsys):
+    from pathlib import Path
+    # F28-83: «Descargando modelo…» salía por stdout y rompía el JSON de matte/speaker/gestures/prep en la primera ejecución
+    from frame28 import env
+    monkeypatch.setattr("urllib.request.urlretrieve", lambda url, dest: Path(dest).write_bytes(b"modelo"))
+    got = env.download("https://example.invalid/m.onnx", tmp_path / "sub" / "m.onnx", "modelo de prueba")
+    out = capsys.readouterr()
+    assert got.read_bytes() == b"modelo" and out.out == "" and "Descargando modelo de prueba" in out.err
+
+
+def test_ningun_modulo_escribe_avisos_por_stdout():
+    from pathlib import Path
+    # Las órdenes devuelven JSON por stdout: solo cli.py (click.echo) escribe ahí; un print() suelto lo rompe
+    import re
+    pkg = Path(__file__).resolve().parents[1] / "frame28"
+    bad = [f"{f.name}:{n}" for f in pkg.glob("*.py") for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1)
+           if re.search(r"(?<![\w.])print\(", line) and "file=sys.stderr" not in line]
+    assert bad == [], f"print() a stdout en: {bad} (usa env.note)"
