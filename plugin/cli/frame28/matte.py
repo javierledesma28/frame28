@@ -12,6 +12,7 @@ import numpy as np
 
 from .env import ensure_rvm_model, ffmpeg, run
 from .media import cut, frame_at
+from .imgio import imwrite
 
 
 def auto_ratio(width: int, height: int) -> float:
@@ -50,7 +51,7 @@ def matte_frames(video: str | Path, png_dir: str | Path, ratio: float | None = N
         fgr, pha, *rec = sess.run([], {"src": x, "r1i": rec[0], "r2i": rec[1], "r3i": rec[2], "r4i": rec[3], "downsample_ratio": ds})
         fg = (np.transpose(fgr[0], (1, 2, 0)) * 255).clip(0, 255).astype(np.uint8)
         a = (pha[0, 0] * 255).clip(0, 255).astype(np.uint8)
-        cv2.imwrite(str(out / f"f_{n:04d}.png"), np.dstack([cv2.cvtColor(fg, cv2.COLOR_RGB2BGR), a]))
+        imwrite(str(out / f"f_{n:04d}.png"), np.dstack([cv2.cvtColor(fg, cv2.COLOR_RGB2BGR), a]))
         n += 1
     dt = time.time() - t0
     return {"frames": n, "seconds": round(dt, 1), "fps": round(n / dt, 2) if dt else None, "ratio": ratio, "provider": provider, "width": w, "height": h}
