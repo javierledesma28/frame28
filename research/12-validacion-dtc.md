@@ -13,7 +13,7 @@ La lista de marcas candidatas, con nombres, vive en `_private/prospeccion-dtc/` 
 
 | # | Hipótesis | Se confirma si… | Si no se confirma |
 |---|---|---|---|
-| H1 | Tienen **material grabado de sobra** y no lo explotan (pocos shorts, nada traducido) | 7 de 10 tienen ≥ 10 vídeos largos y < 1 short por vídeo largo | Buscar otra vertical DTC con más vídeo, o pivotar a «grabamos y montamos» (otro negocio) |
+| H1 | Tienen **material grabado de sobra** y no lo explotan: tutoriales largos con pocas vistas, nada traducido y Shorts que no enseñan técnica (ofertas, clips sueltos) | 7 de 10 tienen ≥ 10 vídeos largos y no tienen vídeo en otro idioma | Buscar otra vertical DTC con más vídeo, o pivotar a «grabamos y montamos» (otro negocio) |
 | H2 | El dolor que pagan es el **volumen de creatividades** (anuncios que se queman) **o los idiomas** | Lo mencionan sin que se lo sugiramos, con un coste o un ejemplo concreto | Si no duele ninguno de los dos, el mensaje está mal: reescribir con sus palabras |
 | H3 | Hoy **pagan** por resolverlo: editor, agencia u OpusClip | 6 de 10 pagan ≥ 1.000 USD/mes en edición o creatividades | Si pagan poco, Brand (199) es el techo y Studio no se vende |
 | H4 | Lo operaría **alguien de su equipo** con Claude Code, o prefieren que lo hagamos nosotros | Sabemos cuál de las dos para cada marca | Si nadie lo operaría, el producto es Studio + panel (y adelantamos la prueba de Cowork y de la app de escritorio) |
@@ -24,6 +24,11 @@ Regla: **preguntamos por lo que hicieron, no por lo que harían.** «¿Cuánto p
 que «¿pagaríais 199?».
 
 ---
+
+**Aprendizaje de la primera lista de candidatas (2026-10-03, 20 marcas revisadas):** casi todas publican ya muchos Shorts;
+solo 4 de 20 tienen pocos. Para la mayoría, el valor no es «empezar a hacer Shorts», sino idiomas (casi ninguna tiene
+vídeo traducido), anuncios con antes y después, ganchos de técnica en lugar de ofertas, y trocear tutoriales de 30–90 min
+que casi nadie ve completos. La muestra y el mensaje deben ir por ahí.
 
 ## 2. Flujo: de la marca a la conversación
 
