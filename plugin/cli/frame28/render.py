@@ -107,7 +107,7 @@ def render(project: str | Path, output: str | Path, quality: str = "high", crf: 
     res = {"ok": ok, "output": str(output), "time": m.group(1).strip() if m else None, "log_tail": out[-1500:],
            **({"workers": int(workers)} if workers else {}), **({"gpu": True} if gpu else {})}
     if ok and make_sheet:
-        every, cols, rows = sheet_plan(probe(output)["duration"])
+        every, cols, rows = sheet_plan(probe(output, loudness=False)["duration"])
         res["sheet"] = str(sheet(output, output.with_name(output.stem + "_sheet.png"), every, cols, rows))
         res["sheet_every"] = every
     return res

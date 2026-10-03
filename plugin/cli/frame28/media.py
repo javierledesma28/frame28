@@ -9,7 +9,10 @@ from pathlib import Path
 from .env import encoder_args, ffmpeg, ffprobe, run
 
 
-def probe(video: str | Path) -> dict:
+def probe(video: str | Path, loudness: bool = True) -> dict:
+    """Duración, vídeo (códec, tamaño, fps, pix_fmt) y audio. Con `loudness`, además el volumen medio y máximo
+    (volumedetect solo sobre el audio: con el vídeo decodificado tardaba 8,8 s en un AV1 de 197 s y con -vn 0,6 s,
+    F28-90). Quien solo quiere dimensiones o duración pasa loudness=False y se queda en ffprobe (0,4 s)."""
     r = run([ffprobe(), "-v", "error", "-show_entries",
             "format=duration,bit_rate:stream=codec_type,codec_name,width,height,r_frame_rate,pix_fmt,sample_rate,channels",
             "-of", "json", str(video)])
@@ -25,8 +28,8 @@ def probe(video: str | Path) -> dict:
                             "fps": round(int(num) / int(den), 3), "pix_fmt": s.get("pix_fmt")}
         elif s["codec_type"] == "audio" and out["audio"] is None:
             out["audio"] = {"codec": s["codec_name"], "sample_rate": int(s["sample_rate"]), "channels": s["channels"]}
-    if out["audio"]:
-        v = run([ffmpeg(), "-i", str(video), "-af", "volumedetect", "-f", "null", "-"])
+    if out["audio"] and loudness:
+        v = run([ffmpeg(), "-vn", "-i", str(video), "-vn", "-af", "volumedetect", "-f", "null", "-"])
         m = re.search(r"mean_volume: ([-\d.]+) dB", v.stderr)
         x = re.search(r"max_volume: ([-\d.]+) dB", v.stderr)
         out["audio"]["mean_db"] = float(m.group(1)) if m else None
