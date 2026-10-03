@@ -173,6 +173,23 @@ Reconstruido desde `poc/clip-acrilico/.frame28/log.jsonl` (109 órdenes, 2 h de 
 
 ## Lo que toca ahora (en este orden)
 
+**Novedad 2026-10-03: varias sesiones a la vez y un backlog común.** Javier trabaja con varias sesiones de Claude Code en
+paralelo, con la regla **una sesión = un objetivo** (nace para algo puntual y se cierra al cumplirlo). **Lo que hay que hacer
+ya no se lista aquí sino en el backlog**: tablero local en `http://localhost:2828` (`C:\Workspaces\personal\frame28-backlog`,
+doble clic en `abrir-backlog.cmd`), con la línea de órdenes `backlog.py` y las reglas en `PROTOCOLO.md`. Las tareas se
+llaman `F28-N`. Una sesión de escritura **toma** su tarea antes de tocar nada (el backlog se niega si choca por zonas con
+otra en curso). Lo que encuentre fuera de su objetivo **lo agrega**, sin hacerlo. Lo de esta lista y lo de «Qué quedó a
+medias» está volcado allí (F28-1…F28-23).
+
+Hecho el 2026-10-03, todo en `frame28-app`:
+- **Login del panel con `form_post`** (`f14b2cd`): Chrome había marcado como phishing la vuelta del login cuando el código de
+  Entra viajaba en la URL.
+- **frame28.app verificada en Google Search Console**, con revisión del problema de seguridad pedida (F28-4).
+- **Frame28 ID con la marca de Frame28** (`fee435b`; logo, colores, texto y enlace a Condiciones).
+- **El estudio y las campañas, publicados por la sesión Write** (`fb4048d`).
+- **El marketplace `think28` de esta máquina ahora apunta a GitHub** (`javierledesma28/frame28`), no a la carpeta local. Para
+  probar skills sin publicar, volver a añadir la carpeta: `claude plugin marketplace add C:/Workspaces/personal/Skill-Director`.
+
 **Novedad 2026-10-02: v0.5.0 publicada.** El plugin es una cáscara que entra con la cuenta de Frame28: `.mcp.json` →
 `https://frame28.app/mcp` (login de Frame28 ID con email y código; la fachada OAuth del servidor hace que no haga falta
 client id) y ocho skills que piden el método a la cuenta con `frame28_start(tarea)`. El método del director (cuerpos de las
