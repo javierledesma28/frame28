@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
-from .build import DEFAULT_BRAND, highlight_line_height, resolve_brand
+from .build import DEFAULT_BRAND, brand_errors, highlight_line_height, resolve_brand
 from .env import env_with_ffmpeg, npx_cmd, run
 
 
@@ -44,14 +44,19 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
             bp = resolve_brand(brand, out); meta = json.loads(bp.read_text(encoding="utf-8-sig")); brand_dir = bp.parent
         else:
             meta = brand
+        bad = brand_errors(meta)
+        if bad:
+            raise SystemExit("Marca no válida:\n  - " + "\n  - ".join(bad))
         b.update({k: v for k, v in meta.items() if k in b})
+    if bg not in ("accent", "black", "white", "none"):
+        raise SystemExit(f"fondo del título no válido '{bg}' (accent, black, white o none)")
     logo_html = ""
     files = meta.get("logo_files") or {}
     variant = files.get("on_dark") or files.get("isotipo")
     if variant and brand_dir and (brand_dir / variant).exists():
         src = brand_dir / variant
         shutil.copy2(src, out / "assets" / src.name)
-        logo_html = f'<img class="logo" src="assets/{src.name}" alt="">'
+        logo_html = f'<img class="logo" src="assets/{_esc(src.name)}" alt="">'
     lay = _layout(W, H, font_size)
     lines = lines or [title]
     # cada línea por encima de la siguiente: los descendentes (g, y, p) se pintan sobre la caja de abajo, no debajo
@@ -61,7 +66,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
     ring_html = f'<div class="ring" style="left:{ring[0] - ring[2]}px; top:{ring[1] - ring[2]}px; width:{2 * ring[2]}px; height:{2 * ring[2]}px"></div>' if ring else ""
     fx, fy = focus or (0.5, 0.5)
     fl = meta.get("font_link") or ""
-    font_link = f'<link rel="stylesheet" href="{fl}">' if fl else ""
+    font_link = f'<link rel="stylesheet" href="{_esc(fl)}">' if fl else ""
     logo_pos = "right: 48px; bottom: 44px;" if lay["logo"] == "bottom" else "right: 48px; top: 44px;"
     css = f"""
       * {{ margin:0; padding:0; box-sizing:border-box; }}
@@ -93,7 +98,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
   <body>
     <!-- Portada generada por Frame28 (frame28 cover). -->
     <div id="root" data-composition-id="main" data-start="0" data-duration="1" data-width="{W}" data-height="{H}">
-      <img class="bg" src="assets/{img.name}" alt="">
+      <img class="bg" src="assets/{_esc(img.name)}" alt="">
       <div class="shade"></div>
       {ring_html}
       {badge_html}
