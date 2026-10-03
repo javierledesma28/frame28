@@ -39,17 +39,36 @@ def render_args(output: Path, quality: str = "high", crf: int = 18, fps: int | N
     return args, env
 
 
-def check(project: str | Path) -> dict:
-    r = _hf(["check"], Path(project), timeout=600)
-    out = r.stdout + r.stderr
+def parse_check(returncode: int, out: str) -> dict:
+    """Lee la salida de `hyperframes check`. Antes bastaba con no ver líneas ✗ para aprobar: si npx fallaba (sin red la
+    primera vez, Node viejo, error de npm) no había ✗ y salía «check pasó» (F28-81). Ahora solo aprueba si HyperFrames se
+    ejecutó de verdad (su resumen «N error(s)» o «Check passed/failed») y no hay errores reales; el texto detrás del
+    hablante (text_occluded) y los avisos de contraste se separan para que el agente decida."""
     marks = [l.strip() for l in out.splitlines() if "✗" in l]
-    # el falso positivo conocido: texto detrás del hablante marcado como ocluido
-    occluded = [e for e in marks if "text_occluded" in e]
-    # contraste: HyperFrames lo reporta como aviso; lo separamos para que el agente decida (sombra, caja, otro color)
-    contrast = [e for e in marks if "(need " in e]
+    occluded = [e for e in marks if "text_occluded" in e]          # el falso positivo conocido: texto detrás del hablante
+    contrast = [e for e in marks if "(need " in e]                  # HyperFrames lo da como aviso: sombra, caja u otro color
     real = [e for e in marks if e not in occluded and e not in contrast]
-    passed = "Check passed" in out or (not real)
-    return {"passed": passed, "errors": real, "contrast_warnings": contrast, "known_false_positives": occluded, "raw": out[-3000:]}
+    totals = [int(n) for n in re.findall(r"(\d+) error\(s\)", out)]
+    ran = bool(re.search(r"Check (passed|failed)", out) or totals)
+    if not ran:
+        tail = " · ".join(l.strip() for l in out.strip().splitlines()[-4:] if l.strip())[:400]
+        real = [f"HyperFrames no llegó a ejecutarse (código {returncode}): {tail or 'sin salida'}. Mira `frame28 doctor` "
+                "(node, npx y la red: la primera vez npx descarga HyperFrames)"]
+    unexplained = sum(totals) > len(occluded) + len(contrast) and "Check passed" not in out
+    if ran and not real and unexplained:                            # cuenta errores que no sabemos leer: no aprobar a ciegas
+        real = [f"HyperFrames cuenta {sum(totals)} error(es) que no se pudieron leer de su salida: revisa «raw»"]
+    return {"passed": ran and not real, "ran": ran, "errors": real, "contrast_warnings": contrast,
+            "known_false_positives": occluded, "returncode": returncode, "raw": out[-3000:]}
+
+
+def check(project: str | Path) -> dict:
+    try:
+        r = _hf(["check"], Path(project), timeout=600)
+    except FileNotFoundError:
+        return parse_check(127, "npx no encontrado: instala Node.js 22 o superior")
+    except subprocess.TimeoutExpired:
+        return parse_check(124, "hyperframes check no terminó en 10 minutos")
+    return parse_check(r.returncode, r.stdout + r.stderr)
 
 
 def render(project: str | Path, output: str | Path, quality: str = "high", crf: int = 18, fps: int | None = None, make_sheet: bool = True,

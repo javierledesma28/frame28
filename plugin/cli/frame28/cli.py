@@ -897,12 +897,17 @@ def check(project, as_json):
     from .render import check as _check
     r = _check(project)
     if as_json:
-        out(r, True); return
-    click.echo(("✓ check pasó" if r["passed"] else "✗ check falló"))
-    for e in r["errors"]:
-        click.echo("  " + e)
-    if r["known_false_positives"]:
-        click.echo(f"  ({len(r['known_false_positives'])} aviso(s) text_occluded ignorados: es el texto detrás del hablante)")
+        out(r, True)
+    else:
+        click.echo(("✓ check pasó" if r["passed"] else "✗ check falló"))
+        for e in r["errors"]:
+            click.echo("  " + e)
+        for w in r["contrast_warnings"]:
+            click.echo("  aviso de contraste: " + w)
+        if r["known_false_positives"]:
+            click.echo(f"  ({len(r['known_false_positives'])} aviso(s) text_occluded ignorados: es el texto detrás del hablante)")
+    if not r["passed"]:   # `frame28 check … && frame28 render` ya no deja pasar un render con errores
+        raise SystemExit(1)
 
 
 @main.command()
