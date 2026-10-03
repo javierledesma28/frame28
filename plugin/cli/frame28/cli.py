@@ -825,11 +825,15 @@ def brand_from_site(url, name, out_dir, logo_url, tagline, as_json):
     r = from_site(url, name, out_dir, logo_url, tagline)
     if as_json:
         out(r, True); return
-    click.echo(f"  marca: {r['brand']}")
-    click.echo(f"  acento {r['accent']}  tinta {r['ink']}  fuente {r['font'] or '(no detectada)'}  secundarios {', '.join(r['secondary']) or '-'}")
-    click.echo(f"  colores más usados: " + ", ".join(f"{h} x{n}" for h, n in r["top_colors"]))
+    click.echo(f"  marca: {r['brand']}  ·  confianza {r['confidence']}")
+    click.echo(f"  acento {r['accent']} ({', '.join(r['accent_sources']) or 'provisional'})  tinta {r['ink']}  fuente {r['font'] or '(no detectada)'}"
+               f"  secundarios {', '.join(r['secondary']) or '-'}")
+    click.echo(f"  colores más usados (portada + {r['stylesheets']} hoja(s) CSS): " + ", ".join(f"{h} x{n}" for h, n in r["top_colors"]))
     lg = r["logo"]
-    click.echo(f"  logo: {lg.get('url') or '(no encontrado)'}" + (f"  → {', '.join(lg['files'].keys())}" if lg.get("files") else "") + (f"  (error: {lg['error']})" if lg.get("error") else ""))
+    click.echo(f"  logo: {lg.get('url') or '(no encontrado)'}" + (f" [{lg['kind']}]" if lg.get("kind") else "")
+               + (f"  → {', '.join(lg['files'].keys())}" if lg.get("files") else "") + (f"  colores {', '.join(r['logo_colors'])}" if r["logo_colors"] else ""))
+    for w in r["warnings"]:
+        click.echo(f"  ! {w}")
     click.echo(f"  sitio: {r['title']}\n  {r['description'][:160]}")
     click.echo("  Revisa y ajusta con un editor (tagline, endorsement, colores) y úsala con \"brand\": \"" + name + "\" en el storyboard.")
 
