@@ -5,6 +5,7 @@ import glob
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 CACHE_DIR = Path(os.environ.get("FRAME28_CACHE", Path.home() / ".cache" / "frame28"))
@@ -147,12 +148,23 @@ def cuda_ready() -> tuple[bool, str]:
     return True, f"{n} GPU CUDA con cuBLAS y cuDNN"
 
 
+def note(msg: str) -> None:
+    """Avisos para la persona (descargas, progreso): siempre por stderr. Muchas órdenes devuelven JSON por stdout y el
+    director lo lee con json.loads; un aviso por stdout lo rompía justo en la primera ejecución en una máquina nueva."""
+    print(msg, file=sys.stderr, flush=True)
+
+
+def download(url: str, dest: Path, label: str) -> Path:
+    """Descarga un modelo a la caché avisando por stderr. Único punto de descarga de modelos (F28-82 lo hará atómico)."""
+    import urllib.request
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    note(f"Descargando {label} a {dest} ...")
+    urllib.request.urlretrieve(url, dest)
+    return dest
+
+
 def ensure_rvm_model() -> Path:
     if RVM_MODEL_PATH.exists():
         return RVM_MODEL_PATH
-    import urllib.request
-
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"Descargando modelo RVM (15 MB) a {RVM_MODEL_PATH} ...")
-    urllib.request.urlretrieve(RVM_MODEL_URL, RVM_MODEL_PATH)
-    return RVM_MODEL_PATH
+    return download(RVM_MODEL_URL, RVM_MODEL_PATH, "modelo RVM (15 MB)")
