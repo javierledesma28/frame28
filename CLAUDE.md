@@ -1,5 +1,8 @@
 # Frame28 · memoria del proyecto para Claude Code
 
+**Normas comunes del equipo de agentes** (mandan sobre este fichero en lo que se solapen; autoridad, fuentes de verdad, backlog, git, despliegue, seguridad):
+@C:/Workspaces/personal/frame28-backlog/NORMAS.md
+
 Lee esto antes de tocar nada. Complementa a `HANDOFF.md` (estado, qué se hizo, qué toca ahora) y a
 `docs/guia-plugin.md` (ciclo de vida del plugin). Responder siempre en español.
 
