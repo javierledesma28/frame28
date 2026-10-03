@@ -145,3 +145,77 @@ def test_highlighted_titles_get_taller_lines_for_accented_capitals(tmp_path, gra
     hook.pop("text", None); hook["lines"] = ["Graba", "ACRÍLICO"]
     build.build_project(write_json(tmp_path / "storyboard.json", sb), tmp_path / "p")
     assert "line-height:1.37;" in (tmp_path / "p" / "index.html").read_text(encoding="utf-8")
+
+
+# ── F28-84: lo que no es texto también acaba en el HTML (atributos, estilos, JS, rutas) ─────────────────────────────────
+PAYLOAD = '"><script>alert(1)</script>'
+
+
+def test_validate_rejects_hostile_values():
+    sb = _sb(overlays=[
+        {"type": "box", "id": "a b", "x": 0, "y": 0, "text": "t", "start": 1, "end": 2},
+        {"type": "box", "id": PAYLOAD, "x": 0, "y": 0, "text": "t", "start": 1, "end": 2},
+        {"type": "kinetic", "id": "k", "x": 0, "y": 0, "text": "t", "start": 1, "end": 2, "color": "red;}</style><script>"},
+        {"type": "box", "id": "b", "x": 0, "y": 0, "text": "t", "start": 1, "end": 2, "bg": 'x" onload="alert(1)'},
+        {"type": "image", "id": "i1", "x": 0, "y": 0, "w": 10, "start": 1, "end": 2, "src": "<script>.png"},
+        {"type": "image", "id": "i2", "x": 0, "y": 0, "w": 10, "start": 1, "end": 2, "src": "C:/Windows/win.ini"},
+        {"type": "image", "id": "i3", "x": 0, "y": 0, "w": 10, "start": 1, "end": 2, "src": "https://evil.example/x.png"},
+        {"type": "image", "id": "i4", "x": 0, "y": 0, "w": 10, "start": 1, "end": 2, "src": "assets/../../../x.png"},
+        {"type": "draw", "id": "d1", "x": 0, "y": 0, "w": 10, "start": 1, "end": 2, "paths": ['M0 0"/><script>']},
+        {"type": "draw", "id": "d2", "x": 0, "y": 0, "w": 10, "start": 1, "end": 2, "viewBox": '0 0 24 24" onload="x'},
+        {"type": "box", "id": "c", "x": "0); alert(1); (", "y": 0, "text": "t", "start": 1, "end": 2},
+    ], meta={"lang": 'es"><script>'}, brand={"accent": "#fff", "sans": "x;}</style><script>", "font_link": 'https://f.example/" onload="x'})
+    errs = "\n".join(build.validate(sb))
+    for frag in ("overlays[0].id", "overlays[1].id", "overlays[2].color", "overlays[3].bg", "overlays[4].src", "overlays[5].src",
+                 "overlays[6].src", "overlays[7].src", "overlays[8].paths", "overlays[9].viewBox", "overlays[10].x", "meta.lang",
+                 "marca.sans", "marca.font_link"):
+        assert frag in errs, frag
+
+
+def test_safe_rel_path():
+    for ok in ("clip.mp4", "assets/x.png", "../clip.mp4", "../../work/alpha_4.3.webm", "./a/b.webm"):
+        assert build.safe_rel_path(ok), ok
+    for bad in ("", "/etc/passwd", r"\\srv\x","C:/x.png", "file:x", "https://a/b", "a/../../b", "..", "../", 'a".png', "a<b>.png"):
+        assert not build.safe_rel_path(bad), bad
+
+
+def _draw_sb(tmp_path, svg: str) -> Path:
+    (tmp_path / "icon.svg").write_text(svg, encoding="utf-8")
+    return write_json(tmp_path / "sb.json", _sb(overlays=[
+        {"type": "draw", "id": "d", "x": 10, "y": 10, "w": 100, "start": 1, "end": 2, "src": "icon.svg"}]))
+
+
+def test_build_project_rejects_svg_with_scripts(tmp_path):
+    sbp = _draw_sb(tmp_path, '<svg viewBox="0 0 24 24"><path d="M0 0L24 24" onmouseover="alert(1)"/></svg>')
+    with pytest.raises(SystemExit, match="draw.src"):
+        build.build_project(sbp, tmp_path / "p")
+    sbp = _draw_sb(tmp_path, '<svg viewBox="0 0 24 24"><path d="M0 0L24 24"/></svg>')
+    html = (Path(build.build_project(sbp, tmp_path / "p2")["index"])).read_text(encoding="utf-8")
+    assert 'd="M0 0L24 24"' in html
+
+
+def test_build_project_never_writes_outside_the_project(tmp_path):
+    (tmp_path / "clip.mp4").write_bytes(b"x")
+    work = tmp_path / "work"; work.mkdir()
+    sb = _sb(); sb["source"]["video"] = "../clip.mp4"
+    res = build.build_project(write_json(work / "sb.json", sb), work / "project")
+    assert not (work / "clip.mp4").exists()                       # antes se copiaba a work/, fuera del proyecto
+    assert any("fuera del proyecto" in w for w in res["warnings"])
+
+
+def test_build_rejects_brand_with_css_injection(tmp_path):
+    sb = _sb(brand={"accent": "red;}</style><script>alert(1)</script>"})
+    with pytest.raises(SystemExit, match="marca.accent"):
+        build.build_project(write_json(tmp_path / "sb.json", sb), tmp_path / "p")
+
+
+def test_cover_validates_brand_and_escapes_font_link(tmp_path):
+    from frame28 import cover
+    img = tmp_path / "f.png"; img.write_bytes(b"x")
+    with pytest.raises(SystemExit, match="marca.accent"):
+        cover.build_cover(img, tmp_path / "c1", "Hola", brand={"accent": "red;}</style><script>"})
+    with pytest.raises(SystemExit, match="fondo"):
+        cover.build_cover(img, tmp_path / "c2", "Hola", bg='accent"><script>')
+    idx = cover.build_cover(img, tmp_path / "c3", PAYLOAD, brand={"font_link": "https://fonts.example/css?family=A&display=swap"})
+    html = idx.read_text(encoding="utf-8")
+    assert "family=A&amp;display=swap" in html and "<script>alert" not in html

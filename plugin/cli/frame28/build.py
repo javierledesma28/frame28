@@ -244,6 +244,9 @@ class Builder:
             path = resolve_brand(brand, project_dir)
             brand = json.loads(path.read_text(encoding="utf-8-sig"))
             self.brand_dir = path.parent
+        bad = brand_errors(brand)
+        if bad:
+            raise SystemExit("Marca no válida:\n  - " + "\n  - ".join(bad))
         self.brand = {**DEFAULT_BRAND, **{k: v for k, v in brand.items() if k in DEFAULT_BRAND}}
         self.brand_meta = brand
         self.brand_assets: dict[str, Path] = {}  # ruta publicada -> fichero origen (logos)
@@ -724,7 +727,7 @@ class Builder:
         color = o.get("color", "#ffffff"); sw = o.get("stroke_width", 2)
         if o.get("src"):
             svg = (Path(self.sb_dir) / o["src"]).read_text(encoding="utf-8") if self.sb_dir else Path(o["src"]).read_text(encoding="utf-8")
-            svg = svg[svg.find("<svg"):]
+            svg = safe_svg(svg[svg.find("<svg"):], f"overlay {i} (draw.src)")
         else:
             paths = o.get("paths") or ICONS.get(o.get("icon", "check")) or ICONS["check"]
             vb = o.get("viewBox", "0 0 24 24")
@@ -800,7 +803,7 @@ class Builder:
                .replace("{capsize}", str(b["caption_font_size"])))
         body = "\n      ".join(self.html); js = "\n      ".join(self.js)
         fl = self.brand_meta.get("font_link")
-        font_link = f'    <link rel="stylesheet" href="{fl}">\n' if fl else ""
+        font_link = f'    <link rel="stylesheet" href="{esc(fl)}">\n' if fl else ""
         plugins = ""
         if self.uses_split:
             plugins += f'    <script src="https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/SplitText.min.js"></script>\n'
@@ -837,6 +840,119 @@ class Builder:
   </body>
 </html>
 """
+
+
+# ── Seguridad del HTML generado (F28-84) ─────────────────────────────────────────────────────────────────────────────
+# El storyboard lo escribe el agente a partir de transcripciones, vídeos y webs de clientes: una inyección de prompt podía
+# colar un id, un color, una ruta o un SVG que ejecutara JS en el Chrome de check/render (con red). Los textos ya se
+# escapan con esc(); el resto de valores se valida aquí, en la entrada, con el formato que puede tener cada campo.
+ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")                        # también lo exige GSAP: un espacio rompía el selector
+COLOR_RE = re.compile(r"^(#[0-9a-fA-F]{3,8}|rgba?\(\s*[\d.%\s,]+\)|hsla?\(\s*[\d.%\s,deg]+\)|[a-zA-Z]{3,20})$")
+PATH_D_RE = re.compile(r"^[MmLlHhVvCcSsQqTtAaZz0-9eE\s,.+-]+$")
+VIEWBOX_RE = re.compile(r"^-?[\d.]+(\s+-?[\d.]+){3}$")
+LANG_RE = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
+NUM_KEYS = {"start", "end", "at", "x", "y", "w", "h", "size", "duration", "value", "stroke_width", "logo_width", "in",
+            "before_t", "after_t", "matte_start", "matte_end", "decimals", "stagger", "total", "bottom", "max_words"}
+PATH_KEYS = {"src", "matte", "before", "after"}
+BG_TOKENS = {"black", "white", "accent", "none"}
+ENUMS = {"reveal": {"fade", "rise", "chars"}, "kind": {"bar", "counter"}, "pan": {"left", "right", "up", "down"},
+         "sort": {"asc", "desc"}}
+SVG_BAD = re.compile(r"<\s*script|<\s*foreignObject|\bon[a-z]+\s*=|javascript\s*:|<\s*iframe|<\s*object|<\s*embed", re.I)
+CSS_BAD = re.compile(r"[<>{};]|/\*|\\")
+
+
+def _is_num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def safe_rel_path(v) -> bool:
+    """Ruta relativa al storyboard: sin unidad ni esquema, sin comillas ni < >, y `..` solo al principio (los storyboards
+    de work/ usan ../clip.mp4; "a/../../b" no). Que la copia no escriba fuera del proyecto lo vigila build_project."""
+    if not isinstance(v, str) or not v.strip() or len(v) > 400:
+        return False
+    if v.startswith(("/", "\\")) or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", v) or any(c in v for c in "\"'<>`\r\n\t"):
+        return False
+    parts = [p for p in re.split(r"[\\/]", v) if p not in ("", ".")]
+    ups = 0
+    while ups < len(parts) and parts[ups] == "..":
+        ups += 1
+    return ups < len(parts) and ".." not in parts[ups:]
+
+
+def _walk(o, path: str, errs: list[str]) -> None:
+    if isinstance(o, dict):
+        for k, v in o.items():
+            p = f"{path}.{k}"
+            if k in NUM_KEYS and not (_is_num(v) or v is None):
+                errs.append(f"{p}: tiene que ser un número")
+            elif k in ("dot", "box") and isinstance(v, list) and not (len(v) == 2 and all(_is_num(x) for x in v)):
+                errs.append(f"{p}: tiene que ser [x, y] con números")
+            elif k == "color" and not (isinstance(v, str) and COLOR_RE.match(v.strip())):
+                errs.append(f"{p}: color no válido (#hex, rgb(), hsl() o un nombre)")
+            elif k == "bg" and not (isinstance(v, str) and (v in BG_TOKENS or COLOR_RE.match(v.strip()))):
+                errs.append(f"{p}: fondo no válido (black, white, accent, none o un color)")
+            elif k in PATH_KEYS and isinstance(v, str) and not safe_rel_path(v):
+                errs.append(f"{p}: ruta no permitida (relativa al storyboard, .. solo al principio, sin C:\\ ni esquemas)")
+            elif k in ENUMS and v is not None and v not in ENUMS[k]:
+                errs.append(f"{p}: valor no válido '{v}' ({', '.join(sorted(ENUMS[k]))})")
+            elif k == "paths" and not (isinstance(v, list) and all(isinstance(d, str) and PATH_D_RE.match(d) for d in v)):
+                errs.append(f"{p}: cada trazado SVG solo admite órdenes y números (M, L, C, Z…)")
+            elif k == "viewBox" and not (isinstance(v, str) and VIEWBOX_RE.match(v.strip())):
+                errs.append(f"{p}: viewBox tiene que ser cuatro números")
+            else:
+                _walk(v, p, errs)
+    elif isinstance(o, list):
+        for n, v in enumerate(o):
+            _walk(v, f"{path}[{n}]", errs)
+
+
+def safety_errors(sb: dict) -> list[str]:
+    """Formatos de lo que acaba en atributos, estilos, JS o rutas del HTML generado (los textos se escapan aparte)."""
+    errs: list[str] = []
+    for n, o in enumerate(sb.get("overlays", [])):
+        oid = o.get("id")
+        if oid is not None and not (isinstance(oid, str) and ID_RE.match(oid)):
+            errs.append(f"overlays[{n}].id: '{oid}' no vale: letra inicial y luego letras, cifras, - o _ (sin espacios)")
+        _walk({k: v for k, v in o.items() if k not in ("id", "type")}, f"overlays[{n}]", errs)
+    src = sb.get("source") or {}
+    for k in ("video", "audio"):
+        if src.get(k) is not None and not safe_rel_path(src[k]):
+            errs.append(f"source.{k}: ruta no permitida (relativa al storyboard, .. solo al principio, sin C:\\ ni esquemas)")
+    lang = (sb.get("meta") or {}).get("lang")
+    if lang and not (isinstance(lang, str) and LANG_RE.match(lang)):
+        errs.append(f"meta.lang: '{lang}' no es un idioma (es, en, pt-BR…)")
+    for n, c in enumerate(sb.get("captions", []) or []):
+        for k in ("start", "end"):
+            if k in c and not _is_num(c[k]):
+                errs.append(f"captions[{n}].{k}: tiene que ser un número")
+    return errs
+
+
+def brand_errors(brand: dict) -> list[str]:
+    """Valores de la marca que van dentro del <style> generado: colores con formato de color y fuentes sin caracteres que
+    cierren la regla o la etiqueta."""
+    errs = []
+    for k in ("accent", "ink", "paper", "grey", "border"):
+        v = brand.get(k)
+        if v is not None and not (isinstance(v, str) and COLOR_RE.match(v.strip())):
+            errs.append(f"marca.{k}: color no válido '{v}'")
+    for k in ("sans", "mono"):
+        v = brand.get(k)
+        if v is not None and (not isinstance(v, str) or CSS_BAD.search(v)):
+            errs.append(f"marca.{k}: tipografía con caracteres no permitidos (< > {{ }} ; \\)")
+    if "caption_font_size" in brand and not _is_num(brand["caption_font_size"]):
+        errs.append("marca.caption_font_size: tiene que ser un número")
+    fl = brand.get("font_link")
+    if fl and not (isinstance(fl, str) and fl.startswith("https://") and not re.search(r"[\"'<>`\s\\]", fl)):
+        errs.append("marca.font_link: tiene que ser una URL https:// sin comillas, espacios ni < >")
+    return errs
+
+
+def safe_svg(svg: str, origin: str) -> str:
+    """El SVG de draw.src entra tal cual en la página: sin scripts, manejadores on…= ni enlaces javascript:."""
+    if SVG_BAD.search(svg):
+        raise SystemExit(f"{origin}: el SVG trae scripts, manejadores de eventos o contenido incrustado; usa uno limpio (solo trazos)")
+    return svg
 
 
 def validate(sb: dict) -> list[str]:
@@ -895,6 +1011,9 @@ def validate(sb: dict) -> list[str]:
         errs.append("canvas demasiado pequeño (mínimo 480 px de lado)")
     if sb.get("platform") not in (None, "tiktok", "reels", "shorts", "youtube", "pdp"):
         errs.append("platform debe ser tiktok, reels, shorts, youtube o pdp")
+    errs += safety_errors(sb)
+    if isinstance(sb.get("brand"), dict):
+        errs += brand_errors(sb["brand"])
     return errs
 
 
@@ -952,8 +1071,14 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
     copied = []
     if copy_assets:
         for rel in sorted(b.assets):
+            if not safe_rel_path(rel):   # ya lo filtra validate(); por si un asset llega por otro camino
+                b.warnings.append(f"asset con ruta no permitida, no se copia: {rel}"); continue
             src = (sb_path.parent / rel)
             dst = out / rel
+            if not dst.resolve().is_relative_to(out.resolve()):   # ../clip.mp4: se usa en su sitio, nunca se escribe fuera
+                if not dst.exists():
+                    b.warnings.append(f"asset fuera del proyecto, no se copia: {rel} (no existe {dst}; pon el proyecto junto a él)")
+                continue
             if src.exists():
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 if src.resolve() != dst.resolve():
