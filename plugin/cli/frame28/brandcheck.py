@@ -269,7 +269,7 @@ def find_brief(sb_path: Path) -> Path | None:
 
 def load(sb_path: Path, brief: Path | None = None, memoria: Path | None = None) -> tuple[dict, Rules, dict]:
     """(storyboard, reglas reunidas, marca) desde disco."""
-    sb = json.loads(sb_path.read_text(encoding="utf-8"))
+    sb = json.loads(sb_path.read_text(encoding="utf-8-sig"))
     brand: dict = {}
     b = sb.get("brand")
     if isinstance(b, dict):
@@ -277,7 +277,7 @@ def load(sb_path: Path, brief: Path | None = None, memoria: Path | None = None) 
     elif isinstance(b, str) and b:
         from .build import resolve_brand
         try:
-            brand = json.loads(resolve_brand(b, near=sb_path.parent).read_text(encoding="utf-8"))
+            brand = json.loads(resolve_brand(b, near=sb_path.parent).read_text(encoding="utf-8-sig"))
         except SystemExit:
             brand = {}
     rules = rules_from_brand(brand, f"marca {b}" if isinstance(b, str) else "marca")
@@ -285,5 +285,5 @@ def load(sb_path: Path, brief: Path | None = None, memoria: Path | None = None) 
     if brief and brief.exists():
         rules.add(rules_from_brief(brief.read_text(encoding="utf-8"), str(brief)))
     if memoria:
-        rules.add(rules_from_memoria(json.loads(Path(memoria).read_text(encoding="utf-8")), str(memoria)))
+        rules.add(rules_from_memoria(json.loads(Path(memoria).read_text(encoding="utf-8-sig")), str(memoria)))
     return sb, rules, brand

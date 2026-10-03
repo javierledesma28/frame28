@@ -48,7 +48,7 @@ def _seconds(d: dict, key: str) -> float | None:
 def _read_json(path: str | Path):
     p = Path(path)
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
+        return json.loads(p.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as ex:
         raise TranscriptFormatError(f"{p}: JSON inválido ({ex.msg}, línea {ex.lineno})") from ex
 

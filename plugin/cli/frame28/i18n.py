@@ -137,8 +137,8 @@ def retime_words(words: list[dict], captions_src: list[dict], captions_tr: list[
 def translate_project(storyboard_path: str | Path, strings_path: str | Path, lang: str, out_path: str | Path | None = None,
                       words_path: str | Path | None = None, captions_src_path: str | Path | None = None) -> dict:
     """Aplica las traducciones y, con caption_style por palabras, genera words.<lang>.json junto al storyboard."""
-    sbp = Path(storyboard_path); sb = json.loads(sbp.read_text(encoding="utf-8"))
-    tr = json.loads(Path(strings_path).read_text(encoding="utf-8"))
+    sbp = Path(storyboard_path); sb = json.loads(sbp.read_text(encoding="utf-8-sig"))
+    tr = json.loads(Path(strings_path).read_text(encoding="utf-8-sig"))
     new, warns = apply(sb, tr, lang)
     out = Path(out_path) if out_path else sbp.with_name(f"{sbp.stem}.{lang}.json")
     res = {"storyboard": str(out), "lang": lang, "translated": len(tr.get("strings", tr)), "warnings": warns}

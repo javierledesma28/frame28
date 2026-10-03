@@ -79,7 +79,7 @@ def latest_release(url: str = RELEASES_API, timeout: float = 5.0, cache: Path | 
     cache = cache or CACHE_DIR / "release.json"
     now = time.time() if now is None else now
     try:
-        c = json.loads(cache.read_text(encoding="utf-8"))
+        c = json.loads(cache.read_text(encoding="utf-8-sig"))
         ttl = RELEASE_TTL if c.get("tag") else RELEASE_FAIL_TTL
         if c.get("url") == url and 0 <= now - float(c.get("at", 0)) < ttl:
             return c.get("tag")
@@ -103,7 +103,7 @@ def plugin_installed(path: Path | None = None) -> tuple[bool, str | None]:
     Claude Code; admite el formato con `plugins` y el plano, y una entrada o varias (alcances usuario y proyecto)."""
     path = path or claude_plugins_file()
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
     except FileNotFoundError:
         return False, None
     except Exception:  # noqa: BLE001  (formato desconocido: hay Claude Code, no sabemos la versión)

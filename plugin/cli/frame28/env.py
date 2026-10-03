@@ -102,7 +102,7 @@ def nvenc_ready(cache: Path | None = None, now: float | None = None, probe=None)
     cache = cache or CACHE_DIR / "nvenc.json"
     now = time.time() if now is None else now
     try:
-        c = json.loads(cache.read_text(encoding="utf-8"))
+        c = json.loads(cache.read_text(encoding="utf-8-sig"))
         if c.get("key") == key and 0 <= now - float(c.get("at", 0)) < NVENC_TTL:
             return bool(c["ok"]), str(c.get("why", ""))
     except Exception:  # noqa: BLE001  (sin caché o rota: se prueba)

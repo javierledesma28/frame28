@@ -423,3 +423,74 @@ def test_models_are_pinned_with_hashes():
     for sha in (env.RVM_MODEL_SHA256, pose.POSE_MODEL_SHA256, audio.RNNOISE_MODEL_SHA256):
         assert len(sha) == 64 and int(sha, 16) >= 0
     assert "/master/" not in audio.RNNOISE_MODEL_URL                   # fijado a un commit, no a una rama que cambia
+
+
+# ── F28-86: errores habituales como mensajes, no trazas ──────────────────────────────────────────────────────────────
+def test_storyboard_with_bom_is_read(tmp_path):
+    # PowerShell 5.1 (Set-Content -Encoding UTF8) guarda con BOM y json.loads reventaba con una traza
+    sb = {"version": 1, "source": {"video": "c.mp4", "duration": 5}, "overlays": []}
+    p = tmp_path / "sb.json"
+    p.write_bytes(b"\xef\xbb\xbf" + json.dumps(sb).encode("utf-8"))
+    r = CliRunner().invoke(main, ["storyboard", "validate", str(p)])
+    assert r.exit_code == 0 and "Storyboard válido." in r.output
+
+
+def test_card_title_as_plain_text_builds(tmp_path):
+    from frame28.build import build_project
+    sb = {"version": 1, "source": {"video": "c.mp4", "duration": 5}, "canvas": {"width": 1920, "height": 1080},
+          "overlays": [{"type": "card", "id": "c1", "start": 0, "end": 2, "title": "Hola", "subtitle": "qué tal"}]}
+    p = tmp_path / "sb.json"; p.write_text(json.dumps(sb), encoding="utf-8")
+    res = build_project(p, tmp_path / "project", copy_assets=False)
+    html = (tmp_path / "project" / "index.html").read_text(encoding="utf-8")
+    assert res["overlays"] == 1 and "Hola" in html and "qué tal" in html
+
+
+def test_render_timeout_grows_with_the_video(tmp_path, monkeypatch):
+    from frame28.render import render_timeout
+    monkeypatch.delenv("FRAME28_RENDER_TIMEOUT", raising=False)
+    (tmp_path / "index.html").write_text('<div data-duration="19.5"><div data-duration="10.0">', encoding="utf-8")
+    assert render_timeout(tmp_path) == 3600                                  # un clip corto: el mínimo de una hora
+    (tmp_path / "index.html").write_text('<div data-duration="600">', encoding="utf-8")
+    assert render_timeout(tmp_path) == 36000                                 # 10 min de vídeo: 10 h de margen
+    monkeypatch.setenv("FRAME28_RENDER_TIMEOUT", "120")
+    assert render_timeout(tmp_path) == 120
+    monkeypatch.delenv("FRAME28_RENDER_TIMEOUT")
+    assert render_timeout(tmp_path / "no-existe") == 3600
+
+
+def test_friendly_errors():
+    import subprocess
+    import urllib.error
+    from frame28.cli import friendly_error
+    msg, code = friendly_error(urllib.error.HTTPError("https://tienda.example/logo.png", 403, "Forbidden", {}, None))
+    assert code == 3 and "403" in msg and "anti-bots" in msg and "--logo-url" in msg
+    assert friendly_error(urllib.error.URLError("getaddrinfo failed"))[1] == 3
+    try:
+        json.loads('{"a": 1,}')
+    except json.JSONDecodeError as e:
+        msg, code = friendly_error(e)
+    assert code == 2 and "línea 1" in msg
+    msg, code = friendly_error(subprocess.TimeoutExpired(["C:/x/npx.cmd", "hyperframes"], 300))
+    assert code == 4 and "npx.cmd" in msg and "300 s" in msg
+    assert "doctor" in friendly_error(FileNotFoundError(2, "No such file", "ffmpeg"))[0]
+    assert friendly_error(ValueError("x")) is None
+
+
+def test_run_prints_short_errors_and_debug_shows_the_trace(monkeypatch, capsys):
+    import urllib.error
+    from frame28 import cli
+    def boom():
+        raise urllib.error.HTTPError("https://t.example", 403, "Forbidden", {}, None)
+    monkeypatch.setattr(cli, "main", boom)
+    monkeypatch.delenv("FRAME28_DEBUG", raising=False)
+    with pytest.raises(SystemExit) as e:
+        cli.run()
+    err = capsys.readouterr().err
+    assert e.value.code == 3 and err.startswith("Error: ") and "Traceback" not in err
+    monkeypatch.setattr(cli, "main", lambda: (_ for _ in ()).throw(ZeroDivisionError("raro")))
+    with pytest.raises(SystemExit) as e:
+        cli.run()
+    assert e.value.code == 1 and "FRAME28_DEBUG=1" in capsys.readouterr().err
+    monkeypatch.setenv("FRAME28_DEBUG", "1")
+    with pytest.raises(ZeroDivisionError):
+        cli.run()

@@ -342,7 +342,7 @@ def _free_band_y(clip_dir: Path, W: int, H: int) -> int | None:
     if not rp.exists():
         return None
     try:
-        r = json.loads(rp.read_text(encoding="utf-8"))
+        r = json.loads(rp.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
         return None
     bands = r.get("free_bands") or []
@@ -364,7 +364,7 @@ def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | P
     gancho, no el cuerpo, y esto deja todas las rotaciones listas de una vez. Con `keep`, un `storyboard-hook<N>.json`
     que ya exista no se regenera: se construye y renderiza tal cual (los afinados a mano tras `--no-render`)."""
     from .build import build_project
-    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
+    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8-sig"))
     cdir = Path(clips_dir); odir = Path(out_dir)
     chosen = [c for c in plan_["clips"] if not clip_ids or c["id"] in clip_ids]
     variants = []; skipped = []
