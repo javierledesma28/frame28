@@ -1,9 +1,12 @@
 """Reencuadre automático a vertical (9:16) o cuadrado desde un clip apaisado.
 
-Modo `crop` (por defecto): una ventana 9:16 de altura completa recorre el clip siguiendo al hablante (nariz y hombros
-de MediaPipe Pose, el mismo tracker de `gestures`) con comportamiento de operador de cámara: zona muerta (no se mueve
-mientras el sujeto esté cerca del centro), suavizado exponencial, velocidad máxima y media móvil final. Nada de
-temblores por fotograma. El camino se guarda en `reframe.json` para mapear coordenadas del clip original.
+Modo `crop` (por defecto): la mayor ventana con la proporción de salida recorre el clip siguiendo al hablante (nariz y
+hombros de MediaPipe Pose, el mismo tracker de `gestures`) con comportamiento de operador de cámara: zona muerta (no se
+mueve mientras el sujeto esté cerca del centro), suavizado exponencial, velocidad máxima y media móvil final. Nada de
+temblores por fotograma. Si el origen es más ancho que la salida (apaisado → 9:16), la ventana ocupa toda la altura y se
+mueve en horizontal; si es más alto (un vertical de móvil → 1:1 o 4:5), ocupa todo el ancho y se mueve en vertical con
+la cara en el tercio superior (antes la ventana salía más ancha que el vídeo y la imagen se aplastaba, F28-89). El camino
+se guarda en `reframe.json` (`crop`, `axis`, `path`) para mapear coordenadas del clip original.
 Modo `blur`: el 16:9 entero centrado sobre su propio fondo desenfocado; no pierde gestos ni bordes, deja franjas
 arriba y abajo para overlays y subtítulos.
 """
@@ -23,25 +26,51 @@ def subject_path(video: str | Path, sample_fps: float = 10.0) -> dict:
     """Centro horizontal del sujeto por muestra (px del original): 0,6·nariz + 0,4·centro de hombros."""
     from .pose import track
     tr = track(video, sample_fps)
-    xs, ts = [], []
+    xs, ys, ts = [], [], []
     last = None
     for f in tr["frames"]:
         if "nose" in f:
             sh = (f["l_sh"][0] + f["r_sh"][0]) / 2
-            last = 0.6 * f["nose"][0] + 0.4 * sh
+            last = (0.6 * f["nose"][0] + 0.4 * sh, f["nose"][1])
         if last is not None:
-            ts.append(f["t"]); xs.append(last)
-    if not xs:  # sin detección: centro fijo
-        ts, xs = [0.0], [tr["width"] / 2]
+            ts.append(f["t"]); xs.append(last[0]); ys.append(last[1])
+    if not xs:  # sin detección: centro fijo (la cara, a un tercio de la altura)
+        ts, xs, ys = [0.0], [tr["width"] / 2], [tr["height"] / 3]
     return {"width": tr["width"], "height": tr["height"], "fps": tr["fps"], "sample_fps": tr["sample_fps"],
-            "t": ts, "x": xs, "detected": sum(1 for f in tr["frames"] if "nose" in f), "samples": len(tr["frames"])}
+            "t": ts, "x": xs, "y": ys, "detected": sum(1 for f in tr["frames"] if "nose" in f), "samples": len(tr["frames"])}
+
+
+FACE_AT = 0.4   # en la ventana vertical, la nariz queda al 40 % de la altura (cabeza en el tercio superior)
+
+
+def crop_window(W: int, H: int, ow: int, oh: int) -> tuple[str, int, int]:
+    """(eje, ancho, alto) de la mayor ventana con la proporción ow:oh que cabe en W×H. Eje «x» si el origen es más
+    ancho que la salida (la ventana ocupa toda la altura y se mueve en horizontal), «y» si es más alto."""
+    if W * oh >= H * ow:
+        cw = min(W, int(round(H * ow / oh)))
+        return "x", cw - cw % 2, H
+    ch = min(H, int(round(W * oh / ow)))
+    return "y", W, ch - ch % 2
+
+
+def window_origin(axis: str, center: float, W: int, H: int, cw: int, ch: int) -> tuple[int, int]:
+    """Esquina superior izquierda de la ventana centrada en `center` sobre su eje, sin salirse del clip."""
+    if axis == "y":
+        return 0, int(round(max(0, min(H - ch, center - ch / 2))))
+    return int(round(max(0, min(W - cw, center - cw / 2)))), 0
 
 
 def camera_path(subj: dict, crop_w: int, deadzone: float = 0.10, smooth: float = 0.8, max_speed: float = 0.5,
-                settle: float = 0.4) -> list[list[float]]:
-    """Centro de la ventana por muestra. `deadzone` y `max_speed` en fracción del ancho de la ventana (por segundo);
-    `smooth` es la constante de tiempo (s) del suavizado; `settle` la ventana (s) de la media móvil final."""
-    W = subj["width"]; ts = subj["t"]; xs = subj["x"]
+                settle: float = 0.4, axis: str = "x") -> list[list[float]]:
+    """Centro de la ventana por muestra sobre su eje. `crop_w` es el tamaño de la ventana en ese eje; `deadzone` y
+    `max_speed` en fracción de ese tamaño (por segundo); `smooth` es la constante de tiempo (s) del suavizado; `settle`
+    la ventana (s) de la media móvil final. En el eje «y» la ventana busca dejar la nariz al 40 % de su altura."""
+    ts = subj["t"]
+    if axis == "y":
+        W = subj["height"]
+        xs = [y + (0.5 - FACE_AT) * crop_w for y in (subj.get("y") or [subj["height"] / 3] * len(ts))]
+    else:
+        W = subj["width"]; xs = subj["x"]
     half = crop_w / 2
     lo, hi = half, W - half
     dead = deadzone * crop_w
@@ -100,10 +129,10 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
         if path_json:
             Path(path_json).write_text(json.dumps(res, indent=1), encoding="utf-8")
         return res
-    # ---- crop: ventana de altura completa con la proporción de salida ----
-    crop_w = int(round(H * ow / oh)); crop_w -= crop_w % 2
+    # ---- crop: la mayor ventana con la proporción de salida, que se mueve en el eje que sobra ----
+    axis, crop_w, crop_h = crop_window(W, H, ow, oh)
     subj = subject_path(video)
-    path = camera_path(subj, crop_w, deadzone, smooth, max_speed)
+    path = camera_path(subj, crop_w if axis == "x" else crop_h, deadzone, smooth, max_speed, axis=axis)
     cmd = [ffmpeg(), "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{ow}x{oh}", "-r", f"{fps:.6f}",
            "-i", "-", "-an", *encoder_args(crf), "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -114,9 +143,8 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
             if not ok:
                 break
             t = i / fps
-            cx = _interp(path, t)
-            x0 = int(round(cx - crop_w / 2)); x0 = max(0, min(W - crop_w, x0))
-            crop = fr[:, x0:x0 + crop_w]
+            x0, y0 = window_origin(axis, _interp(path, t), W, H, crop_w, crop_h)
+            crop = fr[y0:y0 + crop_h, x0:x0 + crop_w]
             up = cv2.resize(crop, (ow, oh), interpolation=cv2.INTER_CUBIC if ow > crop_w else cv2.INTER_AREA)
             proc.stdin.write(up.tobytes())
             i += 1
@@ -127,7 +155,7 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
     if proc.returncode != 0 or not out.exists():
         raise SystemExit("ffmpeg falló: " + err[-800:])
     moves = sum(1 for a, b in zip(path, path[1:]) if abs(b[1] - a[1]) > 0.5)
-    res.update({"crop": [crop_w, H], "scale": round(ow / crop_w, 3), "frames": i, "detected_samples": subj["detected"],
+    res.update({"crop": [crop_w, crop_h], "axis": axis, "scale": round(ow / crop_w, 3), "frames": i, "detected_samples": subj["detected"],
                 "samples": subj["samples"], "path": path, "moving_samples": moves,
                 "params": {"deadzone": deadzone, "smooth": smooth, "max_speed": max_speed}})
     if path_json:
@@ -141,10 +169,14 @@ def map_point(res: dict, x: float, y: float, t: float) -> list[int]:
     if res.get("mode") == "blur":
         fg = res["foreground"]; W, H = res["source"]
         return [round(fg["x"] + x * fg["w"] / W), round(fg["y"] + y * fg["h"] / H)]
-    crop_w, H = res["crop"]; ow, oh = res["out"]
-    cx = _interp(res["path"], t)
-    x0 = max(0, min(res["source"][0] - crop_w, cx - crop_w / 2))
-    return [round((x - x0) * ow / crop_w), round(y * oh / H)]
+    crop_w, crop_h = res["crop"]; ow, oh = res["out"]; W, H = res["source"]
+    axis = res.get("axis", "x")   # los reframe.json anteriores a F28-89 siempre recortaban en horizontal
+    c = _interp(res["path"], t)
+    if axis == "y":
+        x0, y0 = 0.0, max(0.0, min(H - crop_h, c - crop_h / 2))
+    else:
+        x0, y0 = max(0.0, min(W - crop_w, c - crop_w / 2)), 0.0
+    return [round((x - x0) * ow / crop_w), round((y - y0) * oh / crop_h)]
 
 
 def point_visible(res: dict, x: float, y: float, t: float) -> bool:

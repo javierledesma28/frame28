@@ -104,7 +104,7 @@ def probe(video, as_json):
 @click.argument("video", type=click.Path(exists=True))
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
 @click.option("--fps", default=30, show_default=True)
-@click.option("--width", default=None, type=int, help="Reescalar a este ancho (p. ej. 1920)")
+@click.option("--width", default=None, type=int, help="Reescalar el lado largo a esta medida (p. ej. 1920: un vertical queda a 1080×1920)")
 @click.option("--denoise", default="afftdn", show_default=True, type=click.Choice(["none", "afftdn", "rnnoise", "deepfilter"]), help="limpieza de la voz")
 @click.option("--lufs", default=-14.0, show_default=True)
 @click.option("--gpu", is_flag=True, help="codificar el clip con NVENC (GPU NVIDIA): ~5x más rápido, fichero mayor; también FRAME28_ENCODER=nvenc")

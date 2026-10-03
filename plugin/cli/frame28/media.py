@@ -34,11 +34,20 @@ def probe(video: str | Path) -> dict:
     return out
 
 
+def scale_filter(info: dict, size: int | None) -> str:
+    """`--width` es el lado largo: un apaisado queda a ese ancho y un vertical a esa altura (antes un vertical de
+    1080×1920 con --width 1920 subía a 1920×3413). Sin dimensiones conocidas, se escala por ancho como antes."""
+    if not size:
+        return ""
+    w, h = int(info.get("width") or 0), int(info.get("height") or 0)
+    return f",scale=-2:{size}" if h > w > 0 else f",scale={size}:-2"
+
+
 def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | None = None, normalize: bool = True) -> dict:
     """Copia de trabajo: vídeo a `fps` sin audio, voz normalizada a -16 LUFS (48k estéreo) y mono 16k para ASR."""
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     info = probe(video)
-    vf = f"fps={fps}" + (f",scale={width}:-2" if width else "")
+    vf = f"fps={fps}" + scale_filter(info.get("video") or {}, width)
     clip = out / "clip.mp4"
     r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vf", vf, "-an", *encoder_args(16),
              "-g", str(fps), "-keyint_min", str(fps),  # un fotograma clave por segundo: HyperFrames avisa de saltos si van espaciados
