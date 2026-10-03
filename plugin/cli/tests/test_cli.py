@@ -508,3 +508,27 @@ def test_npx_cmd_skips_cmd_exe_on_windows(tmp_path):
     (d / "node_modules" / "npm" / "bin" / "npx-cli.js").unlink()
     assert npx_cmd(str(d / "npx.cmd")) == [str(d / "npx.cmd")]          # sin npx-cli.js: el .cmd tal cual
     assert npx_cmd("/usr/bin/npx.sh") == ["/usr/bin/npx.sh"]              # fuera de Windows, npx tal cual
+
+
+def test_probe_measures_loudness_on_audio_only(monkeypatch):
+    # F28-90: volumedetect decodificaba también el vídeo (8,8 s frente a 0,6 s en un AV1 de 197 s); y quien solo quería
+    # dimensiones o duración pagaba esa pasada entera
+    from frame28 import media
+    calls = []
+    ffprobe_json = json.dumps({"format": {"duration": "10.0", "bit_rate": "1000"}, "streams": [
+        {"codec_type": "video", "codec_name": "h264", "width": 1920, "height": 1080, "r_frame_rate": "30/1", "pix_fmt": "yuv420p"},
+        {"codec_type": "audio", "codec_name": "aac", "sample_rate": "48000", "channels": 2}]})
+    class R:
+        def __init__(self, out="", err=""): self.returncode, self.stdout, self.stderr = 0, out, err
+    def fake_run(cmd, **k):
+        calls.append(cmd)
+        return R(ffprobe_json) if "ffprobe" in str(cmd[0]).lower() or "-show_entries" in cmd else R(err="mean_volume: -20.5 dB\nmax_volume: -1.0 dB")
+    monkeypatch.setattr(media, "run", fake_run)
+    monkeypatch.setattr(media, "ffprobe", lambda: "ffprobe"); monkeypatch.setattr(media, "ffmpeg", lambda: "ffmpeg")
+    info = media.probe("v.mp4")
+    assert info["audio"]["mean_db"] == -20.5 and info["video"]["width"] == 1920
+    vol = [c for c in calls if "volumedetect" in c][0]
+    assert vol.count("-vn") == 2 and vol.index("-vn") < vol.index("-i")              # el vídeo ni se decodifica
+    calls.clear()
+    fast = media.probe("v.mp4", loudness=False)
+    assert len(calls) == 1 and "mean_db" not in fast["audio"] and fast["duration"] == 10.0

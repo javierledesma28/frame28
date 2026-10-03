@@ -167,7 +167,7 @@ def speaker(video, samples, canvas, as_json):
     from .matte import speaker_layout
     from .media import probe
     from .captions import parse_canvas
-    v = probe(video).get("video") or {}
+    v = probe(video, loudness=False).get("video") or {}
     out(speaker_layout(video, samples, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0))), as_json or True)
 
 
@@ -209,7 +209,7 @@ def gestures(video, words, sample_fps, annotate, canvas, out_json, as_json):
     from .pose import analyze
     from .media import probe
     from .captions import parse_canvas
-    v = probe(video).get("video") or {}
+    v = probe(video, loudness=False).get("video") or {}
     r = analyze(video, words, sample_fps, annotate, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0)))
     if out_json:
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
@@ -326,7 +326,7 @@ def graphics(video, sample_fps, canvas, annotate, out_json, as_json):
     from .graphics import scan, annotate as _annotate
     from .media import probe
     from .captions import parse_canvas
-    v = probe(video).get("video") or {}
+    v = probe(video, loudness=False).get("video") or {}
     r = scan(video, sample_fps, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0)))
     if out_json:
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8"); r["saved"] = out_json
