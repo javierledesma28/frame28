@@ -107,13 +107,13 @@ def probe(video, as_json):
 @click.option("--width", default=None, type=int, help="Reescalar el lado largo a esta medida (p. ej. 1920: un vertical queda a 1080×1920)")
 @click.option("--denoise", default="afftdn", show_default=True, type=click.Choice(["none", "afftdn", "rnnoise", "deepfilter"]), help="limpieza de la voz")
 @click.option("--lufs", default=-14.0, show_default=True)
-@click.option("--gpu", is_flag=True, help="codificar el clip con NVENC (GPU NVIDIA): ~5x más rápido, fichero mayor; también FRAME28_ENCODER=nvenc")
+@click.option("--gpu/--cpu", default=None, help="NVENC o libx264; sin indicarlo, la GPU si la máquina la tiene (FRAME28_ENCODER=auto|nvenc|cpu)")
 @click.option("--json", "as_json", is_flag=True)
 def prep(video, out_dir, fps, width, denoise, lufs, gpu, as_json):
     """Copia de trabajo: clip.mp4 a 30 fps sin audio + voice.wav limpia y normalizada + audio16k.wav para ASR."""
     from .media import prep as _prep
-    if gpu:
-        from .env import use_gpu_encoder; use_gpu_encoder(True)
+    if gpu is not None:
+        from .env import use_gpu_encoder; use_gpu_encoder(gpu)
     r = _prep(video, out_dir, fps, width, normalize=(denoise == "none"))
     if r.get("voice") and denoise != "none":
         from .audio import clean
@@ -254,13 +254,13 @@ def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, 
 @click.option("--smooth", default=0.8, show_default=True, help="constante de tiempo del suavizado (s); más = más lento y suave")
 @click.option("--max-speed", default=0.5, show_default=True, help="velocidad máxima (anchos de ventana por segundo)")
 @click.option("--path", "path_json", type=click.Path(), default=None, help="guardar reframe.json (camino de la cámara, para mapear coordenadas)")
-@click.option("--gpu", is_flag=True, help="codificar con NVENC (GPU NVIDIA); también FRAME28_ENCODER=nvenc")
+@click.option("--gpu/--cpu", default=None, help="NVENC o libx264; sin indicarlo, la GPU si la máquina la tiene (FRAME28_ENCODER=auto|nvenc|cpu)")
 @click.option("--json", "as_json", is_flag=True)
 def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, gpu, as_json):
     """Reencuadra un clip apaisado a vertical (9:16) siguiendo al hablante (MediaPipe) o con fondo desenfocado."""
     from .reframe import reframe as _reframe
-    if gpu:
-        from .env import use_gpu_encoder; use_gpu_encoder(True)
+    if gpu is not None:
+        from .env import use_gpu_encoder; use_gpu_encoder(gpu)
     w, h = (int(v) for v in size.lower().replace("×", "x").split("x"))
     r = _reframe(video, out_mp4, mode, (w, h), deadzone, smooth, max_speed, path_json)
     if as_json:
@@ -427,12 +427,12 @@ def cut_plan(words, audio, min_gap, pad, lang, no_fillers, no_retakes, duration,
 @click.option("--captions", type=click.Path(exists=True), default=None)
 @click.option("--storyboard", type=click.Path(exists=True), default=None)
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
-@click.option("--gpu", is_flag=True, help="codificar con NVENC (GPU NVIDIA); también FRAME28_ENCODER=nvenc")
+@click.option("--gpu/--cpu", default=None, help="NVENC o libx264; sin indicarlo, la GPU si la máquina la tiene (FRAME28_ENCODER=auto|nvenc|cpu)")
 @click.option("--json", "as_json", is_flag=True)
 def cut_apply(video, cuts, audio, words, captions, storyboard, out_dir, gpu, as_json):
-    if gpu:
-        from .env import use_gpu_encoder; use_gpu_encoder(True)
     """Aplica cuts.json: clip.mp4 y voice.wav cortados (fundidos de 30 ms) + words/captions/storyboard remapeados."""
+    if gpu is not None:
+        from .env import use_gpu_encoder; use_gpu_encoder(gpu)
     from .cut import apply as _apply
     out(_apply(video, audio, cuts, out_dir, words, captions, storyboard), as_json or True)
 
@@ -640,14 +640,17 @@ def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_j
 @click.option("--no-render", is_flag=True, help="solo storyboards y proyectos construidos (sin check ni render)")
 @click.option("--keep", is_flag=True, help="no regenerar los storyboard-hook<N>.json que ya existan (afinados a mano): solo construir y renderizar")
 @click.option("--quality", default="high", show_default=True, type=click.Choice(["draft", "standard", "high"]))
+@click.option("--workers", default=None, type=click.IntRange(1, 32), help="trabajadores de captura del render (como `frame28 render`)")
+@click.option("--gpu/--cpu", default=None, help="codificar los MP4 con NVENC o libx264; sin indicarlo, la GPU si la máquina la tiene")
 @click.option("--json", "as_json", is_flag=True)
-def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, keep, quality, as_json):
+def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, keep, quality, workers, gpu, as_json):
     """Variantes de gancho en lote: por cada short y cada gancho, storyboard + build (+ check + render) → <id>-hook<N>.mp4 y batch.json."""
     from .clips import batch
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
     hook_idx = None if hooks == "all" else [int(x) for x in hooks.split(",") if x.strip()]
-    r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality, keep)
+    r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality, keep,
+              workers=workers, gpu=gpu)
     if as_json:
         out(r, True); return
     for v in r["variants"]:
@@ -910,7 +913,7 @@ def check(project, as_json):
 @click.option("--fps", default=None, type=int)
 @click.option("--no-sheet", is_flag=True)
 @click.option("--workers", default=None, type=click.IntRange(1, 32), help="trabajadores de captura (por defecto los elige HyperFrames, ~6). Con 16 núcleos y 32 GB, 10 rinde más; 14 ya empeora")
-@click.option("--gpu", is_flag=True, help="codificar con la GPU (NVENC): algo más rápido, fichero ~50 %% mayor; compara la calidad antes de entregar")
+@click.option("--gpu/--cpu", default=None, help="codificar el MP4 final con NVENC o con libx264; sin indicarlo, la GPU si la máquina la tiene (fichero ~50 %% mayor con NVENC)")
 @click.option("--json", "as_json", is_flag=True)
 def render(project, output, quality, crf, fps, no_sheet, workers, gpu, as_json):
     """Renderiza el proyecto a MP4 y genera una hoja de contacto para revisar."""

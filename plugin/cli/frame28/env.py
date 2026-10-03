@@ -76,15 +76,61 @@ def env_with_ffmpeg() -> dict:
     return env
 
 
-ENCODER_ENV = "FRAME28_ENCODER"   # "nvenc" → h264_nvenc en los clips intermedios; cualquier otra cosa → libx264
+ENCODER_ENV = "FRAME28_ENCODER"   # auto (por defecto: NVENC si funciona) · nvenc · cpu
+NVENC_TTL = 7 * 24 * 3600          # la prueba de NVENC vale una semana para el mismo ffmpeg (cambia con drivers o ffmpeg)
+
+
+def encoder_mode() -> str:
+    """auto, nvenc o cpu según FRAME28_ENCODER (gpu = nvenc; x264, libx264 = cpu; vacío o desconocido = auto)."""
+    v = os.environ.get(ENCODER_ENV, "").strip().lower()
+    return "nvenc" if v in ("nvenc", "gpu", "cuda") else "cpu" if v in ("cpu", "x264", "libx264") else "auto"
+
+
+def nvenc_ready(cache: Path | None = None, now: float | None = None, probe=None) -> tuple[bool, str]:
+    """¿Codifica este ffmpeg con NVENC? Prueba real de 1 s (h264_nvenc a null) con su resultado en
+    ~/.cache/frame28/nvenc.json una semana, ligado a la ruta y el tamaño del ffmpeg. (sí/no, motivo en una línea)."""
+    import json
+    import time
+    ff = ffmpeg()
+    if not ff:
+        return False, "sin ffmpeg"
+    try:
+        key = f"{ff}|{os.path.getsize(ff)}"
+    except OSError:
+        key = ff
+    cache = cache or CACHE_DIR / "nvenc.json"
+    now = time.time() if now is None else now
+    try:
+        c = json.loads(cache.read_text(encoding="utf-8"))
+        if c.get("key") == key and 0 <= now - float(c.get("at", 0)) < NVENC_TTL:
+            return bool(c["ok"]), str(c.get("why", ""))
+    except Exception:  # noqa: BLE001  (sin caché o rota: se prueba)
+        pass
+    if probe is None:
+        r = run([ff, "-hide_banner", "-v", "error", "-f", "lavfi", "-i", "color=c=black:s=256x256:r=30:d=1",
+                 "-c:v", "h264_nvenc", "-f", "null", "-"], timeout=60)
+        ok = r.returncode == 0
+        why = "h264_nvenc funciona" if ok else ((r.stderr or "").strip().splitlines() or ["h264_nvenc no disponible"])[-1][:120]
+    else:
+        ok, why = probe(ff)
+    try:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({"key": key, "ok": ok, "why": why, "at": now}), encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
+    return ok, why
 
 
 def use_gpu_encoder(enable: bool | None = None) -> bool:
-    """Lee (o fija, con `enable`) si los clips intermedios se codifican con NVENC. Medido en una RTX 4060: 20 s de
-    1080p en 3,2 s frente a 15,4 s con libx264; el fichero sale mayor. Los intermedios no se entregan: no importa."""
+    """¿Se codifica con NVENC? Por defecto (auto) sí, si la GPU NVIDIA y el ffmpeg lo permiten (nvenc_ready); si no, CPU
+    sin pedir nada. `enable` lo fuerza para el resto del proceso (--gpu / --cpu). Medido en una RTX 4060: 20 s de 1080p
+    en 3,2 s frente a 15,4 s con libx264; el fichero sale mayor. Premisa de Javier (2026-10-03): si la GPU puede, la GPU."""
     if enable is not None:
-        os.environ[ENCODER_ENV] = "nvenc" if enable else "x264"
-    return os.environ.get(ENCODER_ENV, "").lower() == "nvenc"
+        os.environ[ENCODER_ENV] = "nvenc" if enable else "cpu"
+    mode = encoder_mode()
+    if mode != "auto":
+        return mode == "nvenc"
+    return nvenc_ready()[0]
 
 
 def encoder_args(crf: int = 16) -> list[str]:

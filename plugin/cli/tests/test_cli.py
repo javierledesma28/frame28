@@ -148,16 +148,50 @@ def test_transcribe_device_auto_picks_gpu_only_when_ready():
     assert pick_device('cpu', 'int8')[2] == 'elegido a mano'
 
 
-def test_intermediate_encoder_is_x264_unless_nvenc_requested(monkeypatch):
-    # la GPU codifica 5x más rápido, pero nunca por defecto: otra máquina puede no tener NVIDIA
+def test_encoder_uses_the_gpu_by_default_when_it_can(monkeypatch):
+    # F28-114, premisa de Javier: si la GPU puede, la GPU (5x más rápido); sin NVIDIA todo sigue en CPU sin pedir nada
     from frame28 import env
     monkeypatch.delenv(env.ENCODER_ENV, raising=False)
-    assert env.encoder_args(16)[:4] == ["-c:v", "libx264", "-crf", "16"] and not env.use_gpu_encoder()
-    monkeypatch.setenv(env.ENCODER_ENV, "nvenc")
+    monkeypatch.setattr(env, "nvenc_ready", lambda *a, **k: (True, "h264_nvenc funciona"))
+    assert env.encoder_mode() == "auto" and env.use_gpu_encoder()
     a = env.encoder_args(18)
-    assert a[:2] == ["-c:v", "h264_nvenc"] and a[a.index("-cq") + 1] == "18" and env.use_gpu_encoder()
-    assert env.use_gpu_encoder(False) is False and env.encoder_args()[1] == "libx264"
-    assert env.use_gpu_encoder(True) is True
+    assert a[:2] == ["-c:v", "h264_nvenc"] and a[a.index("-cq") + 1] == "18"
+    monkeypatch.setattr(env, "nvenc_ready", lambda *a, **k: (False, "sin GPU NVIDIA"))
+    assert not env.use_gpu_encoder() and env.encoder_args(16)[:4] == ["-c:v", "libx264", "-crf", "16"]
+    monkeypatch.setenv(env.ENCODER_ENV, "nvenc")                         # forzado aunque la prueba diga que no
+    assert env.use_gpu_encoder() and env.encoder_mode() == "nvenc"
+    for v, mode in (("gpu", "nvenc"), ("x264", "cpu"), ("libx264", "cpu"), ("CPU", "cpu"), ("loquesea", "auto"), ("", "auto")):
+        monkeypatch.setenv(env.ENCODER_ENV, v)
+        assert env.encoder_mode() == mode, v
+    assert env.use_gpu_encoder(False) is False and env.encoder_args()[1] == "libx264"    # --cpu
+    monkeypatch.setattr(env, "nvenc_ready", lambda *a, **k: (False, "x"))
+    assert env.use_gpu_encoder(True) is True                                               # --gpu
+
+
+def test_nvenc_probe_is_cached_per_ffmpeg(tmp_path, monkeypatch):
+    from frame28 import env
+    ff = tmp_path / "ffmpeg.exe"
+    ff.write_bytes(b"x" * 10)
+    monkeypatch.setattr(env, "ffmpeg", lambda: str(ff))
+    calls = []
+    probe = lambda f: calls.append(f) or (True, "h264_nvenc funciona")
+    cache = tmp_path / "nvenc.json"
+    assert env.nvenc_ready(cache, now=100, probe=probe) == (True, "h264_nvenc funciona") and len(calls) == 1
+    assert env.nvenc_ready(cache, now=100 + env.NVENC_TTL - 1, probe=probe)[0] and len(calls) == 1     # de la caché
+    ff.write_bytes(b"x" * 11)                                                                           # otro ffmpeg: se prueba
+    assert env.nvenc_ready(cache, now=200, probe=lambda f: (False, "No NVENC capable devices found")) == (False, "No NVENC capable devices found")
+    assert env.nvenc_ready(cache, now=200 + env.NVENC_TTL + 1, probe=probe)[0] and len(calls) == 2     # caducada: se prueba
+    monkeypatch.setattr(env, "ffmpeg", lambda: None)
+    assert env.nvenc_ready(cache, probe=probe) == (False, "sin ffmpeg")
+
+
+def test_batch_passes_workers_and_gpu_to_render(tmp_path, monkeypatch):
+    import inspect
+    from frame28 import clips
+    sig = inspect.signature(clips.batch)
+    assert sig.parameters["workers"].default is None and sig.parameters["gpu"].default is None
+    src = inspect.getsource(clips.batch)
+    assert "workers=workers, gpu=gpu" in src                              # llegan al render de cada variante
 
 
 def test_doctor_release_row_compares_versions():

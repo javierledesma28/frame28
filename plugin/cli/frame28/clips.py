@@ -356,7 +356,7 @@ def _free_band_y(clip_dir: Path, W: int, H: int) -> int | None:
 def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | Path = "work/clips", out_dir: str | Path = "out/shorts",
           hook_indexes: list[int] | None = None, canvas: tuple[int, int] = (1080, 1920), platform: str = "tiktok",
           brand: str | dict | None = None, cta: dict | None = None, video_name: str = "clip.mp4", render: bool = True,
-          quality: str = "high", keep: bool = False) -> dict:
+          quality: str = "high", keep: bool = False, workers: int | None = None, gpu: bool | None = None) -> dict:
     """Variantes de gancho en lote: para cada short (ya recortado con `clips cut`) y cada gancho, escribe
     `storyboard-hook<N>.json`, construye `project-hook<N>/` y, con `render`, pasa `check` y renderiza a
     `<out>/<id>-hook<N>.mp4` con su hoja de contacto. Deja `batch.json` en la carpeta de clips con el resultado de
@@ -395,7 +395,7 @@ def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | P
                     if not ck["passed"]:
                         raise RuntimeError("check falló: " + "; ".join(ck["errors"])[:200])
                     odir.mkdir(parents=True, exist_ok=True)
-                    rr = _render(b["project"], odir / f"{name}.mp4", quality)
+                    rr = _render(b["project"], odir / f"{name}.mp4", quality, workers=workers, gpu=gpu)
                     if not rr["ok"]:
                         raise RuntimeError("render falló: " + rr["log_tail"][-200:])
                     v["output"] = rr["output"]; v["sheet"] = rr.get("sheet"); v["time"] = rr.get("time")

@@ -239,9 +239,12 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **RobustVideoMatting ONNX** (GPL-3, ejecutado como proceso, modelo descargado a `~/.cache/frame28/`) para el
   alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos y reencuadre; **RapidOCR** (PaddleOCR en ONNX,
   Apache-2.0, modelos dentro del wheel) para el texto ya presente en vídeos producidos; **segno** (BSD) para QR.
-- **GPU opcional, nunca obligatoria**: el extra `frame28[gpu]` (`nvidia-cublas-cu12`, `nvidia-cudnn-cu12`) da a faster-whisper
-  las librerías CUDA; `transcribe --device auto` usa la GPU si `env.cuda_ready()` lo confirma (float16) y cae a CPU (int8) si
-  falla a mitad. onnxruntime sigue en CPU (matte, OCR). El render se acelera con `--workers`, no con la GPU (`--gpu` solo codifica).
+- **GPU siempre que se pueda, nunca obligatoria** (premisa de Javier, 2026-10-03): el extra `frame28[gpu]` (`nvidia-cublas-cu12`,
+  `nvidia-cudnn-cu12`) da a faster-whisper las librerías CUDA; `transcribe --device auto` usa la GPU si `env.cuda_ready()` lo
+  confirma (float16) y cae a CPU (int8) si falla a mitad. La codificación va por NVENC por defecto (`FRAME28_ENCODER=auto`:
+  prueba real de 1 s, `env.nvenc_ready`, en caché una semana por ffmpeg) en prep, reframe, cut, clips y render; `--cpu` o
+  `FRAME28_ENCODER=cpu` la fuerzan a libx264. onnxruntime sigue en CPU (matte, OCR). El render se acelera sobre todo con
+  `--workers` (la GPU solo codifica el final).
 - **GSAP 3.13+** es gratis con plugins: `build.py` carga SplitText/DrawSVG solo cuando el storyboard los usa.
 - Limpieza de audio: `highpass 80` + `afftdn` (o `rnnoise` con modelo BSD en caché) + `loudnorm` en dos pasadas.
 - Marca por nombre (`"brand": "think28"`) o por ruta (`.json`, también relativa al storyboard); búsqueda `./brands/`
@@ -284,9 +287,10 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **La GPU (RTX 4060 Laptop, 8 GB) ya transcribe**: las librerías CUDA van en el extra `gpu` y `doctor` lo confirma
   («gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN»). **Medido el 2026-10-01**: el mismo audio de 160 s, 42,4 s en
   GPU (float16) frente a 178,7 s en CPU (int8), 4,2× más rápido con un render ocupando la máquina. onnxruntime sigue siendo
-  la compilación de CPU (matte y OCR). NVENC en ffmpeg funciona sin instalar nada: `render --gpu` codifica el final, y
-  `prep`, `reframe` y `cut apply --gpu` (o `FRAME28_ENCODER=nvenc`) los intermedios (`env.encoder_args`; 5× medido, fichero
-  mayor). Nunca por defecto: en la máquina de un usuario todo tiene que ir también por CPU.
+  la compilación de CPU (matte y OCR). NVENC en ffmpeg funciona sin instalar nada y, desde F28-114, **se usa solo**: el
+  render final y los intermedios de prep, reframe y cut (`env.encoder_args`; 5× medido, fichero mayor) salen con
+  `h264_nvenc` si `doctor` dice «codificador NVENC (GPU)». En una máquina sin NVIDIA la prueba falla y todo va por CPU sin
+  pedir nada; `--cpu` para comparar o forzar.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
 - **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
   escapes se comen; también los heredoc bash con comillas. Escribir el parche a un `.py` (Write) y ejecutarlo.

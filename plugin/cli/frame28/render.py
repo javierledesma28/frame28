@@ -53,7 +53,11 @@ def check(project: str | Path) -> dict:
 
 
 def render(project: str | Path, output: str | Path, quality: str = "high", crf: int = 18, fps: int | None = None, make_sheet: bool = True,
-           workers: int | None = None, gpu: bool = False) -> dict:
+           workers: int | None = None, gpu: bool | None = None) -> dict:
+    """`gpu=None`: NVENC si la máquina lo tiene (env.use_gpu_encoder), si no libx264."""
+    if gpu is None:
+        from .env import use_gpu_encoder
+        gpu = use_gpu_encoder()
     project = Path(project); output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     args, env = render_args(output, quality, crf, fps, workers, gpu, os.environ.get("NODE_OPTIONS", ""))
