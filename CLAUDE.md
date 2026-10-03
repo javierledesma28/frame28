@@ -291,6 +291,12 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   render final y los intermedios de prep, reframe y cut (`env.encoder_args`; 5× medido, fichero mayor) salen con
   `h264_nvenc` si `doctor` dice «codificador NVENC (GPU)». En una máquina sin NVIDIA la prueba falla y todo va por CPU sin
   pedir nada; `--cpu` para comparar o forzar.
+- **Decodificar en la GPU (NVDEC) no siempre gana** (F28-115, medido el 2026-10-03, prep = fps 30 + NVENC, RTX 4060 + 16
+  núcleos): H.264 de 83 s, 14,8 → 11,0 s con la CPU libre y 28,6 → 18,8 s con la CPU ocupada; **AV1** de 160 s, 21,5 → 20,5 s
+  libre y **27,1 → 66,4 s ocupada** (dav1d en CPU gana de largo). Y solo con el camino entero en GPU
+  (`-hwaccel_output_format cuda` + `scale_cuda`): bajando los fotogramas a memoria, H.264 no ganaba y AV1 pasaba de 21,5 a
+  37 s. Por eso `prep` usa NVDEC solo con H.264/HEVC y NVENC activo (`media.gpu_decode_args`, `decoder` en la salida) y, si
+  falla, repite por CPU; cut, reframe y AV1 siguen por CPU. Un vídeo de móvil en rango completo sale `yuvj420p` por las dos vías.
 - **Consola Windows en cp1252**: el CLI fuerza UTF-8 en stdout; en scripts sueltos evitar `→ ✓` en `print`.
 - **Parches por `python - <<'EOF'` (stdin) fallan con no-ASCII y con `\\n`**: Python decodifica stdin en cp1252 y los
   escapes se comen; también los heredoc bash con comillas. Escribir el parche a un `.py` (Write) y ejecutarlo.

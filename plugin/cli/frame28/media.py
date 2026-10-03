@@ -11,7 +11,7 @@ from .env import encoder_args, ffmpeg, ffprobe, run
 
 def probe(video: str | Path) -> dict:
     r = run([ffprobe(), "-v", "error", "-show_entries",
-            "format=duration,bit_rate:stream=codec_type,codec_name,width,height,r_frame_rate,sample_rate,channels",
+            "format=duration,bit_rate:stream=codec_type,codec_name,width,height,r_frame_rate,pix_fmt,sample_rate,channels",
             "-of", "json", str(video)])
     if r.returncode != 0:
         raise SystemExit(r.stderr)
@@ -22,7 +22,7 @@ def probe(video: str | Path) -> dict:
         if s["codec_type"] == "video" and out["video"] is None:
             num, den = s["r_frame_rate"].split("/")
             out["video"] = {"codec": s["codec_name"], "width": s["width"], "height": s["height"],
-                            "fps": round(int(num) / int(den), 3)}
+                            "fps": round(int(num) / int(den), 3), "pix_fmt": s.get("pix_fmt")}
         elif s["codec_type"] == "audio" and out["audio"] is None:
             out["audio"] = {"codec": s["codec_name"], "sample_rate": int(s["sample_rate"]), "channels": s["channels"]}
     if out["audio"]:
@@ -43,18 +43,55 @@ def scale_filter(info: dict, size: int | None) -> str:
     return f",scale=-2:{size}" if h > w > 0 else f",scale={size}:-2"
 
 
+# Decodificar en la GPU (NVDEC) solo compensa con estos códecs. Medido el 2026-10-03 en una RTX 4060 + 16 núcleos, prep
+# completo (fps=30 + NVENC): H.264 de 83 s 14,8 → 11,0 s con la CPU libre y 28,6 → 18,8 s con la CPU ocupada; AV1 de 160 s
+# 21,5 → 20,5 s libre y 27,1 → 66,4 s ocupada (dav1d en CPU gana). Solo con el camino entero en GPU (sin bajar fotogramas a
+# la memoria: -hwaccel_output_format cuda); bajándolos, H.264 no ganaba y AV1 pasaba de 21,5 a 37 s.
+NVDEC_CODECS = ("h264", "hevc")
+
+
+def scaled_size(info: dict, size: int | None) -> tuple[int, int] | None:
+    """Ancho y alto pares tras escalar el lado largo a `size` (lo mismo que scale_filter, en números para scale_cuda)."""
+    w, h = int(info.get("width") or 0), int(info.get("height") or 0)
+    if not size or not w or not h:
+        return None
+    if h > w:
+        nw, nh = w * size / h, size
+    else:
+        nw, nh = size, h * size / w
+    return int(round(nw / 2)) * 2, int(round(nh / 2)) * 2
+
+
+def gpu_decode_args(info: dict, fps: int, size: int | None) -> tuple[list[str], str] | None:
+    """(argumentos antes de -i, filtro de vídeo) para decodificar, cambiar fps, escalar y pasar a NVENC sin salir de la
+    GPU; None si no toca (otro códec, sin NVENC o sin NVDEC) y se hace como siempre."""
+    from .env import nvdec_ready, use_gpu_encoder
+    v = info.get("video") or {}
+    if v.get("codec") not in NVDEC_CODECS or not use_gpu_encoder() or not nvdec_ready():
+        return None
+    sz = scaled_size(v, size)
+    scale = f"scale_cuda=w={sz[0]}:h={sz[1]}:format=yuv420p" if sz else "scale_cuda=format=yuv420p"
+    return ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"], f"fps={fps},{scale}"
+
+
 def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | None = None, normalize: bool = True) -> dict:
     """Copia de trabajo: vídeo a `fps` sin audio, voz normalizada a -16 LUFS (48k estéreo) y mono 16k para ASR."""
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     info = probe(video)
     vf = f"fps={fps}" + scale_filter(info.get("video") or {}, width)
     clip = out / "clip.mp4"
-    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vf", vf, "-an", *encoder_args(16),
-             "-g", str(fps), "-keyint_min", str(fps),  # un fotograma clave por segundo: HyperFrames avisa de saltos si van espaciados
-             "-pix_fmt", "yuv420p", str(clip)])
+    gop = ["-g", str(fps), "-keyint_min", str(fps)]  # un fotograma clave por segundo: HyperFrames avisa de saltos si van espaciados
+    decoder, r = "cpu", None
+    gpu = gpu_decode_args(info, fps, width)
+    if gpu:
+        pre, gvf = gpu
+        r = run([ffmpeg(), "-v", "error", "-y", *pre, "-i", str(video), "-vf", gvf, "-an", *encoder_args(16), *gop, str(clip)])
+        decoder = "nvdec" if r.returncode == 0 else "cpu (nvdec falló)"
+    if r is None or r.returncode != 0:  # el camino de siempre (y la caída si la GPU no pudo con este vídeo)
+        r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vf", vf, "-an", *encoder_args(16), *gop, "-pix_fmt", "yuv420p", str(clip)])
     if r.returncode != 0:
         raise SystemExit(r.stderr)
-    result = {"clip": str(clip), "probe": info, "fps": fps}
+    result = {"clip": str(clip), "probe": info, "fps": fps, "decoder": decoder}
     if info["audio"]:
         af = ["-af", "loudnorm=I=-16:TP=-1.5:LRA=11"] if normalize else []
         voice = out / "voice.wav"; a16 = out / "audio16k.wav"

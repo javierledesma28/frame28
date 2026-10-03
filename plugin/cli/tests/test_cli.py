@@ -275,3 +275,26 @@ def test_ningun_modulo_escribe_avisos_por_stdout():
     bad = [f"{f.name}:{n}" for f in pkg.glob("*.py") for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1)
            if re.search(r"(?<![\w.])print\(", line) and "file=sys.stderr" not in line]
     assert bad == [], f"print() a stdout en: {bad} (usa env.note)"
+
+
+def test_gpu_decode_only_for_h264_hevc_with_nvenc(monkeypatch):
+    # F28-115, medido: H.264/HEVC ganan ~30 % decodificando en la GPU con el camino entero en ella; AV1 pierde (66 s vs 27 s)
+    from frame28 import env, media
+    monkeypatch.setattr(env, "use_gpu_encoder", lambda *a: True)
+    monkeypatch.setattr(env, "nvdec_ready", lambda: True)
+    h264 = {"video": {"codec": "h264", "width": 1920, "height": 1080}}
+    pre, vf = media.gpu_decode_args(h264, 30, None)
+    assert pre == ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"] and vf == "fps=30,scale_cuda=format=yuv420p"
+    assert media.gpu_decode_args({"video": {"codec": "hevc", "width": 3840, "height": 2160}}, 30, 1920)[1] == \
+        "fps=30,scale_cuda=w=1920:h=1080:format=yuv420p"
+    assert media.gpu_decode_args({"video": {"codec": "h264", "width": 1080, "height": 1920}}, 30, 1280)[1] == \
+        "fps=30,scale_cuda=w=720:h=1280:format=yuv420p"                     # vertical: el lado largo, como scale_filter
+    assert media.gpu_decode_args({"video": {"codec": "av1", "width": 1920, "height": 1080}}, 30, None) is None
+    # rango completo (móviles): la vía de CPU también deja yuvj420p (medido), así que la GPU no cambia el resultado
+    assert media.gpu_decode_args({"video": {"codec": "h264", "width": 1920, "height": 1080, "pix_fmt": "yuvj420p"}}, 30, None)
+    monkeypatch.setattr(env, "use_gpu_encoder", lambda *a: False)        # --cpu o sin NVENC: nada de GPU
+    assert media.gpu_decode_args(h264, 30, None) is None
+    monkeypatch.setattr(env, "use_gpu_encoder", lambda *a: True)
+    monkeypatch.setattr(env, "nvdec_ready", lambda: False)
+    assert media.gpu_decode_args(h264, 30, None) is None
+    assert media.scaled_size({"width": 1921, "height": 1081}, 1000) == (1000, 562) and media.scaled_size({}, 1000) is None
