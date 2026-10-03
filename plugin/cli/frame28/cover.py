@@ -13,7 +13,7 @@ from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
 from .build import DEFAULT_BRAND, highlight_line_height, resolve_brand
-from .env import env_with_ffmpeg, npx, run
+from .env import env_with_ffmpeg, npx_cmd, run
 
 
 def _esc(s: str) -> str:
@@ -124,7 +124,7 @@ def snapshot(project: str | Path, out_png: str | Path) -> Path:
     snaps = project / "snapshots"
     if snaps.exists():
         shutil.rmtree(snaps)
-    r = run([npx(), "--yes", f"hyperframes@{HYPERFRAMES_VERSION}", "snapshot", "--at", "0", "--no-end", "--describe", "false",
+    r = run([*npx_cmd(), "--yes", f"hyperframes@{HYPERFRAMES_VERSION}", "snapshot", "--at", "0", "--no-end", "--describe", "false",
              "--no-browser-gpu", "-o", str(snaps), str(project)], cwd=str(project), env=env_with_ffmpeg(), timeout=300)
     pngs = sorted(snaps.glob("*.png")) if snaps.exists() else []
     if r.returncode != 0 or not pngs:

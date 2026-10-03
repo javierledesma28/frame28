@@ -60,6 +60,23 @@ def npx() -> str:
     return p
 
 
+def npx_cmd(found: str | None = None) -> list[str]:
+    """La orden para lanzar npx sin pasar por cmd.exe. En Windows npx es un .cmd y Python lo ejecuta con cmd.exe, que no
+    escapa sus metacaracteres: una ruta con & (C:\\Clientes\\R&D\\) se partía y el resto se ejecutaba como otra orden
+    (comprobado el 2026-10-03, F28-87). El .cmd solo hace `node npx-cli.js`: se llama a node directamente. Fuera de
+    Windows, o si no aparece npx-cli.js junto al .cmd, npx tal cual."""
+    raw = found or npx()
+    p = Path(raw)
+    if p.suffix.lower() in (".cmd", ".bat") or (os.name == "nt" and p.suffix == ""):
+        cli = p.parent / "node_modules" / "npm" / "bin" / "npx-cli.js"
+        node = p.parent / "node.exe"
+        if not node.exists():
+            node = Path(shutil.which("node") or "node")
+        if cli.exists():
+            return [str(node), str(cli)]
+    return [raw]
+
+
 def run(cmd: list[str], **kw) -> subprocess.CompletedProcess:
     """subprocess.run con salida en texto y sin lanzar excepción por defecto."""
     kw.setdefault("text", True)
