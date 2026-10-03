@@ -75,3 +75,57 @@ def test_map_gestures_marks_hidden_pointers_and_keeps_boxes_inside():
     assert r["events"][0]["tip"] == p1["dot"]
     assert r["face_box"] and r["face_box"][0] < r["face_box"][2]
     assert R.map_gestures(BLUR_RES, g)["hidden"] == 0
+
+
+# ── F28-89: un vertical de móvil a 1:1 o 4:5 se aplastaba (la ventana salía más ancha que el vídeo) ─────────────────
+@pytest.mark.parametrize("src, out, expect", [
+    ((1920, 1080), (1080, 1920), ("x", 608, 1080)),      # apaisado → 9:16: como siempre, ventana a toda la altura
+    ((1080, 1920), (1080, 1080), ("y", 1080, 1080)),     # vertical → 1:1: todo el ancho, se mueve en vertical
+    ((1080, 1920), (1080, 1350), ("y", 1080, 1350)),     # vertical → 4:5
+    ((1080, 1920), (1080, 1920), ("x", 1080, 1920)),     # misma proporción: el clip entero
+    ((1920, 1080), (1080, 1080), ("x", 1080, 1080)),     # apaisado → 1:1
+    ((720, 1280), (1080, 1080), ("y", 720, 720)),        # vertical pequeño: ventana del tamaño que hay (luego se escala)
+])
+def test_crop_window_never_exceeds_the_clip(src, out, expect):
+    axis, cw, ch = R.crop_window(*src, *out)
+    assert (axis, cw, ch) == expect
+    assert cw <= src[0] and ch <= src[1] and cw % 2 == 0 and ch % 2 == 0
+    assert abs(cw / ch - out[0] / out[1]) < 0.01                       # misma proporción que la salida: nada se deforma
+
+
+def test_window_origin_clamps_on_its_axis():
+    assert R.window_origin("x", 960, 1920, 1080, 608, 1080) == (656, 0)
+    assert R.window_origin("x", 10, 1920, 1080, 608, 1080) == (0, 0)
+    assert R.window_origin("y", 400, 1080, 1920, 1080, 1080) == (0, 0)
+    assert R.window_origin("y", 1200, 1080, 1920, 1080, 1080) == (0, 660)
+    assert R.window_origin("y", 5000, 1080, 1920, 1080, 1080) == (0, 840)
+
+
+def test_camera_path_vertical_keeps_the_face_in_the_upper_third():
+    subj = {"width": 1080, "height": 1920, "fps": 30, "sample_fps": 10.0, "t": [i / 10 for i in range(30)],
+            "x": [540] * 30, "y": [800] * 30}
+    cams = [c for _, c in R.camera_path(subj, 1080, axis="y")]
+    assert cams[-1] == pytest.approx(800 + 0.1 * 1080, abs=1)         # centro = nariz + 10 % → nariz al 40 % de la ventana
+    _, y0 = R.window_origin("y", cams[-1], 1080, 1920, 1080, 1080)
+    assert (800 - y0) / 1080 == pytest.approx(R.FACE_AT, abs=0.01)
+    low = {**subj, "y": [1900] * 30}                                   # la cara abajo del todo: la ventana no se sale
+    assert all(c <= 1920 - 540 + 0.5 for _, c in R.camera_path(low, 1080, axis="y"))
+    sin_y = {k: v for k, v in subj.items() if k != "y"}               # sin altura de la nariz: a un tercio
+    assert R.camera_path(sin_y, 1080, axis="y")[0][1] == pytest.approx(1920 / 3 + 108, abs=1)
+
+
+def test_map_point_vertical_to_square_and_old_reframe_json():
+    sq = {"mode": "crop", "source": [1080, 1920], "out": [1080, 1080], "crop": [1080, 1080], "axis": "y",
+          "path": [[0.0, 908.0], [9.0, 908.0]]}
+    y0 = 908 - 540
+    assert R.map_point(sq, 540, 800, 1.0) == [540, 800 - y0]            # sin aplastar: escala 1 en los dos ejes
+    assert R.point_visible(sq, 540, 800, 1.0) and not R.point_visible(sq, 540, 1900, 1.0)
+    old = {k: v for k, v in CROP_RES.items()}                           # reframe.json anterior: sin «axis», crop [w, H]
+    assert R.map_point(old, 960, 540, 1.0) == [540, 960]
+
+
+def test_prep_width_is_the_long_side():
+    from frame28.media import scale_filter
+    assert scale_filter({"width": 3840, "height": 2160}, 1920) == ",scale=1920:-2"
+    assert scale_filter({"width": 1080, "height": 1920}, 1920) == ",scale=-2:1920"     # antes subía a 1920×3413
+    assert scale_filter({}, 1920) == ",scale=1920:-2" and scale_filter({"width": 1, "height": 2}, None) == ""
