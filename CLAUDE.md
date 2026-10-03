@@ -420,3 +420,6 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **El HANDOFF puede quedarse atrás en un mismo día**: el del 2026-10-01 (mediodía) decía «árbol limpio» mientras la tarde
   dejó 4 commits sin subir, 8 ficheros sin commitear y una muestra entera renderizada sin anotar. Antes de fiarse, `git status
   -sb`, `git log origin/main..main` y mirar los `.frame28/log.jsonl` de `poc/*/` (son la bitácora real de lo que se ejecutó).
+- **`cv2.imread`/`imwrite` fallan en silencio con rutas con acentos en Windows**: usar siempre `frame28.imgio` (F28-88).
+- **Un `&` en la ruta parte la orden de `npx.cmd`** (`cmd.exe` lo interpreta): invocar npx solo con `env.npx_cmd` (F28-87).
+- **Validar rutas del storyboard sin romper los casos locales**: los storyboards de `work/` usan `../clip.mp4`; rechazar `..` los invalida (F28-84, a medias en la rama `build-escape`).
