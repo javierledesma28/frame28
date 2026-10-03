@@ -13,6 +13,7 @@ import cv2
 import numpy as np
 
 from .env import CACHE_DIR
+from .imgio import imwrite
 
 POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task"
 POSE_MODEL_PATH = CACHE_DIR / "pose_landmarker_lite.task"
@@ -192,8 +193,10 @@ def analyze(video: str | Path, words_path: str | Path | None = None, sample_fps:
     result = {"video": str(video), "frames_analyzed": len(tr["frames"]), "sample_fps": tr["sample_fps"], "canvas": list(canvas),
               "face_box": face, "face_box_1080p": face, "events": events, "pointer_suggestions": sugg}
     if annotate:
-        _annotate(video, tr, events, sugg, annotate, canvas)
-        result["annotated"] = str(annotate)
+        if _annotate(video, tr, events, sugg, annotate, canvas):
+            result["annotated"] = str(annotate)
+        else:   # antes decía «annotated» con una ruta que no existía
+            result["annotate_note"] = "sin pointers propuestos que anotar" + ("" if words_path else " (pasa --words para buscarlos)")
     return result
 
 
@@ -216,4 +219,6 @@ def _annotate(video, tr, events, sugg, out_png, canvas=(1920, 1080)):
         tiles.append(cv2.resize(fr, (cw // 2, ch // 2)))
     if tiles:
         rows = [np.hstack(tiles[i:i + 2]) if i + 1 < len(tiles) else np.hstack([tiles[i], np.zeros_like(tiles[i])]) for i in range(0, len(tiles), 2)]
-        cv2.imwrite(str(out_png), np.vstack(rows))
+        imwrite(str(out_png), np.vstack(rows))
+        return True
+    return False

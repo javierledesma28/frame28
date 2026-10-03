@@ -154,8 +154,10 @@ def svg_colors(svg: str) -> list[str]:
 def image_colors(path: Path, top: int = 4) -> list[str]:
     """Colores dominantes con color de verdad de una imagen (cuantizados, por superficie)."""
     import cv2
+
+    from .imgio import imread, imwrite
     import numpy as np
-    im = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+    im = imread(str(path), cv2.IMREAD_UNCHANGED)
     if im is None:
         return []
     if im.ndim == 2:
@@ -228,8 +230,10 @@ def propose(analysis: dict, logo_colors: list[str] | None = None) -> dict:
 def trim_image(path: Path, tol: int = 18, pad: float = 0.04) -> bool:
     """Recorta una imagen a su contenido (la og:image trae márgenes de color liso). True si recortó algo."""
     import cv2
+
+    from .imgio import imread, imwrite
     import numpy as np
-    im = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+    im = imread(str(path), cv2.IMREAD_UNCHANGED)
     if im is None or im.ndim == 2:
         return False
     h, w = im.shape[:2]
@@ -246,7 +250,7 @@ def trim_image(path: Path, tol: int = 18, pad: float = 0.04) -> bool:
     x0, y0, x1, y1 = max(0, x0 - p), max(0, y0 - p), min(w, x1 + p + 1), min(h, y1 + p + 1)
     if (x1 - x0) * (y1 - y0) > 0.92 * w * h:
         return False
-    cv2.imwrite(str(path), im[y0:y1, x0:x1])
+    imwrite(str(path), im[y0:y1, x0:x1])
     return True
 
 
@@ -254,7 +258,9 @@ def logo_variants(png_path: Path, out_dir: Path, ink: str) -> dict:
     """Del logo original genera on_dark (claro si el logo es oscuro), on_accent (tinta) y on_light (original)."""
     import cv2
 
-    im = cv2.imread(str(png_path), cv2.IMREAD_UNCHANGED)
+    from .imgio import imread, imwrite
+
+    im = imread(str(png_path), cv2.IMREAD_UNCHANGED)
     out_dir.mkdir(parents=True, exist_ok=True)
     files = {}
     if im is None:
@@ -269,15 +275,15 @@ def logo_variants(png_path: Path, out_dir: Path, ink: str) -> dict:
     mean = im[:, :, :3][op].mean(axis=0)  # BGR
     lum = (0.114 * mean[0] + 0.587 * mean[1] + 0.299 * mean[2]) / 255
     r, g, b = _hex_to_rgb(ink)
-    cv2.imwrite(str(out_dir / "on_light.png"), im); files["on_light"] = out_dir.name + "/on_light.png"
-    cv2.imwrite(str(out_dir / "isotipo.png"), im); files["isotipo"] = out_dir.name + "/isotipo.png"
+    imwrite(str(out_dir / "on_light.png"), im); files["on_light"] = out_dir.name + "/on_light.png"
+    imwrite(str(out_dir / "isotipo.png"), im); files["isotipo"] = out_dir.name + "/isotipo.png"
     dark = im.copy(); dark[:, :, :3][op] = (b, g, r)
-    cv2.imwrite(str(out_dir / "on_accent.png"), dark); files["on_accent"] = out_dir.name + "/on_accent.png"
+    imwrite(str(out_dir / "on_accent.png"), dark); files["on_accent"] = out_dir.name + "/on_accent.png"
     if lum < 0.45:  # logo oscuro: en fondo oscuro, en blanco
         white = im.copy(); white[:, :, :3][op] = 255
-        cv2.imwrite(str(out_dir / "on_dark.png"), white); files["on_dark"] = out_dir.name + "/on_dark.png"
+        imwrite(str(out_dir / "on_dark.png"), white); files["on_dark"] = out_dir.name + "/on_dark.png"
     else:
-        cv2.imwrite(str(out_dir / "on_dark.png"), im); files["on_dark"] = out_dir.name + "/on_dark.png"
+        imwrite(str(out_dir / "on_dark.png"), im); files["on_dark"] = out_dir.name + "/on_dark.png"
     return files
 
 

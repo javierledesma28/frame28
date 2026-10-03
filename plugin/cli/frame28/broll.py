@@ -171,6 +171,8 @@ def sheet(items: list[dict], out_png: str | Path, cols: int = 4, tile: int = 480
     import cv2
     import numpy as np
 
+    from .imgio import imwrite
+
     tiles = []
     for it in items:
         img = None
@@ -195,5 +197,5 @@ def sheet(items: list[dict], out_png: str | Path, cols: int = 4, tile: int = 480
         tiles.append(np.zeros_like(tiles[0]))
     rows = [np.hstack(tiles[i:i + cols]) for i in range(0, len(tiles), cols)]
     out = Path(out_png); out.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(out), np.vstack(rows))
+    imwrite(str(out), np.vstack(rows))
     return out

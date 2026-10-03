@@ -23,6 +23,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from .imgio import imwrite
 
 ZONES = ["top-left", "top-center", "top-right", "mid-left", "center", "mid-right", "bottom-left", "bottom-center", "bottom-right"]
 
@@ -273,7 +274,7 @@ def annotate(res: dict, out_png: str | Path, video: str | Path | None = None) ->
     if panel.shape[0] > H:
         bg = np.vstack([bg, np.full((panel.shape[0] - H, W, 3), 24, np.uint8)])
     out = Path(out_png); out.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(out), np.hstack([bg, panel]))
+    imwrite(str(out), np.hstack([bg, panel]))
     return out
 
 
