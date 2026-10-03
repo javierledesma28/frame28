@@ -121,6 +121,20 @@ def nvenc_ready(cache: Path | None = None, now: float | None = None, probe=None)
     return ok, why
 
 
+_NVDEC: bool | None = None
+
+
+def nvdec_ready() -> bool:
+    """¿Tiene este ffmpeg el decodificador por hardware de NVIDIA (`-hwaccels` incluye cuda)? Se pregunta una vez por
+    proceso; el uso real lo decide media.gpu_decode_args (solo H.264/HEVC y con NVENC: AV1 en GPU salió más lento)."""
+    global _NVDEC
+    if _NVDEC is None:
+        ff = ffmpeg()
+        r = run([ff, "-hide_banner", "-hwaccels"], timeout=30) if ff else None
+        _NVDEC = bool(r and r.returncode == 0 and any(l.strip() == "cuda" for l in (r.stdout or "").splitlines()))
+    return _NVDEC
+
+
 def use_gpu_encoder(enable: bool | None = None) -> bool:
     """¿Se codifica con NVENC? Por defecto (auto) sí, si la GPU NVIDIA y el ffmpeg lo permiten (nvenc_ready); si no, CPU
     sin pedir nada. `enable` lo fuerza para el resto del proceso (--gpu / --cpu). Medido en una RTX 4060: 20 s de 1080p
