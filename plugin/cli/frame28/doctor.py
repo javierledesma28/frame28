@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import importlib
 import json
+import os
 import shutil
 import subprocess
+import time
 import urllib.request
+from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION, __version__
-from .env import RVM_MODEL_PATH, find_tool
+from .env import CACHE_DIR, RVM_MODEL_PATH, find_tool
 
 GSAP_CDN = f"https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/gsap.min.js"
 
@@ -39,17 +42,21 @@ def cdn_reachable(url: str = GSAP_CDN, timeout: float = 5.0) -> bool:
 
 
 RELEASES_API = "https://api.github.com/repos/javierledesma28/frame28/releases/latest"
-UPGRADE_HINT = ("uv tool upgrade frame28  (o repetir el instalador) y, para las skills, "
-                "claude plugin marketplace update think28 && claude plugin update frame28@think28")
+CLI_UPGRADE = "uv tool upgrade frame28  (o repetir el instalador)"
+PLUGIN_UPGRADE = ("claude plugin marketplace update think28 && claude plugin update frame28@think28  "
+                  "(y abrir una sesión nueva de Claude Code)")
+PLUGIN_INSTALL = "claude plugin marketplace add javierledesma28/frame28 && claude plugin install frame28@think28"
+RELEASE_TTL = 12 * 3600       # una respuesta de GitHub vale 12 h: sin token, GitHub da 60 consultas por hora
+RELEASE_FAIL_TTL = 3600       # sin red: no volver a esperar el timeout en cada doctor durante una hora
 
 
 def _vtuple(v: str) -> tuple[int, ...]:
     return tuple(int(x) for x in v.strip().lstrip("v").split(".") if x.isdigit())
 
 
-def release_newer(current: str, latest: str | None) -> bool | None:
-    """True si la release publicada es más nueva que el código instalado; False si está al día; None si no se sabe."""
-    if not latest:
+def release_newer(current: str | None, latest: str | None) -> bool | None:
+    """True si la release publicada es más nueva que la instalada; False si está al día; None si no se sabe."""
+    if not latest or not current:
         return None
     a, b = _vtuple(current), _vtuple(latest)
     if not a or not b:        # una etiqueta sin números ("rc") no dice nada
@@ -57,15 +64,81 @@ def release_newer(current: str, latest: str | None) -> bool | None:
     return b > a
 
 
-def latest_release(url: str = RELEASES_API, timeout: float = 5.0) -> str | None:
-    """Tag de la última release pública (None sin red o si GitHub no responde)."""
+def _fetch_release(url: str, timeout: float) -> str | None:
     try:
-        import json
         req = urllib.request.Request(url, headers={"User-Agent": f"frame28/{__version__}", "Accept": "application/vnd.github+json"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read().decode("utf-8")).get("tag_name")
     except Exception:  # noqa: BLE001
         return None
+
+
+def latest_release(url: str = RELEASES_API, timeout: float = 5.0, cache: Path | None = None, now: float | None = None) -> str | None:
+    """Tag de la última release pública (None si no se sabe), con caché en ~/.cache/frame28/release.json: 12 h si GitHub
+    respondió, 1 h si no (sin red, `doctor` no espera el timeout cada vez)."""
+    cache = cache or CACHE_DIR / "release.json"
+    now = time.time() if now is None else now
+    try:
+        c = json.loads(cache.read_text(encoding="utf-8"))
+        ttl = RELEASE_TTL if c.get("tag") else RELEASE_FAIL_TTL
+        if c.get("url") == url and 0 <= now - float(c.get("at", 0)) < ttl:
+            return c.get("tag")
+    except Exception:  # noqa: BLE001  (sin caché o caché rota: se pregunta)
+        pass
+    tag = _fetch_release(url, timeout)
+    try:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({"url": url, "tag": tag, "at": now}), encoding="utf-8")
+    except Exception:  # noqa: BLE001
+        pass
+    return tag
+
+
+def claude_plugins_file() -> Path:
+    return Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude") / "plugins" / "installed_plugins.json"
+
+
+def plugin_installed(path: Path | None = None) -> tuple[bool, str | None]:
+    """(¿hay Claude Code en este usuario?, versión del plugin frame28 instalado o None). Lee installed_plugins.json de
+    Claude Code; admite el formato con `plugins` y el plano, y una entrada o varias (alcances usuario y proyecto)."""
+    path = path or claude_plugins_file()
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return False, None
+    except Exception:  # noqa: BLE001  (formato desconocido: hay Claude Code, no sabemos la versión)
+        return True, None
+    plugins = data.get("plugins", data) if isinstance(data, dict) else {}
+    versions = []
+    for key, entries in (plugins.items() if isinstance(plugins, dict) else []):
+        if str(key).split("@")[0] != "frame28":
+            continue
+        for e in entries if isinstance(entries, list) else [entries]:
+            if isinstance(e, dict) and _vtuple(str(e.get("version") or "")):
+                versions.append(str(e["version"]))
+    return True, (max(versions, key=_vtuple) if versions else None)
+
+
+def version_rows(cli: str, latest: str | None, plugin: tuple[bool, str | None]) -> list[dict]:
+    """Las dos filas de versiones: el CLI y el plugin de Claude Code contra la última release, cada una con su orden (un
+    usuario con una instalación vieja no sabía que había versión nueva ni cómo actualizar; `claude plugin update` solo
+    actúa si cambia la versión, así que el plugin es lo que más se queda atrás)."""
+    rows = []
+    newer = release_newer(cli, latest)
+    rows.append({"name": "última release (CLI)", "ok": newer is not True, "optional": True, "fix": CLI_UPGRADE if newer else "",
+                 "detail": f"{latest} publicada, {cli} instalada" if newer else (f"{cli} al día" if newer is False else f"{cli} · sin respuesta de GitHub")})
+    has_claude, pv = plugin
+    if not has_claude:
+        rows.append({"name": "plugin (Claude Code)", "ok": False, "optional": True, "fix": "instala Claude Code y después: " + PLUGIN_INSTALL,
+                     "detail": "no se encontró Claude Code en este usuario"})
+    elif pv is None:
+        rows.append({"name": "plugin (Claude Code)", "ok": False, "optional": True, "fix": PLUGIN_INSTALL,
+                     "detail": "el plugin frame28 no está instalado en Claude Code"})
+    else:
+        pnew = release_newer(pv, latest)
+        rows.append({"name": "plugin (Claude Code)", "ok": pnew is not True, "optional": True, "fix": PLUGIN_UPGRADE if pnew else "",
+                     "detail": f"{pv} instalado, {latest} publicada" if pnew else (f"{pv} al día" if pnew is False else f"{pv} instalado")})
+    return rows
 
 
 def doctor() -> list[dict]:
@@ -118,11 +191,7 @@ def doctor() -> list[dict]:
             "opcional: PEXELS_API_KEY / PIXABAY_API_KEY en el entorno o en ~/.config/frame28/keys.json (gratis en pexels.com/api y pixabay.com/api/docs); sin ellas `frame28 broll search` no busca", optional=True)
     except Exception as e:  # noqa: BLE001
         add("claves de B-roll", False, str(e)[:80], "revisa ~/.config/frame28/keys.json", optional=True)
-    latest = latest_release()
-    newer = release_newer(__version__, latest)
-    add("última release", newer is not True,
-        (f"{latest} publicada, {__version__} instalada" if newer else (f"{__version__} al día" if newer is False else "sin respuesta de GitHub")),
-        UPGRADE_HINT if newer else "", optional=True)
+    rows.extend(version_rows(__version__, latest_release(), plugin_installed()))
     net = cdn_reachable()
     add("red (GSAP por CDN)", net, f"gsap@{GSAP_VERSION} en cdn.jsdelivr.net" + ("" if net else ": sin acceso"),
         "el render y la portada cargan GSAP por internet: conecta la red antes de `frame28 render` o `frame28 cover`", optional=True)
