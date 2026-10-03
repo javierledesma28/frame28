@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from click.testing import CliRunner
 
 from frame28 import __version__
@@ -298,3 +300,68 @@ def test_gpu_decode_only_for_h264_hevc_with_nvenc(monkeypatch):
     monkeypatch.setattr(env, "nvdec_ready", lambda: False)
     assert media.gpu_decode_args(h264, 30, None) is None
     assert media.scaled_size({"width": 1921, "height": 1081}, 1000) == (1000, 562) and media.scaled_size({}, 1000) is None
+
+
+# ── F28-81: check aprobaba aunque HyperFrames no llegara a ejecutarse, y nunca salía con error ───────────────────────
+HF_OK = """Layout
+  ℹ t=5.42s text_occluded span.wi > div:nth-of-type(10) inside #bh-fg "E" — Text is hidden beneath an opaque element.
+  0 error(s), 0 warning(s), 16 info(s)
+
+Contrast
+  ✗ #end-s 2.82:1 (need 3:1, t=18.417s)
+    Try rgb(90,90,90); source index.html
+  0 error(s), 2 warning(s), 0 info(s)
+
+◇  Check passed
+"""
+HF_FAIL = """Lint
+  ✗ media_missing_id <video src="assets/b.mp4"> — every media element needs an id
+  1 error(s), 0 warning(s), 0 info(s)
+
+◇  Check failed
+"""
+HF_OLD_OCCLUDED = """Layout
+  ✗ t=5.42s text_occluded #bh-w "N" — Text is hidden beneath an opaque element.
+  1 error(s), 0 warning(s), 0 info(s)
+◇  Check failed
+"""
+NPM_DOWN = "npm error code ENOTFOUND\nnpm error network request to https://registry.npmjs.org/hyperframes failed\n"
+
+
+def test_parse_check_reads_hyperframes_output():
+    from frame28.render import parse_check
+    ok = parse_check(0, HF_OK)
+    assert ok["passed"] and ok["ran"] and ok["errors"] == [] and len(ok["contrast_warnings"]) == 1
+    bad = parse_check(1, HF_FAIL)
+    assert not bad["passed"] and bad["errors"][0].startswith("✗ media_missing_id")
+    old = parse_check(1, HF_OLD_OCCLUDED)                      # el falso positivo del texto detrás no tumba el check
+    assert old["passed"] and len(old["known_false_positives"]) == 1
+
+
+@pytest.mark.parametrize("rc, out", [(1, NPM_DOWN), (0, ""), (0, "algo que no es la salida de HyperFrames"), (127, "npx no encontrado")])
+def test_parse_check_fails_when_hyperframes_did_not_run(rc, out):
+    from frame28.render import parse_check
+    r = parse_check(rc, out)
+    assert not r["passed"] and not r["ran"] and "no llegó a ejecutarse" in r["errors"][0] and "doctor" in r["errors"][0]
+
+
+def test_parse_check_does_not_approve_errors_it_cannot_read():
+    from frame28.render import parse_check
+    r = parse_check(1, "Lint\n  3 error(s), 0 warning(s)\n◇  Check failed\n")
+    assert not r["passed"] and r["ran"] and "no se pudieron leer" in r["errors"][0]
+
+
+def test_check_command_exit_code(monkeypatch, tmp_path):
+    from click.testing import CliRunner
+    from frame28 import render as R
+    from frame28.cli import main
+    monkeypatch.setattr(R, "_hf", lambda *a, **k: (_ for _ in ()).throw(FileNotFoundError()))
+    r = CliRunner().invoke(main, ["check", str(tmp_path)])
+    assert r.exit_code == 1 and "✗ check falló" in r.output and "npx no encontrado" in r.output
+    class Done:
+        returncode, stdout, stderr = 0, HF_OK, ""
+    monkeypatch.setattr(R, "_hf", lambda *a, **k: Done())
+    r = CliRunner().invoke(main, ["check", str(tmp_path)])
+    assert r.exit_code == 0 and "✓ check pasó" in r.output and "aviso de contraste" in r.output
+    r = CliRunner().invoke(main, ["check", str(tmp_path), "--json"])
+    assert r.exit_code == 0 and json.loads(r.output)["passed"] is True
