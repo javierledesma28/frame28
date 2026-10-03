@@ -23,7 +23,10 @@ def png(w, h, bg, shapes=(), alpha=False) -> bytes:
 def web(monkeypatch):
     site: dict[str, object] = {}
 
-    def fake_get(url, binary=False, timeout=30, max_bytes=S.MAX_PAGE):
+    monkeypatch.setattr(S, "host_is_public", lambda url: not any(h in url for h in ("169.254.", "localhost", "127.0.0.1", "10.0.")))
+
+    def fake_get(url, binary=False, timeout=30, max_bytes=S.MAX_PAGE, public_only=True):
+        S._check_url(url, public_only)                      # la misma regla que el código real
         if url not in site:
             raise OSError(f"404 {url}")
         data = site[url]
@@ -107,6 +110,63 @@ def test_descargas_solo_http_y_con_tope(monkeypatch):
         def __enter__(self): return self
         def __exit__(self, *a): return False
         def read(self, n): return b"x" * n
-    monkeypatch.setattr(S.urllib.request, "urlopen", lambda req, timeout: Big())
+
+    class Opener:
+        def open(self, req, timeout): return Big()
+    monkeypatch.setattr(S.urllib.request, "build_opener", lambda *h: Opener())
     with pytest.raises(ValueError, match="demasiado grande"):
-        S._get("https://x.example/", max_bytes=10)
+        S._get("https://x.example/", max_bytes=10, public_only=False)
+
+
+# ── F28-85: lo que dice la web solo se baja de hosts públicos, también tras redirecciones ────────────────────────────
+@pytest.mark.parametrize("addr, public", [("93.184.216.34", True), ("169.254.169.254", False), ("10.1.2.3", False),
+                                          ("192.168.1.10", False), ("127.0.0.1", False), ("::1", False), ("fe80::1", False)])
+def test_host_is_public(monkeypatch, addr, public):
+    monkeypatch.setattr("socket.getaddrinfo", lambda host, port: [(None, None, None, None, (addr, 0))])
+    assert S.host_is_public("https://algo.example/x.png") is public
+
+
+def test_host_that_does_not_resolve_is_not_public(monkeypatch):
+    def boom(host, port):
+        raise OSError("no resuelve")
+    monkeypatch.setattr("socket.getaddrinfo", boom)
+    assert not S.host_is_public("https://no-existe.example/")
+    assert not S.host_is_public("not a url")
+
+
+def test_get_refuses_internal_and_redirects_to_internal(monkeypatch):
+    monkeypatch.setattr(S, "host_is_public", lambda url: "169.254." not in url)
+    with pytest.raises(ValueError, match="interna"):
+        S._get("http://169.254.169.254/latest/meta-data/")
+    guard = S._GuardedRedirect(public_only=True)
+    with pytest.raises(ValueError, match="interna"):
+        guard.redirect_request(None, None, 302, "Found", {}, "http://169.254.169.254/x")
+    with pytest.raises(ValueError, match="esquema"):
+        guard.redirect_request(None, None, 302, "Found", {}, "file:///etc/passwd")
+
+
+def test_page_pointing_to_internal_or_non_image_logos_is_skipped(web, tmp_path):
+    page = ('<html><head><meta property="og:image" content="http://169.254.169.254/latest/meta-data/iam">'
+            '<link rel="icon" href="https://k.example/icon.png"></head><body>'
+            '<header><img class="logo" src="http://localhost:8080/admin/logo.png"></header></body></html>')
+    web.update({"https://k.example/": page, "https://k.example/icon.png": "<html>no soy una imagen</html>"})
+    r = S.from_site("https://k.example/", "k", tmp_path)
+    errs = " ".join(r["logo"].get("errors", []))
+    assert "interna" in errs and "no es una imagen" in errs
+    assert not (tmp_path / "k" / "original.png").exists() and not (tmp_path / "k" / "original.svg").exists()
+    assert any("--logo-url" in w for w in r["warnings"])
+
+
+def test_user_given_urls_are_trusted(web, tmp_path):
+    # la web y --logo-url las pone el usuario (puede ser su servidor local de pruebas)
+    web.update({"http://localhost:3000/": "<html><body></body></html>",
+                "http://localhost:3000/logo.svg": '<svg><path fill="#00A651" d="M0 0"/></svg>'})
+    r = S.from_site("http://localhost:3000/", "local", tmp_path, logo_url="http://localhost:3000/logo.svg")
+    assert r["logo"]["kind"] == "pedido" and r["accent"] == "#00a651"
+
+
+def test_looks_like_image():
+    assert S.looks_like_image(b"\x89PNG\r\n\x1a\n....") and S.looks_like_image(b"\xff\xd8\xff\xe0")
+    assert S.looks_like_image(b"  <svg xmlns='x'></svg>") and S.looks_like_image(b"<?xml version='1.0'?><svg/>")
+    assert S.looks_like_image(b"RIFF\x00\x00\x00\x00WEBPVP8 ")
+    assert not S.looks_like_image(b"<html><body>404</body></html>") and not S.looks_like_image(b'{"error": 1}')

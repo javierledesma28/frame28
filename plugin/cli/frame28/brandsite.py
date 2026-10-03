@@ -39,16 +39,63 @@ TEMPLATE = {
 }
 
 
-def _get(url: str, binary: bool = False, timeout: int = 30, max_bytes: int = MAX_PAGE):
-    """Solo http(s) y con tope de tamaño: la web del cliente decide las URLs que bajamos."""
+def host_is_public(url: str) -> bool:
+    """¿Resuelve el host a direcciones públicas? No: localhost, la red local, link-local (169.254.169.254, los metadatos
+    de la nube), reservadas o multicast. Si no resuelve, tampoco."""
+    import ipaddress
+    import socket
+    host = urllib.parse.urlparse(url).hostname
+    if not host:
+        return False
+    try:
+        addrs = {a[4][0] for a in socket.getaddrinfo(host, None)}
+    except OSError:
+        return False
+    for a in addrs:
+        ip = ipaddress.ip_address(a.split("%")[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast or ip.is_unspecified:
+            return False
+    return bool(addrs)
+
+
+def _check_url(url: str, public_only: bool) -> None:
     if urllib.parse.urlparse(url).scheme not in ("http", "https"):
         raise ValueError(f"esquema no permitido: {url[:60]}")
+    if public_only and not host_is_public(url):
+        raise ValueError(f"dirección interna o que no resuelve, no se descarga: {url[:80]}")
+
+
+class _GuardedRedirect(urllib.request.HTTPRedirectHandler):
+    """Cada redirección pasa la misma comprobación que la URL original (una pública no puede llevar a una interna)."""
+
+    def __init__(self, public_only: bool):
+        self.public_only = public_only
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        _check_url(newurl, self.public_only)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def _get(url: str, binary: bool = False, timeout: int = 30, max_bytes: int = MAX_PAGE, public_only: bool = True):
+    """Solo http(s), con tope de tamaño y, para lo que dice la web (`public_only`), solo hosts públicos, también tras
+    cada redirección (F28-85): una web comprometida con og:image a file:///… o http://169.254.169.254/… ya no mete un
+    fichero local o una respuesta interna en la carpeta de la marca. Lo que pasa el usuario (la web, --logo-url) va con
+    public_only=False."""
+    _check_url(url, public_only)
+    opener = urllib.request.build_opener(_GuardedRedirect(public_only))
     req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
+    with opener.open(req, timeout=timeout) as r:
         data = r.read(max_bytes + 1)
     if len(data) > max_bytes:
         raise ValueError(f"demasiado grande (más de {max_bytes // 1_000_000} MB): {url[:60]}")
     return data if binary else data.decode("utf-8", errors="replace")
+
+
+def looks_like_image(data: bytes) -> bool:
+    """PNG, JPEG, GIF, WebP, ICO o SVG por sus primeros bytes: un «logo» que es una página HTML o un JSON no se guarda."""
+    head = data[:512].lstrip()
+    return (data[:8] == b"\x89PNG\r\n\x1a\n" or data[:3] == b"\xff\xd8\xff" or data[:4] in (b"GIF8", b"\x00\x00\x01\x00")
+            or (data[:4] == b"RIFF" and data[8:12] == b"WEBP") or head.startswith(b"<svg") or (head.startswith(b"<?xml") and b"<svg" in data[:2048]))
 
 
 def _hex_to_rgb(h: str) -> tuple[int, int, int]:
@@ -300,7 +347,9 @@ def _logo(an: dict, logo_url: str | None, ldir: Path, name: str, warnings: list[
     cands += [(u, "icono") for u in an.get("icons", [])] + ([(an["og_image"], "og:image")] if an.get("og_image") else [])
     for url, kind in cands:
         try:
-            data = _get(url, binary=True, timeout=60, max_bytes=MAX_LOGO)
+            data = _get(url, binary=True, timeout=60, max_bytes=MAX_LOGO, public_only=kind != "pedido")
+            if not looks_like_image(data):
+                raise ValueError("no es una imagen")
         except Exception as e:  # noqa: BLE001  (el siguiente candidato)
             info.setdefault("errors", []).append(f"{url[:80]}: {e}")
             continue
@@ -323,7 +372,7 @@ def _logo(an: dict, logo_url: str | None, ldir: Path, name: str, warnings: list[
 
 def from_site(url: str, name: str, out_dir: str | Path = "brands", logo_url: str | None = None, tagline: str | None = None) -> dict:
     """Descarga la portada y sus hojas CSS, propone la marca y escribe <out_dir>/<name>.json (+ logos en <out_dir>/<name>/)."""
-    html = _get(url)
+    html = _get(url, public_only=False)   # la web la da el usuario
     css_parts, css_errors = [], []
     for sheet in stylesheets(html, url):
         try:
