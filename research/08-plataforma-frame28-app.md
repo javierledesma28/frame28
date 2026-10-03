@@ -71,7 +71,7 @@ y no de un SaaS (revisión legal), el roadmap gana épicas (cuenta, Memoria, cam
 | **Marca que no quiere operar nada** | Quiere resultados, no herramientas | Que Think28 lo haga con Frame28, con la misma cuenta como registro | Studio (servicio) |
 
 El trabajo que hacen («job to be done»): *«publicar en todos los formatos y mercados lo que ya grabé, con mi marca, esta
-semana, sin contratar un equipo de edición»*.
+semana, sin ampliar el equipo de edición»* (Frame28 potencia a quien edita, no lo sustituye: `research/11` §5).
 
 ---
 
@@ -353,7 +353,7 @@ enseñan el producto de verdad. GSAP aparece en Anthropic, Featherless, Wispr y 
 3. **Disciplina Linear/Vercel.** Rejilla técnica sutil, bento de seis cajas (Memoria de marca · Campañas · Shorts con
    ganchos · Idiomas · Portadas y fichas · Coste por vídeo), tipografía grande con tracking negativo, mono para datos.
 4. **Métricas duras como elementos** (TypeSafe), reales y nuestras: «1 vídeo → 3 idiomas · 6 shorts · 4 portadas · 2 h de
-   máquina · 0 editores», «render 1 m 16 s», «114 pruebas», `frame28 v0.4.0` en vivo desde GitHub, un *ticker* con líneas
+   máquina» (sin «0 editores»: potenciamos a los editores, no los reemplazamos; `research/11` §5), «render 1 m 16 s», «114 pruebas», `frame28 v0.4.0` en vivo desde GitHub, un *ticker* con líneas
    del registro (`.frame28/log.jsonl`): detalle retro-computacional con sentido.
 5. **Un solo acento**: `#F5C500` sobre `#0A0A0A`, Inter 800 con `-0.035em` y Space Mono: los tokens de `brands/think28.json`.
    Lo que el visitante ve en la web es lo que Frame28 renderiza: coherencia como argumento.

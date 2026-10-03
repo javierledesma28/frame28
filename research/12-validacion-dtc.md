@@ -17,6 +17,7 @@ La lista de marcas candidatas, con nombres, vive en `_private/prospeccion-dtc/` 
 | H2 | El dolor que pagan es el **volumen de creatividades** (anuncios que se queman) **o los idiomas** | Lo mencionan sin que se lo sugiramos, con un coste o un ejemplo concreto | Si no duele ninguno de los dos, el mensaje está mal: reescribir con sus palabras |
 | H3 | Hoy **pagan** por resolverlo: editor, agencia u OpusClip | 6 de 10 pagan ≥ 1.000 USD/mes en edición o creatividades | Si pagan poco, Brand (199) es el techo y Studio no se vende |
 | H4 | Lo operaría **alguien de su equipo** con Claude Code, o prefieren que lo hagamos nosotros | Sabemos cuál de las dos para cada marca | Si nadie lo operaría, el producto es Studio + panel (y adelantamos la prueba de Cowork y de la app de escritorio) |
+| H4b | **Quien edita lo ve como ayuda**, no como amenaza (editor, diseñador o agencia de la marca) | Quien edita pide probarlo o lo recomienda a quien compra | Reforzar el mensaje «potencia, no reemplaza» y enseñar qué parte repetitiva le quita |
 | H5 | **Pagarían** por el piloto (Studio 990) o se unirían a Fundadores | ≥ 2 de 10 dicen sí con fecha | Revisar precio, garantía o el propio foco |
 
 Regla: **preguntamos por lo que hicieron, no por lo que harían.** «¿Cuánto pagasteis el mes pasado por edición?» vale más
@@ -33,8 +34,9 @@ que «¿pagaríais 199?».
    - una portada.
 
    Tiempo objetivo: **menos de 2 h de máquina por marca**. Se apunta con `frame28 report`.
-3. **Mensaje en frío** (abajo) a la persona de marketing, contenido o *growth*, o al fundador si la marca es pequeña:
-   LinkedIn, email o el DM de Instagram de la marca. Un solo short incrustado o enlazado; el resto, en la llamada.
+3. **Mensaje en frío** (abajo) a quien compra (marketing, contenido o *growth*, o el fundador si la marca es pequeña) y,
+   si se le identifica, también a quien edita (editor o diseñador interno, o la agencia). LinkedIn, email o el DM de
+   Instagram de la marca. Un solo short incrustado o enlazado; el resto, en la llamada.
 4. **Llamada de 20 minutos** con el guion de §4.
 5. **Registro** en la hoja de §5 el mismo día.
 
@@ -50,7 +52,8 @@ escrito.
 > Hi {name}, I turned your "{video title}" tutorial into three vertical shorts (two hook variants each) and a Spanish
 > version, keeping your brand colors and captions. Here's one: {link}.
 >
-> I'm building Frame28, which does this from the videos a brand already has. No uploads: it runs on your own machine.
+> I'm building Frame28: it takes the repetitive part of editing off your team's plate, from the videos you already have.
+> No uploads: it runs on your own machine.
 > Would you have 20 minutes next week to tell me how you handle short-form and ads today? You keep the clips either way.
 >
 > {firma}
@@ -60,7 +63,8 @@ escrito.
 > Hi {name}, quick follow-up: the other two shorts and the Spanish cut are here: {link}. Happy to hear what you'd change.
 > If short-form isn't a priority right now, that's useful to know too.
 
-Reglas: sin «revolucionario» ni superlativos; nada de adjuntos pesados; un enlace privado por marca.
+Reglas: sin «revolucionario» ni superlativos; **nunca «replace your editor» ni «no editors needed»**: Frame28 le
+quita horas de trabajo repetitivo al equipo que ya tienen; nada de adjuntos pesados; un enlace privado por marca.
 
 ---
 
@@ -77,7 +81,8 @@ Al final te enseño la muestra entera.»
 4. ¿Cuánto pagasteis el mes pasado por edición o creatividades? (rango vale)
 5. ¿Vendéis fuera de EE. UU.? ¿Tenéis algo traducido? ¿Por qué sí o por qué no?
 6. ¿Qué herramientas usáis? (OpusClip, CapCut, Descript, Canva…) ¿Qué es lo que más os molesta de ellas?
-7. ¿Alguien del equipo usa Claude, ChatGPT o Claude Code en el trabajo? ¿Para qué?
+7. Si tenéis editor o agencia: ¿qué parte de su trabajo es la más repetitiva? ¿En qué preferiríais que dedicara ese tiempo?
+8. ¿Alguien del equipo usa Claude, ChatGPT o Claude Code en el trabajo? ¿Para qué?
 
 **La muestra (5 min).** Enseñar los 3 shorts, las variantes de gancho y el short traducido. Preguntar: «¿Qué cambiarías?»
 y «¿Esto lo publicaríais tal cual?». Apuntar sus palabras exactas.
@@ -106,7 +111,7 @@ Una fila por marca en `_private/prospeccion-dtc/registro.md`:
 | Vídeo usado · tiempo de máquina de la muestra | `frame28 report` |
 | Contacto · canal · fecha del primer mensaje | — |
 | ¿Respondió? · ¿llamada? · fecha | — |
-| H1 vídeos largos / shorts · H2 dolor (sus palabras) · H3 gasto mensual · H4 quién lo operaría · H5 resultado | — |
+| H1 vídeos largos / shorts · H2 dolor (sus palabras) · H3 gasto mensual · H4 quién lo operaría · H4b reacción de quien edita · H5 resultado | — |
 | Objeciones literales | — |
 | Siguiente paso y fecha | — |
 
