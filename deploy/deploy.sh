@@ -9,17 +9,28 @@
 # Requisitos: alias SSH `t28server` (~/.ssh/config) con la clave local; árbol commiteado (lo que no está en HEAD
 # no se despliega: `git status` te lo recuerda). Fichero en LF: con CRLF bash no lo ejecuta.
 set -euo pipefail
-# Desde el 2026-10-02 frame28.app se publica desde el repo frame28-app (web/ en Next.js + su deploy/deploy.sh), en el
-# mismo /opt/frame28. Este script subiría encima la landing estática antigua: solo con FRAME28_LEGACY_SITE=1 (vuelta atrás).
-if [[ "${FRAME28_LEGACY_SITE:-}" != "1" && "${1:-}" != "--check" ]]; then
-  echo "frame28.app se publica ahora desde frame28-app (web/ + deploy/deploy.sh); este script pisaría la web nueva."
-  echo "Para volver a la landing antigua a propósito: FRAME28_LEGACY_SITE=1 deploy/deploy.sh"
-  exit 1
-fi
+# Desde el 2026-10-02 frame28.app se publica desde el repo frame28-app (web/ en Next.js + API + base + copias, con su
+# deploy/deploy.sh), en el mismo /opt/frame28. Este script subiría un compose sin API, base ni copias y su remote-up.sh
+# (`up -d --remove-orphans`) las BORRARÍA. Se niega siempre que el servidor tenga la plataforma (F28-44); la vuelta atrás
+# de frame28.app es `deploy/deploy.sh --rollback` en el repo frame28-app.
 HOST=${FRAME28_HOST:-t28server}
 DIR=/opt/frame28
 # -T: el alias lleva RequestTTY yes y sin terminal ssh avisaría en cada llamada
 SSH=(ssh -T -o BatchMode=yes)
+if [[ "${1:-}" != "--check" ]]; then
+  if ! plat=$("${SSH[@]}" "$HOST" "[ -d $DIR/api ] || [ -f $DIR/backup.sh ] && echo si || echo no"); then
+    echo "no se pudo consultar $HOST: por seguridad, no se despliega"; exit 1
+  fi
+  if [[ "$plat" != "no" ]]; then
+    echo "✗ $HOST:$DIR tiene la plataforma (API, base y copias) de frame28-app: este script la borraría. No se despliega."
+    echo "  Vuelta atrás de frame28.app: deploy/deploy.sh --rollback en el repo frame28-app."
+    exit 1
+  fi
+  if [[ "${FRAME28_LEGACY_SITE:-}" != "1" ]]; then
+    echo "frame28.app se publica desde frame28-app; para subir la landing antigua a un servidor SIN plataforma: FRAME28_LEGACY_SITE=1"
+    exit 1
+  fi
+fi
 cd "$(git rev-parse --show-toplevel)"
 
 # Lo que NO forma parte del sitio publicado: fuentes del generador, Markdown de la KB y el curso, y los ficheros de
