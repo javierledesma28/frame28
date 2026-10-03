@@ -254,7 +254,7 @@ def remap_storyboard(sb: dict, keep: list[dict]) -> tuple[dict, list[str]]:
 def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, out_dir: str | Path,
           words_path: str | Path | None = None, captions_path: str | Path | None = None, storyboard_path: str | Path | None = None,
           fade: float = 0.03) -> dict:
-    cuts = json.loads(Path(cuts_path).read_text(encoding="utf-8")); keep = cuts["keep"]
+    cuts = json.loads(Path(cuts_path).read_text(encoding="utf-8-sig")); keep = cuts["keep"]
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     res: dict = {"segments": len(keep), "result_duration": cuts["result_duration"]}
     # vídeo: trim + concat (re-encode; los tramos no caen en keyframes)
@@ -296,7 +296,7 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
         nc = [c for c in nc if c["end"] > c["start"]]
         (out / "captions.json").write_text(json.dumps(nc, indent=1, ensure_ascii=False), encoding="utf-8"); res["captions"] = str(out / "captions.json")
     if storyboard_path:
-        sb = json.loads(Path(storyboard_path).read_text(encoding="utf-8")); sb["_removed"] = cuts["removed"]
+        sb = json.loads(Path(storyboard_path).read_text(encoding="utf-8-sig")); sb["_removed"] = cuts["removed"]
         nsb, warns = remap_storyboard(sb, keep)
         nsb["source"]["video"] = "clip.mp4"
         if nsb["source"].get("audio"):

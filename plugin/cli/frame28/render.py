@@ -71,6 +71,19 @@ def check(project: str | Path) -> dict:
     return parse_check(r.returncode, r.stdout + r.stderr)
 
 
+def render_timeout(project: Path) -> int:
+    """Segundos que se deja al render: FRAME28_RENDER_TIMEOUT si está; si no, 60 s por segundo de vídeo (unos 2 s por
+    fotograma: un portátil modesto) con un mínimo de una hora. Antes era una hora fija y un vídeo largo reventaba."""
+    env = os.environ.get("FRAME28_RENDER_TIMEOUT", "").strip()
+    if env.isdigit():
+        return int(env)
+    try:
+        durs = [float(x) for x in re.findall(r'data-duration="([\d.]+)"', (project / "index.html").read_text(encoding="utf-8"))]
+    except OSError:
+        durs = []
+    return max(3600, int(60 * max(durs, default=0)))
+
+
 def render(project: str | Path, output: str | Path, quality: str = "high", crf: int = 18, fps: int | None = None, make_sheet: bool = True,
            workers: int | None = None, gpu: bool | None = None) -> dict:
     """`gpu=None`: NVENC si la máquina lo tiene (env.use_gpu_encoder), si no libx264."""
@@ -80,7 +93,14 @@ def render(project: str | Path, output: str | Path, quality: str = "high", crf: 
     project = Path(project); output = Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     args, env = render_args(output, quality, crf, fps, workers, gpu, os.environ.get("NODE_OPTIONS", ""))
-    r = _hf(args, project, timeout=3600, extra_env=env)
+    limit = render_timeout(project)
+    try:
+        r = _hf(args, project, timeout=limit, extra_env=env)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "output": str(output), "time": None,
+                "log_tail": f"el render no terminó en {limit} s: sube FRAME28_RENDER_TIMEOUT, usa --quality draft o más --workers"}
+    except FileNotFoundError:
+        return {"ok": False, "output": str(output), "time": None, "log_tail": "npx no encontrado: instala Node.js 22 o superior"}
     out = r.stdout + r.stderr
     ok = output.exists() and "Render complete" in out
     m = re.search(r"rendered in ([\dm\s.]+s)", out)

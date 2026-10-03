@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -284,11 +285,11 @@ def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, 
 def reframe_map(reframe_json, gestures_json, points, canvas, out_json, as_json):
     """Convierte coordenadas del apaisado (gestos, callouts, puntos) al lienzo vertical de `frame28 reframe --path`, sin repetir la detección."""
     from .reframe import map_canvas_point, map_gestures, point_visible
-    res = json.loads(Path(reframe_json).read_text(encoding="utf-8"))
+    res = json.loads(Path(reframe_json).read_text(encoding="utf-8-sig"))
     cw, ch = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     r: dict = {"mode": res.get("mode"), "canvas": res.get("out")}
     if gestures_json:
-        r = map_gestures(res, json.loads(Path(gestures_json).read_text(encoding="utf-8")))
+        r = map_gestures(res, json.loads(Path(gestures_json).read_text(encoding="utf-8-sig")))
     if points:
         W, H = res["source"]
         r["points"] = []
@@ -509,7 +510,7 @@ def broll_search(query, kind, provider, orientation, per_page, sheet_png, out_js
 def broll_fetch(candidates, item_id, out_dir, trim_in, duration, width, as_json):
     """Descarga un candidato (id de `search -o`) con su sidecar de licencia; opcionalmente recortado."""
     from .broll import fetch
-    items = json.loads(Path(candidates).read_text(encoding="utf-8"))
+    items = json.loads(Path(candidates).read_text(encoding="utf-8-sig"))
     it = next((x for x in items if x["id"] == item_id), None)
     if not it:
         raise SystemExit(f"id {item_id} no está en {candidates}")
@@ -596,7 +597,7 @@ def clips_markers(captions, lang, words_path, canvas, side, lead, settle, out_js
 def clips_cut(clips_json, clip_id, video, audio, words, captions, out_dir, as_json):
     """Recorta el tramo elegido: clip.mp4, voice.wav, words.json y captions.json remapeados (fundidos de 30 ms)."""
     from .clips import extract
-    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
+    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8-sig"))
     clip = next((c for c in plan_["clips"] if c["id"] == clip_id), None)
     if not clip:
         raise SystemExit(f"{clip_id} no está en {clips_json}")
@@ -617,12 +618,12 @@ def clips_cut(clips_json, clip_id, video, audio, words, captions, out_dir, as_js
 def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_json, hook_index, video_name, as_json):
     """Escribe el storyboard de partida del short (gancho, subtítulos por palabras, CTA) que ya construye con `frame28 build`."""
     from .clips import scaffold
-    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8"))
+    plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8-sig"))
     clip = next((c for c in plan_["clips"] if c["id"] == clip_id), None)
     if not clip:
         raise SystemExit(f"{clip_id} no está en {clips_json}")
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
-    cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
+    cta = json.loads(Path(cta_json).read_text(encoding="utf-8-sig")) if cta_json else None
     out(scaffold(clip, clip_dir or f"work/clips/{clip_id}", (w, h), platform, brand, cta, hook_index, video_name), as_json or True)
 
 
@@ -647,7 +648,7 @@ def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platfor
     """Variantes de gancho en lote: por cada short y cada gancho, storyboard + build (+ check + render) → <id>-hook<N>.mp4 y batch.json."""
     from .clips import batch
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
-    cta = json.loads(Path(cta_json).read_text(encoding="utf-8")) if cta_json else None
+    cta = json.loads(Path(cta_json).read_text(encoding="utf-8-sig")) if cta_json else None
     hook_idx = None if hooks == "all" else [int(x) for x in hooks.split(",") if x.strip()]
     r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality, keep,
               workers=workers, gpu=gpu)
@@ -674,7 +675,7 @@ def i18n():
 def i18n_extract(storyboard, captions_path, out_json):
     """Saca todos los textos visibles (overlays y subtítulos) a un JSON plano con clave, tipo, instante y límite orientativo."""
     from .i18n import extract_with_captions
-    sbp = Path(storyboard); sb = json.loads(sbp.read_text(encoding="utf-8"))
+    sbp = Path(storyboard); sb = json.loads(sbp.read_text(encoding="utf-8-sig"))
     cp = captions_path or (sbp.parent / "captions.json" if (sbp.parent / "captions.json").exists() else None)
     r = extract_with_captions(sb, cp)
     outp = Path(out_json) if out_json else sbp.with_name(sbp.stem + ".strings.json")
@@ -749,7 +750,7 @@ def storyboard():
 @click.argument("path", type=click.Path(exists=True))
 def sb_validate(path):
     from .build import validate
-    errs = validate(json.loads(Path(path).read_text(encoding="utf-8")))
+    errs = validate(json.loads(Path(path).read_text(encoding="utf-8-sig")))
     if errs:
         click.echo("Storyboard inválido:\n  - " + "\n  - ".join(errs)); raise SystemExit(1)
     click.echo("Storyboard válido.")
@@ -852,7 +853,7 @@ def brand_init(name, base, to_user, accent, logo):
     import shutil
     from .build import USER_BRANDS, resolve_brand
     src = resolve_brand(base)
-    d = json.loads(src.read_text(encoding="utf-8"))
+    d = json.loads(src.read_text(encoding="utf-8-sig"))
     d.update({"name": name, "tagline": "", "site": "", "endorsement": "", "source": ""})
     d.pop("logos", None); d.pop("logo_rules", None); d.pop("voice", None)
     if accent:
@@ -883,8 +884,8 @@ def build(storyboard, out_dir, graphics_json, as_json):
     r = build_project(storyboard, out_dir)
     if graphics_json:
         from .graphics import collisions
-        sb = json.loads(Path(storyboard).read_text(encoding="utf-8"))
-        gfx = json.loads(Path(graphics_json).read_text(encoding="utf-8"))
+        sb = json.loads(Path(storyboard).read_text(encoding="utf-8-sig"))
+        gfx = json.loads(Path(graphics_json).read_text(encoding="utf-8-sig"))
         r["graphics_collisions"] = collisions(sb, gfx)
     out(r, as_json or True)
 
@@ -929,13 +930,48 @@ def render(project, output, quality, crf, fps, no_sheet, workers, gpu, as_json):
         click.echo(r["log_tail"]); raise SystemExit(1)
 
 
+def friendly_error(e: BaseException) -> tuple[str, int] | None:
+    """Mensaje corto y código de salida para los errores habituales (F28-86); None si no es uno de ellos."""
+    import subprocess
+    import urllib.error
+    if isinstance(e, TranscriptFormatError):
+        return str(e), 2
+    if isinstance(e, urllib.error.HTTPError):
+        hint = (" La web bloquea las descargas automáticas (anti-bots): baja el fichero a mano o pasa --logo-url."
+                if e.code in (401, 403, 429) else "")
+        return f"la descarga de {e.url} respondió {e.code} {e.reason}.{hint}", 3
+    if isinstance(e, urllib.error.URLError):
+        return f"sin conexión o dirección inaccesible ({e.reason}). Comprueba la red y repite.", 3
+    if isinstance(e, json.JSONDecodeError):
+        return (f"JSON no válido (línea {e.lineno}, columna {e.colno}): {e.msg}. Ábrelo y corrígelo; "
+                "si lo guardó PowerShell, guárdalo en UTF-8."), 2
+    if isinstance(e, subprocess.TimeoutExpired):
+        cmd = e.cmd[0] if isinstance(e.cmd, (list, tuple)) and e.cmd else e.cmd
+        return f"{Path(str(cmd)).name} no terminó en {int(e.timeout)} s. Repite; si se repite, prueba con un clip más corto.", 4
+    if isinstance(e, FileNotFoundError):
+        return f"no se encontró {e.filename or e}. `frame28 doctor` dice qué falta y cómo instalarlo.", 2
+    if isinstance(e, PermissionError):
+        return f"sin permiso para {e.filename or 'un fichero'}: ¿está abierto en otro programa?", 2
+    return None
+
+
 def run():
-    """Punto de entrada del ejecutable: los errores de formato de datos salen como mensaje corto, sin traza."""
+    """Punto de entrada del ejecutable: los errores habituales salen como mensaje corto con pista, sin traza de Python
+    (red, JSON roto, tiempo agotado, programa que falta). FRAME28_DEBUG=1 enseña la traza completa."""
     try:
         main()
-    except TranscriptFormatError as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(2)
+    except KeyboardInterrupt:
+        click.echo("Interrumpido.", err=True)
+        sys.exit(130)
+    except Exception as e:  # noqa: BLE001
+        if os.environ.get("FRAME28_DEBUG"):
+            raise
+        known = friendly_error(e)
+        if known:
+            click.echo(f"Error: {known[0]}", err=True)
+            sys.exit(known[1])
+        click.echo(f"Error inesperado ({type(e).__name__}): {e}\n  Repite con FRAME28_DEBUG=1 para ver la traza y avísanos.", err=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

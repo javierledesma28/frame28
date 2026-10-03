@@ -42,7 +42,7 @@ def _keys() -> dict:
     k = {}
     if KEYS_FILE.exists():
         try:
-            k.update(json.loads(KEYS_FILE.read_text(encoding="utf-8")))
+            k.update(json.loads(KEYS_FILE.read_text(encoding="utf-8-sig")))
         except Exception:
             pass
     for name in ("PEXELS_API_KEY", "PIXABAY_API_KEY"):

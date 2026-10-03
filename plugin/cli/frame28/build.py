@@ -242,7 +242,7 @@ class Builder:
         self.brand_dir: Path | None = None
         if isinstance(brand, str):
             path = resolve_brand(brand, project_dir)
-            brand = json.loads(path.read_text(encoding="utf-8"))
+            brand = json.loads(path.read_text(encoding="utf-8-sig"))
             self.brand_dir = path.parent
         self.brand = {**DEFAULT_BRAND, **{k: v for k, v in brand.items() if k in DEFAULT_BRAND}}
         self.brand_meta = brand
@@ -404,6 +404,8 @@ class Builder:
 
     def card(self, o: dict) -> None:
         i = o["id"]; bg = o.get("bg", "black"); t = o.get("title", {}); s = o.get("subtitle")
+        t = {"text": t} if isinstance(t, str) else t            # "title": "Hola" vale igual que {"text": "Hola"}
+        s = {"text": s} if isinstance(s, str) else s
         mode = t.get("reveal", "fade")
         inner = f'<div class="big w{" rise" if mode == "rise" else ""}" id="{i}-t" style="font-size:{t.get("size", 190)}px;"><span class="wi">{esc(t["text"])}</span></div>'
         if s:
@@ -926,7 +928,7 @@ def platform_warnings(sb: dict) -> list[str]:
 
 def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets: bool = True) -> dict:
     sb_path = Path(storyboard_path)
-    sb = json.loads(sb_path.read_text(encoding="utf-8"))
+    sb = json.loads(sb_path.read_text(encoding="utf-8-sig"))
     errs = validate(sb)
     if errs:
         raise SystemExit("Storyboard inválido:\n  - " + "\n  - ".join(errs))
