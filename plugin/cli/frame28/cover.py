@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
-from .build import DEFAULT_BRAND, brand_errors, highlight_line_height, resolve_brand
+from .build import DEFAULT_BRAND, brand_errors, highlight_line_height, on_accent_color, resolve_brand
 from .env import env_with_ffmpeg, npx_cmd, run
 
 
@@ -48,6 +48,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
         if bad:
             raise SystemExit("Marca no válida:\n  - " + "\n  - ".join(bad))
         b.update({k: v for k, v in meta.items() if k in b})
+    on_accent = meta.get("on_accent") or on_accent_color(b["accent"], b["ink"])
     if bg not in ("accent", "black", "white", "none"):
         raise SystemExit(f"fondo del título no válido '{bg}' (accent, black, white o none)")
     logo_html = ""
@@ -71,13 +72,13 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
     css = f"""
       * {{ margin:0; padding:0; box-sizing:border-box; }}
       html, body {{ width:{W}px; height:{H}px; overflow:hidden; background:#000; }}
-      :root {{ --accent:{b['accent']}; --ink:{b['ink']}; --paper:{b['paper']}; --sans:{b['sans']}; --mono:{b['mono']}; }}
+      :root {{ --accent:{b['accent']}; --on-accent:{on_accent}; --ink:{b['ink']}; --paper:{b['paper']}; --sans:{b['sans']}; --mono:{b['mono']}; }}
       #root {{ position:relative; width:{W}px; height:{H}px; font-family:var(--sans); color:#fff; overflow:hidden; }}
       .bg {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:{fx * 100:.1f}% {fy * 100:.1f}%; transform:scale({zoom}); transform-origin:{fx * 100:.1f}% {fy * 100:.1f}%; }}
       .shade {{ position:absolute; inset:0; background:linear-gradient({"180deg" if H > W else "90deg"}, rgba(0,0,0,{darken + 0.25}) 0%, rgba(0,0,0,{darken}) 45%, rgba(0,0,0,0) 80%); }}
       .title {{ position:absolute; left:{lay['x']}px; top:{lay['y']}px; width:{lay['w']}px; font-size:{lay['size']}px; font-weight:800; line-height:{highlight_line_height(lines, 1.12)}; letter-spacing:-0.035em; text-align:{lay['align']}; }}
       .title .hl {{ display:inline; padding:0.04em 0.28em 0.08em; box-decoration-break:clone; -webkit-box-decoration-break:clone; border-radius:0.16em; }}
-      .title.accent .hl {{ background:var(--accent); color:var(--ink); }}
+      .title.accent .hl {{ background:var(--accent); color:var(--on-accent); }}
       .title.black .hl {{ background:rgba(10,10,10,.88); color:#fff; }}
       .title.white .hl {{ background:var(--paper); color:var(--ink); }}
       .title.none .hl {{ padding:0; color:#fff; text-shadow:0 6px 30px rgba(0,0,0,.8), 0 0 2px #000; }}

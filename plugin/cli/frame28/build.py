@@ -31,7 +31,7 @@ DEFAULT_BRAND = {
 CSS = """
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: {W}px; height: {H}px; overflow: hidden; background: #000; }
-      :root { --accent: {accent}; --ink: {ink}; --paper: {paper}; --grey: {grey}; --sans: {sans}; --mono: {mono}; }
+      :root { --accent: {accent}; --on-accent: {on_accent}; --ink: {ink}; --paper: {paper}; --grey: {grey}; --sans: {sans}; --mono: {mono}; }
       #root { position: relative; width: {W}px; height: {H}px; font-family: var(--sans); color: #fff; }
       .clip { position: absolute; inset: 0; }
       video.cover { width: 100%; height: 100%; object-fit: cover; }
@@ -58,7 +58,7 @@ CSS = """
       .card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
       .card.black { background: #000; color: #fff; }
       .card.white { background: var(--paper); color: var(--ink); }
-      .card.accent { background: var(--accent); color: var(--ink); }
+      .card.accent { background: var(--accent); color: var(--on-accent); }
       .card .big { font-weight: 600; letter-spacing: -0.05em; opacity: 0; text-align: center; }
       .card .small { color: #bdbdb8; letter-spacing: -0.03em; margin-top: 10px; opacity: 0; }
       .card.white .small { color: var(--grey); }
@@ -89,7 +89,7 @@ CSS = """
       .chart .row.hero { isolation: isolate; }
       .chart .grp { width: 200px; font-family: var(--mono); font-size: 24px; }
       .chart .grp span { background: var(--ink); color: var(--accent); padding: 2px 8px; }
-      .chart.black .grp span, .chart.panel .grp span { background: var(--accent); color: var(--ink); }
+      .chart.black .grp span, .chart.panel .grp span { background: var(--accent); color: var(--on-accent); }
       .chart .lbl { width: 320px; font-family: var(--mono); font-size: 26px; text-align: right; padding-right: 28px; white-space: nowrap; }
       .chart .track { position: relative; height: 34px; flex: 0 0 auto; }
       .chart .fill { position: absolute; left: 0; top: 0; height: 34px; background: rgba(10,10,10,.55); transform-origin: left center; transform: scaleX(0); }
@@ -103,7 +103,7 @@ CSS = """
       .counter { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
       .counter .num { font-weight: 800; letter-spacing: -0.05em; font-size: 300px; line-height: 1; opacity: 0; }
       .counter .num b { color: var(--accent); font-weight: 800; }
-      .counter.accent .num b { color: var(--ink); opacity: .55; }
+      .counter.accent .num b { color: var(--on-accent); opacity: .55; }
       .counter .lab { font-size: 64px; letter-spacing: -0.03em; margin-top: 12px; opacity: 0; }
       .counter .sub { font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 26px; opacity: 0.8; }
       .w .wi { display: inline-block; }
@@ -121,12 +121,12 @@ CSS = """
       /* venta: gancho, CTA, progreso de pasos, antes/después */
       .hook { position: absolute; text-align: center; font-weight: 800; line-height: 1.15; letter-spacing: -0.03em; opacity: 0; }
       .hook .hl { display: inline; padding: 0.04em 0.3em 0.08em; box-decoration-break: clone; -webkit-box-decoration-break: clone; border-radius: 0.18em; }
-      .hook.accent .hl { background: var(--accent); color: var(--ink); }
+      .hook.accent .hl { background: var(--accent); color: var(--on-accent); }
       .hook.black .hl { background: rgba(10,10,10,.88); color: #fff; }
       .hook.white .hl { background: var(--paper); color: var(--ink); }
       .hook.none .hl { padding: 0; color: #fff; text-shadow: 0 4px 24px rgba(0,0,0,.7), 0 0 2px #000; }
       .cta { position: absolute; display: flex; align-items: center; gap: 36px; padding: 34px 44px; border-radius: 26px; opacity: 0; }
-      .cta.accent { background: var(--accent); color: var(--ink); }
+      .cta.accent { background: var(--accent); color: var(--on-accent); }
       .cta.black { background: rgba(10,10,10,.92); color: #fff; }
       .cta.white { background: var(--paper); color: var(--ink); }
       .cta .col { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1 1 auto; }
@@ -141,7 +141,7 @@ CSS = """
       .cta .qr { flex: 0 0 auto; width: 220px; height: 220px; background: #fff; border-radius: 18px; padding: 12px; }
       .cta .qr svg { width: 100%; height: 100%; display: block; }
       .steps { position: absolute; display: flex; align-items: center; gap: 16px; padding: 12px 22px 12px 14px; border-radius: 999px; background: rgba(10,10,10,.72); color: #fff; font-size: 34px; letter-spacing: -0.02em; opacity: 0; white-space: nowrap; }
-      .steps .n { font-family: var(--mono); font-weight: 700; background: var(--accent); color: var(--ink); border-radius: 999px; padding: 4px 16px; font-size: 30px; }
+      .steps .n { font-family: var(--mono); font-weight: 700; background: var(--accent); color: var(--on-accent); border-radius: 999px; padding: 4px 16px; font-size: 30px; }
       .steps .lab { visibility: hidden; position: absolute; left: 110px; top: 50%; transform: translateY(-50%); }
       .steps .lab.on { visibility: visible; }
       .ba { position: absolute; overflow: hidden; border-radius: 22px; opacity: 0; box-shadow: 0 30px 80px rgba(0,0,0,.45); background: #000; }
@@ -149,7 +149,7 @@ CSS = """
       .ba .after { clip-path: inset(0 100% 0 0); }
       .ba .bar { position: absolute; top: 0; bottom: 0; width: 6px; background: #fff; left: 0; box-shadow: 0 0 18px rgba(0,0,0,.6); }
       .ba .lbl { position: absolute; top: 18px; font-family: var(--mono); font-size: 26px; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 16px; border-radius: 999px; background: rgba(10,10,10,.75); color: #fff; }
-      .ba .lbl.b { left: 18px; } .ba .lbl.a { right: 18px; background: var(--accent); color: var(--ink); }
+      .ba .lbl.b { left: 18px; } .ba .lbl.a { right: 18px; background: var(--accent); color: var(--on-accent); }
       .caps span { visibility: hidden; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; background: #000; color: #fff; padding: 8px 20px; white-space: normal; text-align: center; line-height: 1.25; max-width: calc(100% - 80px); width: max-content; font-size: {capsize}px; }
       /* subtítulos por palabras (pages: entran al decirse; karaoke: la palabra actual en acento) */
       .pages { position: absolute; left: 0; right: 0; }
@@ -248,6 +248,7 @@ class Builder:
         if bad:
             raise SystemExit("Marca no válida:\n  - " + "\n  - ".join(bad))
         self.brand = {**DEFAULT_BRAND, **{k: v for k, v in brand.items() if k in DEFAULT_BRAND}}
+        self.brand["on_accent"] = brand.get("on_accent") or on_accent_color(self.brand["accent"], self.brand["ink"])
         self.brand_meta = brand
         self.brand_assets: dict[str, Path] = {}  # ruta publicada -> fichero origen (logos)
         # duración total: puede superar la del clip (tarjetas de cierre sobre negro)
@@ -798,7 +799,7 @@ class Builder:
             getattr(self, t)(o)
         self.captions(sb)
         b = self.brand
-        css = (CSS.replace("{W}", str(self.W)).replace("{H}", str(self.H)).replace("{accent}", b["accent"]).replace("{ink}", b["ink"])
+        css = (CSS.replace("{W}", str(self.W)).replace("{H}", str(self.H)).replace("{accent}", b["accent"]).replace("{on_accent}", b["on_accent"]).replace("{ink}", b["ink"])
                .replace("{paper}", b["paper"]).replace("{grey}", b["grey"]).replace("{sans}", b["sans"]).replace("{mono}", b["mono"])
                .replace("{capsize}", str(b["caption_font_size"])))
         body = "\n      ".join(self.html); js = "\n      ".join(self.js)
@@ -928,11 +929,53 @@ def safety_errors(sb: dict) -> list[str]:
     return errs
 
 
+HEX_RE = re.compile(r"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})([0-9a-fA-F]{2})?$")
+
+
+def _rgb(color: str) -> tuple[float, float, float] | None:
+    m = HEX_RE.match(color.strip()) if isinstance(color, str) else None
+    if not m:
+        return None
+    h = m.group(1)
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+
+
+def _luminance(rgb) -> float:
+    def lin(c):
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast_ratio(a: str, b: str) -> float | None:
+    """Contraste WCAG entre dos colores hex (#rgb o #rrggbb); None si alguno no es hex."""
+    ra, rb = _rgb(a), _rgb(b)
+    if ra is None or rb is None:
+        return None
+    la, lb = sorted((_luminance(ra), _luminance(rb)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+ON_ACCENT_LIGHT = "#FFFFFF"
+
+
+def on_accent_color(accent: str, ink: str) -> str:
+    """Color del texto sobre el acento: la tinta de la marca si da 4,5:1 o más; si no, el blanco cuando gana en contraste.
+    Con colores que no son hex (rgb(), nombres) se queda la tinta, como antes."""
+    c_ink = contrast_ratio(ink, accent)
+    c_white = contrast_ratio(ON_ACCENT_LIGHT, accent)
+    if c_ink is None or c_white is None or c_ink >= 4.5 or c_ink >= c_white:
+        return ink
+    return ON_ACCENT_LIGHT
+
+
 def brand_errors(brand: dict) -> list[str]:
     """Valores de la marca que van dentro del <style> generado: colores con formato de color y fuentes sin caracteres que
     cierren la regla o la etiqueta."""
     errs = []
-    for k in ("accent", "ink", "paper", "grey", "border"):
+    for k in ("accent", "ink", "paper", "grey", "border", "on_accent"):
         v = brand.get(k)
         if v is not None and not (isinstance(v, str) and COLOR_RE.match(v.strip())):
             errs.append(f"marca.{k}: color no válido '{v}'")

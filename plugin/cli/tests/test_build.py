@@ -219,3 +219,33 @@ def test_cover_validates_brand_and_escapes_font_link(tmp_path):
     idx = cover.build_cover(img, tmp_path / "c3", PAYLOAD, brand={"font_link": "https://fonts.example/css?family=A&display=swap"})
     html = idx.read_text(encoding="utf-8")
     assert "family=A&amp;display=swap" in html and "<script>alert" not in html
+
+
+def test_on_accent_picks_ink_or_white_by_contrast():
+    # F28-128: con un acento oscuro (azul marino) la tinta casi negra no se lee; con uno claro, sí
+    assert build.on_accent_color("#24258E", "#111111") == "#FFFFFF"
+    assert build.on_accent_color("#F5C500", "#0A0A0A") == "#0A0A0A"
+    assert build.on_accent_color("#EA77A1", "#111111") == "#111111"
+    assert build.on_accent_color("rgb(0,0,0)", "#111111") == "#111111"     # no hex: se queda la tinta
+    assert round(build.contrast_ratio("#000000", "#FFFFFF"), 1) == 21.0
+
+
+def test_build_uses_on_accent_for_text_on_accent(tmp_path):
+    hook = {"type": "hook", "id": "h", "start": 0, "end": 2, "lines": ["Hola"], "bg": "accent"}
+    build.build_project(write_json(tmp_path / "a.json", _sb(brand={"accent": "#24258E", "ink": "#111111"}, overlays=[hook])), tmp_path / "pa")
+    html = (tmp_path / "pa" / "index.html").read_text(encoding="utf-8")
+    assert "--on-accent: #FFFFFF" in html and ".hook.accent .hl { background: var(--accent); color: var(--on-accent); }" in html
+    build.build_project(write_json(tmp_path / "b.json", _sb(brand={"accent": "#F5C500", "ink": "#0A0A0A"}, overlays=[hook])), tmp_path / "pb")
+    assert "--on-accent: #0A0A0A" in (tmp_path / "pb" / "index.html").read_text(encoding="utf-8")
+    # la marca puede imponerlo, y se valida como color
+    build.build_project(write_json(tmp_path / "c.json", _sb(brand={"accent": "#24258E", "on_accent": "#FFEEDD"}, overlays=[hook])), tmp_path / "pc")
+    assert "--on-accent: #FFEEDD" in (tmp_path / "pc" / "index.html").read_text(encoding="utf-8")
+    with pytest.raises(SystemExit, match="marca.on_accent"):
+        build.build_project(write_json(tmp_path / "d.json", _sb(brand={"on_accent": "red;}</style>"})), tmp_path / "pd")
+
+
+def test_cover_uses_on_accent(tmp_path):
+    from frame28 import cover
+    img = tmp_path / "f.png"; img.write_bytes(b"x")
+    html = cover.build_cover(img, tmp_path / "c", "Hola", brand={"accent": "#24258E", "ink": "#111111"}).read_text(encoding="utf-8")
+    assert "--on-accent:#FFFFFF" in html and "color:var(--on-accent)" in html
