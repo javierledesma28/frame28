@@ -249,3 +249,25 @@ def test_cover_uses_on_accent(tmp_path):
     img = tmp_path / "f.png"; img.write_bytes(b"x")
     html = cover.build_cover(img, tmp_path / "c", "Hola", brand={"accent": "#24258E", "ink": "#111111"}).read_text(encoding="utf-8")
     assert "--on-accent:#FFFFFF" in html and "color:var(--on-accent)" in html
+
+
+def test_bar_chart_in_portrait_is_legible(tmp_path):
+    # F28-165: en 1080x1920 las barras salían en una franja estrecha con letra de 20-46 px
+    chart = {"type": "chart", "id": "ch", "kind": "bar", "bg": "black", "start": 0, "end": 4, "title": "Tiempo", "unit": " min", "decimals": 0,
+             "series": [{"label": "A mano", "value": 12}, {"label": "Con la máquina", "value": 3}]}
+    sb = _sb(canvas={"width": 1080, "height": 1920, "fps": 30}, overlays=[chart])
+    build.build_project(write_json(tmp_path / "v.json", sb), tmp_path / "pv", copy_assets=False)
+    html = (tmp_path / "pv" / "index.html").read_text(encoding="utf-8")
+    assert 'class="clip card chart portrait black"' in html
+    assert ".chart.portrait .ch-title { font-size: 84px;" in html and ".chart.portrait .lbl { width: 100%;" in html
+    widths = [int(w) for w in re.findall(r'class="fill" id="ch-f\d" style="width:(\d+)px"', html)]
+    assert max(widths) > 700                                   # la barra más larga usa el ancho del lienzo
+    track = int(re.search(r'class="track" style="width:(\d+)px"', html).group(1))
+    assert track <= 1080 - 128
+    # apaisado y panel, sin cambios
+    build.build_project(write_json(tmp_path / "h.json", _sb(overlays=[chart])), tmp_path / "ph", copy_assets=False)
+    assert "portrait" not in (tmp_path / "ph" / "index.html").read_text(encoding="utf-8").split("<body")[1]
+    panel = {**chart, "panel": {"x": 40, "y": 300, "w": 1000}}
+    panel.pop("bg")
+    build.build_project(write_json(tmp_path / "p.json", _sb(canvas={"width": 1080, "height": 1920, "fps": 30}, overlays=[panel])), tmp_path / "pp", copy_assets=False)
+    assert "chart portrait" not in (tmp_path / "pp" / "index.html").read_text(encoding="utf-8")

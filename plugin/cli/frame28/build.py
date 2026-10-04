@@ -168,6 +168,19 @@ CSS = """
       .narrow .bc .bc-title { font-size: 96px; }
       .narrow .bc .bc-sub { font-size: 34px; }
       .narrow .card .big { font-size: 96px; }
+      /* barras a pantalla completa en vertical (F28-165): una fila = etiqueta encima y barra a todo el ancho, letra que se
+         lee en el móvil y el bloque centrado por encima de la franja de subtítulos */
+      .chart.portrait { padding: 140px 64px 24% 64px; }
+      .chart.portrait .ch-title { font-size: 84px; line-height: 1.05; }
+      .chart.portrait .ch-sub { font-size: 36px; margin-top: 14px; }
+      .chart.portrait .rows { margin-top: 70px; }
+      .chart.portrait .row { flex-wrap: wrap; height: auto; margin-bottom: 46px; }
+      .chart.portrait .grp { width: 100%; font-size: 34px; margin-bottom: 12px; }
+      .chart.portrait .grp:empty { display: none; }
+      .chart.portrait .lbl { width: 100%; text-align: left; font-size: 46px; padding: 0 0 14px 0; white-space: normal; }
+      .chart.portrait .track, .chart.portrait .fill { height: 64px; }
+      .chart.portrait .val { line-height: 64px; font-size: 46px; }
+      .chart.portrait .hero-box { top: -14px; bottom: -14px; }
 """
 
 
@@ -669,8 +682,13 @@ class Builder:
         vmax = max((r["value"] for r in series), default=1) or 1
         unit = o.get("unit", ""); dec = o.get("decimals", 2)
         # ancho de la barra más larga: ancho del marco menos márgenes, columna de grupo, etiqueta y sitio para el valor
+        portrait = not o.get("panel") and self.H > self.W
         if o.get("panel"):
             scale = max(200, o["panel"]["w"] - 88 - 200 - 320 - 170)
+        elif portrait:
+            # la barra usa el ancho entero menos los márgenes y el sitio del valor más largo (Space Mono a 46 px ≈ 28 px/carácter)
+            longest = max((len(f"{r['value']:.{o.get('decimals', 2)}f}{unit}") for r in series), default=4)
+            scale = max(200, self.W - 128 - 28 * longest - 24)
         else:
             scale = (self.W - 96 - 110 - 210 - 150) if self.narrow else (self.W - 280 - 200 - 320 - 170)
         rows_html = []
@@ -685,12 +703,12 @@ class Builder:
             hero_box = f'<div class="hero-box" id="{i}-hb">{self.corners()}</div>' if is_hero else ""
             rows_html.append(
                 f'<div class="row{" hero" if is_hero else ""}" id="{i}-r{k}"><div class="grp">{grp_html}</div>'
-                f'<div class="lbl">{esc(r["label"])}</div><div class="track" style="width:{scale + 180}px"><div class="fill" id="{i}-f{k}" style="width:{w}px"></div>'
+                f'<div class="lbl">{esc(r["label"])}</div><div class="track" style="width:{(self.W - 128) if portrait else scale + 180}px"><div class="fill" id="{i}-f{k}" style="width:{w}px"></div>'
                 f'<div class="val" id="{i}-v{k}" style="left:{w + 16}px">{esc(val)}</div></div>{hero_box}</div>')
         title = o.get("title", ""); sub = o.get("subtitle", "")
         inner = (f'<div class="ch-title" id="{i}-t">{esc(title)}</div>' if title else "") + \
                 (f'<div class="ch-sub">{esc(sub)}</div>' if sub else "") + f'<div class="rows">{"".join(rows_html)}</div>'
-        cls, style = self._chart_frame(o, "chart")
+        cls, style = self._chart_frame(o, "chart portrait" if portrait else "chart")
         self.timed(o, style, cls=cls, inner=inner, z=5 if not o.get("panel") else 4, track=6)
         if title:
             self.js.append(f'tl.fromTo("#{i}-t", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {at});')
