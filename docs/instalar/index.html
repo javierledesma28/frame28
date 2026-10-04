@@ -56,6 +56,7 @@
   <div class="os" role="group" aria-label="Sistema">
     <button type="button" data-os="win" aria-pressed="false">Windows</button>
     <button type="button" data-os="mac" aria-pressed="false">Mac</button>
+    <button type="button" data-os="linux" aria-pressed="false">Linux</button>
     <button type="button" data-os="claude" aria-pressed="false">Que lo haga Claude por mí</button>
   </div>
 
@@ -97,6 +98,25 @@
     </div>
   </section>
 
+  <!-- ===== LINUX ===== -->
+  <section id="os-linux" class="hidden">
+    <div class="card">
+      <h2>1 · Copia esta línea</h2>
+      <div class="cmd"><code>curl -fsSL https://frame28.t28.io/install.sh | bash</code><button type="button" data-copy>Copiar</button></div>
+      <p class="muted" style="margin-top:10px">Para Debian y Ubuntu (usa apt). En otra distribución, instala con tu gestor ffmpeg, Node.js 22+, Git y uv, y después ejecuta la línea. Si quieres leer el script antes, <a href="../install.sh">ábrelo aquí</a>.</p>
+    </div>
+    <div class="card">
+      <h2>2 · Pégala en una terminal</h2>
+      <ol class="steps">
+        <li><div><b>Abre una terminal (Ctrl+Alt+T en Ubuntu).</b><p>Una ventana con texto y un cursor.</p></div></li>
+        <li><div><b>Pega la línea (Ctrl+Mayús+V) y pulsa Enter.</b><p>El instalador se presenta y te pregunta «¿Empezamos?».</p></div></li>
+        <li><div><b>Cuando te pida la contraseña, escríbela y pulsa Enter.</b><p>La pide sudo para instalar paquetes con apt. No se ve mientras escribes: es normal.</p></div></li>
+        <li><div><b>Cierra la terminal, abre una nueva y escribe <code>claude</code>.</b><p>Inicia sesión con tu cuenta de Claude. Solo la primera vez.</p></div></li>
+        <li><div><b>Dentro de Claude Code, escribe <code>/mcp</code>, elige <b>frame28</b> y pulsa <b>Authenticate</b>.</b><p>Se abre el navegador: tu email y el código que te llega, sin contraseña. Si aún no tienes cuenta de Frame28, se crea ahí, gratis (monta en modo demo con la marca de Frame28). Si el navegador no se abre, <code>/mcp</code> te enseña el enlace.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
   <!-- ===== CLAUDE ===== -->
   <section id="os-claude" class="hidden">
     <div class="card">
@@ -129,11 +149,11 @@
 <script>
 (function(){
   var ua = navigator.userAgent, plat = navigator.platform || "";
-  var guess = /Mac|iPhone|iPad/.test(plat) || /Macintosh/.test(ua) ? "mac" : /Win/.test(plat) ? "win" : "win";
+  var guess = /Mac|iPhone|iPad/.test(plat) || /Macintosh/.test(ua) ? "mac" : /Win/.test(plat) ? "win" : /Linux|X11/.test(plat + " " + ua) && !/Android/.test(ua) ? "linux" : "win";
   var saved = null; try { saved = localStorage.getItem("f28-os"); } catch (e) {}
   function show(os){
     document.querySelectorAll(".os button").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.os === os ? "true" : "false"); });
-    ["win","mac","claude"].forEach(function(k){ document.getElementById("os-"+k).classList.toggle("hidden", k !== os); });
+    ["win","mac","linux","claude"].forEach(function(k){ document.getElementById("os-"+k).classList.toggle("hidden", k !== os); });
     document.getElementById("after").classList.remove("hidden");
     try { localStorage.setItem("f28-os", os); } catch (e) {}
   }
