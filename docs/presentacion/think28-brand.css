@@ -17,7 +17,6 @@
 .fn-logo.xl{height:88px;width:352px}
 /* Acentos amarillos donde el motor usa el secundario ya vienen por variable; refuerzos puntuales */
 .s-eyebrow{color:#8a6f00}
-[data-theme="dark"] .s-eyebrow{color:var(--t28-yellow)}
 .cover .cover-tag{color:var(--t28-yellow);letter-spacing:.22em}
 .t28-y{color:var(--t28-yellow)}
 .cover .s-title .t28-y{color:var(--t28-yellow)}
@@ -26,18 +25,18 @@
 .say{font-size:30px;line-height:1.35;padding:22px 28px;border-left:6px solid var(--t28-yellow);background:var(--bg-soft);border-radius:0 14px 14px 0;font-style:italic}
 .say b{font-style:normal}
 .qr-card img{border-radius:12px}
-/* Modo oscuro (tecla T, o el visor de claude.ai que abre en oscuro): el motor pinta títulos y numeradores con el primario,
-   que en la marca Think28 es negro; sobre fondo oscuro desaparecían */
-[data-theme="dark"] .slide:not(.cover) .s-title,
-[data-theme="dark"] .s-foot b,
-[data-theme="dark"] .panel > h3,
-[data-theme="dark"] .kpi .k-val,
-[data-theme="dark"] .ttable th,
-[data-theme="dark"] .flow-node .n-t,
-[data-theme="dark"] .lane-h,
-[data-theme="dark"] .stepbar .sb-lab b,
-[data-theme="dark"] .fx-mark,
-[data-theme="dark"] .seq-actor{color:var(--ink)}
-[data-theme="dark"] .tlist.num li::before,
-[data-theme="dark"] .flow-node .n-num{background:var(--t28-yellow);color:#0A0A0A}
-[data-theme="dark"] .qr-card{color:#0A0A0A}
+/* La guía se lee siempre en claro: el visor de claude.ai (y la tecla T) ponen data-theme="dark" y, con la marca Think28,
+   títulos y numeradores negros desaparecían sobre fondo oscuro. Se repiten aquí los valores claros del motor. */
+[data-theme="dark"]{
+  --bg:#ffffff; --bg-soft:#f4f7fb; --bg-sunk:#eaf0f8;
+  --ink:#12233f; --ink-soft:#4a5b76; --ink-faint:#8494ad;
+  --line:#d8e2ef; --line-soft:#e9eff7; --panel:#ffffff; --code-bg:#0c1a30;
+  --shadow:0 18px 48px rgba(60,48,0,.10); --shadow-lg:0 32px 80px rgba(60,48,0,.16);
+  --fn-primary-lt:#2b2b2b;
+  --ok-bg:#eefaf2; --warn-bg:#fdf6ea; --bad-bg:#fdf1f1; --info-bg:#eef5fe;
+  color-scheme:light;
+}
+/* Todo el contenido de cada slide se ve desde el principio (es una guía para leer, no para exponer): los pasos solo
+   mueven el realce del punto actual. */
+.motion-ready [data-motion-item]:not(.is-in){opacity:1 !important;transform:none !important}
+.ttable td{color:var(--ink)}

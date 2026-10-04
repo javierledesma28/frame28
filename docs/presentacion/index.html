@@ -1242,7 +1242,6 @@ body.is-pointer{cursor:none}
 .fn-logo.xl{height:88px;width:352px}
 /* Acentos amarillos donde el motor usa el secundario ya vienen por variable; refuerzos puntuales */
 .s-eyebrow{color:#8a6f00}
-[data-theme="dark"] .s-eyebrow{color:var(--t28-yellow)}
 .cover .cover-tag{color:var(--t28-yellow);letter-spacing:.22em}
 .t28-y{color:var(--t28-yellow)}
 .cover .s-title .t28-y{color:var(--t28-yellow)}
@@ -1251,21 +1250,21 @@ body.is-pointer{cursor:none}
 .say{font-size:30px;line-height:1.35;padding:22px 28px;border-left:6px solid var(--t28-yellow);background:var(--bg-soft);border-radius:0 14px 14px 0;font-style:italic}
 .say b{font-style:normal}
 .qr-card img{border-radius:12px}
-/* Modo oscuro (tecla T, o el visor de claude.ai que abre en oscuro): el motor pinta títulos y numeradores con el primario,
-   que en la marca Think28 es negro; sobre fondo oscuro desaparecían */
-[data-theme="dark"] .slide:not(.cover) .s-title,
-[data-theme="dark"] .s-foot b,
-[data-theme="dark"] .panel > h3,
-[data-theme="dark"] .kpi .k-val,
-[data-theme="dark"] .ttable th,
-[data-theme="dark"] .flow-node .n-t,
-[data-theme="dark"] .lane-h,
-[data-theme="dark"] .stepbar .sb-lab b,
-[data-theme="dark"] .fx-mark,
-[data-theme="dark"] .seq-actor{color:var(--ink)}
-[data-theme="dark"] .tlist.num li::before,
-[data-theme="dark"] .flow-node .n-num{background:var(--t28-yellow);color:#0A0A0A}
-[data-theme="dark"] .qr-card{color:#0A0A0A}
+/* La guía se lee siempre en claro: el visor de claude.ai (y la tecla T) ponen data-theme="dark" y, con la marca Think28,
+   títulos y numeradores negros desaparecían sobre fondo oscuro. Se repiten aquí los valores claros del motor. */
+[data-theme="dark"]{
+  --bg:#ffffff; --bg-soft:#f4f7fb; --bg-sunk:#eaf0f8;
+  --ink:#12233f; --ink-soft:#4a5b76; --ink-faint:#8494ad;
+  --line:#d8e2ef; --line-soft:#e9eff7; --panel:#ffffff; --code-bg:#0c1a30;
+  --shadow:0 18px 48px rgba(60,48,0,.10); --shadow-lg:0 32px 80px rgba(60,48,0,.16);
+  --fn-primary-lt:#2b2b2b;
+  --ok-bg:#eefaf2; --warn-bg:#fdf6ea; --bad-bg:#fdf1f1; --info-bg:#eef5fe;
+  color-scheme:light;
+}
+/* Todo el contenido de cada slide se ve desde el principio (es una guía para leer, no para exponer): los pasos solo
+   mueven el realce del punto actual. */
+.motion-ready [data-motion-item]:not(.is-in){opacity:1 !important;transform:none !important}
+.ttable td{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -1292,7 +1291,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== QUÉ ES ====================== -->
-  <section class="slide" data-transition="depth" data-bg="aurora" data-spotlight="on" data-title="Qué es" data-chapter="Qué es" data-seconds="60">
+  <section class="slide" data-transition="depth" data-bg="aurora" data-title="Qué es" data-chapter="Qué es" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Qué es Frame28</p>
@@ -1314,7 +1313,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Tres piezas: la cuenta (web), el plugin (Claude Code) y el motor (local, abierto).</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Para quién" data-chapter="Qué es" data-seconds="50">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Para quién" data-chapter="Qué es" data-seconds="50">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Para quién</p>
@@ -1333,7 +1332,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Posicionamiento: potencia a los editores, no los reemplaza.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="aurora" data-spotlight="on" data-title="En pantalla" data-chapter="Qué es" data-seconds="60">
+  <section class="slide" data-transition="slide" data-bg="aurora" data-title="En pantalla" data-chapter="Qué es" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Qué aparece en pantalla</p>
@@ -1358,7 +1357,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>No hay plantillas que rellenar ni editor de vídeo que abrir.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Cómo funciona" data-chapter="Qué es" data-seconds="60">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Cómo funciona" data-chapter="Qué es" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">De punta a punta</p>
@@ -1385,7 +1384,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== ANTES DE EMPEZAR ====================== -->
-  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Qué necesitas" data-chapter="Antes de empezar" data-seconds="60">
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-title="Qué necesitas" data-chapter="Antes de empezar" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Antes de empezar</p>
@@ -1433,7 +1432,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== INSTALAR ====================== -->
-  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Instalar" data-chapter="Instalar" data-seconds="75">
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-title="Instalar" data-chapter="Instalar" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Instalar · paso 1 de 2</p>
@@ -1463,7 +1462,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Atajo: pega en Claude Code «Instala Frame28 siguiendo https://frame28.t28.io/instalar.md» y lo hace él.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Entra con tu cuenta" data-chapter="Instalar" data-seconds="75">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Entra con tu cuenta" data-chapter="Instalar" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Instalar · paso 2 de 2</p>
@@ -1490,7 +1489,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Dos caminos valen: crear la cuenta primero en frame28.app, o directamente desde el plugin con Authenticate.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Comprobar" data-chapter="Instalar" data-seconds="60">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Comprobar" data-chapter="Instalar" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Si quieres comprobarlo</p>
@@ -1520,7 +1519,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== FRAME28 STUDIO ====================== -->
-  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Memoria de marca" data-chapter="Frame28 Studio" data-seconds="75">
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-title="Memoria de marca" data-chapter="Frame28 Studio" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Frame28 Studio · frame28.app</p>
@@ -1546,7 +1545,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>La Memoria con marca propia es de los planes de pago; en Gratis se monta con la marca de demostración.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Campañas" data-chapter="Frame28 Studio" data-seconds="60">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Campañas" data-chapter="Frame28 Studio" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Frame28 Studio · frame28.app</p>
@@ -1567,7 +1566,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== USAR ====================== -->
-  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Tu primer vídeo" data-chapter="Usar" data-seconds="75">
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-title="Tu primer vídeo" data-chapter="Usar" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Usar</p>
@@ -1590,7 +1589,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Los vídeos quedan en la subcarpeta out, junto a la hoja de contacto de cada uno.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="Qué te entrega" data-chapter="Usar" data-seconds="60">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="Qué te entrega" data-chapter="Usar" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Usar</p>
@@ -1612,7 +1611,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Con tarjeta gráfica NVIDIA, la transcripción va unas cuatro veces más rápida y la codificación también usa la GPU.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="aurora" data-spotlight="on" data-title="Pedir cambios" data-chapter="Usar" data-seconds="60">
+  <section class="slide" data-transition="slide" data-bg="aurora" data-title="Pedir cambios" data-chapter="Usar" data-seconds="60">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Usar</p>
@@ -1639,7 +1638,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== GRABAR BIEN ====================== -->
-  <section class="slide dense" data-transition="wipe" data-bg="grid" data-spotlight="on" data-title="Cómo grabar" data-chapter="Grabar bien" data-seconds="90">
+  <section class="slide dense" data-transition="wipe" data-bg="grid" data-title="Cómo grabar" data-chapter="Grabar bien" data-seconds="90">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Grabar bien</p>
@@ -1670,7 +1669,7 @@ body.is-pointer{cursor:none}
   </section>
 
   <!-- ====================== PLANES ====================== -->
-  <section class="slide" data-transition="wipe" data-bg="aurora" data-spotlight="on" data-title="Planes" data-chapter="Planes" data-seconds="75">
+  <section class="slide" data-transition="wipe" data-bg="aurora" data-title="Planes" data-chapter="Planes" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Planes · USD al mes, sin impuestos</p>
@@ -1693,7 +1692,7 @@ body.is-pointer{cursor:none}
     <div class="s-notes"><ul><li>Precios de lanzamiento, congelados doce meses para el acceso anticipado. Detalle en frame28.app.</li></ul></div>
   </section>
 
-  <section class="slide" data-transition="slide" data-bg="grid" data-spotlight="on" data-title="A tener en cuenta" data-chapter="Planes" data-seconds="75">
+  <section class="slide" data-transition="slide" data-bg="grid" data-title="A tener en cuenta" data-chapter="Planes" data-seconds="75">
     <div class="s-brandbar"></div>
     <header class="s-head"><div>
       <p class="s-eyebrow">Antes del primer vídeo</p>
