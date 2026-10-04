@@ -73,6 +73,7 @@
         <li><div><b>Pega la línea (botón derecho o Ctrl+V) y pulsa Enter.</b><p>El instalador se presenta, te dice qué va a instalar y te pregunta «¿Empezamos?». Enter para seguir.</p></div></li>
         <li><div><b>Espera y contesta.</b><p>Cada paso explica por qué existe. Si algo falla, te ofrece <em>reintentar</em>, <em>saltar</em> o <em>salir</em>. Entre 5 y 15 minutos.</p></div></li>
         <li><div><b>Cierra la terminal, abre una nueva y escribe <code>claude</code>.</b><p>Inicia sesión con tu cuenta de Claude. Solo la primera vez.</p></div></li>
+        <li><div><b>Dentro de Claude Code, escribe <code>/mcp</code>, elige <b>frame28</b> y pulsa <b>Authenticate</b>.</b><p>Se abre el navegador: tu email y el código que te llega, sin contraseña. Si aún no tienes cuenta de Frame28, se crea ahí, gratis (monta en modo demo con la marca de Frame28). Si el navegador no se abre, <code>/mcp</code> te enseña el enlace.</p></div></li>
       </ol>
     </div>
   </section>
@@ -91,6 +92,7 @@
         <li><div><b>Pega la línea (⌘V) y pulsa Enter.</b><p>El instalador se presenta y te pregunta «¿Empezamos?».</p></div></li>
         <li><div><b>Si te pide la contraseña del Mac, escríbela y pulsa Enter.</b><p>No se ve mientras escribes: es normal. La pide Homebrew, el instalador de programas del Mac. Puede descargar herramientas de Apple durante 5–15 minutos sin que parezca que pasa nada.</p></div></li>
         <li><div><b>Cierra Terminal, abre una nueva y escribe <code>claude</code>.</b><p>Inicia sesión con tu cuenta de Claude. Solo la primera vez.</p></div></li>
+        <li><div><b>Dentro de Claude Code, escribe <code>/mcp</code>, elige <b>frame28</b> y pulsa <b>Authenticate</b>.</b><p>Se abre el navegador: tu email y el código que te llega, sin contraseña. Si aún no tienes cuenta de Frame28, se crea ahí, gratis (monta en modo demo con la marca de Frame28). Si el navegador no se abre, <code>/mcp</code> te enseña el enlace.</p></div></li>
       </ol>
     </div>
   </section>
@@ -112,6 +114,7 @@
       <label class="chk"><input type="checkbox" data-k="doctor"><span>Al final vi <b>«Todo listo.»</b> (o solo aspas en filas marcadas como opcionales: GPU, modelo RVM o red).</span></label>
       <label class="chk"><input type="checkbox" data-k="claude"><span>Abrí una terminal nueva, escribí <code>claude</code> e inicié sesión.</span></label>
       <label class="chk"><input type="checkbox" data-k="plugin"><span>En Claude Code, <code>/frame28:frame28-director</code> aparece en la lista (si no: <code>/plugin install frame28@think28</code>).</span></label>
+      <label class="chk"><input type="checkbox" data-k="cuenta"><span>En Claude Code, <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>, y entré con mi email y el código (cuenta gratis si no la tenía).</span></label>
       <label class="chk"><input type="checkbox" data-k="clip"><span>Grabé un clip de 30 segundos y le dije a Claude «Aquí está mi clip. Móntamelo.»</span></label>
       <p class="muted" style="margin-top:12px">Si algo no cuadra, el instalador dejó un registro en tu carpeta personal (<code>frame28-install.log</code>): pégaselo a Claude o envíaselo a quien te pasó Frame28.</p>
       <p class="muted" style="margin-top:8px">¿Ya lo tenías instalado y quieres la versión nueva? En una terminal: <code>uv tool upgrade frame28</code>, y después <code>claude plugin marketplace update think28</code> y <code>claude plugin update frame28@think28</code>; reinicia Claude Code. Si no hay nada nuevo, las dos órdenes te lo dicen.</p>
