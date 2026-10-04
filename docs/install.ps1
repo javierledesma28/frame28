@@ -14,6 +14,8 @@
 #
 #  Solo ASCII a proposito: Windows PowerShell 5.1 descarga la web en Latin-1.
 # =============================================================================
+& {  # todo en un bloque: con irm | iex, un exit cerraria la ventana de PowerShell del usuario y su mensaje (F28-101)
+try {
 $ErrorActionPreference = "Continue"
 $Repo = "https://github.com/javierledesma28/frame28"
 $Marketplace = "javierledesma28/frame28"
@@ -31,6 +33,8 @@ function Skip($t) { Say ("   --  " + $t + " (ya estaba)") "DarkGray" }
 function Warn($t) { Say ("   !   " + $t) "Yellow" }
 function Fail($t) { Say ("   X   " + $t) "Red" }
 function Has($n)  { $null -ne (Get-Command $n -ErrorAction SilentlyContinue) }
+function Quit { throw "FRAME28_SALIR" }   # termina el instalador sin cerrar la terminal
+function Node-Major { if (Has node) { $v = (node --version 2>$null) -replace '^v', ''; try { return [int]($v -split '\.')[0] } catch { return 0 } } return 0 }
 function Refresh-Path {
   $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")
   $lb = Join-Path $env:USERPROFILE ".local\bin"; if (-not ($env:Path -split ";" | Where-Object { $_ -eq $lb })) { $env:Path = "$lb;$env:Path" }
@@ -45,7 +49,7 @@ function Retry-Or-Skip($what) {  # $true = reintentar, $false = saltar; sale si 
   Fail $what; Say ("   El detalle esta en " + $Log) "DarkGray"
   if ($Yes) { return $false }
   $a = Read-Host "   Reintentar (r), saltar este paso (s) o salir (q)? [r]"
-  switch -Regex ($a) { '^(s|S)$' { return $false } '^(q|Q)$' { Say "   Cuando quieras, vuelve a ejecutar la misma linea. Hasta ahora."; exit 1 } default { return $true } }
+  switch -Regex ($a) { '^(s|S)$' { return $false } '^(q|Q)$' { Say "   Cuando quieras, vuelve a ejecutar la misma linea. Hasta ahora."; Quit } default { return $true } }
 }
 function With-Retry($what, [scriptblock]$action) {  # ejecuta hasta que funcione o el usuario salte
   while ($true) {
@@ -75,11 +79,11 @@ Say ""
 Pause-Enter "Empezamos?"
 
 # ---------- comprobaciones previas ----------
-try { [void](Invoke-WebRequest -Uri "https://github.com" -UseBasicParsing -TimeoutSec 15) } catch { Fail "No hay conexion a internet (no llego a github.com). Conectate y vuelve a ejecutar la linea."; exit 1 }
+try { [void](Invoke-WebRequest -Uri "https://github.com" -UseBasicParsing -TimeoutSec 15) } catch { Fail "No hay conexion a internet (no llego a github.com). Conectate y vuelve a ejecutar la linea."; Quit }
 if (-not (Has winget)) {
   Fail "No encuentro winget (viene con Windows 10 1809+ y Windows 11)."
   Say "   Abre la Microsoft Store, busca 'Instalador de aplicacion' (App Installer), instalalo o actualizalo, y vuelve a ejecutar la linea."
-  exit 1
+  Quit
 }
 # primera ejecucion de winget en un equipo nuevo: aceptar la fuente sin preguntar
 winget source update --disable-interactivity 2>&1 | Out-Null
@@ -93,6 +97,13 @@ $pkgs = @(
   @{ cmd = "git";    id = "Git.Git";           name = "Git" }   # uv lo necesita para instalar el motor desde git+https
 )
 foreach ($p in $pkgs) {
+  if ($p.cmd -eq "node" -and (Has node) -and (Node-Major) -lt 22) {
+    Say ("   Tienes Node.js " + (node --version) + "; el motor de render necesita la 22 o superior. Lo actualizo...")
+    if (With-Retry "No se pudo actualizar Node.js con winget." { winget upgrade --id OpenJS.NodeJS.LTS -e --accept-source-agreements --accept-package-agreements --silent --disable-interactivity; if ($LASTEXITCODE -ne 0) { Winget-Install "OpenJS.NodeJS.LTS" }; Refresh-Path }) {
+      if ((Node-Major) -ge 22) { Ok ("Node.js " + (node --version)) } else { Warn "Node.js sigue en una version antigua en esta terminal; abre una nueva y repite la linea." }
+    }
+    continue
+  }
   if (Has $p.cmd) { Skip $p.name; continue }
   Say ("   Instalando " + $p.name + " (puede tardar unos minutos)...")
   $id = $p.id
@@ -136,8 +147,11 @@ if (Has uv) {
 Step "Plugin de Frame28 en Claude Code" "Las instrucciones que convierten a Claude en director de montaje. Ocupan menos que una foto."
 if (Has claude) {
   claude plugin marketplace add $Marketplace 2>&1 | Add-Content -Path $Log
+  claude plugin marketplace update think28 2>&1 | Add-Content -Path $Log      # si ya estaba: trae la version publicada (F28-102)
   claude plugin install "frame28@think28" --scope user 2>&1 | Add-Content -Path $Log
-  if ($LASTEXITCODE -eq 0) { Ok "Plugin frame28 instalado" }
+  $installed = ($LASTEXITCODE -eq 0)
+  claude plugin update "frame28@think28" 2>&1 | Add-Content -Path $Log
+  if ($installed -or $LASTEXITCODE -eq 0) { Ok "Plugin frame28 instalado y al dia" }
   else {
     Warn "No pude instalarlo automaticamente (quiza falta iniciar sesion en Claude Code)."
     Say "   Cuando hayas iniciado sesion, escribe dentro de Claude Code:"
@@ -165,3 +179,7 @@ Say ""
 Say ("   Guia completa con imagenes: " + $Guide) "Yellow"
 Say ("   Si algo fallo, envia el fichero " + $Log + " a quien te paso Frame28 o pegaselo a Claude.")
 Say ""
+} catch {
+  if ($_.Exception.Message -ne "FRAME28_SALIR") { Write-Host ("   X   Error inesperado: " + $_.Exception.Message) -ForegroundColor Red; Write-Host "   Vuelve a ejecutar la linea; si se repite, envia el registro frame28-install.log de tu carpeta personal." }
+}
+}

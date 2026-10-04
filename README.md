@@ -100,7 +100,7 @@ irm https://frame28.t28.io/install.ps1 | iex
 macOS (Terminal, con [Homebrew](https://brew.sh)):
 
 ```bash
-curl -fsSL https://frame28.t28.io/install.sh | sh
+curl -fsSL https://frame28.t28.io/install.sh | bash
 ```
 
 Al terminar, abre una terminal nueva, escribe `claude` e inicia sesión con tu cuenta de Claude. El instalador te dice
@@ -108,7 +108,7 @@ al final qué queda por hacer, si algo. Sin preguntas (para automatizar): `bash 
 
 **La forma manual**, por si quieres ver cada paso. ¿No eres informático? Hay una [presentación paso a paso](https://frame28.t28.io/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
 
-Necesitas Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 22+, ffmpeg y Git (uv lo usa para instalar el CLI desde GitHub).
+Necesitas [uv](https://docs.astral.sh/uv/) (trae Python 3.12), Node.js 22+, ffmpeg y Git (uv lo usa para instalar el CLI desde GitHub).
 
 ```bash
 # El plugin (skills para Claude Code)
@@ -116,7 +116,7 @@ claude plugin marketplace add javierledesma28/frame28
 claude plugin install frame28@think28
 
 # El CLI
-uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
+uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
 frame28 doctor
 ```
 
@@ -127,7 +127,7 @@ la cuenta gratuita monta en modo demo (marca Think28 y tarjeta final «Hecho con
 llegan con los planes de [frame28.app](https://frame28.app/#precios). El motor (el CLI `frame28`) sigue siendo código abierto
 y no necesita cuenta.
 
-`frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable ./plugin/cli`.
+`frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable ./plugin/cli --python 3.12`.
 Para ponerlo al día más adelante, mira [Actualizar](#actualizar).
 
 ## Actualizar

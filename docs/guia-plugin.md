@@ -75,7 +75,7 @@ que arreglar antes de subir:
    lo comprueba, junto con el árbol limpio, que el tag no exista, la cuenta activa de `gh` y `claude plugin validate`;
    `--notes` lista los commits desde el último tag para redactar las notas.
 4. Opcional: publicar el CLI en PyPI (`uv build && uv publish`) para que `uv tool install frame28` funcione sin
-   git. Mientras tanto: `uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`.
+   git. Mientras tanto: `uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`.
 
 ## 4. Consumir ✅ probado (2026-09-29)
 
@@ -89,7 +89,7 @@ del usuario, así que `frame28` funciona en cualquier terminal nueva.
 ```bash
 claude plugin marketplace add javierledesma28/frame28
 claude plugin install frame28@think28
-uv tool install git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
+uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
 frame28 doctor
 ```
 Para alguien no técnico esto son demasiados pasos, así que existe el **instalador de una línea** (hecho el
@@ -99,11 +99,11 @@ Para alguien no técnico esto son demasiados pasos, así que existe el **instala
 irm https://frame28.t28.io/install.ps1 | iex        # Windows
 ```
 ```bash
-curl -fsSL https://frame28.t28.io/install.sh | sh    # macOS (Homebrew) y Linux (apt)
+curl -fsSL https://frame28.t28.io/install.sh | bash  # macOS (Homebrew) y Linux (apt)
 ```
-Instalan solo lo que falta (ffmpeg, Node.js, uv), el CLI desde GitHub con `uv tool install --force`, el plugin si
+Instalan solo lo que falta (ffmpeg, Node.js 22+, uv, Git), el CLI desde GitHub con `uv tool install --force`, el plugin si
 `claude` está en el PATH, y terminan con `frame28 doctor`. Son idempotentes. Fuente: `docs/install.ps1` y
-`docs/install.sh`; cualquier cambio se publica solo al hacer push. Es el mismo patrón `irm | iex` / `curl | sh`
+`docs/install.sh`; cualquier cambio se publica solo al hacer push. Es el mismo patrón `irm | iex` / `curl | bash`
 que usan uv, Homebrew o Scoop: el script se lee entero desde HTTPS en tu dominio, y quien desconfíe puede abrir
 la URL en el navegador y leerlo antes de ejecutarlo.
 
