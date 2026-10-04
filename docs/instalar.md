@@ -15,16 +15,17 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
 
 1. **Detecta el sistema** (Windows, macOS o Linux) y comprueba internet.
 2. **Programas de apoyo**, solo los que falten. Comprueba cada uno con `--version`:
-   - **ffmpeg** (video), **Node.js 22+** (render), **uv** (instala Frame28 y trae su propio Python).
+   - **ffmpeg** (video), **Node.js 22+** (render), **uv** (instala Frame28 y trae su propio Python) y **Git** (uv lo
+     necesita para instalar el motor desde GitHub; un equipo recién instalado no lo trae).
    - Windows: `winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements`,
-     `winget install --id OpenJS.NodeJS.LTS -e ...`, `winget install --id astral-sh.uv -e ...`, y el runtime
+     `winget install --id OpenJS.NodeJS.LTS -e ...`, `winget install --id astral-sh.uv -e ...`, `winget install --id Git.Git -e ...`, y el runtime
      `winget install --id Microsoft.VCRedist.2015+.x64 -e ...` si falta. Tras instalar, refresca el PATH de la
      sesión o avisa de que hay que abrir una terminal nueva.
    - macOS: si no hay Homebrew, explícale que Homebrew le pedirá su contraseña y puede tardar 5–15 minutos
      descargando las Command Line Tools; lánzalo con
      `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` en una
-     terminal **de la persona** (es interactivo). Luego `brew install ffmpeg node uv` y carga `brew shellenv`.
-   - Linux (Debian/Ubuntu): `sudo apt-get install -y ffmpeg`, Node desde nodesource, uv desde `https://astral.sh/uv/install.sh`.
+     terminal **de la persona** (es interactivo). Luego `brew install ffmpeg node uv git` y carga `brew shellenv`.
+   - Linux (Debian/Ubuntu): `sudo apt-get install -y ffmpeg git`, Node desde nodesource, uv desde `https://astral.sh/uv/install.sh`.
 3. **Claude Code** en terminal, si `claude` no existe: `curl -fsSL https://claude.ai/install.sh | bash` (macOS/Linux)
    o `irm https://claude.ai/install.ps1 | iex` (Windows). La persona tendrá que iniciar sesión después con `claude`.
 4. **Motor de Frame28**: `uv tool install --python 3.12 --force git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`
