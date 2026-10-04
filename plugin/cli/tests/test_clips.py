@@ -237,10 +237,11 @@ def test_scaffold_puts_the_cta_in_the_free_top_band_of_a_blur_reframe(tmp_path, 
     d = tmp_path / "s1"; d.mkdir()
     write_json(d / "words.json", words_from("hola mundo cruel", start=0.5))
     cta = {"title": "Buy", "price": "$10"}
-    clips.scaffold(clip, d, cta=cta, video_name="vertical.mp4")
+    r = clips.scaffold(clip, d, cta=cta, video_name="vertical.mp4")
     assert "y" not in json.loads((d / "storyboard.json").read_text(encoding="utf-8"))["overlays"][-1]   # sin reframe.json: por defecto
+    assert any("reframe.json" in w for w in r["warnings"])                                              # y lo avisa (F28-112)
     write_json(d / "reframe.json", {"mode": "blur", "out": [1080, 1920], "free_bands": [[0, 656], [1264, 1920]]})
-    clips.scaffold(clip, d, cta=cta, video_name="vertical.mp4")
+    assert clips.scaffold(clip, d, cta=cta, video_name="vertical.mp4")["warnings"] == []
     c = json.loads((d / "storyboard.json").read_text(encoding="utf-8"))["overlays"][-1]
     assert c["type"] == "cta" and int(0.08 * 1920) < c["y"] and c["y"] + clips.CTA_HEIGHT <= 656      # dentro de la franja y bajo la barra
     clips.scaffold(clip, d, cta={**cta, "y": 900}, video_name="vertical.mp4")

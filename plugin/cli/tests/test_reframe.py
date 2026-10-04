@@ -129,3 +129,25 @@ def test_prep_width_is_the_long_side():
     assert scale_filter({"width": 3840, "height": 2160}, 1920) == ",scale=1920:-2"
     assert scale_filter({"width": 1080, "height": 1920}, 1920) == ",scale=-2:1920"     # antes subía a 1920×3413
     assert scale_filter({}, 1920) == ",scale=1920:-2" and scale_filter({"width": 1, "height": 2}, None) == ""
+
+
+def test_reframe_blur_writes_reframe_json_next_to_the_output_by_default(tmp_path, monkeypatch):
+    # F28-112: sin --path no se escribía y clips scaffold/batch no sabían que hay franja libre arriba
+    class FakeCap:
+        def get(self, prop):
+            return {R.cv2.CAP_PROP_FPS: 30, R.cv2.CAP_PROP_FRAME_WIDTH: 1920, R.cv2.CAP_PROP_FRAME_HEIGHT: 1080, R.cv2.CAP_PROP_FRAME_COUNT: 30}[prop]
+        def release(self):
+            pass
+    monkeypatch.setattr(R.cv2, "VideoCapture", lambda *_: FakeCap())
+    monkeypatch.setattr(R, "ffmpeg", lambda: "ffmpeg")
+    monkeypatch.setattr(R, "run", lambda *a, **k: type("P", (), {"returncode": 0, "stderr": ""})())
+    out = tmp_path / "s1" / "vertical.mp4"
+    res = R.reframe(tmp_path / "in.mp4", out, mode="blur")
+    rj = out.with_name("reframe.json")
+    assert rj.exists() and res["path_json"] == str(rj)
+    import json
+    data = json.loads(rj.read_text(encoding="utf-8"))
+    assert data["mode"] == "blur" and data["free_bands"][0][0] == 0
+    other = tmp_path / "otro.json"
+    R.reframe(tmp_path / "in.mp4", out, mode="blur", path_json=other)           # --path sigue mandando
+    assert other.exists()

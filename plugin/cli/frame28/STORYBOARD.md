@@ -36,6 +36,8 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
 
 Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el elemento existe solo en ese rango).
 `at` es el instante de la animación de entrada (por defecto `start`). Los tiempos de palabras salen de `words.json`.
+`x`, `y` son siempre la **esquina superior izquierda** del elemento en el lienzo, no su centro (`box`, `kinetic`, `steps`,
+`draw`, `image`, `lower_third`…): para centrar un rótulo de ancho `w`, `x = (ancho del lienzo - w) / 2`.
 
 | type | Campos | Qué es (técnica del análisis) |
 |---|---|---|

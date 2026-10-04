@@ -254,7 +254,7 @@ def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, 
 @click.option("--deadzone", default=0.10, show_default=True, help="zona muerta (fracción del ancho de la ventana) antes de mover la cámara")
 @click.option("--smooth", default=0.8, show_default=True, help="constante de tiempo del suavizado (s); más = más lento y suave")
 @click.option("--max-speed", default=0.5, show_default=True, help="velocidad máxima (anchos de ventana por segundo)")
-@click.option("--path", "path_json", type=click.Path(), default=None, help="guardar reframe.json (camino de la cámara, para mapear coordenadas)")
+@click.option("--path", "path_json", type=click.Path(), default=None, help="dónde guardar reframe.json (camino de la cámara y franjas libres); por defecto junto a la salida")
 @click.option("--gpu/--cpu", default=None, help="NVENC o libx264; sin indicarlo, la GPU si la máquina la tiene (FRAME28_ENCODER=auto|nvenc|cpu)")
 @click.option("--json", "as_json", is_flag=True)
 def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, gpu, as_json):
@@ -271,8 +271,7 @@ def reframe(video, out_mp4, mode, size, deadzone, smooth, max_speed, path_json, 
         click.echo(f"  ventana {r['crop'][0]}x{r['crop'][1]} (escala x{r['scale']}), {r['frames']} fotogramas, sujeto detectado en {r['detected_samples']}/{r['samples']} muestras, cámara en movimiento en {r['moving_samples']}")
     else:
         fg = r["foreground"]; click.echo(f"  vídeo en y {fg['y']}–{fg['y'] + fg['h']}; franjas libres {r['free_bands']}")
-    if path_json:
-        click.echo(f"  camino: {path_json}")
+    click.echo(f"  reframe.json: {r['path_json']}")
 
 
 @main.command("reframe-map")
