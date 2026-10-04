@@ -209,10 +209,12 @@ if has frame28; then frame28 doctor 2>&1 | tee -a "$LOG"; else warn "frame28 no 
 # ---------- 7) siguiente ----------
 STEP=$((STEP+1)); step $STEP "Listo" "Qué hacer ahora."
 say ""
-say "   ${G}Instalación terminada.${N} Tres cosas para empezar:"
+say "   ${G}Instalación terminada.${N} Cuatro cosas para empezar:"
 say "   1. Cierra esta Terminal y abre una nueva (así reconoce los programas nuevos)."
 if has claude; then say "   2. Escribe ${B}claude${N} en la Terminal e inicia sesión con tu cuenta de Claude (solo la primera vez)."; else say "   2. Instala Claude Code desde https://claude.com/claude-code e inicia sesión."; fi
-say "   3. Graba un clip hablando a cámara, abre Claude Code en su carpeta y escribe: ${B}\"Aquí está mi clip. Móntamelo.\"${N}"
+say "   3. Entra con tu cuenta de Frame28: dentro de Claude Code escribe ${B}/mcp${N}, elige ${B}frame28${N} y pulsa ${B}Authenticate${N}."
+say "      Se abre el navegador: tu email y el código que te llega. Si no tienes cuenta, se crea gratis (modo demo)."
+say "   4. Graba un clip hablando a cámara, abre Claude Code en su carpeta y escribe: ${B}\"Aquí está mi clip. Móntamelo.\"${N}"
 say ""
 say "   Guía completa con imágenes: ${B}$GUIDE${N}"
 say "   Si algo falló, envía el fichero ${B}$LOG${N} a quien te pasó Frame28 o pégaselo a Claude."
