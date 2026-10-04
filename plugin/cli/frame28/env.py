@@ -288,18 +288,25 @@ def fetch_atomic(url: str, dest: Path, sha256: str | None = None, timeout: int =
     raise SystemExit(f"No se pudo descargar {url}: {last}. Comprueba la conexión y repite la orden.")
 
 
-def download(url: str, dest: Path, label: str, sha256: str | None = None) -> Path:
+NOTICES_URL = "https://github.com/javierledesma28/frame28/blob/main/THIRD-PARTY-NOTICES.md"
+
+
+def download(url: str, dest: Path, label: str, sha256: str | None = None, license: str | None = None) -> Path:
     """Asegura un modelo en la caché: si está y su SHA-256 cuadra, se usa; si falta o está corrupto (una descarga cortada
-    dejaba un .onnx truncado y matte/speaker fallaban para siempre con un error de protobuf), se baja de nuevo, atómico."""
+    dejaba un .onnx truncado y matte/speaker fallaban para siempre con un error de protobuf), se baja de nuevo, atómico.
+    Al descargarlo dice de dónde viene y con qué licencia (F28-198): el modelo no va con Frame28, lo baja el usuario."""
     if model_ok(dest, sha256):
         return dest
     if dest.exists():
         note(f"{label} en {dest} está incompleto o corrupto: se descarga de nuevo")
     note(f"Descargando {label} a {dest} ...")
+    if license:
+        note(f"  Licencia: {license}. Origen: {url.split('/')[2]}. Detalle: {NOTICES_URL}")
     fetch_atomic(url, dest, sha256)
     _VERIFIED.add(str(dest))
     return dest
 
 
 def ensure_rvm_model() -> Path:
-    return download(RVM_MODEL_URL, RVM_MODEL_PATH, "modelo RVM (15 MB)", RVM_MODEL_SHA256)
+    return download(RVM_MODEL_URL, RVM_MODEL_PATH, "modelo RVM (15 MB)", RVM_MODEL_SHA256,
+                    license="GPL-3.0 (RobustVideoMatting; se descarga de su repositorio y no se redistribuye con Frame28)")

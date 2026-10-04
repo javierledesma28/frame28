@@ -239,7 +239,8 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   regresiones de `poc/clip-javier` y `poc/clip-grabado`); Remotion descartado (licencia de empresa >3 personas).
   PoC comparativa en `research/03-poc-compositores.md`.
 - **faster-whisper** (CPU, medium int8) para tiempos por palabra; WhisperX/stable-ts con guion son mejora pendiente.
-- **RobustVideoMatting ONNX** (GPL-3, ejecutado como proceso, modelo descargado a `~/.cache/frame28/`) para el
+- **RobustVideoMatting ONNX** (GPL-3; onnxruntime lo carga dentro del CLI, NO es un proceso aparte; el modelo se descarga
+  a `~/.cache/frame28/` y no se redistribuye; licencias de todo en `THIRD-PARTY-NOTICES.md`, que hay que tener al día) para el
   alfa del hablante; **MediaPipe Pose** (lite, misma caché) para gestos y reencuadre; **RapidOCR** (PaddleOCR en ONNX,
   Apache-2.0, modelos dentro del wheel) para el texto ya presente en vídeos producidos; **segno** (BSD) para QR.
 - **GPU siempre que se pueda, nunca obligatoria** (premisa de Javier, 2026-10-03): el extra `frame28[gpu]` (`nvidia-cublas-cu12`,

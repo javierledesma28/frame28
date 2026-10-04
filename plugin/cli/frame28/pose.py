@@ -27,7 +27,7 @@ POINT_WORDS = {"aquí", "acá", "ahí", "allí", "allá", "esto", "esta", "este"
 
 def ensure_pose_model() -> Path:
     from .env import download
-    return download(POSE_MODEL_URL, POSE_MODEL_PATH, "modelo de pose (5 MB)", POSE_MODEL_SHA256)
+    return download(POSE_MODEL_URL, POSE_MODEL_PATH, "modelo de pose (5 MB)", POSE_MODEL_SHA256, license="Apache-2.0 (MediaPipe)")
 
 
 def _landmarker():
