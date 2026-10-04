@@ -267,3 +267,42 @@ def test_batch_keep_renders_hand_tuned_storyboards_without_rescaffolding(tmp_pat
     assert "Afinado a mano" in (d / "project-hook0" / "index.html").read_text(encoding="utf-8")
     clips.batch(plan, None, cdir, tmp_path / "out", [0], brand="think28", render=False)
     assert not any(o["id"] == "mio" for o in json.loads(sp.read_text(encoding="utf-8"))["overlays"])     # sin keep, se regenera
+
+
+# ---------- F28-160: cifra dicha, cifra en gráfica ----------
+def test_figures_read_the_spoken_value_and_unit_without_inventing():
+    f = clips.figures("The battery weighs 4.2 kilograms.", "en")
+    assert [(x["value"], x["suffix"]) for x in f] == [(4.2, " kg")]
+    assert clips.figures("Pesa 4,2 kilos.", "es")[0]["value"] == 4.2
+    assert clips.figures("Cuesta $59.99.", "es")[0]["prefix"] == "$"
+    assert clips.figures("95% of your braking comes from the front.", "en")[0]["suffix"] == "%"
+    assert clips.figures("Back in 2019 we had 3 kids.", "en") == []          # cifras sin unidad: no son datos
+    assert clips.figures("I put 10 in the box.", "en") == []                 # «10 in» no son pulgadas
+    assert clips.figures("15% vs 10–12%.", "en")[1]["range"] is True
+
+
+def test_figure_overlays_pick_counter_bar_or_kinetic():
+    def kind(text, lang="en", canvas=(1080, 1920)):
+        r = clips.figure_overlays(text, lang, 1.0, 3.0, 10.0, canvas, "right", [], 0.5, 3.0, 1)
+        return r and r["kind"], r and r["overlay"]
+    k, ov = kind("95% of your braking comes from the front.")
+    assert k == "counter" and ov["value"] == 95.0 and ov["suffix"] == "%" and ov["bg"] == "black"   # vertical: a pantalla completa
+    k, ov = kind("The old blade needed 12 minutes compared to 3 minutes with this one.")
+    assert k == "bar" and [s["value"] for s in ov["series"]] == [12.0, 3.0] and ov["unit"] == " min"
+    assert ov["series"][0]["label"] == "old blade needed"                   # palabras reales, no inventadas
+    assert kind("It is 15% harder vs 10–12% on the old one.")[0] == "kinetic"   # un rango no va en contador
+    assert kind("It runs at 36, 48, 52 and 72 volt.")[0] == "kinetic"           # lista dicha de corrido
+    k, ov = kind("Set it to 25 degrees, not 30 degrees.", canvas=(1920, 1080))
+    assert k == "bar" and "panel" in ov                                        # apaisado: panel junto al hablante
+
+
+def test_markers_propose_figures_that_validate(tmp_path):
+    from frame28.build import validate
+    caps = _caps(tmp_path, [(0.0, 3.0, "Welcome back."), (3.0, 6.5, "This motor gives you 750 watts."),
+                            (6.5, 10.0, "Charging took 2 hours instead of 6 hours."), (10.0, 12.0, "Bye.")])
+    r = clips.markers(caps, lang="en", canvas=(1080, 1920))
+    figs = [m for m in r["markers"] if m["kind"] == "figure"]
+    assert r["figures"] == 2 and [m["chart"] for m in figs] == ["counter", "bar"]
+    sb = {"version": 1, "canvas": {"width": 1080, "height": 1920, "fps": 30}, "source": {"video": "clip.mp4", "duration": 12.0},
+          "duration": 12.0, "overlays": [o for m in figs for o in m["overlays"]]}
+    assert validate(sb) == []
