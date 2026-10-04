@@ -108,13 +108,15 @@ def search(query: str, kind: str = "video", provider: str = "auto", orientation:
                 out.append({"id": f"pexels-{v['id']}", "provider": "pexels", "kind": "video", "url": files[0]["link"],
                             "page": v.get("url"), "thumb": v.get("image"), "width": files[0].get("width"), "height": files[0].get("height"),
                             "duration": v.get("duration"), "author": (v.get("user") or {}).get("name"),
-                            "license": "Pexels License (uso comercial, sin atribución obligatoria)"})
+                            "license": "Pexels License (uso comercial, sin atribución obligatoria)",
+                            "tags": ", ".join(t.get("title", t) if isinstance(t, dict) else str(t) for t in (v.get("tags") or [])), "query": query})
         else:
             d = _get_json(f"https://api.pexels.com/v1/search?query={q}&orientation={orientation}&size=large&per_page={per_page}", h)
             for p in d.get("photos", []):
                 out.append({"id": f"pexels-{p['id']}", "provider": "pexels", "kind": "photo", "url": p["src"].get("large2x") or p["src"].get("original"),
                             "page": p.get("url"), "thumb": p["src"].get("medium"), "width": p.get("width"), "height": p.get("height"),
-                            "duration": None, "author": p.get("photographer"), "license": "Pexels License (uso comercial, sin atribución obligatoria)"})
+                            "duration": None, "author": p.get("photographer"), "license": "Pexels License (uso comercial, sin atribución obligatoria)",
+                            "tags": p.get("alt") or "", "query": query})
     if "pixabay" in provs and keys.get("PIXABAY_API_KEY"):
         k = keys["PIXABAY_API_KEY"]; q = urllib.parse.quote(query)
         orient = "horizontal" if orientation == "landscape" else "vertical" if orientation == "portrait" else "all"
@@ -129,17 +131,45 @@ def search(query: str, kind: str = "video", provider: str = "auto", orientation:
                 out.append({"id": f"pixabay-{v['id']}", "provider": "pixabay", "kind": "video", "url": f["url"], "page": v.get("pageURL"),
                             "thumb": (f.get("thumbnail") or ""), "width": f.get("width"), "height": f.get("height"),
                             "duration": v.get("duration"), "author": v.get("user"),
-                            "license": "Pixabay Content License (uso comercial, sin atribución obligatoria)"})
+                            "license": "Pixabay Content License (uso comercial, sin atribución obligatoria)", "tags": v.get("tags") or "", "query": query})
         else:
             d = _get_json(f"https://pixabay.com/api/?key={k}&q={q}&orientation={orient}&per_page={max(3, per_page)}&safesearch=true&image_type=photo")
             for p in d.get("hits", []):
                 out.append({"id": f"pixabay-{p['id']}", "provider": "pixabay", "kind": "photo", "url": p.get("largeImageURL"), "page": p.get("pageURL"),
                             "thumb": p.get("previewURL"), "width": p.get("imageWidth"), "height": p.get("imageHeight"), "duration": None,
-                            "author": p.get("user"), "license": "Pixabay Content License (uso comercial, sin atribución obligatoria)"})
+                            "author": p.get("user"), "license": "Pixabay Content License (uso comercial, sin atribución obligatoria)",
+                            "tags": p.get("tags") or "", "query": query})
     return out
 
 
 # ---------- descarga, sidecar de licencia y recorte ----------
+
+# F28-199: Pexels prohíbe dar a entender que las personas del clip respaldan un producto y Pixabay, el uso comercial de
+# marcas reconocibles. En un anuncio, un B-roll con personas o marcas puede leerse así: el sidecar lo anota.
+PEOPLE_RE = re.compile(r"\b(people|person|persons|man|men|woman|women|girl|boy|child|children|kid|kids|baby|face|faces|"
+                       r"portrait|selfie|family|couple|crowd|model|worker|businessman|businesswoman|student|teen|"
+                       r"persona|personas|hombre|mujer|niñ[oa]s?|cara|rostro|familia|pareja|gente)\b", re.I)
+BRAND_RE = re.compile(r"\b(logo|logos|brand|brands|trademark|signage|storefront|label|marca|marcas|logotipo|"
+                      r"apple|iphone|samsung|nike|adidas|coca[- ]?cola|starbucks|mcdonald'?s|google|amazon|tesla)\b", re.I)
+
+
+def content_flags(item: dict) -> dict:
+    """Qué dice el proveedor que sale en el clip (etiquetas o descripción, más la consulta): personas, marcas o no se
+    sabe. «unknown» = el proveedor no da etiquetas (los vídeos de Pexels): hay que mirarlo antes de usarlo en un anuncio."""
+    text = " ".join(str(item.get(k) or "") for k in ("tags", "query"))
+    has_meta = bool(str(item.get("tags") or "").strip())
+    people, brands = bool(PEOPLE_RE.search(text)), bool(BRAND_RE.search(text))
+    flags = {"people": people, "brands": brands, "basis": "etiquetas del proveedor" if has_meta else "solo la consulta (sin etiquetas)"}
+    notes = []
+    if people:
+        notes.append("salen personas: en un anuncio no deben parecer respaldar el producto (licencia de Pexels/Pixabay)")
+    if brands:
+        notes.append("puede salir una marca reconocible: Pixabay prohíbe su uso comercial; evítalo en piezas publicitarias")
+    if not has_meta and not (people or brands):
+        notes.append("el proveedor no da etiquetas: mira el clip antes de usarlo en un anuncio (personas o marcas)")
+    flags["ad_use"] = "evitar en anuncios" if (people or brands) else ("revisar" if not has_meta else "ok")
+    flags["notes"] = notes
+    return flags
 
 def fetch(item: dict, out_dir: str | Path, trim_in: float = 0.0, duration: float | None = None, width: int | None = None) -> dict:
     """Descarga el candidato a `out_dir/<id>.<ext>`, guarda `<id>.json` (licencia, autor, página) y, si `duration` o
@@ -150,8 +180,9 @@ def fetch(item: dict, out_dir: str | Path, trim_in: float = 0.0, duration: float
     if not dst.exists():   # atómico y con todos los bytes: un corte ya no deja un vídeo truncado que parezca bueno
         from .env import fetch_atomic
         fetch_atomic(item["url"], dst, timeout=120, headers={"User-Agent": UA})
-    side = {k: item.get(k) for k in ("id", "provider", "kind", "page", "author", "license", "width", "height", "duration")}
+    side = {k: item.get(k) for k in ("id", "provider", "kind", "page", "author", "license", "width", "height", "duration", "tags")}
     side["file"] = dst.name
+    side["content"] = content_flags(item)
     (out / f"{item['id']}.json").write_text(json.dumps(side, indent=1, ensure_ascii=False), encoding="utf-8")
     res = {"file": str(dst), "sidecar": str(out / f"{item['id']}.json"), **side}
     if item["kind"] == "video" and (trim_in or duration):

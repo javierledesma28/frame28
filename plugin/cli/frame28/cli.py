@@ -71,8 +71,11 @@ def report_note(ctx, text, tokens, cost, minutes):
 @click.option("--max-height", default=1080, show_default=True)
 @click.option("--json", "as_json", is_flag=True)
 def fetch(url, out_mp4, max_height, as_json):
-    """Descarga un vídeo de YouTube/Vimeo/etc. (yt-dlp; vía uvx si no está instalado) y deja <out>.source.json con título y origen."""
+    """Descarga un vídeo de YouTube/Vimeo/etc. (yt-dlp; vía uvx si no está instalado) y deja <out>.source.json con título y origen.
+    Solo para material propio o autorizado."""
     from .media import fetch_url
+    from .env import note
+    note("  Descarga solo vídeos tuyos o que tengas derecho a usar (de tu marca o con permiso): el montaje no cambia los derechos.")
     out(fetch_url(url, out_mp4, max_height), as_json or True)
 
 
@@ -513,7 +516,11 @@ def broll_fetch(candidates, item_id, out_dir, trim_in, duration, width, as_json)
     it = next((x for x in items if x["id"] == item_id), None)
     if not it:
         raise SystemExit(f"id {item_id} no está en {candidates}")
-    out(fetch(it, out_dir, trim_in, duration, width), as_json or True)
+    r = fetch(it, out_dir, trim_in, duration, width)
+    for n in r["content"]["notes"]:
+        from .env import note
+        note(f"  ! {n}")
+    out(r, as_json or True)
 
 
 @main.group()
