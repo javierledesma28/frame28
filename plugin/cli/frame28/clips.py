@@ -319,8 +319,12 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
             sb["brand"] = os.path.relpath(bp.resolve(), d.resolve()).replace("\\", "/")  # relativa al storyboard del short
         else:
             sb["brand"] = brand
+    warnings: list[str] = []
     if cta:
         c = {"type": "cta", "id": "cta", "start": round(max(dur - 5.0, 3.5), 2), "end": dur, "at": round(max(dur - 4.9, 3.6), 2), **cta}
+        if H > W and "y" not in cta and not (d / "reframe.json").exists():
+            warnings.append(f"no hay reframe.json en {d}: si el vídeo es un reencuadre con fondo desenfocado, el CTA tapará "
+                            "la parte baja del vídeo. Reencuadra con frame28 reframe (lo escribe solo) o pon cta.y a mano")
         y = _free_band_y(d, W, H)
         if y is not None and "y" not in cta:
             c["y"] = y  # vertical con fondo desenfocado: el CTA va a la franja libre de arriba, no encima del vídeo
@@ -329,7 +333,7 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
     sb["meta"]["title"] = f"Short {clip['id']} · gancho {hook_index + 1}: " + " / ".join(hook["lines"])
     p = d / name
     p.write_text(json.dumps(sb, indent=1, ensure_ascii=False), encoding="utf-8")
-    return {"storyboard": str(p), "duration": dur, "hook": hook, "hook_index": hook_index}
+    return {"storyboard": str(p), "duration": dur, "hook": hook, "hook_index": hook_index, "warnings": warnings}
 
 
 CTA_HEIGHT = 440  # alto que reserva el generador para la tarjeta del CTA (build.cta_box)
@@ -387,7 +391,7 @@ def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | P
                     s = scaffold(c, d, canvas, platform, brand, cta, k, video_name, name=sp.name)
                     v["storyboard"] = s["storyboard"]; v["hook"] = s["hook"]["lines"]; v["type"] = s["hook"].get("type")
                 b = build_project(v["storyboard"], d / f"project-hook{k}")
-                v["project"] = b["project"]; v["warnings"] = b["warnings"]
+                v["project"] = b["project"]; v["warnings"] = (s["warnings"] if not v.get("kept") else []) + b["warnings"]
                 if render:
                     from .render import check as _check, render as _render
                     ck = _check(b["project"])

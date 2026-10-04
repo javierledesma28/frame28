@@ -109,6 +109,9 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
             deadzone: float = 0.10, smooth: float = 0.8, max_speed: float = 0.5, path_json: str | Path | None = None,
             crf: int = 18) -> dict:
     video = Path(video); out = Path(out_mp4); out.parent.mkdir(parents=True, exist_ok=True)
+    # reframe.json siempre, junto a la salida si no se pide otra ruta: sin él, clips scaffold/batch no saben que hay una
+    # franja libre arriba y el CTA tapa la parte baja del vídeo; reframe-map lo necesita para los gestos (F28-112)
+    path_json = Path(path_json) if path_json else out.with_name("reframe.json")
     ow, oh = out_size
     cap = cv2.VideoCapture(str(video))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
@@ -126,8 +129,8 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
         fg_h = round(ow * H / W / 2) * 2
         res.update({"foreground": {"x": 0, "y": (oh - fg_h) // 2, "w": ow, "h": fg_h},
                     "free_bands": [[0, (oh - fg_h) // 2], [(oh + fg_h) // 2, oh]]})
-        if path_json:
-            Path(path_json).write_text(json.dumps(res, indent=1), encoding="utf-8")
+        res["path_json"] = str(path_json)
+        path_json.write_text(json.dumps(res, indent=1), encoding="utf-8")
         return res
     # ---- crop: la mayor ventana con la proporción de salida, que se mueve en el eje que sobra ----
     axis, crop_w, crop_h = crop_window(W, H, ow, oh)
@@ -158,8 +161,8 @@ def reframe(video: str | Path, out_mp4: str | Path, mode: str = "crop", out_size
     res.update({"crop": [crop_w, crop_h], "axis": axis, "scale": round(ow / crop_w, 3), "frames": i, "detected_samples": subj["detected"],
                 "samples": subj["samples"], "path": path, "moving_samples": moves,
                 "params": {"deadzone": deadzone, "smooth": smooth, "max_speed": max_speed}})
-    if path_json:
-        Path(path_json).write_text(json.dumps(res, indent=1), encoding="utf-8")
+    res["path_json"] = str(path_json)
+    path_json.write_text(json.dumps(res, indent=1), encoding="utf-8")
     return res
 
 
