@@ -1251,6 +1251,21 @@ body.is-pointer{cursor:none}
 .say{font-size:30px;line-height:1.35;padding:22px 28px;border-left:6px solid var(--t28-yellow);background:var(--bg-soft);border-radius:0 14px 14px 0;font-style:italic}
 .say b{font-style:normal}
 .qr-card img{border-radius:12px}
+/* Modo oscuro (tecla T, o el visor de claude.ai que abre en oscuro): el motor pinta títulos y numeradores con el primario,
+   que en la marca Think28 es negro; sobre fondo oscuro desaparecían */
+[data-theme="dark"] .slide:not(.cover) .s-title,
+[data-theme="dark"] .s-foot b,
+[data-theme="dark"] .panel > h3,
+[data-theme="dark"] .kpi .k-val,
+[data-theme="dark"] .ttable th,
+[data-theme="dark"] .flow-node .n-t,
+[data-theme="dark"] .lane-h,
+[data-theme="dark"] .stepbar .sb-lab b,
+[data-theme="dark"] .fx-mark,
+[data-theme="dark"] .seq-actor{color:var(--ink)}
+[data-theme="dark"] .tlist.num li::before,
+[data-theme="dark"] .flow-node .n-num{background:var(--t28-yellow);color:#0A0A0A}
+[data-theme="dark"] .qr-card{color:#0A0A0A}
 </style>
 </head>
 <body>
