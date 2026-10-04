@@ -5,6 +5,10 @@ estables ("k1.lines.0.1.text", "captions.3.text") y contexto (tipo, instante, l�
 El agente traduce los valores. `apply` los vuelve a meter en una copia del storyboard, cambia `meta.lang` y, si
 los subtítulos son por palabras (`caption_style`), genera `words.<lang>.json` repartiendo las palabras traducidas
 de cada frase sobre el ritmo de las palabras originales (misma pausa donde la había).
+
+`apply` guarda además en `meta.i18n` la huella de los textos de origen; `leftovers` (lo usan `build` y `i18n check`)
+avisa de cualquier texto visible que siga igual que en el original: un script que reescribe el storyboard traducido
+después de `apply` dejaba rótulos en el idioma de origen y nada lo veía antes del render (F28-129).
 """
 from __future__ import annotations
 
@@ -88,8 +92,47 @@ def apply(sb: dict, translations: dict, lang: str) -> tuple[dict, list[str]]:
                     warns.append(f"{key}: {len(val)} caracteres, orientativo {lim} para {o['type']} ('{val[:30]}…')")
         except (KeyError, IndexError, ValueError, TypeError):
             warns.append(f"{key}: no existe en el storyboard, ignorada")
-    out.setdefault("meta", {})["lang"] = lang
+    src_strings = {k: v["text"] for k, v in extract(sb)["strings"].items()}
+    keep = sorted(k for k, v in tr.items() if isinstance(v, str) and k in src_strings and _norm(v) == _norm(src_strings[k]))
+    meta = out.setdefault("meta", {})
+    meta["i18n"] = {"from": sb.get("meta", {}).get("lang", ""), "source": src_strings, "keep": keep}
+    meta["lang"] = lang
     return out, warns
+
+
+def _norm(text: str) -> str:
+    return " ".join(str(text).split()).casefold()
+
+
+WORD_RE = re.compile(r"[^\W\d_]{3,}")
+
+
+def _needs_translation(text: str) -> bool:
+    """Lo que no hace falta traducir: cifras y símbolos, y nombres propios o marcas cortas (todas las palabras con
+    mayúscula inicial, hasta tres, sin estar entero en mayúsculas: «Frame28», «Sailrite Ultrafeed»)."""
+    words = WORD_RE.findall(text)
+    if not words:
+        return False
+    if text.isupper():
+        return True
+    return not (len(words) <= 3 and all(w[0].isupper() for w in words))
+
+
+def leftovers(sb: dict, show: int = 8) -> list[str]:
+    """Avisos de textos visibles que siguen en el idioma de origen en un storyboard traducido con `i18n apply`.
+    No avisa de lo que el traductor dejó igual a propósito (`meta.i18n.keep`) ni de cifras, marcas y nombres."""
+    info = (sb.get("meta") or {}).get("i18n")
+    if not isinstance(info, dict) or not isinstance(info.get("source"), dict):
+        return []
+    src, keep = info["source"], set(info.get("keep") or [])
+    same = [(k, v["text"]) for k, v in extract(sb)["strings"].items()
+            if k not in keep and k in src and _norm(v["text"]) == _norm(src[k]) and _needs_translation(v["text"])]
+    lang = (sb.get("meta") or {}).get("lang", "")
+    out = [f"{k}: sigue en el idioma original ('{txt[:40]}'); tradúcelo a '{lang}' o, si va así a propósito, añade la clave a meta.i18n.keep"
+           for k, txt in same[:show]]
+    if len(same) > show:
+        out.append(f"y {len(same) - show} textos más sin traducir")
+    return out
 
 
 def _tokens(text: str) -> list[str]:
