@@ -137,9 +137,9 @@ if [ "$OS" = "Darwin" ]; then
 fi
 
 # ---------- 2) programas de apoyo ----------
-STEP=$((STEP+1)); step $STEP "Programas de apoyo" "ffmpeg trabaja con el video, Node.js hace funcionar el motor de render y uv instala Frame28 con su propio Python."
+STEP=$((STEP+1)); step $STEP "Programas de apoyo" "ffmpeg trabaja con el video, Node.js hace funcionar el motor de render, uv instala Frame28 con su propio Python y Git lo descarga de GitHub."
 if [ "$OS" = "Darwin" ]; then
-  for pair in "ffmpeg:ffmpeg" "node:node" "uv:uv"; do
+  for pair in "ffmpeg:ffmpeg" "node:node" "uv:uv" "git:git"; do   # git suele venir con las herramientas de Apple que pide Homebrew
     cmd=${pair%%:*}; pkg=${pair##*:}
     if has "$cmd"; then skip "$pkg"; continue; fi
     say "   Instalando $pkg con Homebrew (puede tardar unos minutos)…"
@@ -148,10 +148,11 @@ if [ "$OS" = "Darwin" ]; then
 else
   if ! has ffmpeg; then say "   Instalando ffmpeg (pedirá tu contraseña para sudo)…"; with_retry "No se pudo instalar ffmpeg." sudo apt-get install -y ffmpeg && ok "ffmpeg"; else skip "ffmpeg"; fi
   if ! has node; then say "   Instalando Node.js 22…"; with_retry "No se pudo instalar Node.js." bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs" && ok "node"; else skip "node"; fi
+  if ! has git; then say "   Instalando Git…"; with_retry "No se pudo instalar Git." sudo apt-get install -y git && ok "git"; else skip "git"; fi
   if ! has uv; then say "   Instalando uv…"; with_retry "No se pudo instalar uv." bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh" && ok "uv"; else skip "uv"; fi
 fi
 export PATH="$HOME/.local/bin:$PATH"
-for cmd in ffmpeg node uv; do has "$cmd" || warn "$cmd no está disponible en esta terminal. Si el paso anterior lo instaló, abre una Terminal nueva y vuelve a ejecutar la línea."; done
+for cmd in ffmpeg node uv git; do has "$cmd" || warn "$cmd no está disponible en esta terminal. Si el paso anterior lo instaló, abre una Terminal nueva y vuelve a ejecutar la línea."; done
 
 # ---------- 3) Claude Code ----------
 STEP=$((STEP+1)); step $STEP "Claude Code" "Es la aplicación de Anthropic con la que hablarás para montar tus videos. Frame28 es un plugin suyo."

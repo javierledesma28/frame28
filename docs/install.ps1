@@ -85,11 +85,12 @@ if (-not (Has winget)) {
 winget source update --disable-interactivity 2>&1 | Out-Null
 
 # ---------- 1) programas de apoyo ----------
-Step "Programas de apoyo" "ffmpeg trabaja con el video, Node.js hace funcionar el motor de render y uv instala Frame28 con su propio Python."
+Step "Programas de apoyo" "ffmpeg trabaja con el video, Node.js hace funcionar el motor de render, uv instala Frame28 con su propio Python y Git lo descarga de GitHub."
 $pkgs = @(
   @{ cmd = "ffmpeg"; id = "Gyan.FFmpeg";       name = "ffmpeg" },
   @{ cmd = "node";   id = "OpenJS.NodeJS.LTS"; name = "Node.js" },
-  @{ cmd = "uv";     id = "astral-sh.uv";      name = "uv" }
+  @{ cmd = "uv";     id = "astral-sh.uv";      name = "uv" },
+  @{ cmd = "git";    id = "Git.Git";           name = "Git" }   # uv lo necesita para instalar el motor desde git+https
 )
 foreach ($p in $pkgs) {
   if (Has $p.cmd) { Skip $p.name; continue }

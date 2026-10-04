@@ -108,7 +108,7 @@ al final qué queda por hacer, si algo. Sin preguntas (para automatizar): `bash 
 
 **La forma manual**, por si quieres ver cada paso. ¿No eres informático? Hay una [presentación paso a paso](https://frame28.t28.io/presentacion/) que explica qué es, cómo instalarlo, cómo usarlo y cómo sacarle partido, sin jerga. También se puede abrir en local: `docs/presentacion/index.html`.
 
-Necesitas Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 22+ y ffmpeg.
+Necesitas Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 22+, ffmpeg y Git (uv lo usa para instalar el CLI desde GitHub).
 
 ```bash
 # El plugin (skills para Claude Code)
