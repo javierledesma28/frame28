@@ -547,3 +547,10 @@ def test_probe_measures_loudness_on_audio_only(monkeypatch):
     calls.clear()
     fast = media.probe("v.mp4", loudness=False)
     assert len(calls) == 1 and "mean_db" not in fast["audio"] and fast["duration"] == 10.0
+
+
+def test_doctor_requires_node_22():
+    # F28-104: doctor daba por buena cualquier versión de Node; HyperFrames necesita la 22
+    from frame28.doctor import NODE_MIN, node_major
+    assert NODE_MIN == 22
+    assert node_major("v18.19.0") == 18 and node_major("v22.11.0") == 22 and node_major("") == 0 and node_major("x") == 0

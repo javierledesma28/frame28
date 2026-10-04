@@ -33,6 +33,7 @@ skip()  { say "   ${D}– $1 (ya estaba)${N}"; }
 warn()  { say "   ${Y}! $1${N}"; }
 fail()  { say "   ${R}✗ $1${N}"; }
 has()   { command -v "$1" >/dev/null 2>&1; }
+node_major() { has node && node --version 2>/dev/null | sed 's/^v//; s/\..*//' || echo 0; }
 run()   { "$@" >> "$LOG" 2>&1; }
 
 # Leer del teclado aunque el script llegue por una tubería (curl | bash)
@@ -141,11 +142,21 @@ STEP=$((STEP+1)); step $STEP "Programas de apoyo" "ffmpeg trabaja con el video, 
 if [ "$OS" = "Darwin" ]; then
   for pair in "ffmpeg:ffmpeg" "node:node" "uv:uv" "git:git"; do   # git suele venir con las herramientas de Apple que pide Homebrew
     cmd=${pair%%:*}; pkg=${pair##*:}
+    if [ "$cmd" = "node" ] && has node && [ "$(node_major)" -lt 22 ] 2>/dev/null; then
+      say "   Tienes Node.js $(node --version); el motor de render necesita la 22 o superior. Lo actualizo con Homebrew…"
+      with_retry "No se pudo actualizar Node.js con Homebrew." bash -c "brew upgrade node || brew install node" && ok "node $(node --version 2>/dev/null)"
+      continue
+    fi
     if has "$cmd"; then skip "$pkg"; continue; fi
     say "   Instalando $pkg con Homebrew (puede tardar unos minutos)…"
     if with_retry "No se pudo instalar $pkg con Homebrew." brew install "$pkg"; then ok "$pkg"; fi
   done
 else
+  if ! has apt-get; then
+    fail "Este instalador sabe instalar en Debian y Ubuntu (apt). En otra distribución instala ffmpeg, Node.js 22+, Git y uv con su gestor y vuelve a ejecutar la línea."; exit 1
+  fi
+  if ! has ffmpeg || ! has git || ! has node; then say "   Actualizando la lista de paquetes (pedirá tu contraseña para sudo)…"; with_retry "No se pudo actualizar la lista de paquetes." sudo apt-get update; fi
+  if has node && [ "$(node_major)" -lt 22 ] 2>/dev/null; then say "   Tienes Node.js $(node --version); hace falta la 22 o superior. Lo actualizo…"; with_retry "No se pudo actualizar Node.js." bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs" && ok "node $(node --version 2>/dev/null)"; fi
   if ! has ffmpeg; then say "   Instalando ffmpeg (pedirá tu contraseña para sudo)…"; with_retry "No se pudo instalar ffmpeg." sudo apt-get install -y ffmpeg && ok "ffmpeg"; else skip "ffmpeg"; fi
   if ! has node; then say "   Instalando Node.js 22…"; with_retry "No se pudo instalar Node.js." bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs" && ok "node"; else skip "node"; fi
   if ! has git; then say "   Instalando Git…"; with_retry "No se pudo instalar Git." sudo apt-get install -y git && ok "git"; else skip "git"; fi
@@ -189,8 +200,11 @@ fi
 STEP=$((STEP+1)); step $STEP "Plugin de Frame28 en Claude Code" "Las instrucciones que convierten a Claude en director de montaje. Ocupan menos que una foto."
 if has claude; then
   run claude plugin marketplace add "$MARKET" || true
-  if run claude plugin install "frame28@think28" --scope user; then
-    ok "Plugin frame28 instalado"
+  run claude plugin marketplace update think28 || true          # si ya estaba: trae la versión publicada (F28-102)
+  installed=1; run claude plugin install "frame28@think28" --scope user || installed=0
+  run claude plugin update "frame28@think28" && installed=1 || true
+  if [ "$installed" = "1" ]; then
+    ok "Plugin frame28 instalado y al día"
   else
     warn "No pude instalarlo automáticamente (quizá falta iniciar sesión en Claude Code)."
     say "   Cuando hayas iniciado sesión, escribe dentro de Claude Code:"
