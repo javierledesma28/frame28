@@ -102,3 +102,42 @@ def test_density_warnings_flag_translations_too_dense_to_read():
     w = i18n.density_warnings(many, many, show=3)
     assert len(w) == 4 and "6 subtítulos más" in w[-1]
     assert i18n.density_warnings(src, src) == []
+
+
+def test_leftovers_flags_texts_overwritten_after_apply(grabado_short, grabado_strings, tmp_path):
+    # F28-129: un script de afinado reescribió el storyboard traducido y dejó rótulos en el idioma original
+    new, _ = i18n.apply(grabado_short, grabado_strings, "es")
+    assert new["meta"]["i18n"]["source"]["hook.lines.0"] == next(o for o in grabado_short["overlays"] if o["id"] == "hook")["lines"][0]
+    assert validate(new) == []
+    assert i18n.leftovers(new) == []
+    hook = next(o for o in new["overlays"] if o["id"] == "hook")
+    hook["lines"][0] = new["meta"]["i18n"]["source"]["hook.lines.0"]          # el «pisado»
+    left = i18n.leftovers(new)
+    assert len(left) == 1 and left[0].startswith("hook.lines.0:")
+    # build lo avisa: todo render pasa por build
+    from frame28 import build
+    new.pop("brand", None)                                                     # la marca del cliente no está versionada
+    sbp = write_json(tmp_path / "sb.es.json", new)
+    r = build.build_project(sbp, tmp_path / "p", copy_assets=False)
+    assert any(w.startswith("sin traducir: hook.lines.0") for w in r["warnings"])
+    # i18n check sale con 1 y lo enseña
+    from click.testing import CliRunner
+    from frame28.cli import main
+    res = CliRunner().invoke(main, ["i18n", "check", str(sbp)])
+    assert res.exit_code == 1 and "hook.lines.0" in res.output
+
+
+def test_leftovers_ignores_kept_names_and_numbers():
+    sb = {"version": 1, "meta": {"lang": "en"}, "source": {"video": "clip.mp4", "duration": 10.0}, "duration": 10.0, "overlays": [
+        {"type": "box", "id": "a", "x": 0, "y": 0, "text": "Glue the edges", "start": 0, "end": 1},
+        {"type": "box", "id": "b", "x": 0, "y": 0, "text": "Frame28", "start": 1, "end": 2},
+        {"type": "box", "id": "c", "x": 0, "y": 0, "text": "20× faster", "start": 2, "end": 3},
+        {"type": "box", "id": "d", "x": 0, "y": 0, "text": "50%", "start": 3, "end": 4},
+        {"type": "box", "id": "e", "x": 0, "y": 0, "text": "BEFORE", "start": 4, "end": 5}]}
+    # el traductor deja «20× faster» igual a propósito: va a keep; a y e quedan sin traducir
+    new, _ = i18n.apply(sb, {"c.text": "20× faster"}, "de")
+    assert new["meta"]["i18n"]["keep"] == ["c.text"]
+    left = " ".join(i18n.leftovers(new))
+    assert "a.text" in left and "e.text" in left
+    assert "b.text" not in left and "c.text" not in left and "d.text" not in left
+    assert i18n.leftovers(sb) == []                                           # sin huella no hay nada que comparar

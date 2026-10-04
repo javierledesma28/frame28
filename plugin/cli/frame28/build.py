@@ -1098,6 +1098,8 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
     b = Builder(sb, out)
     b.sb_dir = sb_path.parent
     b.warnings.extend(platform_warnings(sb))
+    from .i18n import leftovers
+    b.warnings.extend(f"sin traducir: {w}" for w in leftovers(sb))
     html_text = b.build()
     (out / "index.html").write_text(html_text, encoding="utf-8")
     (out / "hyperframes.json").write_text(json.dumps({

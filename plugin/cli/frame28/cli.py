@@ -702,6 +702,30 @@ def i18n_apply(storyboard, strings, lang, out_path, words_path, captions_path, a
     for w in r["warnings"]:
         click.echo(f"  ! {w}")
     click.echo("  Ahora: frame28 build <storyboard traducido> -o <proyecto> && frame28 check && frame28 render")
+    click.echo("  Si algo reescribe el storyboard traducido después de esto: frame28 i18n check <storyboard traducido>")
+
+
+@i18n.command("check")
+@click.argument("storyboard", type=click.Path(exists=True))
+@click.option("--json", "as_json", is_flag=True)
+def i18n_check(storyboard, as_json):
+    """Antes de renderizar una versión traducida: avisa de los textos visibles que siguen igual que en el original
+    (salvo cifras, marcas, nombres y lo marcado en meta.i18n.keep). Sale con código 1 si queda alguno."""
+    from .i18n import leftovers
+    sb = json.loads(Path(storyboard).read_text(encoding="utf-8-sig"))
+    info = (sb.get("meta") or {}).get("i18n")
+    left = leftovers(sb)
+    if as_json:
+        out({"storyboard": storyboard, "fingerprint": bool(info), "leftovers": left}, True)
+    elif not info:
+        click.echo("  ! este storyboard no tiene la huella de i18n apply (meta.i18n): vuelve a aplicar la traducción para poder comprobarlo")
+    elif not left:
+        click.echo(f"  ✓ ningún texto visible sigue en el idioma original ({sb.get('meta', {}).get('lang', '?')})")
+    else:
+        for w in left:
+            click.echo(f"  ✗ {w}")
+    if left:
+        raise SystemExit(1)
 
 
 @main.group()
