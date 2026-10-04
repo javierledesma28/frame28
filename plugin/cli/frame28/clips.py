@@ -472,6 +472,109 @@ def _zone(canvas: tuple[int, int], side: str) -> dict:
     return {"kin": (x0, 200), "size": 76, "chars": 20, "draw": (x0 + 640, 90), "draw_w": 140, "ba": (x0 - 30 if side == "left" else x0 - 60, 180, 820)}
 
 
+# ---- cifras dichas → gráfica (F28-160): «toda cifra que aporta valor al producto va en gráfica» ----
+# unidad tal como se dice → sufijo que se pinta (nunca se inventa una unidad que no se dijo)
+UNITS = [  # (forma dicha, sufijo que se pinta o None = la palabra tal como se dijo, ¿abreviatura pegada a la cifra?)
+    (r"%|percent|per cent|por ?ciento", "%", False),
+    (r"kilograms?|kilos?", " kg", False), (r"kg", " kg", False), (r"grams?|gramos?", " g", False), (r"g", " g", True),
+    (r"pounds?|libras?|lbs?", " lb", False),
+    (r"watt[- ]?hours?|wh", " Wh", False), (r"mah", " mAh", False),
+    (r"volts?|voltios?", " V", False), (r"v", " V", True), (r"watts?|vatios?", " W", False), (r"w", " W", True),
+    (r"degrees?|grados?|°", "°", False), (r"minutes?|minutos?|mins?", " min", False), (r"seconds?|segundos?|secs?", " s", False),
+    (r"hours?|horas?|hrs?", " h", False), (r"days?|días?|years?|años?|months?|meses|weeks?|semanas?", None, False),
+    (r"millimet(?:er|re)s?|milímetros?|mm", " mm", False), (r"centimet(?:er|re)s?|centímetros?|cm", " cm", False),
+    (r"inch(?:es)?|pulgadas?|feet|foot|pies?|miles?|millas?", None, False),
+    (r"kilomet(?:er|re)s?|kilómetros?|km", " km", False), (r"mph", " mph", False), (r"km/h", " km/h", False), (r"rpm", " rpm", False),
+    (r"times|veces", "×", False), (r"x|×", "×", True),
+]
+_NUM = r"\d+(?:[.,]\d+)*"
+_LONG = "|".join(f"(?:{u})" for u, _, short in UNITS if not short)
+_SHORT = "|".join(f"(?:{u})" for u, _, short in UNITS if short)
+_UNIT_RE = rf"(?:\s?(?:{_LONG})|(?:{_SHORT}))"   # «36 V» no: una letra suelta tras un espacio es ambigua («10 in», «3 v»)
+FIGURE_RE = re.compile(
+    rf"(?P<cur>[$€£])?\s?(?P<a>{_NUM})(?:\s?(?:–|-|to|a|hasta)\s?(?P<b>{_NUM}))?(?P<unit>{_UNIT_RE})?(?![\w.,]?\d)(?![\w])", re.I)
+LIST_RE = re.compile(rf"(?:{_NUM}\s?,\s?)+{_NUM},?\s(?:and|y|or|o)\s{_NUM}{_UNIT_RE}(?![\w])", re.I)
+COMPARE = {"en": r"\b(vs\.?|versus|compared( to| with)?|than|instead of|rather than|not|while|whereas|against)\b",
+           "es": r"\b(vs\.?|frente a|comparad[oa] con|que|en vez de|en lugar de|y no|mientras|contra)\b"}
+FIG_DURATION = 3.0
+
+
+def _num(s: str, lang: str) -> float:
+    """«4.2» / «4,2» / «1,000» / «1.000» según el idioma."""
+    if lang == "es":
+        s = re.sub(r"\.(?=\d{3}\b)", "", s).replace(",", ".")
+    else:
+        s = re.sub(r",(?=\d{3}\b)", "", s).replace(",", ".")
+    try:
+        return float(s)
+    except ValueError:
+        return float("nan")
+
+
+def _suffix(unit: str) -> str:
+    u = unit.strip()
+    sfx = next(s for pat, s, _ in UNITS if re.fullmatch(pat, u, re.I))
+    return sfx if sfx is not None else " " + u.lower()
+
+
+def figures(text: str, lang: str = "en") -> list[dict]:
+    """Cifras con unidad de una frase, tal como se dicen: valor, unidad (sufijo), moneda, si es un rango y su texto."""
+    out = []
+    for m in FIGURE_RE.finditer(text):
+        a = _num(m.group("a"), lang)
+        if a != a or not (m.group("unit") or m.group("cur")):  # una cifra sin unidad ni moneda (un año, una talla) no es un dato
+            continue
+        sfx = _suffix(m.group("unit")) if m.group("unit") else ""
+        out.append({"value": a, "raw": m.group(0).strip(), "suffix": sfx, "prefix": m.group("cur") or "",
+                    "range": m.group("b") is not None, "pos": m.start(), "end": m.end()})
+    return out
+
+
+def _decimals(v: float) -> int:
+    return 0 if float(v).is_integer() else min(2, len(f"{v}".split(".")[1]))
+
+
+def _label_before(text: str, pos: int, since: int, lang: str, fallback: str, n: int = 3) -> str:
+    """Las palabras que se dicen entre la cifra anterior y esta, sin las de comparación: la etiqueta real de la barra
+    (el director la afina). Si no queda ninguna, la propia cifra tal como se dijo."""
+    seg = re.sub(COMPARE.get(lang, COMPARE["en"]), " ", text[since:pos], flags=re.I)
+    words = re.findall(r"[^\W\d_][\w'’-]*", seg)
+    return " ".join(words[-n:]) or fallback
+
+
+def figure_overlays(text: str, lang: str, at: float, end: float, total: float, canvas: tuple[int, int], side: str,
+                    words: list[dict], c_start: float, c_end: float, k: int) -> dict | None:
+    """Gráfica propuesta para las cifras de una frase: counter (una cifra), bar (dos o más con la misma unidad y una
+    comparación), kinetic (un rango o una lista de cifras dichas una tras otra: el contador enseñaría «36–26 V»)."""
+    figs = figures(text, lang)
+    if not figs:
+        return None
+    W, H = canvas
+    vertical = H > W
+    z = _zone(canvas, side)
+    start = round(max(0.0, at - 0.1), 3)
+    stop = round(min(total, max(start + 2.0, min(start + 4.0, max(c_end + 0.5, start + FIG_DURATION)))), 3)
+    frame = {"bg": "black"} if vertical else {"panel": {"x": z["kin"][0], "y": z["kin"][1], "w": 680}}
+    listed = LIST_RE.search(text)
+    same_unit = len({f["suffix"] for f in figs}) == 1
+    if listed or any(f["range"] for f in figs):
+        raw = listed.group(0) if listed else next(f["raw"] for f in figs if f["range"])
+        lines = _kinetic_lines(text, raw.split()[0], lang, words, c_start, c_end, z["chars"])
+        kind, ov = "kinetic", {"type": "kinetic", "id": f"fig{k}-kin", "start": start, "end": stop, "x": z["kin"][0], "y": z["kin"][1],
+                               "size": z["size"], "reveal": "rise", "lines": lines}
+    elif len(figs) >= 2 and same_unit and re.search(COMPARE.get(lang, COMPARE["en"]), text, re.I):
+        ends = [0] + [f["end"] for f in figs[:-1]]
+        series = [{"label": _label_before(text, f["pos"], ends[j], lang, f["raw"]), "value": f["value"]} for j, f in enumerate(figs[:5])]
+        kind, ov = "bar", {"type": "chart", "kind": "bar", "id": f"fig{k}-bar", "start": start, "end": stop, **frame,
+                           "unit": figs[0]["suffix"], "decimals": max(_decimals(f["value"]) for f in figs), "series": series}
+    else:
+        f = figs[0]
+        kind, ov = "counter", {"type": "chart", "kind": "counter", "id": f"fig{k}-counter", "start": start, "end": stop, **frame,
+                               "value": f["value"], "prefix": f["prefix"], "suffix": f["suffix"], "decimals": _decimals(f["value"]),
+                               "duration": 1.2}
+    return {"kind": kind, "figures": [f["raw"] for f in figs], "overlay": ov}
+
+
 def markers(captions_path: str | Path, lang: str = "en", words_path: str | Path | None = None,
             canvas: tuple[int, int] = (1920, 1080), side: str = "right", lead: float = RESULT_LEAD,
             settle: float = RESULT_SETTLE) -> dict:
@@ -533,8 +636,19 @@ def markers(captions_path: str | Path, lang: str = "en", words_path: str | Path 
         out.append({"id": f"res{k}", "kind": "result", "t": round(first["t"], 3), "end": round(c1["end"], 3),
                     "phrase": first["text"], "match": first["match"],
                     "phrases": [m["text"] for m in grp] if len(grp) > 1 else [first["text"]], "overlays": ovs})
+    nfig = 0
+    for c in caps:
+        figs = figures(c["text"], lang)
+        if not figs:
+            continue
+        ats = _word_times(words, [figs[0]["raw"].split()[0].lstrip("$€£")], c["start"], c["end"]) if words else [c["start"]]
+        prop = figure_overlays(c["text"], lang, ats[0], c["end"], total, canvas, side, words, c["start"], c["end"], nfig + 1)
+        if prop:
+            nfig += 1
+            out.append({"id": f"fig{nfig}", "kind": "figure", "chart": prop["kind"], "t": round(c["start"], 3), "end": round(c["end"], 3),
+                        "phrase": c["text"], "figures": prop["figures"], "overlays": [prop["overlay"]]})
     out.sort(key=lambda m: m["t"])
     return {"captions": str(captions_path), "lang": lang, "canvas": list(canvas), "side": side, "duration": total,
-            "results": len(results), "promises": sum(1 for m in out if m["kind"] == "promise"), "markers": out,
+            "results": len(results), "promises": sum(1 for m in out if m["kind"] == "promise"), "figures": nfig, "markers": out,
             "note": "posiciones orientativas: mueve cada overlay al lado libre de `frame28 speaker` (o a las free_bands del "
                     "reframe) y comprueba before_t/after_t con `frame28 frames` antes de pegarlos en el storyboard"}

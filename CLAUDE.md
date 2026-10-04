@@ -81,7 +81,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     broll.py                      Pexels/Pixabay (claves en env o ~/.config/frame28/keys.json), sidecar de licencia, recorte
     clips.py                      fábrica de shorts: tramos por momentos, ganchos con la frase real (o la frase más fuerte del tramo),
                                   cut, scaffold, batch (variantes de gancho en lote: storyboard + build + check + render por gancho),
-                                  markers (frases de resultado → before_after + draw check + kinetic; promesas → kinetic)
+                                  markers (frases de resultado → before_after + draw check + kinetic; promesas → kinetic;
+                                  cifras con unidad → chart counter, bar si se comparan, kinetic si son rango o lista)
     log.py                        registro de tiempo por orden (.frame28/log.jsonl, FRAME28_LOG) y `frame28 report` (+ `report note`)
     cover.py                      portada/miniatura: composición estática + hyperframes snapshot
     i18n.py                       extract/apply de textos traducidos; retime_words sobre el ritmo original

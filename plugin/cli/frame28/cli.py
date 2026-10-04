@@ -564,7 +564,8 @@ def clips_plan(captions, target, count, lang, min_len, max_len, keywords, words_
 @click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar markers.json")
 @click.option("--json", "as_json", is_flag=True)
 def clips_markers(captions, lang, words_path, canvas, side, lead, settle, out_json, as_json):
-    """Marcadores de resultado: en cada frase de resultado propone before_after (dos instantes del clip), draw check y kinetic; en cada promesa, kinetic."""
+    """Marcadores: en cada frase de resultado propone before_after (dos instantes del clip), draw check y kinetic; en cada promesa, kinetic;
+    en cada cifra con unidad, una gráfica (counter, bar si se comparan dos o más, kinetic si es un rango o una lista)."""
     from .clips import markers
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     r = markers(captions, lang, words_path, (w, h), side, lead, settle)
@@ -572,11 +573,13 @@ def clips_markers(captions, lang, words_path, canvas, side, lead, settle, out_js
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8")
     if as_json:
         out(r, True); return
-    click.echo(f"  {r['results']} momentos de resultado · {r['promises']} promesas · lienzo {w}x{h} · {r['duration']:.1f} s")
+    click.echo(f"  {r['results']} momentos de resultado · {r['promises']} promesas · {r['figures']} cifras · lienzo {w}x{h} · {r['duration']:.1f} s")
     for m in r["markers"]:
         kinds = " + ".join(o["type"] for o in m["overlays"])
         ba = next((o for o in m["overlays"] if o["type"] == "before_after"), None)
         extra = f"  (antes {ba['before_t']:.1f} s, después {ba['after_t']:.1f} s)" if ba else ""
+        if m["kind"] == "figure":
+            extra = f"  {m['chart']}: {', '.join(m['figures'])}"
         click.echo(f"  {m['id']:<6} {m['t']:6.1f}–{m['end']:6.1f}  {m['kind']:<8} «{m['phrase'][:60]}»")
         click.echo(f"         → {kinds}{extra}")
     click.echo("  " + r["note"])
