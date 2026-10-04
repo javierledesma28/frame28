@@ -3,7 +3,7 @@
 Pasos deterministas de Frame28. Las skills de Claude Code lo invocan; también sirve a mano.
 
 ```bash
-uv tool install --editable .        # desde este directorio
+uv tool install --editable . --python 3.12   # desde este directorio
 frame28 doctor                      # qué falta (ffmpeg, Node, modelos, red para GSAP) y si código e instalación coinciden
 frame28 prep clip.mp4 -o work       # copia 30 fps + voz limpia y normalizada (--denoise none|afftdn|rnnoise|deepfilter)
 frame28 audio measure work/voice.wav # LUFS, pico, suelo de ruido, señal/ruido
@@ -18,6 +18,6 @@ frame28 build storyboard.json -o project
 frame28 check project && frame28 render project -o out/video.mp4
 ```
 
-Requisitos: Python 3.11+, ffmpeg en PATH (o `FRAME28_FFMPEG`), Node.js 22+ (HyperFrames se descarga solo con `npx`).
+Requisitos: Python 3.12 (lo trae uv con --python 3.12), ffmpeg en PATH (o `FRAME28_FFMPEG`), Node.js 22+ (HyperFrames se descarga solo con `npx`).
 
 Pruebas (módulos puros, sin ffmpeg ni modelos, menos de un segundo): `uv run --group dev pytest` desde este directorio.

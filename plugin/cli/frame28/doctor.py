@@ -13,6 +13,16 @@ from pathlib import Path
 from . import GSAP_VERSION, HYPERFRAMES_VERSION, __version__
 from .env import CACHE_DIR, RVM_MODEL_PATH, find_tool
 
+NODE_MIN = 22   # HyperFrames 0.8 necesita Node 22
+
+
+def node_major(version: str) -> int:
+    """«v22.11.0» → 22; 0 si no se entiende."""
+    try:
+        return int(version.strip().lstrip("v").split(".")[0])
+    except (ValueError, IndexError):
+        return 0
+
 GSAP_CDN = f"https://cdn.jsdelivr.net/npm/gsap@{GSAP_VERSION}/dist/gsap.min.js"
 
 
@@ -160,7 +170,9 @@ def doctor() -> list[dict]:
     add("ffprobe", bool(fp), fp or "no encontrado", "viene con ffmpeg")
     node = shutil.which("node")
     ver = subprocess.run([node, "--version"], capture_output=True, text=True).stdout.strip() if node else ""
-    add("node", bool(node), ver or "no encontrado", "Node.js 22+ desde https://nodejs.org (HyperFrames lo necesita)")
+    major = node_major(ver)
+    add("node", bool(node) and major >= NODE_MIN, (ver + (f" (hace falta la {NODE_MIN} o superior)" if node and major < NODE_MIN else "")) if ver else "no encontrado",
+        f"Node.js {NODE_MIN}+ desde https://nodejs.org (HyperFrames lo necesita); o repite el instalador, que lo actualiza")
     has_npx = bool(shutil.which("npx") or shutil.which("npx.cmd"))
     add("npx", has_npx, "ok" if has_npx else "no encontrado", "viene con Node.js")
     add("hyperframes", True, f"{HYPERFRAMES_VERSION} pineado (npx lo descarga la primera vez que se use)")
