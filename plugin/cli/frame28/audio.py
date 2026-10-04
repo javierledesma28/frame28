@@ -63,7 +63,7 @@ def _denoise_filter(engine: str, strength: int) -> str | None:
         return f"afftdn=nr={strength}:nf=-45:tn=1"
     if engine == "rnnoise":
         from .env import download
-        download(RNNOISE_MODEL_URL, RNNOISE_MODEL_PATH, "modelo RNNoise", RNNOISE_MODEL_SHA256)
+        download(RNNOISE_MODEL_URL, RNNOISE_MODEL_PATH, "modelo RNNoise", RNNOISE_MODEL_SHA256, license="BSD-3-Clause (RNNoise)")
         # la ruta del modelo se pasa relativa: ffmpeg se ejecuta con cwd=CACHE_DIR (los dos puntos de "C:" rompen el filtergraph)
         return f"arnndn=m={RNNOISE_MODEL_PATH.name}:mix=0.9"
     raise SystemExit(f"motor de ruido desconocido: {engine} (none, afftdn, rnnoise, deepfilter)")

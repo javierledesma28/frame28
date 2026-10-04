@@ -232,6 +232,8 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 ## Licencias
 
 Frame28 es MIT, © 2026 Think28. HyperFrames es Apache-2.0; faster-whisper, MIT; RobustVideoMatting, GPL-3.0
-(se ejecuta como proceso separado y su modelo se descarga en tiempo de uso; no se redistribuye ni se enlaza).
+(su modelo se descarga de su repositorio la primera vez que se usa `frame28 matte` y `onnxruntime` lo carga dentro del
+CLI; Frame28 no lo incluye ni lo redistribuye). Todas las piezas de terceros y sus licencias, en
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 <p align="center"><sub>Hecho por <a href="https://t28.io">Think28</a> · Barcelona · Buenos Aires · Ciudad de México</sub></p>
