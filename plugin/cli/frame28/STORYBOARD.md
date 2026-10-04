@@ -19,7 +19,7 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
 
 - `duration` (raíz, opcional): duración total si es mayor que la del clip, p. ej. para una `brand_card` de cierre sobre negro.
 - `source.video`: clip a 30 fps **sin audio** (lo produce `frame28 prep`). `source.audio`: voz normalizada. Rutas relativas al storyboard.
-- `brand`: opcional. Un objeto con `accent`, `ink`, `paper`, `grey`, `sans`, `mono`, `caption_font_size`, **o un nombre de marca incluida** (`"brand": "think28"`), o la ruta a tu propio `brand.json`.
+- `brand`: opcional. Un objeto con `accent`, `ink`, `paper`, `grey`, `sans`, `mono`, `caption_font_size`, `on_accent` (color del texto sobre el acento en hook, cta, steps, tarjetas y etiquetas; si falta, se elige por contraste WCAG la tinta o el blanco, el que dé 4,5:1), **o un nombre de marca incluida** (`"brand": "think28"`), o la ruta a tu propio `brand.json`.
 - `canvas`: tamaño del lienzo. El clip se ajusta con *cover* (se recorta lo que sobre). Con lienzo estrecho (< 1400 px de
   ancho) el generador compacta gráficas, contadores y tarjetas (`.narrow`). `frame28 speaker` y `frame28 gestures` devuelven
   sus coordenadas en el lienzo que corresponde al formato del clip (o el que pases con `--canvas 1080x1920`).

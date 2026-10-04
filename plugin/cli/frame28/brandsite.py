@@ -390,13 +390,15 @@ def from_site(url: str, name: str, out_dir: str | Path = "brands", logo_url: str
     host = urllib.parse.urlparse(url).netloc.replace("www.", "")
     brand = {"name": name, "site": host, "tagline": tagline or "", "endorsement": host, "source": url, **TEMPLATE,
              "accent": prop["accent"], "ink": prop["ink"], "border": prop["ink"], "logo_files": logo_info.get("files", {})}
+    from .build import on_accent_color   # aquí: build no importa brandsite, pero así no se carga si no hace falta
+    brand["on_accent"] = on_accent_color(brand["accent"], brand["ink"])
     if prop["font"]:
         fam = prop["font"]
         brand["sans"] = f'{fam}, Inter, "Segoe UI", Arial, sans-serif'
         brand["font_link"] = f"https://fonts.googleapis.com/css2?family={urllib.parse.quote(fam)}:wght@400;600;800&display=swap"
     path = out / f"{name}.json"
     path.write_text(json.dumps(brand, indent=2, ensure_ascii=False), encoding="utf-8")
-    return {"brand": str(path), "accent": brand["accent"], "ink": brand["ink"], "font": prop["font"], "secondary": prop["secondary"],
+    return {"brand": str(path), "accent": brand["accent"], "ink": brand["ink"], "on_accent": brand["on_accent"], "font": prop["font"], "secondary": prop["secondary"],
             "confidence": prop["confidence"], "accent_sources": prop["accent_sources"], "warnings": warnings,
             "logo": logo_info, "logo_colors": logo_cols, "title": an["title"], "description": an["description"],
             "top_colors": an["colors"][:8], "css_vars": an["css_vars"], "fonts": an["fonts"], "stylesheets": len(css_parts),
