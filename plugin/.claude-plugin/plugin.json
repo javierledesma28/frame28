@@ -1,6 +1,6 @@
 {
   "name": "frame28",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Frame28 by Think28: tu Claude Code, convertido en el estudio de vídeo de tu marca. Requiere cuenta en frame28.app (gratis para empezar): el método del director se sirve desde tu cuenta por MCP; el motor (CLI frame28 sobre HyperFrames) es código abierto.",
   "author": {
     "name": "Think28",
