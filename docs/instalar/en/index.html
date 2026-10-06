@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Install Frame28</title>
+<meta name="description" content="Frame28 install assistant: it recognises your system, gives you the exact line and walks you through it.">
+<link rel="alternate" hreflang="es" href="https://frame28.t28.io/instalar/">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{--y:#F5C500;--ink:#0A0A0A;--paper:#fff;--mute:#555;--line:#222;--soft:#161616;--ok:#3ddc84}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--ink);color:#fff;font-family:Inter,'Segoe UI',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 20px 80px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:40px}
+  .logo{font-weight:800;font-size:22px;letter-spacing:-.03em}.logo b{color:var(--y)}
+  .tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
+  h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-.035em;line-height:1.05;margin-bottom:14px}
+  h1 span{color:var(--y)}
+  .lead{color:#bbb;font-size:18px;max-width:640px;margin-bottom:36px}
+  .os{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+  .os button{font:inherit;font-weight:600;background:var(--soft);color:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 18px;cursor:pointer}
+  .os button[aria-pressed="true"]{background:var(--y);color:var(--ink);border-color:var(--y)}
+  .card{background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
+  .card h2{font-size:15px;font-family:'Space Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--y);margin-bottom:12px}
+  .cmd{display:flex;gap:10px;align-items:center;background:#000;border:1px solid #333;border-radius:12px;padding:14px 16px;font-family:'Space Mono',monospace;font-size:15px;overflow:auto}
+  .cmd code{flex:1;white-space:nowrap}
+  .cmd button{font:inherit;font-weight:700;background:var(--y);color:var(--ink);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+  .cmd button.done{background:var(--ok)}
+  ol.steps{list-style:none;counter-reset:s}
+  ol.steps li{display:grid;grid-template-columns:36px 1fr;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+  ol.steps li:first-child{border-top:0}
+  ol.steps li::before{counter-increment:s;content:counter(s);width:32px;height:32px;border-radius:50%;background:var(--y);color:var(--ink);font-weight:800;display:flex;align-items:center;justify-content:center}
+  ol.steps b{display:block;font-weight:600}
+  ol.steps p{color:#bbb;font-size:15px}
+  label.chk{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+  label.chk input{margin-top:5px;accent-color:var(--y);width:18px;height:18px}
+  label.chk span{color:#ddd}
+  .muted{color:var(--mute);font-size:14px}
+  a{color:var(--y)}
+  .hidden{display:none}
+  .pill{display:inline-block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;padding:3px 10px;border:1px solid #333;border-radius:999px;color:#bbb;margin-left:6px}
+  .detected{background:#1d1a08;border:1px solid #4a3f00;border-radius:14px;padding:12px 16px;margin:-6px 0 20px;color:#eee;font-size:15px}
+  .detected b{color:var(--y)}
+  .detected.warn{background:#1f1010;border-color:#5a2a2a}
+  .os button:focus-visible,.cmd button:focus-visible,a:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+  footer{margin-top:50px;color:var(--mute);font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Think<b>28</b> <span class="tag" style="margin-left:10px">Frame28</span></div>
+    <span><a class="tag" href="../" lang="es" hreflang="es">Español</a> · <a class="tag" href="../../presentacion/">Full guide (ES) →</a></span>
+  </header>
+
+  <h1>Install Frame28 <span>without the pain.</span></h1>
+  <p class="lead">This page recognises your system (in your browser; nothing is sent anywhere), gives you the exact line and tells you what you will see.
+  The installer is interactive: it says which step it is on, why, and asks before each thing. It works on a brand-new computer.</p>
+
+  <div class="os" role="group" aria-label="System">
+    <button type="button" data-os="win" aria-pressed="false">Windows</button>
+    <button type="button" data-os="mac" aria-pressed="false">Mac</button>
+    <button type="button" data-os="linux" aria-pressed="false">Linux</button>
+    <button type="button" data-os="claude" aria-pressed="false">Let Claude do it for me</button>
+  </div>
+  <p id="detected" class="detected hidden" role="status" aria-live="polite"></p>
+
+  <!-- ===== WINDOWS ===== -->
+  <section id="os-win" class="hidden">
+    <div class="card">
+      <h2>1 · Copy this line</h2>
+      <div class="cmd"><code>irm https://frame28.t28.io/install.ps1 | iex</code><button type="button" data-copy>Copy</button></div>
+      <p class="muted" style="margin-top:10px">Works on Windows 10 and 11. If you would rather read the script before running it, <a href="../../install.ps1">open it here</a>.</p>
+    </div>
+    <div class="card">
+      <h2>2 · Paste it into a terminal</h2>
+      <ol class="steps">
+        <li><div><b>Press the Windows key, type “Terminal” and open it.</b><p>A dark window with a cursor appears. That is normal.</p></div></li>
+        <li><div><b>Paste the line (right-click or Ctrl+V) and press Enter.</b><p>The installer introduces itself, tells you what it will install and asks “Shall we start?”. Press Enter to go on.</p></div></li>
+        <li><div><b>Wait and answer.</b><p>Each step explains why it is there. If something fails, it offers to <em>retry</em>, <em>skip</em> or <em>quit</em>. Between 5 and 15 minutes. (The installer speaks Spanish for now.)</p></div></li>
+        <li><div><b>Close the terminal, open a new one and type <code>claude</code>.</b><p>Sign in with your Claude account. Only the first time.</p></div></li>
+        <li><div><b>Inside Claude Code, type <code>/mcp</code>, choose <b>frame28</b> and press <b>Authenticate</b>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). If the browser does not open, <code>/mcp</code> shows you the link.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== MAC ===== -->
+  <section id="os-mac" class="hidden">
+    <div class="card">
+      <h2>1 · Copy this line</h2>
+      <div class="cmd"><code>curl -fsSL https://frame28.t28.io/install.sh | bash</code><button type="button" data-copy>Copy</button></div>
+      <p class="muted" style="margin-top:10px">If your Mac has no Homebrew, the installer sets it up. To read the script first, <a href="../../install.sh">open it here</a>.</p>
+    </div>
+    <div class="card">
+      <h2>2 · Paste it into Terminal</h2>
+      <ol class="steps">
+        <li><div><b>Press ⌘ + space, type “Terminal” and open it.</b><p>A window with text and a cursor.</p></div></li>
+        <li><div><b>Paste the line (⌘V) and press Enter.</b><p>The installer introduces itself and asks “Shall we start?”.</p></div></li>
+        <li><div><b>If it asks for your Mac password, type it and press Enter.</b><p>It does not show while you type: that is normal. Homebrew, the Mac’s software installer, asks for it. It may download Apple tools for 5–15 minutes while nothing seems to happen.</p></div></li>
+        <li><div><b>Close Terminal, open a new one and type <code>claude</code>.</b><p>Sign in with your Claude account. Only the first time.</p></div></li>
+        <li><div><b>Inside Claude Code, type <code>/mcp</code>, choose <b>frame28</b> and press <b>Authenticate</b>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). If the browser does not open, <code>/mcp</code> shows you the link.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== LINUX ===== -->
+  <section id="os-linux" class="hidden">
+    <div class="card">
+      <h2>1 · Copy this line</h2>
+      <div class="cmd"><code>curl -fsSL https://frame28.t28.io/install.sh | bash</code><button type="button" data-copy>Copy</button></div>
+      <p class="muted" style="margin-top:10px">For Debian and Ubuntu (it uses apt). On another distribution, install ffmpeg, Node.js 22+, Git and uv with your package manager, then run the line. To read the script first, <a href="../../install.sh">open it here</a>.</p>
+    </div>
+    <div class="card">
+      <h2>2 · Paste it into a terminal</h2>
+      <ol class="steps">
+        <li><div><b>Open a terminal (Ctrl+Alt+T on Ubuntu).</b><p>A window with text and a cursor.</p></div></li>
+        <li><div><b>Paste the line (Ctrl+Shift+V) and press Enter.</b><p>The installer introduces itself and asks “Shall we start?”.</p></div></li>
+        <li><div><b>When it asks for your password, type it and press Enter.</b><p>sudo asks for it to install packages with apt. It does not show while you type: that is normal.</p></div></li>
+        <li><div><b>Close the terminal, open a new one and type <code>claude</code>.</b><p>Sign in with your Claude account. Only the first time.</p></div></li>
+        <li><div><b>Inside Claude Code, type <code>/mcp</code>, choose <b>frame28</b> and press <b>Authenticate</b>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). If the browser does not open, <code>/mcp</code> shows you the link.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== CLAUDE ===== -->
+  <section id="os-claude" class="hidden">
+    <div class="card">
+      <h2>Let Claude Code walk you through it</h2>
+      <p style="margin-bottom:12px">If you already have <a href="https://claude.com/claude-code">Claude Code</a> installed and signed in, you do not need a terminal: paste this into the chat. Claude reads the instructions, runs each step, explains what it does and <b>asks your permission before each action</b>. That permission is your “accept and continue”.</p>
+      <div class="cmd"><code>Install Frame28 on this computer following https://frame28.t28.io/instalar.md and explain each step to me in English.</code><button type="button" data-copy>Copy</button></div>
+      <p class="muted" style="margin-top:10px">Claude cannot bypass your system’s policies: if a step needs your password or a confirmation, it will ask you.</p>
+    </div>
+  </section>
+
+  <!-- ===== CHECKLIST ===== -->
+  <section id="after" class="hidden">
+    <div class="card">
+      <h2>3 · Check that everything is there</h2>
+      <label class="chk"><input type="checkbox" data-k="doctor"><span>At the end I saw <b>“Todo listo.”</b> (“All set.”), or crosses only on rows marked optional: GPU, RVM model or network.</span></label>
+      <label class="chk"><input type="checkbox" data-k="claude"><span>I opened a new terminal, typed <code>claude</code> and signed in.</span></label>
+      <label class="chk"><input type="checkbox" data-k="plugin"><span>In Claude Code, <code>/frame28:frame28-director</code> appears in the list (if not: <code>/plugin install frame28@think28</code>).</span></label>
+      <label class="chk"><input type="checkbox" data-k="cuenta"><span>In Claude Code, <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>, and I signed in with my email and the code (free account if I had none).</span></label>
+      <label class="chk"><input type="checkbox" data-k="clip"><span>I recorded a 30-second clip and told Claude “Here is my clip. Edit it for me.”</span></label>
+      <p class="muted" style="margin-top:12px">If something does not add up, the installer left a log in your home folder (<code>frame28-install.log</code>): paste it to Claude or send it to whoever gave you Frame28.</p>
+      <p class="muted" style="margin-top:8px">Already installed? Run the same line: it recognises what you have, looks for the new version and updates only what is needed. At the end it tells you what changed (or that everything was up to date).</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>A THINK28 PRODUCT · <a href="https://t28.io">T28.IO</a></span>
+    <span><a href="https://github.com/javierledesma28/frame28">GITHUB</a> · <a href="../../presentacion/">GUIDE (ES)</a></span>
+  </footer>
+</div>
+<script src="../detect.js"></script>
+<script>
+(function(){
+  var T = {
+    found: function(n){ return "We recognised <b>" + n + "</b>: its steps are below. Not your system? Pick yours above."; },
+    mobile: function(n){ return "You are on a phone or tablet (" + n + "). Frame28 installs on a <b>Windows, Mac or Linux computer</b>: open this page there. Meanwhile, here are the Windows steps."; },
+    unknown: "We could not recognise your system: pick yours above (Windows, Mac or Linux).",
+    win11: "Windows 11"
+  };
+  var uad = navigator.userAgentData;
+  var d = F28detectOS(navigator.userAgent, navigator.platform, uad && uad.platform, uad && uad.mobile);
+  var saved = null; try { saved = localStorage.getItem("f28-os"); } catch (e) {}
+  var box = document.getElementById("detected");
+  function tell(html, warn){ box.innerHTML = html; box.classList.remove("hidden"); box.classList.toggle("warn", !!warn); }
+  if (d.mobile) tell(T.mobile(d.name), true);
+  else if (d.os) tell(T.found(d.name));
+  else tell(T.unknown, true);
+  // Windows 10 y 11 dan el mismo user-agent; con userAgentData se distinguen (solo en el navegador, nada sale de él)
+  if (d.os === "win" && !d.mobile && uad && uad.getHighEntropyValues) {
+    uad.getHighEntropyValues(["platformVersion"]).then(function(v){
+      if (parseInt((v.platformVersion || "0").split(".")[0], 10) >= 13) tell(T.found(T.win11));
+    }).catch(function(){});
+  }
+  function show(os){
+    document.querySelectorAll(".os button").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.os === os ? "true" : "false"); });
+    ["win","mac","linux","claude"].forEach(function(k){ document.getElementById("os-"+k).classList.toggle("hidden", k !== os); });
+    document.getElementById("after").classList.remove("hidden");
+    try { localStorage.setItem("f28-os", os); } catch (e) {}
+  }
+  document.querySelectorAll(".os button").forEach(function(b){ b.addEventListener("click", function(){ show(b.dataset.os); }); });
+  show(d.os || saved || "win");   // default: the recognised system; otherwise, the last choice
+  document.querySelectorAll("[data-copy]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var code = btn.parentElement.querySelector("code").textContent;
+      var done = function(){ btn.textContent = "Copied ✓"; btn.classList.add("done"); setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("done"); }, 2000); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(code).then(done); }
+      else { var r = document.createRange(); r.selectNodeContents(btn.parentElement.querySelector("code")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); try { document.execCommand("copy"); done(); } catch (e) {} }
+    });
+  });
+  document.querySelectorAll("label.chk input").forEach(function(c){
+    try { c.checked = localStorage.getItem("f28-chk-"+c.dataset.k) === "1"; } catch (e) {}
+    c.addEventListener("change", function(){ try { localStorage.setItem("f28-chk-"+c.dataset.k, c.checked ? "1" : "0"); } catch (e) {} });
+  });
+})();
+</script>
+</body>
+</html>

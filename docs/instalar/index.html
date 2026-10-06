@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Instalar Frame28</title>
 <meta name="description" content="Asistente de instalación de Frame28: detecta tu sistema, te da la línea exacta y te acompaña paso a paso.">
+<link rel="alternate" hreflang="en" href="https://frame28.t28.io/instalar/en/">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap">
 <style>
   :root{--y:#F5C500;--ink:#0A0A0A;--paper:#fff;--mute:#555;--line:#222;--soft:#161616;--ok:#3ddc84}
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--ink);color:#fff;font-family:Inter,'Segoe UI',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
   .wrap{max-width:880px;margin:0 auto;padding:40px 20px 80px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:40px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:40px}
   .logo{font-weight:800;font-size:22px;letter-spacing:-.03em}.logo b{color:var(--y)}
   .tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
   h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-.035em;line-height:1.05;margin-bottom:14px}
@@ -39,6 +40,10 @@
   a{color:var(--y)}
   .hidden{display:none}
   .pill{display:inline-block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;padding:3px 10px;border:1px solid #333;border-radius:999px;color:#bbb;margin-left:6px}
+  .detected{background:#1d1a08;border:1px solid #4a3f00;border-radius:14px;padding:12px 16px;margin:-6px 0 20px;color:#eee;font-size:15px}
+  .detected b{color:var(--y)}
+  .detected.warn{background:#1f1010;border-color:#5a2a2a}
+  .os button:focus-visible,.cmd button:focus-visible,a:focus-visible{outline:3px solid var(--y);outline-offset:2px}
   footer{margin-top:50px;color:var(--mute);font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 </style>
 </head>
@@ -46,11 +51,11 @@
 <div class="wrap">
   <header>
     <div class="logo">Think<b>28</b> <span class="tag" style="margin-left:10px">Frame28</span></div>
-    <a class="tag" href="../presentacion/">Guía completa →</a>
+    <span><a class="tag" href="en/" lang="en" hreflang="en">English</a> · <a class="tag" href="../presentacion/">Guía completa →</a></span>
   </header>
 
   <h1>Instalar Frame28 <span>sin sufrir.</span></h1>
-  <p class="lead">Esta página detecta tu sistema, te da la línea exacta y te cuenta qué vas a ver. La instalación es
+  <p class="lead">Esta página reconoce tu sistema (en tu navegador; no se envía nada), te da la línea exacta y te cuenta qué vas a ver. La instalación es
   interactiva: te dice en qué paso está, por qué, y te pregunta antes de cada cosa. Vale para un equipo recién estrenado.</p>
 
   <div class="os" role="group" aria-label="Sistema">
@@ -59,6 +64,7 @@
     <button type="button" data-os="linux" aria-pressed="false">Linux</button>
     <button type="button" data-os="claude" aria-pressed="false">Que lo haga Claude por mí</button>
   </div>
+  <p id="detected" class="detected hidden" role="status" aria-live="polite"></p>
 
   <!-- ===== WINDOWS ===== -->
   <section id="os-win" class="hidden">
@@ -137,7 +143,7 @@
       <label class="chk"><input type="checkbox" data-k="cuenta"><span>En Claude Code, <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>, y entré con mi email y el código (cuenta gratis si no la tenía).</span></label>
       <label class="chk"><input type="checkbox" data-k="clip"><span>Grabé un clip de 30 segundos y le dije a Claude «Aquí está mi clip. Móntamelo.»</span></label>
       <p class="muted" style="margin-top:12px">Si algo no cuadra, el instalador dejó un registro en tu carpeta personal (<code>frame28-install.log</code>): pégaselo a Claude o envíaselo a quien te pasó Frame28.</p>
-      <p class="muted" style="margin-top:8px">¿Ya lo tenías instalado y quieres la versión nueva? En una terminal: <code>uv tool upgrade frame28</code>, y después <code>claude plugin marketplace update think28</code> y <code>claude plugin update frame28@think28</code>; reinicia Claude Code. Si no hay nada nuevo, las dos órdenes te lo dicen.</p>
+      <p class="muted" style="margin-top:8px">¿Ya lo tenías instalado? Ejecuta la misma línea: reconoce lo que tienes, busca la versión nueva y actualiza solo lo que haga falta. Al final te dice qué ha cambiado (o que todo estaba al día).</p>
     </div>
   </section>
 
@@ -146,11 +152,29 @@
     <span><a href="https://github.com/javierledesma28/frame28">GITHUB</a> · <a href="../presentacion/">GUÍA</a></span>
   </footer>
 </div>
+<script src="detect.js"></script>
 <script>
 (function(){
-  var ua = navigator.userAgent, plat = navigator.platform || "";
-  var guess = /Mac|iPhone|iPad/.test(plat) || /Macintosh/.test(ua) ? "mac" : /Win/.test(plat) ? "win" : /Linux|X11/.test(plat + " " + ua) && !/Android/.test(ua) ? "linux" : "win";
+  var T = {
+    found: function(n){ return "Hemos reconocido <b>" + n + "</b>: abajo tienes sus pasos. ¿No es tu sistema? Elige el tuyo arriba."; },
+    mobile: function(n){ return "Estás en un móvil o tableta (" + n + "). Frame28 se instala en un <b>ordenador con Windows, Mac o Linux</b>: abre esta página allí. Mientras, aquí tienes los pasos de Windows."; },
+    unknown: "No hemos podido reconocer tu sistema: elige el tuyo arriba (Windows, Mac o Linux).",
+    win11: "Windows 11"
+  };
+  var uad = navigator.userAgentData;
+  var d = F28detectOS(navigator.userAgent, navigator.platform, uad && uad.platform, uad && uad.mobile);
   var saved = null; try { saved = localStorage.getItem("f28-os"); } catch (e) {}
+  var box = document.getElementById("detected");
+  function tell(html, warn){ box.innerHTML = html; box.classList.remove("hidden"); box.classList.toggle("warn", !!warn); }
+  if (d.mobile) tell(T.mobile(d.name), true);
+  else if (d.os) tell(T.found(d.name));
+  else tell(T.unknown, true);
+  // Windows 10 y 11 dan el mismo user-agent; con userAgentData se distinguen (solo en el navegador, nada sale de él)
+  if (d.os === "win" && !d.mobile && uad && uad.getHighEntropyValues) {
+    uad.getHighEntropyValues(["platformVersion"]).then(function(v){
+      if (parseInt((v.platformVersion || "0").split(".")[0], 10) >= 13) tell(T.found(T.win11));
+    }).catch(function(){});
+  }
   function show(os){
     document.querySelectorAll(".os button").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.os === os ? "true" : "false"); });
     ["win","mac","linux","claude"].forEach(function(k){ document.getElementById("os-"+k).classList.toggle("hidden", k !== os); });
@@ -158,7 +182,7 @@
     try { localStorage.setItem("f28-os", os); } catch (e) {}
   }
   document.querySelectorAll(".os button").forEach(function(b){ b.addEventListener("click", function(){ show(b.dataset.os); }); });
-  show(saved || guess);
+  show(d.os || saved || "win");   // por defecto, el sistema reconocido; si no se reconoce, la última elección
   document.querySelectorAll("[data-copy]").forEach(function(btn){
     btn.addEventListener("click", function(){
       var code = btn.parentElement.querySelector("code").textContent;
