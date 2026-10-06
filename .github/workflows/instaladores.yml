@@ -1,6 +1,7 @@
 # Instaladores en máquinas limpias (F28-229): ejecuta docs/install.ps1 y docs/install.sh de esta rama, sin preguntas,
 # en Windows, macOS y Ubuntu de GitHub Actions, y termina con frame28 doctor. Las imágenes de Actions traen Node, Git y
-# Python; se quitan del PATH para que el instalador los tenga que poner como en un equipo recién estrenado.
+# Python: se apartan (se renombran sus carpetas y binarios tras el checkout) para que el instalador los tenga que poner
+# como en un equipo recién estrenado. Con solo limpiar el PATH no bastaba: el instalador recarga el PATH del sistema.
 name: instaladores
 
 on:
@@ -15,19 +16,18 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Simular un equipo nuevo (sin node, git, uv ni python en el PATH)
+      - name: Simular un equipo nuevo (apartar Node, Git y Python)
         shell: pwsh
         run: |
-          $keep = ($env:Path -split ";") | Where-Object { $_ -and -not ($_ -match "node|nodejs|Git\|git\cmd|uv|Python|hostedtoolcache") }
-          "PATH_LIMPIO=" + ($keep -join ";") | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Get-Command node, git, uv, python -ErrorAction SilentlyContinue | Format-Table -AutoSize
+          $dirs = @("C:\Program Files\nodejs", "C:\Program Files\Git", "C:\hostedtoolcache\windows\Python", "C:\hostedtoolcache\windows\node")
+          foreach ($d in $dirs) { if (Test-Path $d) { Rename-Item $d ((Split-Path $d -Leaf) + "_apartado"); "apartado: $d" } }
       - name: Instalador (sin preguntas)
         shell: powershell   # Windows PowerShell 5.1, como en el equipo de un cliente
         run: |
-          $env:Path = $env:PATH_LIMPIO
+          "Antes: node=" + [bool](Get-Command node -ErrorAction SilentlyContinue) + " git=" + [bool](Get-Command git -ErrorAction SilentlyContinue)
           $env:FRAME28_YES = "1"
-          Get-Content docs/install.ps1 -Raw | Invoke-Expression
-          "--- seguimos vivos tras el instalador (no cerró la sesión)"
+          Invoke-Expression (Get-Content docs/install.ps1 -Raw)
+          "--- seguimos vivos tras el instalador (no cerro la sesion)"
       - name: Registro y doctor
         if: always()
         shell: powershell
@@ -40,7 +40,7 @@ jobs:
         run: |
           $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User") + ";$env:USERPROFILE\.local\bin"
           $env:FRAME28_YES = "1"
-          Get-Content docs/install.ps1 -Raw | Invoke-Expression
+          Invoke-Expression (Get-Content docs/install.ps1 -Raw)
           Select-String -Path "$env:USERPROFILE\frame28-install.log" -Pattern "Ya tienes Frame28|Todo estaba al dia|actualizado"
 
   unix:
@@ -54,8 +54,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Instalador (sin preguntas)
         run: |
-          # sin node ni uv del sistema de Actions en el PATH (git sigue: lo necesita checkout y en macOS viene con las herramientas de Apple)
+          # apartar Node y uv de Actions (y git en Ubuntu; en macOS git viene con las herramientas de Apple que pide Homebrew)
+          for b in node npm npx uv; do p=$(command -v $b 2>/dev/null) && sudo mv "$p" "$p.apartado" && echo "apartado: $p"; done
+          if [ "$(uname)" = "Linux" ]; then p=$(command -v git) && sudo mv "$p" "$p.apartado" && echo "apartado: $p"; fi
           export PATH="$(echo "$PATH" | tr ':' '\n' | grep -viE 'node|hostedtoolcache|/uv' | paste -sd: -)"
+          echo "Antes: node=$(command -v node || echo no) git=$(command -v git || echo no)"
           bash docs/install.sh -y
       - name: Registro y doctor
         if: always()
