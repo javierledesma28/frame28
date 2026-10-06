@@ -126,9 +126,10 @@ foreach ($p in $pkgs) {
   if (Has $p.cmd) { Skip $p.name; continue }
   Say ("   Instalando " + $p.name + " (puede tardar unos minutos)...")
   $id = $p.id
-  if (With-Retry ("No se pudo instalar " + $p.name + " con winget.") { Winget-Install $id }) {
-    if (Has $p.cmd) { Ok $p.name } else { Warn ($p.name + " se instalo pero esta terminal aun no lo ve. Si algo falla mas adelante, abre una terminal nueva y repite la linea.") }
-  }
+  # winget puede creer que ya esta (restos de una instalacion borrada a mano) y negarse: entonces se reinstala con --force (F28-229)
+  $done = With-Retry ("No se pudo instalar " + $p.name + " con winget.") { Winget-Install $id; if (-not (Has $p.cmd)) { winget install --id $id -e --force --accept-source-agreements --accept-package-agreements --silent --disable-interactivity; Refresh-Path } }
+  if (Has $p.cmd) { Ok $p.name }
+  elseif ($done) { Warn ($p.name + " se instalo pero esta terminal aun no lo ve. Si algo falla mas adelante, abre una terminal nueva y repite la linea.") }
 }
 
 # ---------- 2) runtime de Visual C++ ----------
