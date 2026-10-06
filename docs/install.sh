@@ -173,9 +173,16 @@ else
   fi
   if ! has ffmpeg || ! has git || ! has node; then say "   Actualizando la lista de paquetes (pedirá tu contraseña para sudo)…"; with_retry "No se pudo actualizar la lista de paquetes." sudo apt-get update; fi
   if has node && [ "$(node_major)" -lt 22 ] 2>/dev/null; then say "   Tienes Node.js $(node --version); hace falta la 22 o superior. Lo actualizo…"; with_retry "No se pudo actualizar Node.js." bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs" && ok "node $(node --version 2>/dev/null)"; fi
-  if ! has ffmpeg; then say "   Instalando ffmpeg (pedirá tu contraseña para sudo)…"; with_retry "No se pudo instalar ffmpeg." sudo apt-get install -y ffmpeg && ok "ffmpeg"; else skip "ffmpeg"; fi
+  apt_ensure() {  # apt_ensure orden paquete: instala, comprueba que la orden existe y, si apt dice que ya estaba pero falta, reinstala
+    if has "$1"; then skip "$2"; return 0; fi
+    say "   Instalando $2…"
+    with_retry "No se pudo instalar $2." sudo apt-get install -y "$2"
+    has "$1" || run sudo apt-get install -y --reinstall "$2"
+    if has "$1"; then ok "$2"; else fail "$2 no quedó instalado: prueba «sudo apt-get install --reinstall $2» y vuelve a ejecutar la línea."; fi
+  }
+  apt_ensure ffmpeg ffmpeg
   if ! has node; then say "   Instalando Node.js 22…"; with_retry "No se pudo instalar Node.js." bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs" && ok "node"; else skip "node"; fi
-  if ! has git; then say "   Instalando Git…"; with_retry "No se pudo instalar Git." sudo apt-get install -y git && ok "git"; else skip "git"; fi
+  apt_ensure git git
   if ! has uv; then say "   Instalando uv…"; with_retry "No se pudo instalar uv." bash -c "curl -LsSf https://astral.sh/uv/install.sh | sh" && ok "uv"; else skip "uv"; fi
 fi
 export PATH="$HOME/.local/bin:$PATH"

@@ -19,6 +19,8 @@ jobs:
       - name: Simular un equipo nuevo (apartar Node, Git y Python)
         shell: pwsh
         run: |
+          # Git se desinstala de verdad (si solo se aparta, winget cree que sigue instalado y no lo pone)
+          if (Test-Path "C:\Program Files\Git\unins000.exe") { Start-Process "C:\Program Files\Git\unins000.exe" -ArgumentList "/VERYSILENT","/NORESTART" -Wait; "desinstalado: Git" }
           $dirs = @("C:\Program Files\nodejs", "C:\Program Files\Git", "C:\hostedtoolcache\windows\Python", "C:\hostedtoolcache\windows\node")
           foreach ($d in $dirs) { if (Test-Path $d) { Rename-Item $d ((Split-Path $d -Leaf) + "_apartado"); "apartado: $d" } }
       - name: Instalador (sin preguntas)
@@ -56,7 +58,7 @@ jobs:
         run: |
           # apartar Node y uv de Actions (y git en Ubuntu; en macOS git viene con las herramientas de Apple que pide Homebrew)
           for b in node npm npx uv; do p=$(command -v $b 2>/dev/null) && sudo mv "$p" "$p.apartado" && echo "apartado: $p"; done
-          if [ "$(uname)" = "Linux" ]; then p=$(command -v git) && sudo mv "$p" "$p.apartado" && echo "apartado: $p"; fi
+          if [ "$(uname)" = "Linux" ]; then sudo apt-get remove -y git >/dev/null && echo "desinstalado: git"; fi
           export PATH="$(echo "$PATH" | tr ':' '\n' | grep -viE 'node|hostedtoolcache|/uv' | paste -sd: -)"
           echo "Antes: node=$(command -v node || echo no) git=$(command -v git || echo no)"
           bash docs/install.sh -y
