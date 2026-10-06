@@ -139,6 +139,52 @@ Fuentes: [jasper mcp](https://www.jasper.ai/mcp) · [typeface](https://www.typef
 [hubspot](https://knowledge.hubspot.com/branding/generate-your-brand-identity-context-with-ai) ·
 [omneky](https://www.omneky.com/llm) · [brandsystem-mcp](https://github.com/Brandcode-Studio/brandsystem-mcp)
 
+### 1.4 Actualización del 2026-10-06 (mapa R1 de Research)
+
+Segunda pasada, tres días después: 88 repositorios por la API de GitHub, 60 productos de pago en su página de precios,
+17 servicios de edición humana y 15 ofertas de empleo de marcas DTC. El detalle, con URL y hora de cada cifra, está en el
+informe interno R1 (`frame28-backlog/informes/research/2026-10-06-mapa-competencia.md`). Lo que cambia respecto a lo de
+arriba:
+
+**Capa A, gratis y abierto.** Dos grandes que no estaban en el mapa, los dos **AGPL-3.0** (no se pueden integrar en
+un motor MIT; sí mirar y, en todo caso, llamar como servicio externo):
+
+| Repo | ★ (06-10) | Qué hace | Qué le falta |
+|---|---|---|---|
+| [OpenMontage](https://github.com/calesthio/OpenMontage) | 64.649 | Sistema agéntico de producción: 12 pipelines (uno «Talking Head» de metraje real, otro «Localization & Dub», otro «Podcast → clips»), 60+ proveedores, 700+ ficheros de skills; compone con Remotion o HyperFrames | Marca persistente, campañas, variantes de gancho, idiomas con los mismos tiempos; 357 issues abiertas |
+| [VoiceStudio](https://github.com/debpalash/VoiceStudio) | 54.199 | «ElevenLabs en local»: clon y diseño de voz, doblaje de vídeo con voz temporizada, MCP | No monta vídeo |
+| [hyperframes-student-kit](https://github.com/nateherkai/hyperframes-student-kit) | 1.201 | 15 skills: cortes por transcripción, plan narrativo, short-form 9:16 con subtítulos y B-roll | Marca, cuenta, idiomas; transcripción con ElevenLabs |
+| [Orkas VideoStudio](https://github.com/Orkas-AI/Orkas-VideoStudio) | 497 | `plan.json` editable y re-renderizable (el mismo contrato que nuestro storyboard): cortes, silencios, subtítulos, doblaje, highlights; CLI y MCP | Marca y método; un autor |
+| [hotclip](https://github.com/xixihhhh/hotclip) | 296 | Largos → shorts 9:16 con highlights por IA, todo en local, MCP (AGPL) | Mercado chino |
+
+**HyperFrames** publicó 25 versiones entre el 3 y el 6 de octubre, casi todas de **Studio** (su editor gráfico) y de la
+app de escritorio «para editar por chat»; `media-use` suma voces de HeyGen. Sin skill nueva de cortes ni reencuadre:
+HeyGen va hoy a por el usuario sin terminal, no a por el montaje. El plugin de OpusClip y video-use, sin commits desde
+el 30-09 y el 02-10.
+
+**Capa B, SaaS.** Entrada de los recortadores 15–29 USD/mes y 12–14,5 pagando el año; 12 de 25 cobran por créditos
+ligados a los minutos subidos (solo OpusClip documenta devolverlos si falla); **9 de 24 ya tienen MCP, plugin o skills
+para agentes** (eran 5 el 03-10): la ventana de «el primero en Claude Code» se cerró. Trustpilot separa dos mundos: los
+recortadores especializados aguantan (Vizard 4,7; Submagic 4,5; Captions 4,4; OpusClip 4,0) y los editores con IA no
+(CapCut 1,2; Runway 1,1; Adobe 1,1; InVideo 1,8; Kapwing 1,9; Descript 2,6). Declaran entrenar con el contenido del
+cliente HeyGen (planes de pago), Runway, Riverside, Pippit, VEED Free, Captions, Wisecut, Munch y Descript (salvo
+opt-out); a confirmar en sus términos antes de usarlo como argumento. **Doblaje**: integrarlo por API cuesta 0,33–2,20
+USD por minuto (ElevenLabs, Rask, Vozo, HeyGen) o nada en local con VoiceStudio. **Render por API**: el mercado paga
+5–20 céntimos por minuto renderizado (Shotstack, Creatomate, json2video), el ancla para la fase Cloud. InVideo da a su
+MCP exportación a Premiere, Final Cut y Resolve: la forma literal de «el editor da el acabado».
+
+**Capa D, personas (la comparación real).** Edición humana por suscripción 899–2.499 USD/mes, es decir, 21–60 USD por
+short (80–94 por pieza); freelance 75–300 por vídeo (a confirmar: Upwork y Fiverr no se dejaron leer); agencia DTC
+1.500–20.000 al mes solo en creatividad; equipo interno de tres, 26.000–41.000. Una marca con 5–15 k de inversión
+mensual en anuncios necesita 12–20 creatividades nuevas al mes y la fatiga creativa llega a las 3–4 semanas. En 13
+ofertas de empleo de marcas DTC, **Premiere aparece en las 13 y CapCut en 9**; la IA, como extra (Submagic u OpusClip,
+ElevenLabs, HeyGen o Rask). Consecuencia para los precios de §4: Brand (199) es una quinta parte de lo habitual; Studio
+(990 / 2.490) cuesta lo mismo que una suscripción de edición humana y tiene que ganar por marca, idiomas y ganchos.
+
+**Capa C.** Sin novedad de fondo: Pomelli publica directo en Instagram y anima con Veo; Canva declara 3,7 M de usuarios
+de su MCP; Munch y Eddie añaden «contexto de marca por workspace» (texto libre). La Memoria específica de vídeo sigue sin
+competidor directo.
+
 ---
 
 ## 2. Qué es nuestro y qué no
@@ -323,6 +369,7 @@ Su vocabulario: *creative volume, hook rate, thumb-stop, creative testing, ad fa
 | Riesgo | Señal que vigilar | Respuesta |
 |---|---|---|
 | **HeyGen amplía HyperFrames** con cortes y reencuadre: cubriría gran parte de nuestra mecánica gratis | Releases de `heygen-com/hyperframes` (skills `talking-head-*`) | Vender criterio y paquete, no mecánica; mantener las regresiones fijadas y el storyboard como capa propia; poder cambiar de compositor |
+| **HeyGen llega al usuario sin terminal** (Studio, app de escritorio, «editar por chat»; 25 releases en tres días, 06-10-2026) | Releases de HyperFrames que toquen Studio y escritorio; adopción | Puerta sin terminal de Frame28 (app de escritorio, Cowork) antes del POC; vender la cuenta y la Memoria, no el editor |
 | **OpusClip con plugin y cuenta** (nuestro modelo, su marca) | Novedades de `opus-pro/ai-producer-plugin`, MCP con marca persistente | Memoria específica de vídeo, local, sin créditos; agencias |
 | **Google Pomelli monta vídeo a cámara** gratis | Blog de Google Labs (Pomelli + Veo) | P1 y P2 (más allá de la pyme pequeña), calidad de montaje de metraje real, idiomas |
 | **Skills gratuitas abaratan «editar con Claude»** | video-use y toolkits | Comunicar el resultado, no la herramienta |
@@ -338,4 +385,4 @@ Su vocabulario: *creative volume, hook rate, thumb-stop, creative testing, ad fa
 3. Preparar la «muestra con su propio vídeo» como pieza de captación de P1: un tutorial público de una marca DIY → 6
    shorts + 2 idiomas. Es el flujo que ya hicimos con el Cliente A, anonimizado.
 4. Programa de partners para agencias (P2): condiciones y revenue share, en `research/08`.
-5. Repetir esta vigilancia de competencia cada trimestre (fecha de la próxima: 2027-01).
+5. Vigilancia de competencia quincenal a cargo de «[F28] Research» (`informes/research/vigilancia.md`); próxima: 2026-10-20. La revisión a fondo del mapa, trimestral (2027-01).
