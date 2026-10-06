@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from frame28 import clips
 from frame28.build import validate
@@ -306,3 +307,19 @@ def test_markers_propose_figures_that_validate(tmp_path):
     sb = {"version": 1, "canvas": {"width": 1080, "height": 1920, "fps": 30}, "source": {"video": "clip.mp4", "duration": 12.0},
           "duration": 12.0, "overlays": [o for m in figs for o in m["overlays"]]}
     assert validate(sb) == []
+
+
+def test_markers_find_results_without_a_keyword(tmp_path):
+    # F28-111: «it cuts paper» y «that razor sharpness» daban 0 resultados en una muestra de afilado
+    caps = _caps(tmp_path, [(0.0, 4.0, "Today we sharpen a kitchen knife."), (4.0, 9.0, "Hold the angle at fifteen degrees."),
+                            (9.0, 13.0, "Look, it cuts paper."), (13.0, 17.0, "That's how you get that razor sharpness."),
+                            (17.0, 21.0, "Thanks for watching.")])
+    r = clips.markers(caps, lang="en")
+    assert r["results"] == 1                                   # las dos frases seguidas son una misma racha
+    res = next(m for m in r["markers"] if m["kind"] == "result")
+    assert res["phrase"] == "Look, it cuts paper." and len(res["phrases"]) == 2
+    for t in ("And now it lights up.", "The lid now fits perfectly.", "Mira cómo corta ahora.", "Queda perfectamente recto."):
+        lang = "es" if "ó" in t or "Queda" in t else "en"
+        assert any(re.search(p, t, re.I) for p in clips.MOMENTS["result"][lang]), t
+    for t in ("This cuts down the time you spend.", "Hold the angle steady."):   # instrucciones, no resultados
+        assert not any(re.search(p, t, re.I) for p in clips.MOMENTS["result"]["en"]), t

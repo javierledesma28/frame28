@@ -18,8 +18,15 @@ from .captions import END_PUNCT, _text, group_sentences, load_captions, load_wor
 
 MOMENTS = {
     "result": {
-        "es": [r"\bqued[aó]\b", r"\bmira\b", r"\blisto\b", r"\bya está\b", r"\basí de fácil\b", r"\bperfecto\b", r"\bprecioso\b", r"\bterminad[oa]\b"],
-        "en": [r"\bthat'?s it\b", r"\bturned out\b", r"\blook at (that|this)\b", r"\bbeautiful\b", r"\bperfect\b(?! for\b)", r"(?<!when you're )(?<!once you're )\bdone\b", r"\bfinished\b", r"\bhere (it|they) (is|are)\b", r"\bta-?da\b"],
+        "es": [r"\bqued[aó]\b", r"\bmira\b", r"\blisto\b", r"\bya está\b", r"\basí de fácil\b", r"\bperfecto\b", r"\bprecioso\b", r"\bterminad[oa]\b",
+               # resultados que se demuestran sin palabra clave (F28-111): la prueba física y la cualidad lograda
+               r"\b(ya|ahora|mira cómo) (corta|encaja|funciona|brilla|aguanta|sujeta|se enciende)\b", r"\bse enciende\b",
+               r"\bafilad[oa] como (una )?(navaja|cuchilla)\b", r"\bperfectamente (rect[oa]|lis[oa]|cuadrad[oa]|plan[oa]|nivelad[oa])\b"],
+        "en": [r"\bthat'?s it\b", r"\bturned out\b", r"\blook at (that|this)\b", r"\bbeautiful\b", r"\bperfect\b(?! for\b)", r"(?<!when you're )(?<!once you're )\bdone\b", r"\bfinished\b", r"\bhere (it|they) (is|are)\b", r"\bta-?da\b",
+               # resultados que se demuestran sin palabra clave (F28-111): «it cuts paper», «that razor sharpness», «lights up»
+               r"\b(it|this|that|now it) (now )?(cuts|slices|holds|fits|works|seals|glows|shaves)\b(?! (down|back|out|off) )",
+               r"\blights? up\b", r"\brazor[- ]sharp(ness)?\b", r"\b(fits|works|holds) (perfectly|great|like a charm)\b",
+               r"\bperfectly (square|straight|smooth|flat|level|aligned|clean)\b", r"\b(super|so|nice and) (smooth|sharp|shiny|clean)\b(?! (the|your|it)\b)"],
     },
     "promise": {
         "es": [r"\bcualquiera\b", r"\bfácil\b", r"\bsencill[oa]\b", r"\bsin experiencia\b", r"\ben \d+ minutos\b", r"\bprincipiante"],
