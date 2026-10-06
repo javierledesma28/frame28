@@ -27,7 +27,9 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
   bajo la interfaz del móvil (columna derecha de iconos, franja inferior, franja superior) y de subtítulos demasiado bajos.
 - `captions`: subtítulos por frase (de `captions.json`). Se dibujan en caja negra centrada abajo (preset `phrase`).
 - `caption_style` (opcional): subtítulos **por palabras** en vez de por frase. `{"preset": "pages" | "karaoke", "words":
-  "words.json", "max_words": 4, "max_chars": 22, "size": 72, "bottom": 200, "uppercase": true}`. `pages` = grupos de 2–4
+  "words.json", "max_words": 4, "max_chars": 22, "size": 72, "bottom": 200, "uppercase": true, "backdrop": "auto"}`.
+  `backdrop`: `auto` (por defecto: mira el vídeo y, si la franja de los subtítulos es clara, los pone sobre caja), `box`
+  (caja semitransparente), `stroke` (contorno negro) o `none` (solo sombra). `pages` = grupos de 2–4
   palabras que van apareciendo al decirse (estilo TikTok/Shorts); `karaoke` = la página entera visible y la palabra actual
   en color de acento. `frame28 captions pages work/words.json` muestra el paginado antes de renderizar. Con `caption_style`
   el bloque `captions` se ignora.

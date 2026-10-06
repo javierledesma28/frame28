@@ -158,6 +158,9 @@ CSS = """
       .pages .pw { display: inline-block; margin: 0 0.16em; }
       .pages.mode-pages .pw { opacity: 0; }
       .pages.mode-karaoke .pw { opacity: 1; color: rgba(255,255,255,.92); }
+      /* fondo para los subtítulos por palabras (F28-166): caja semitransparente o contorno, para que se lean sobre fondo claro */
+      .pages.bd-box .pg { width: max-content; max-width: calc(100% - 100px); background: rgba(0,0,0,.62); border-radius: 16px; padding: 0.1em 0.42em 0.16em; }
+      .pages.bd-stroke .pw { -webkit-text-stroke: 0.07em #000; paint-order: stroke fill; }
       /* lienzos estrechos (vertical, cuadrado): tipografías y columnas más compactas */
       .narrow .chart { padding: 60px 48px; }
       .narrow .chart .ch-title { font-size: 46px; }
@@ -758,6 +761,39 @@ class Builder:
         self.fade_out(f"#{i}", o["end"])
 
     # ---------- subtítulos ----------
+    def _bright_caption_band(self, bottom: int, height: int, samples: int = 8) -> bool:
+        """¿La franja donde van los subtítulos es clara en el vídeo de origen? Mira `samples` fotogramas repartidos y la
+        da por clara si en al menos un tercio la luminancia media pasa de 0,62 (un gráfico sobre blanco, una mesa, el
+        fondo desenfocado de un vertical con blur). Sin vídeo, o si no se puede leer, False: no cambia nada."""
+        src = (self.sb.get("source") or {}).get("video")
+        if not src or not self.sb_dir:
+            return False
+        path = Path(self.sb_dir) / src
+        if not path.exists():
+            return False
+        try:
+            import cv2
+            cap = cv2.VideoCapture(str(path))
+            n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 0
+            if n <= 0:
+                cap.release(); return False
+            bright = seen = 0
+            for k in range(samples):
+                cap.set(cv2.CAP_PROP_POS_FRAMES, int((k + 0.5) * n / samples))
+                ok, frame = cap.read()
+                if not ok:
+                    continue
+                h = frame.shape[0]
+                y1 = h - int(bottom * h / self.H); y0 = max(0, y1 - int(height * h / self.H))
+                band = cv2.cvtColor(frame[y0:y1], cv2.COLOR_BGR2GRAY)
+                if band.size:
+                    seen += 1
+                    bright += band.mean() / 255 > 0.62
+            cap.release()
+            return seen > 0 and bright * 3 >= seen
+        except Exception:  # noqa: BLE001
+            return False
+
     def captions(self, sb: dict) -> None:
         """Por frase (`captions`, preset `phrase`) o por palabras (`caption_style.preset` = `pages` | `karaoke`, a
         partir de `caption_style.words`, un words.json relativo al storyboard)."""
@@ -775,6 +811,14 @@ class Builder:
                              max_chars=int(style.get("max_chars", 22 if self.narrow else 30)))
             size = int(style.get("size", 72 if self.narrow else 64))
             upper = " upper" if style.get("uppercase", True) else ""
+            backdrop = style.get("backdrop", "auto")
+            if backdrop == "auto":
+                bright = self._bright_caption_band(bottom, round(size * 2.4))
+                backdrop = "box" if bright else "none"
+                if bright:
+                    self.warnings.append("subtítulos: la franja de abajo es clara en el vídeo; se ponen sobre caja (caption_style.backdrop "
+                                         "box/stroke/none para elegir otra cosa)")
+            upper += f" bd-{backdrop}" if backdrop in ("box", "stroke") else ""
             html_pages = []
             for k, p in enumerate(pgs):
                 ws = "".join(f'<span class="pw" id="pg{k}w{j}">{esc(w["text"])}</span>' for j, w in enumerate(p["words"]))

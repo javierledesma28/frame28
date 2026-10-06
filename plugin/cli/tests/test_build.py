@@ -271,3 +271,37 @@ def test_bar_chart_in_portrait_is_legible(tmp_path):
     panel.pop("bg")
     build.build_project(write_json(tmp_path / "p.json", _sb(canvas={"width": 1080, "height": 1920, "fps": 30}, overlays=[panel])), tmp_path / "pp", copy_assets=False)
     assert "chart portrait" not in (tmp_path / "pp" / "index.html").read_text(encoding="utf-8")
+
+
+def _video(path, bottom_value, w=108, h=192, n=10):
+    import cv2
+    import numpy as np
+    vw = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 10, (w, h))
+    for _ in range(n):
+        f = np.full((h, w, 3), 40, np.uint8)
+        f[h * 2 // 3:] = bottom_value                          # el tercio de abajo, donde van los subtítulos
+        vw.write(f)
+    vw.release()
+    return path
+
+
+def test_word_captions_get_a_backdrop_when_the_bottom_band_is_light(tmp_path):
+    # F28-166: subtítulos blancos sobre la franja casi blanca de un vertical con blur no se leían
+    from conftest import words_from
+    write_json(tmp_path / "words.json", words_from("hola mundo cruel adios", start=0.5))
+    def build_with(video_bottom, backdrop=None, name="p"):
+        _video(tmp_path / "clip.mp4", video_bottom)
+        cs = {"preset": "pages", "words": "words.json"}
+        if backdrop:
+            cs["backdrop"] = backdrop
+        sb = _sb(canvas={"width": 1080, "height": 1920, "fps": 30}, caption_style=cs)
+        r = build.build_project(write_json(tmp_path / f"{name}.json", sb), tmp_path / name, copy_assets=False)
+        return (tmp_path / name / "index.html").read_text(encoding="utf-8"), r["warnings"]
+    html, warns = build_with(245, name="claro")
+    assert 'class="clip pages mode-pages upper bd-box"' in html and any("franja de abajo es clara" in w for w in warns)
+    html, _ = build_with(30, name="oscuro")
+    assert "bd-box" not in html.split("<body")[1]
+    html, _ = build_with(245, "stroke", name="contorno")
+    assert "bd-stroke" in html.split("<body")[1] and "bd-box" not in html.split("<body")[1]
+    html, _ = build_with(245, "none", name="nada")
+    assert "bd-" not in html.split("<body")[1]
