@@ -34,6 +34,14 @@ function Warn($t) { Say ("   !   " + $t) "Yellow" }
 function Fail($t) { Say ("   X   " + $t) "Red" }
 function Has($n)  { $null -ne (Get-Command $n -ErrorAction SilentlyContinue) }
 function Quit { throw "FRAME28_SALIR" }   # termina el instalador sin cerrar la terminal
+function Motor-Version { if (Has frame28) { try { return ((frame28 --version 2>$null) -split " ")[-1] } catch { return "" } } return "" }
+function Plugin-Version {  # version del plugin instalado en Claude Code, "" si no esta
+  $f = Join-Path $env:USERPROFILE ".claude\plugins\installed_plugins.json"
+  if (-not (Test-Path $f)) { return "" }
+  try { $j = Get-Content $f -Raw | ConvertFrom-Json; $ps = $j.plugins; if (-not $ps) { $ps = $j }
+        $e = $ps."frame28@think28"; if ($e) { return (@($e)[0]).version } } catch {}
+  return ""
+}
 function Node-Major { if (Has node) { $v = (node --version 2>$null) -replace '^v', ''; try { return [int]($v -split '\.')[0] } catch { return 0 } } return 0 }
 function Refresh-Path {
   $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")
@@ -61,6 +69,10 @@ function With-Retry($what, [scriptblock]$action) {  # ejecuta hasta que funcione
 function Winget-Install($id) { winget install --id $id -e --accept-source-agreements --accept-package-agreements --silent --disable-interactivity; Refresh-Path }
 
 # ---------- bienvenida ----------
+# Si Frame28 ya esta, el instalador es el actualizador: comprueba novedades y cambia solo lo necesario (F28-102)
+Refresh-Path
+$PrevMotor = Motor-Version; $PrevPlugin = Plugin-Version
+$Update = ($PrevMotor -ne "" -or $PrevPlugin -ne "")
 $os = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue)
 Say ""
 Say "  +------------------------------------------------------+" "Yellow"
@@ -70,13 +82,20 @@ Say "  |   A Think28 product - t28.io                         |" "Yellow"
 Say "  +------------------------------------------------------+" "Yellow"
 Say ""
 if ($os) { Say ("  Sistema: " + $os.Caption + " (build " + $os.BuildNumber + ") - PowerShell " + $PSVersionTable.PSVersion) }
-Say "  Voy a instalar, solo lo que falte:"
-Say "    . ffmpeg (trabaja con el video)  . Node.js (motor de render)  . uv (instala Frame28)"
-Say "    . runtime de Visual C++ (lo necesita el motor de audio)  . Claude Code  . el motor de Frame28  . el plugin"
-Say "  Tiempo estimado: 5 minutos si ya tienes casi todo, 10-15 en un equipo recien instalado."
+if ($Update) {
+  $have = @(); if ($PrevMotor) { $have += ("motor " + $PrevMotor) }; if ($PrevPlugin) { $have += ("plugin " + $PrevPlugin) }
+  Say ("  Ya tienes Frame28 en este ordenador (" + ($have -join ", ") + ").") "Green"
+  Say "  Voy a comprobar si hay una version nueva y a actualizar solo lo que haga falta. No toco tus videos ni tu cuenta."
+  Say "  Tiempo estimado: 1-2 minutos."
+} else {
+  Say "  Voy a instalar, solo lo que falte:"
+  Say "    . ffmpeg (trabaja con el video)  . Node.js (motor de render)  . uv (instala Frame28)  . Git"
+  Say "    . runtime de Visual C++ (lo necesita el motor de audio)  . Claude Code  . el motor de Frame28  . el plugin"
+  Say "  Tiempo estimado: 10-15 minutos en un equipo recien instalado."
+}
 Say ("  Registro completo: " + $Log)
 Say ""
-Pause-Enter "Empezamos?"
+if ($Update) { Pause-Enter "Compruebo?" } else { Pause-Enter "Empezamos?" }
 
 # ---------- comprobaciones previas ----------
 try { [void](Invoke-WebRequest -Uri "https://github.com" -UseBasicParsing -TimeoutSec 15) } catch { Fail "No hay conexion a internet (no llego a github.com). Conectate y vuelve a ejecutar la linea."; Quit }
@@ -135,8 +154,9 @@ else {
 # ---------- 4) motor de Frame28 ----------
 Step "Motor de Frame28" "El programa 'frame28' que transcribe, corta, recorta y renderiza. Se descarga de GitHub con uv (trae su propio Python)."
 if (Has uv) {
-  Say "   Descargando e instalando (1-3 minutos la primera vez)..."
-  if (With-Retry "No se pudo instalar el motor de Frame28." { uv tool install --python 3.12 --force "git+$Repo#subdirectory=plugin/cli" }) {
+  if ($PrevMotor) { Say ("   Tienes el motor " + $PrevMotor + ". Busco la version publicada y, si es nueva, la instalo...") }
+  else { Say "   Descargando e instalando (1-3 minutos la primera vez)..." }
+  if (With-Retry "No se pudo instalar el motor de Frame28." { if ($PrevMotor) { uv tool upgrade frame28; if ($LASTEXITCODE -ne 0) { uv tool install --python 3.12 --force "git+$Repo#subdirectory=plugin/cli" } } else { uv tool install --python 3.12 --force "git+$Repo#subdirectory=plugin/cli" } }) {
     uv tool update-shell 2>&1 | Out-Null
     Refresh-Path
     if (Has frame28) { Ok ("frame28 " + ((frame28 --version) -split " ")[-1]) } else { Warn "frame28 quedo en %USERPROFILE%\.local\bin; abre una terminal nueva para usarlo." }
@@ -169,6 +189,25 @@ if (Has frame28) { frame28 doctor 2>&1 | Tee-Object -FilePath $Log -Append } els
 # ---------- 7) siguiente ----------
 Step "Listo" "Que hacer ahora."
 Say ""
+if ($Update) {
+  $NewMotor = Motor-Version; $NewPlugin = Plugin-Version
+  $changes = @()
+  if ($PrevMotor -and $NewMotor -and $NewMotor -ne $PrevMotor) { $changes += ("motor " + $PrevMotor + " -> " + $NewMotor) }
+  if ($PrevPlugin -and $NewPlugin -and $NewPlugin -ne $PrevPlugin) { $changes += ("plugin " + $PrevPlugin + " -> " + $NewPlugin) }
+  if (-not $PrevPlugin -and $NewPlugin) { $changes += ("plugin " + $NewPlugin + " (nuevo)") }
+  if ($changes.Count -gt 0) {
+    Say ("   Frame28 actualizado: " + ($changes -join ", ") + ".") "Green"
+    Say "   Cierra y vuelve a abrir Claude Code para usar la version nueva."
+  } else {
+    Say ("   Todo estaba al dia (motor " + $NewMotor + ", plugin " + $NewPlugin + "). No he cambiado nada.") "Green"
+  }
+  Say "   Para trabajar: abre Claude Code en la carpeta de tu video y pidelo con tus palabras."
+  Say ""
+  Say ("   Guia completa con imagenes: " + $Guide) "Yellow"
+  Say ("   Si algo fallo, envia el fichero " + $Log + " a quien te paso Frame28 o pegaselo a Claude.")
+  Say ""
+  Quit
+}
 Say "   Instalacion terminada. Cuatro cosas para empezar:" "Green"
 Say "   1. Cierra esta terminal y abre una nueva (asi reconoce los programas nuevos)."
 if (Has claude) { Say "   2. Escribe  claude  en la terminal e inicia sesion con tu cuenta de Claude (solo la primera vez)." } else { Say "   2. Instala Claude Code desde https://claude.com/claude-code e inicia sesion." }

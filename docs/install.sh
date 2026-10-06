@@ -33,6 +33,11 @@ skip()  { say "   ${D}– $1 (ya estaba)${N}"; }
 warn()  { say "   ${Y}! $1${N}"; }
 fail()  { say "   ${R}✗ $1${N}"; }
 has()   { command -v "$1" >/dev/null 2>&1; }
+motor_version() { has frame28 && frame28 --version 2>/dev/null | awk '{print $NF}' || true; }
+plugin_version() {  # versión del plugin instalado en Claude Code, vacío si no está
+  f="$HOME/.claude/plugins/installed_plugins.json"; [ -f "$f" ] || return 0
+  sed -n '/"frame28@think28"/,/]/p' "$f" | sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' | head -1
+}
 node_major() { has node && node --version 2>/dev/null | sed 's/^v//; s/\..*//' || echo 0; }
 run()   { "$@" >> "$LOG" 2>&1; }
 
@@ -66,6 +71,10 @@ with_retry() {  # with_retry "mensaje de fallo" comando args...  (reintenta hast
 
 # ---------- bienvenida ----------
 : > "$LOG"
+# Si Frame28 ya está, el instalador es el actualizador: comprueba novedades y cambia solo lo necesario (F28-102)
+export PATH="$HOME/.local/bin:$PATH"
+PREV_MOTOR=$(motor_version); PREV_PLUGIN=$(plugin_version)
+UPDATE=0; { [ -n "$PREV_MOTOR" ] || [ -n "$PREV_PLUGIN" ]; } && UPDATE=1
 OS=$(uname -s); ARCH=$(uname -m)
 say ""
 say "${Y}  ┌──────────────────────────────────────────────────────┐${N}"
@@ -82,14 +91,21 @@ else
   say "  Sistema: $(uname -sr) ($ARCH)"
   TOTAL=6
 fi
-say "  Voy a instalar, solo lo que falte:"
-if [ "$OS" = "Darwin" ]; then say "    1. Homebrew (el instalador de programas del Mac)"; fi
-say "    · ffmpeg (trabaja con el video)  · Node.js (motor de render)  · uv (instala Frame28)"
-say "    · Claude Code (la app que dirige el montaje)  · el motor de Frame28  · el plugin"
-say "  Tiempo estimado: 5 minutos si ya tienes casi todo, 15–20 en un equipo recién instalado."
+if [ "$UPDATE" = "1" ]; then
+  HAVE=""; [ -n "$PREV_MOTOR" ] && HAVE="motor $PREV_MOTOR"; [ -n "$PREV_PLUGIN" ] && HAVE="${HAVE:+$HAVE, }plugin $PREV_PLUGIN"
+  say "  ${G}Ya tienes Frame28 en este ordenador ($HAVE).${N}"
+  say "  Voy a comprobar si hay una versión nueva y a actualizar solo lo que haga falta. No toco tus vídeos ni tu cuenta."
+  say "  Tiempo estimado: 1–2 minutos."
+else
+  say "  Voy a instalar, solo lo que falte:"
+  if [ "$OS" = "Darwin" ]; then say "    1. Homebrew (el instalador de programas del Mac)"; fi
+  say "    · ffmpeg (trabaja con el video)  · Node.js (motor de render)  · uv (instala Frame28)  · Git"
+  say "    · Claude Code (la app que dirige el montaje)  · el motor de Frame28  · el plugin"
+  say "  Tiempo estimado: 15–20 minutos en un equipo recién instalado."
+fi
 say "  Registro completo: $LOG"
 say ""
-if [ "$YES" != "1" ]; then pause "¿Empezamos?"; fi
+if [ "$YES" != "1" ]; then if [ "$UPDATE" = "1" ]; then pause "¿Compruebo?"; else pause "¿Empezamos?"; fi; fi
 
 # ---------- comprobaciones previas ----------
 if ! curl -fsS --max-time 15 https://github.com >/dev/null 2>&1; then
@@ -186,8 +202,11 @@ fi
 # ---------- 4) motor de Frame28 ----------
 STEP=$((STEP+1)); step $STEP "Motor de Frame28" "El programa 'frame28' que transcribe, corta, recorta y renderiza. Se descarga de GitHub con uv (trae su propio Python)."
 if has uv; then
-  say "   Descargando e instalando (1–3 minutos la primera vez)…"
-  if with_retry "No se pudo instalar el motor de Frame28." uv tool install --python 3.12 --force "git+$REPO#subdirectory=plugin/cli"; then
+  if [ -n "$PREV_MOTOR" ]; then say "   Tienes el motor $PREV_MOTOR. Busco la versión publicada y, si es nueva, la instalo…"
+  else say "   Descargando e instalando (1–3 minutos la primera vez)…"; fi
+  if [ -n "$PREV_MOTOR" ]; then MOTOR_CMD="uv tool upgrade frame28 || uv tool install --python 3.12 --force 'git+$REPO#subdirectory=plugin/cli'"
+  else MOTOR_CMD="uv tool install --python 3.12 --force 'git+$REPO#subdirectory=plugin/cli'"; fi
+  if with_retry "No se pudo instalar el motor de Frame28." bash -c "$MOTOR_CMD"; then
     run uv tool update-shell || true
     export PATH="$HOME/.local/bin:$PATH"
     has frame28 && ok "frame28 $(frame28 --version 2>/dev/null | awk '{print $NF}')" || warn "frame28 quedó instalado en ~/.local/bin; abre una Terminal nueva para usarlo."
@@ -224,6 +243,24 @@ if has frame28; then frame28 doctor 2>&1 | tee -a "$LOG"; else warn "frame28 no 
 # ---------- 7) siguiente ----------
 STEP=$((STEP+1)); step $STEP "Listo" "Qué hacer ahora."
 say ""
+if [ "$UPDATE" = "1" ]; then
+  NEW_MOTOR=$(motor_version); NEW_PLUGIN=$(plugin_version); CHANGES=""
+  [ -n "$PREV_MOTOR" ] && [ -n "$NEW_MOTOR" ] && [ "$NEW_MOTOR" != "$PREV_MOTOR" ] && CHANGES="motor $PREV_MOTOR → $NEW_MOTOR"
+  [ -n "$PREV_PLUGIN" ] && [ -n "$NEW_PLUGIN" ] && [ "$NEW_PLUGIN" != "$PREV_PLUGIN" ] && CHANGES="${CHANGES:+$CHANGES, }plugin $PREV_PLUGIN → $NEW_PLUGIN"
+  [ -z "$PREV_PLUGIN" ] && [ -n "$NEW_PLUGIN" ] && CHANGES="${CHANGES:+$CHANGES, }plugin $NEW_PLUGIN (nuevo)"
+  if [ -n "$CHANGES" ]; then
+    say "   ${G}Frame28 actualizado:${N} $CHANGES."
+    say "   Cierra y vuelve a abrir Claude Code para usar la versión nueva."
+  else
+    say "   ${G}Todo estaba al día${N} (motor $NEW_MOTOR, plugin $NEW_PLUGIN). No he cambiado nada."
+  fi
+  say "   Para trabajar: abre Claude Code en la carpeta de tu vídeo y pídelo con tus palabras."
+  say ""
+  say "   Guía completa con imágenes: ${B}$GUIDE${N}"
+  say "   Si algo falló, envía el fichero ${B}$LOG${N} a quien te pasó Frame28 o pégaselo a Claude."
+  say ""
+  exit 0
+fi
 say "   ${G}Instalación terminada.${N} Cuatro cosas para empezar:"
 say "   1. Cierra esta Terminal y abre una nueva (así reconoce los programas nuevos)."
 if has claude; then say "   2. Escribe ${B}claude${N} en la Terminal e inicia sesión con tu cuenta de Claude (solo la primera vez)."; else say "   2. Instala Claude Code desde https://claude.com/claude-code e inicia sesión."; fi
