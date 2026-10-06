@@ -119,6 +119,30 @@ def plugin_installed(path: Path | None = None) -> tuple[bool, str | None]:
     return True, (max(versions, key=_vtuple) if versions else None)
 
 
+def marketplace_clash(config_dir: Path | None = None) -> str | None:
+    """Si `extraKnownMarketplaces` de settings.json declara un marketplace con una fuente distinta de la instalada
+    (típico: un `path` añadido a mano junto al `repo`), Claude Code lo ignora y el plugin sale «failed to load» aunque
+    /mcp diga Connected (F28-240). Devuelve el aviso con el arreglo, o None si todo cuadra o no hay nada que mirar."""
+    base = config_dir or Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude")
+
+    def load(p: Path) -> dict:
+        try:
+            d = json.loads(p.read_text(encoding="utf-8-sig"))
+            return d if isinstance(d, dict) else {}
+        except Exception:  # noqa: BLE001
+            return {}
+    declared = load(base / "settings.json").get("extraKnownMarketplaces")
+    installed = load(base / "plugins" / "known_marketplaces.json")
+    for name, entry in (declared.items() if isinstance(declared, dict) else []):
+        want = entry.get("source") if isinstance(entry, dict) else None
+        have = (installed.get(name) or {}).get("source") if isinstance(installed.get(name), dict) else None
+        if isinstance(want, dict) and isinstance(have, dict) and want != have:
+            return (f"settings.json declara el marketplace «{name}» con una fuente distinta de la instalada ({want} frente a {have}): "
+                    "Claude Code lo ignora y el plugin no carga. Deja en `extraKnownMarketplaces." + name + ".source` solo "
+                    f"{have} (quita los campos de más, p. ej. `path`) o borra la entrada, y reabre Claude Code")
+    return None
+
+
 def version_rows(cli: str, latest: str | None, plugin: tuple[bool, str | None]) -> list[dict]:
     """Las dos filas de versiones: el CLI y el plugin de Claude Code contra la última release, cada una con su orden (un
     usuario con una instalación vieja no sabía que había versión nueva ni cómo actualizar; `claude plugin update` solo
@@ -210,6 +234,8 @@ def doctor() -> list[dict]:
     except Exception as e:  # noqa: BLE001
         add("claves de B-roll", False, str(e)[:80], "revisa ~/.config/frame28/keys.json", optional=True)
     rows.extend(version_rows(__version__, latest_release(), plugin_installed()))
+    clash = marketplace_clash()
+    add("marketplace del plugin", clash is None, "ok" if clash is None else clash, "" if clash is None else clash, optional=True)
     net = cdn_reachable()
     add("red (GSAP por CDN)", net, f"gsap@{GSAP_VERSION} en cdn.jsdelivr.net" + ("" if net else ": sin acceso"),
         "el render y la portada cargan GSAP por internet: conecta la red antes de `frame28 render` o `frame28 cover`", optional=True)

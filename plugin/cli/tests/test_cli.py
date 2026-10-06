@@ -243,6 +243,21 @@ def test_doctor_plugin_installed(tmp_path):
     assert plugin_installed(f) == (True, None)
 
 
+def test_doctor_marketplace_clash(tmp_path):
+    from frame28.doctor import marketplace_clash
+    repo = {"source": "github", "repo": "javierledesma28/frame28"}
+    assert marketplace_clash(tmp_path) is None                                                             # sin ficheros
+    (tmp_path / "plugins").mkdir()
+    (tmp_path / "plugins" / "known_marketplaces.json").write_text(json.dumps({"think28": {"source": repo}}), encoding="utf-8")
+    (tmp_path / "settings.json").write_text(json.dumps({"extraKnownMarketplaces": {"think28": {"source": repo}}}), encoding="utf-8")
+    assert marketplace_clash(tmp_path) is None                                                             # coinciden
+    bad = dict(repo, path="C:/x")                                                                          # el caso real: «path» de más
+    (tmp_path / "settings.json").write_text(json.dumps({"extraKnownMarketplaces": {"think28": {"source": bad}}}), encoding="utf-8")
+    assert "think28" in marketplace_clash(tmp_path) and "path" in marketplace_clash(tmp_path)
+    (tmp_path / "settings.json").write_text("no es json", encoding="utf-8")
+    assert marketplace_clash(tmp_path) is None
+
+
 def test_doctor_version_rows():
     from frame28.doctor import CLI_UPGRADE, PLUGIN_INSTALL, PLUGIN_UPGRADE, version_rows
     cli, plug = version_rows("0.5.0", "v0.6.0", (True, "0.4.0"))
