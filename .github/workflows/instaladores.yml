@@ -58,7 +58,7 @@ jobs:
         run: |
           # apartar Node y uv de Actions (y git en Ubuntu; en macOS git viene con las herramientas de Apple que pide Homebrew)
           for b in node npm npx uv; do p=$(command -v $b 2>/dev/null) && sudo mv "$p" "$p.apartado" && echo "apartado: $p"; done
-          if [ "$(uname)" = "Linux" ]; then sudo apt-get remove -y git >/dev/null && echo "desinstalado: git"; fi
+          if [ "$(uname)" = "Linux" ]; then sudo apt-get purge -y git git-man >/dev/null && echo "desinstalado: git y git-man"; fi
           export PATH="$(echo "$PATH" | tr ':' '\n' | grep -viE 'node|hostedtoolcache|/uv' | paste -sd: -)"
           echo "Antes: node=$(command -v node || echo no) git=$(command -v git || echo no)"
           bash docs/install.sh -y
