@@ -1,0 +1,70 @@
+# Instaladores en máquinas limpias (F28-229): ejecuta docs/install.ps1 y docs/install.sh de esta rama, sin preguntas,
+# en Windows, macOS y Ubuntu de GitHub Actions, y termina con frame28 doctor. Las imágenes de Actions traen Node, Git y
+# Python; se quitan del PATH para que el instalador los tenga que poner como en un equipo recién estrenado.
+name: instaladores
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["instal*"]
+    paths: ["docs/install.ps1", "docs/install.sh", ".github/workflows/instaladores.yml"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Simular un equipo nuevo (sin node, git, uv ni python en el PATH)
+        shell: pwsh
+        run: |
+          $keep = ($env:Path -split ";") | Where-Object { $_ -and -not ($_ -match "node|nodejs|Git\|git\cmd|uv|Python|hostedtoolcache") }
+          "PATH_LIMPIO=" + ($keep -join ";") | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Get-Command node, git, uv, python -ErrorAction SilentlyContinue | Format-Table -AutoSize
+      - name: Instalador (sin preguntas)
+        shell: powershell   # Windows PowerShell 5.1, como en el equipo de un cliente
+        run: |
+          $env:Path = $env:PATH_LIMPIO
+          $env:FRAME28_YES = "1"
+          Get-Content docs/install.ps1 -Raw | Invoke-Expression
+          "--- seguimos vivos tras el instalador (no cerró la sesión)"
+      - name: Registro y doctor
+        if: always()
+        shell: powershell
+        run: |
+          Get-Content "$env:USERPROFILE\frame28-install.log" -Tail 80
+          $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User") + ";$env:USERPROFILE\.local\bin"
+          frame28 doctor
+      - name: Segunda vez = actualizar (F28-102)
+        shell: powershell
+        run: |
+          $env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User") + ";$env:USERPROFILE\.local\bin"
+          $env:FRAME28_YES = "1"
+          Get-Content docs/install.ps1 -Raw | Invoke-Expression
+          Select-String -Path "$env:USERPROFILE\frame28-install.log" -Pattern "Ya tienes Frame28|Todo estaba al dia|actualizado"
+
+  unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalador (sin preguntas)
+        run: |
+          # sin node ni uv del sistema de Actions en el PATH (git sigue: lo necesita checkout y en macOS viene con las herramientas de Apple)
+          export PATH="$(echo "$PATH" | tr ':' '\n' | grep -viE 'node|hostedtoolcache|/uv' | paste -sd: -)"
+          bash docs/install.sh -y
+      - name: Registro y doctor
+        if: always()
+        run: |
+          tail -80 "$HOME/frame28-install.log"
+          export PATH="$HOME/.local/bin:$PATH"; [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+          frame28 doctor
+      - name: Segunda vez = actualizar (F28-102)
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"; [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+          bash docs/install.sh -y
+          grep -E "Ya tienes Frame28|Todo estaba al día|actualizado" "$HOME/frame28-install.log"
