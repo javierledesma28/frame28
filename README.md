@@ -193,7 +193,7 @@ demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que de
 
 ## Estado y roadmap
 
-v0.5.1 (sobre la v0.5.0) conecta el plugin con tu cuenta de Frame28: identidad, plan y método servidos desde frame28.app. El motor funciona
+v0.5.1 conecta el plugin con tu cuenta de Frame28: identidad, plan y método servidos desde frame28.app. El motor funciona
 de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
 recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
 gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts con variantes de gancho en lote, portada y versión
