@@ -80,7 +80,7 @@
         <li><div><b>Paste the line (right-click or Ctrl+V) and press Enter.</b><p>The installer introduces itself, tells you what it will install and asks “Shall we start?”. Press Enter to go on.</p></div></li>
         <li><div><b>Wait and answer.</b><p>Each step explains why it is there. If something fails, it offers to <em>retry</em>, <em>skip</em> or <em>quit</em>. Between 5 and 15 minutes. (The installer speaks Spanish for now.)</p></div></li>
         <li><div><b>Close the terminal, open a new one and type <code>claude</code>.</b><p>Sign in with your Claude account. Only the first time.</p></div></li>
-        <li><div><b>Inside Claude Code, type <code>/mcp</code>, choose <b>frame28</b> and press <b>Authenticate</b>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). If the browser does not open, <code>/mcp</code> shows you the link.</p></div></li>
+        <li><div><b>Sign in with your Frame28 account: in the terminal, type <code>claude mcp login plugin:frame28:frame28</code>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). Then open a new Claude Code session, in the terminal or in the desktop app: Frame28 shows up in sessions started after you sign in. If the terminal does not know <code>login</code>, type <code>claude update</code> first, or sign in with <code>claude</code> → <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>.</p></div></li>
       </ol>
     </div>
   </section>
@@ -99,7 +99,7 @@
         <li><div><b>Paste the line (⌘V) and press Enter.</b><p>The installer introduces itself and asks “Shall we start?”.</p></div></li>
         <li><div><b>If it asks for your Mac password, type it and press Enter.</b><p>It does not show while you type: that is normal. Homebrew, the Mac’s software installer, asks for it. It may download Apple tools for 5–15 minutes while nothing seems to happen.</p></div></li>
         <li><div><b>Close Terminal, open a new one and type <code>claude</code>.</b><p>Sign in with your Claude account. Only the first time.</p></div></li>
-        <li><div><b>Inside Claude Code, type <code>/mcp</code>, choose <b>frame28</b> and press <b>Authenticate</b>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). If the browser does not open, <code>/mcp</code> shows you the link.</p></div></li>
+        <li><div><b>Sign in with your Frame28 account: in the terminal, type <code>claude mcp login plugin:frame28:frame28</code>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). Then open a new Claude Code session, in the terminal or in the desktop app: Frame28 shows up in sessions started after you sign in. If the terminal does not know <code>login</code>, type <code>claude update</code> first, or sign in with <code>claude</code> → <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>.</p></div></li>
       </ol>
     </div>
   </section>
@@ -118,7 +118,7 @@
         <li><div><b>Paste the line (Ctrl+Shift+V) and press Enter.</b><p>The installer introduces itself and asks “Shall we start?”.</p></div></li>
         <li><div><b>When it asks for your password, type it and press Enter.</b><p>sudo asks for it to install packages with apt. It does not show while you type: that is normal.</p></div></li>
         <li><div><b>Close the terminal, open a new one and type <code>claude</code>.</b><p>Sign in with your Claude account. Only the first time.</p></div></li>
-        <li><div><b>Inside Claude Code, type <code>/mcp</code>, choose <b>frame28</b> and press <b>Authenticate</b>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). If the browser does not open, <code>/mcp</code> shows you the link.</p></div></li>
+        <li><div><b>Sign in with your Frame28 account: in the terminal, type <code>claude mcp login plugin:frame28:frame28</code>.</b><p>Your browser opens: your email and the code you receive, no password. If you do not have a Frame28 account yet, it is created right there, for free (it edits in demo mode with the Frame28 brand). Then open a new Claude Code session, in the terminal or in the desktop app: Frame28 shows up in sessions started after you sign in. If the terminal does not know <code>login</code>, type <code>claude update</code> first, or sign in with <code>claude</code> → <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>.</p></div></li>
       </ol>
     </div>
   </section>
@@ -140,7 +140,7 @@
       <label class="chk"><input type="checkbox" data-k="doctor"><span>At the end I saw <b>“Todo listo.”</b> (“All set.”), or crosses only on rows marked optional: GPU, RVM model or network.</span></label>
       <label class="chk"><input type="checkbox" data-k="claude"><span>I opened a new terminal, typed <code>claude</code> and signed in.</span></label>
       <label class="chk"><input type="checkbox" data-k="plugin"><span>In Claude Code, <code>/frame28:frame28-director</code> appears in the list (if not: <code>/plugin install frame28@think28</code>).</span></label>
-      <label class="chk"><input type="checkbox" data-k="cuenta"><span>In Claude Code, <code>/mcp</code> → <b>frame28</b> → <b>Authenticate</b>, and I signed in with my email and the code (free account if I had none).</span></label>
+      <label class="chk"><input type="checkbox" data-k="cuenta"><span>I typed <code>claude mcp login plugin:frame28:frame28</code>, signed in with my email and the code (free account if I had none) and opened a new session.</span></label>
       <label class="chk"><input type="checkbox" data-k="clip"><span>I recorded a 30-second clip and told Claude “Here is my clip. Edit it for me.”</span></label>
       <p class="muted" style="margin-top:12px">If something does not add up, the installer left a log in your home folder (<code>frame28-install.log</code>): paste it to Claude or send it to whoever gave you Frame28.</p>
       <p class="muted" style="margin-top:8px">Already installed? Run the same line: it recognises what you have, looks for the new version and updates only what is needed. At the end it tells you what changed (or that everything was up to date).</p>

@@ -120,9 +120,10 @@ uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#sub
 frame28 doctor
 ```
 
-**Desde la v0.5 el plugin entra con tu cuenta de Frame28** (gratis para empezar). La primera vez, en Claude Code:
-`/mcp` → el servidor `frame28` del plugin → *Authenticate*; se abre el navegador y te das de alta con tu email y un código
-de un solo uso. El método del director (qué poner en pantalla, ganchos, marca) se sirve desde tu cuenta y según tu plan:
+**Desde la v0.5 el plugin entra con tu cuenta de Frame28** (gratis para empezar). La primera vez, en una terminal:
+`claude mcp login plugin:frame28:frame28` (si no conoce `login`, antes `claude update`; o dentro de Claude Code, `/mcp` → el servidor
+`frame28` del plugin → *Authenticate*). Se abre el navegador y te das de alta con tu email y un código de un solo uso;
+después abre una sesión nueva, en la terminal o en la app de escritorio. El método del director (qué poner en pantalla, ganchos, marca) se sirve desde tu cuenta y según tu plan:
 la cuenta gratuita monta en modo demo (marca Think28 y tarjeta final «Hecho con Frame28»); la Memoria de tu marca y lo demás
 llegan con los planes de [frame28.app](https://frame28.app/#precios). El motor (el CLI `frame28`) sigue siendo código abierto
 y no necesita cuenta.

@@ -17,9 +17,17 @@ Frame28 y llegan por el servidor MCP `frame28` de este plugin (`https://frame28.
    - crear o corregir su marca, su Memoria → `memoria`;
    - montar un vídeo entero → `director`; shorts → `shorts`; otro idioma → `i18n`; solo transcribir → `transcribe`;
      planos de apoyo → `broll`.
-3. Si `frame28_start` no aparece o pide autenticación, para y explícale que tiene que entrar con su cuenta de Frame28:
-   - en Claude Code en la terminal: escribe `/mcp`, elige el servidor `frame28` de este plugin y pulsa *Authenticate*;
-   - en la app de escritorio de Claude: en la configuración del plugin Frame28, en sus conectores, pulsa *Authenticate*
-     (si no lo encuentra, que abra una terminal, escriba `claude` y haga el paso anterior).
-   Se abre el navegador: su email y un código de un solo uso; si no tiene cuenta, se crea gratis en ese paso.
+3. Si `frame28_start` no aparece o pide autenticación, el usuario tiene que entrar con su cuenta de Frame28 (una vez; si
+   no tiene cuenta, se crea gratis en ese paso con su email y un código de un solo uso; sin cuenta, Frame28 no monta):
+   - ofrécele abrirle tú la página de entrada y, si acepta, ejecuta con hasta 5 minutos de espera
+     `"$CLAUDE_CODE_EXECPATH" mcp login plugin:frame28:frame28` (en PowerShell, `& $env:CLAUDE_CODE_EXECPATH mcp login
+     plugin:frame28:frame28`; si la variable no existe, `claude mcp login plugin:frame28:frame28`). Se abre su navegador y él escribe su
+     email y el código;
+   - o que lo haga él en una terminal: `claude mcp login plugin:frame28:frame28` (si no conoce `login`, antes `claude update`;
+     o `claude` → `/mcp` → `frame28` → *Authenticate*). Sin escritorio (SSH), con `--no-browser`, y pega la dirección de
+     vuelta que le pide;
+   - después, **que abra una sesión nueva** (en la app de escritorio o en la terminal) y repita su petición: las
+     herramientas de Frame28 solo aparecen en las sesiones que empiezan después de entrar.
+   No lances `mcp login` para comprobar si ya entró: borra la sesión guardada en cuanto empieza. `claude mcp list` lo dice
+   sin tocar nada («Connected» o «Needs authentication»).
 4. Sigue el método que devuelve `frame28_start`; las reglas de su plan mandan sobre el método.

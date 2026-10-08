@@ -153,6 +153,41 @@ def marketplace_clash(config_dir: Path | None = None) -> str | None:
     return None
 
 
+FRAME28_MCP = "plugin:frame28:frame28"
+FRAME28_LOGIN = (f"claude mcp login {FRAME28_MCP} (se abre el navegador: tu email y el código) y abre una sesión nueva de Claude "
+                 "Code, en la terminal o en la app de escritorio; si no conoce `login`, antes `claude update` (o dentro de "
+                 "`claude`: /mcp → frame28 → Authenticate)")
+
+
+def frame28_signed_in(config_dir: Path | None = None) -> bool | None:
+    """¿Hay sesión guardada del servidor MCP del plugin? Mira solo si su entrada del almacén de credenciales de Claude Code
+    (`.credentials.json` en Windows y Linux, común a la terminal y a la app de escritorio) tiene token; no lee ni devuelve
+    ningún valor. None si no se puede saber (macOS lo guarda en el Llavero; o no hay fichero). Nunca lanza `claude mcp
+    login` para comprobarlo: esa orden borra la sesión guardada en cuanto empieza, aunque no termine (F28-238)."""
+    base = config_dir or Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude")
+    try:
+        data = json.loads((base / ".credentials.json").read_text(encoding="utf-8-sig"))
+    except Exception:  # noqa: BLE001
+        return None
+    entries = data.get("mcpOAuth") if isinstance(data, dict) else None
+    for key, entry in (entries.items() if isinstance(entries, dict) else []):
+        if str(key).split("|")[0] == FRAME28_MCP and isinstance(entry, dict) and (entry.get("accessToken") or entry.get("refreshToken")):
+            return True
+    return False
+
+
+def account_row(plugin_version: str | None, signed: bool | None) -> dict | None:
+    """Fila «cuenta de Frame28»: sin entrar, el plugin no trabaja, y la app de escritorio no lo explica (F28-238)."""
+    if not plugin_version:
+        return None
+    if signed is None:
+        return {"name": "cuenta de Frame28", "ok": True, "optional": True, "fix": "",
+                "detail": "sin comprobar aquí: `claude mcp list` dice Connected o Needs authentication"}
+    return {"name": "cuenta de Frame28", "ok": signed, "optional": True, "fix": "" if signed else FRAME28_LOGIN,
+            "detail": "has entrado (Frame28 sale en las sesiones nuevas de Claude Code)" if signed else
+                      "sin entrar: el plugin no puede trabajar hasta que entres con tu cuenta"}
+
+
 def version_rows(cli: str, latest: str | None, plugin: tuple[bool, str | None]) -> list[dict]:
     """Las dos filas de versiones: el CLI y el plugin de Claude Code contra la última release, cada una con su orden (un
     usuario con una instalación vieja no sabía que había versión nueva ni cómo actualizar; `claude plugin update` solo
@@ -245,7 +280,11 @@ def doctor() -> list[dict]:
             "opcional: PEXELS_API_KEY / PIXABAY_API_KEY en el entorno o en ~/.config/frame28/keys.json (gratis en pexels.com/api y pixabay.com/api/docs); sin ellas `frame28 broll search` no busca", optional=True)
     except Exception as e:  # noqa: BLE001
         add("claves de B-roll", False, str(e)[:80], "revisa ~/.config/frame28/keys.json", optional=True)
-    rows.extend(version_rows(__version__, latest_release(), plugin_installed()))
+    plugin = plugin_installed()
+    rows.extend(version_rows(__version__, latest_release(), plugin))
+    acct = account_row(plugin[1], frame28_signed_in())
+    if acct:
+        rows.append(acct)
     clash = marketplace_clash()
     add("marketplace del plugin", clash is None, "ok" if clash is None else clash, "" if clash is None else clash, optional=True)
     net = cdn_reachable()
