@@ -264,9 +264,11 @@ fi
 say "   ${G}Instalación terminada.${N} Cuatro cosas para empezar:"
 say "   1. Cierra esta Terminal y abre una nueva (así reconoce los programas nuevos)."
 if has claude; then say "   2. Escribe ${B}claude${N} en la Terminal e inicia sesión con tu cuenta de Claude (solo la primera vez)."; else say "   2. Instala Claude Code desde https://claude.com/claude-code e inicia sesión."; fi
-say "   3. Entra con tu cuenta de Frame28: dentro de Claude Code escribe ${B}/mcp${N}, elige ${B}frame28${N} y pulsa ${B}Authenticate${N}."
+say "   3. Entra con tu cuenta de Frame28 (una vez): en la Terminal nueva escribe ${B}claude mcp login plugin:frame28:frame28${N}"
 say "      Se abre el navegador: tu email y el código que te llega. Si no tienes cuenta, se crea gratis (modo demo)."
-say "   4. Graba un clip hablando a cámara, abre Claude Code en su carpeta y escribe: ${B}\"Aquí está mi clip. Móntamelo.\"${N}"
+say "      Si dice que no conoce «login», escribe antes ${B}claude update${N} (o dentro de claude: /mcp → frame28 → Authenticate)."
+say "   4. Graba un clip hablando a cámara, abre una sesión ${B}nueva${N} de Claude Code (Terminal o app de escritorio) en su carpeta"
+say "      y escribe: ${B}\"Aquí está mi clip. Móntamelo.\"${N} (Frame28 sale en las sesiones que empiezan después de entrar.)"
 say ""
 say "   Guía completa con imágenes: ${B}$GUIDE${N}"
 say "   Si algo falló, envía el fichero ${B}$LOG${N} a quien te pasó Frame28 o pégaselo a Claude."

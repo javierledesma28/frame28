@@ -211,9 +211,11 @@ if ($Update) {
 Say "   Instalacion terminada. Cuatro cosas para empezar:" "Green"
 Say "   1. Cierra esta terminal y abre una nueva (asi reconoce los programas nuevos)."
 if (Has claude) { Say "   2. Escribe  claude  en la terminal e inicia sesion con tu cuenta de Claude (solo la primera vez)." } else { Say "   2. Instala Claude Code desde https://claude.com/claude-code e inicia sesion." }
-Say "   3. Entra con tu cuenta de Frame28: dentro de Claude Code escribe  /mcp , elige frame28 y pulsa Authenticate."
+Say "   3. Entra con tu cuenta de Frame28 (una vez): en la terminal nueva escribe  claude mcp login plugin:frame28:frame28"
 Say "      Se abre el navegador: tu email y el codigo que te llega. Si no tienes cuenta, se crea gratis (modo demo)."
-Say "   4. Graba un clip hablando a camara, abre Claude Code en su carpeta y escribe: `"Aqui esta mi clip. Montamelo.`""
+Say "      Si dice que no conoce 'login', escribe antes  claude update  (o dentro de claude: /mcp, frame28, Authenticate)."
+Say "   4. Graba un clip hablando a camara, abre una sesion NUEVA de Claude Code (terminal o app de escritorio) en su carpeta"
+Say "      y escribe: `"Aqui esta mi clip. Montamelo.`" (Frame28 sale en las sesiones que empiezan despues de entrar.)"
 Say ""
 Say ("   Guia completa con imagenes: " + $Guide) "Yellow"
 Say ("   Si algo fallo, envia el fichero " + $Log + " a quien te paso Frame28 o pegaselo a Claude.")

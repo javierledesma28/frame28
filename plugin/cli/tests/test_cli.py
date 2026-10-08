@@ -243,6 +243,31 @@ def test_doctor_plugin_installed(tmp_path):
     assert plugin_installed(f) == (True, None)
 
 
+def test_doctor_frame28_signed_in_never_reads_values(tmp_path):
+    """F28-238: la fila «cuenta de Frame28» mira si hay entrada con token en el almacén común de la terminal y la app. El
+    caso real del 2026-10-08: `mcp login` empezado y no terminado deja la entrada con el token vacío (= sin entrar)."""
+    from frame28.doctor import FRAME28_LOGIN, account_row, frame28_signed_in
+    creds = tmp_path / ".credentials.json"
+    assert frame28_signed_in(tmp_path) is None                                                             # sin fichero (macOS: Llavero)
+    creds.write_text(json.dumps({"claudeAiOauth": {"accessToken": "x"}}), encoding="utf-8")
+    assert frame28_signed_in(tmp_path) is False                                                            # Claude sí, ningún MCP
+    entry = {"serverName": "plugin:frame28:frame28", "serverUrl": "https://frame28.app/mcp", "clientId": "c", "accessToken": ""}
+    creds.write_text(json.dumps({"mcpOAuth": {"plugin:frame28:frame28|26141360abde3e44": entry}}), encoding="utf-8")
+    assert frame28_signed_in(tmp_path) is False                                                            # login a medias: vacío
+    creds.write_text(json.dumps({"mcpOAuth": {"plugin:frame28:frame28|2614": dict(entry, refreshToken="r")}}), encoding="utf-8")
+    assert frame28_signed_in(tmp_path) is True
+    creds.write_text(json.dumps({"mcpOAuth": {"frame28|x": dict(entry, accessToken="a")}}), encoding="utf-8")
+    assert frame28_signed_in(tmp_path) is False                                                            # otro servidor (añadido a mano)
+    creds.write_text("no es json", encoding="utf-8")
+    assert frame28_signed_in(tmp_path) is None
+    assert account_row(None, False) is None                                                                # sin plugin, sin fila
+    row = account_row("0.5.1", False)
+    assert row["ok"] is False and row["fix"] == FRAME28_LOGIN and "mcp login plugin:frame28:frame28" in row["fix"]
+    assert "sesión nueva" in row["fix"] and "claude update" in row["fix"]
+    assert account_row("0.5.1", True)["ok"] is True and account_row("0.5.1", None)["ok"] is True          # sin saberlo, sin aspa
+    assert "claude mcp list" in account_row("0.5.1", None)["detail"]
+
+
 def test_doctor_marketplace_clash(tmp_path):
     from frame28.doctor import marketplace_clash
     repo = {"source": "github", "repo": "javierledesma28/frame28"}

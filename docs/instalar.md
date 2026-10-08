@@ -33,13 +33,17 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
 5. **Plugin**: `claude plugin marketplace add javierledesma28/frame28` y `claude plugin install frame28@think28 --scope user`.
    Si falla por no haber iniciado sesión, indícale que lo haga y repite.
 6. **Comprobación**: `frame28 doctor`. Explica cada línea. Las aspas en «gpu» y «modelo RVM» son normales.
-7. **Cuenta de Frame28** (sin esto el plugin no puede trabajar): tras reiniciar Claude Code, que escriba `/mcp`, elija
-   **frame28** y pulse **Authenticate**. Se abre el navegador: email y el código que le llega, sin contraseña. Si no tiene
-   cuenta, se crea ahí, gratis, y monta en modo demo (marca de Frame28); con un plan de pago, con su marca. Si el
-   navegador no se abre (consola sin escritorio), `/mcp` enseña el enlace para abrirlo a mano. Tú no puedes hacer este
-   paso por la persona: es su login.
-8. **Cierre**: dile que abra una terminal nueva, que reinicie Claude Code para que cargue el plugin, que entre con su
-   cuenta (paso 7) y que el primer uso es grabar un clip de 30 segundos y escribir en Claude Code «Aquí está mi clip. Móntamelo».
+7. **Cuenta de Frame28** (sin esto el plugin no puede trabajar): `claude mcp login plugin:frame28:frame28` en una terminal
+   nueva (Claude Code 2.1.186 o posterior: si no conoce `login`, `claude update` y repite; alternativa, `claude` → `/mcp` →
+   **frame28** → **Authenticate**). Puedes lanzarlo tú si la persona está delante: se abre su navegador y ella escribe su
+   email y el código que le llega, sin contraseña. Si no tiene cuenta, se crea ahí, gratis, y monta en modo demo (marca de
+   Frame28); con un plan de pago, con su marca. Sin escritorio (SSH), que lo ejecute ella con `--no-browser` y pegue la
+   dirección de vuelta. No lo lances para comprobar si ya entró: `mcp login` borra la sesión guardada en cuanto empieza;
+   `claude mcp list` (o la fila «cuenta de Frame28» de `frame28 doctor`) lo dice sin tocar nada. Tú no escribes su email
+   ni su código: es su login.
+8. **Cierre**: dile que abra una **sesión nueva** de Claude Code, en la terminal o en la app de escritorio (Frame28 aparece
+   en las sesiones que empiezan después de entrar), y que el primer uso es grabar un clip de 30 segundos y escribir
+   «Aquí está mi clip. Móntamelo».
    Guía con imágenes: https://frame28.t28.io/presentacion/
 
 ## Alternativa de un solo paso

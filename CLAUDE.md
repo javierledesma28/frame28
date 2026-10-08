@@ -285,7 +285,15 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   en el registro (`--debug`: «Browser didn't open automatically») y enseña la URL en `/mcp`; las skills lo explican. (3)
   `claude -p` lanzado desde la shell de la app de escritorio responde «401 OAuth access token is invalid»: es el login de
   Claude Code de la terminal contra Anthropic, no Frame28; la prueba con el plugin se hace en una sesión nueva de la app.
-  (4) `claude mcp get` no acepta nombres de servidores de plugin; `claude mcp list` sí los enseña con su estado.
+  (4) `claude mcp get` no aceptaba nombres de servidores de plugin en la 2.1.126; la 2.1.293 sí (`plugin:frame28:frame28`).
+  (5) **`claude mcp login <servidor>` (desde la 2.1.186) borra la sesión guardada en cuanto empieza, aunque no termine**: el
+  2026-10-08 una prueba con `--no-browser` y la entrada cerrada falló («stdin isn't a terminal») después de vaciar el token y
+  desconectó a Javier en todas las sesiones nuevas. Nunca se lanza para comprobar: el estado lo dan `claude mcp list`
+  (Connected / Needs authentication) o la fila «cuenta de Frame28» de `doctor`. `--no-browser` exige terminal interactiva.
+  (6) La app de escritorio no tiene `/mcp` en la pestaña Code, pero cada sesión suya expone `CLAUDE_CODE_EXECPATH` (su propio
+  `claude.exe`, más nuevo que el de la terminal: 2.1.293 frente a 2.1.126 en este PC) y `CLAUDE_CODE_ENTRYPOINT=claude-desktop`.
+  El almacén de credenciales MCP (`~/.claude/.credentials.json` en Windows) es común a la terminal y a la app; un MCP de plugin
+  autenticado aparece en las sesiones que empiezan después, no en la que ya está abierta (F28-238).
 
 - **ffmpeg y uv no siempre están en el PATH de la sesión Bash** (y WinGet cambia la carpeta de ffmpeg en cada actualización:
   8.1.1 pasó a 9.0.2): `export PATH="$(ls -d /c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin | tail -1):/c/Users/ledes/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe:$HOME/.local/bin:$PATH"`
