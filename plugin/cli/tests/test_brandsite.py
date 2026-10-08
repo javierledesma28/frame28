@@ -6,8 +6,12 @@ import json
 import cv2
 import numpy as np
 import pytest
+from click.testing import CliRunner
 
 from frame28 import brandsite as S
+from frame28 import build
+from frame28.cli import main
+from conftest import write_json
 
 YELLOW, BLUE, PINK = (0, 210, 255), (151, 74, 11), (161, 119, 234)    # BGR de #FFD200, #0B4A97, #EA77A1
 
@@ -74,11 +78,14 @@ def test_og_image_recortada_y_avisada(web, tmp_path):
     assert any("og:image" in x for x in r["warnings"]) and r["accent"] == "#0b4a97"
 
 
-def test_sin_colores_ni_logo_confianza_baja(web, tmp_path):
+def test_sin_colores_ni_logo_no_se_inventa_el_acento(web, tmp_path):
     web["https://c.example/"] = "<html><body><p>texto</p></body></html>"
     r = S.from_site("https://c.example/", "c", tmp_path)
-    assert r["confidence"] == "baja" and r["accent"] == "#2F6FEB" and r["accent"] != "#EA77A1"
-    assert any("provisional" in x for x in r["warnings"]) and any("--logo-url" in x for x in r["warnings"])
+    assert r["confidence"] == "baja" and r["accent"] is None and r["accent_status"] == "a confirmar" and r["candidates"] == []
+    assert any("pídele el acento" in x for x in r["warnings"]) and any("--logo-url" in x for x in r["warnings"])
+    assert any("frame28 brand set c --accent" in x for x in r["warnings"])
+    brand = json.loads((tmp_path / "c.json").read_text(encoding="utf-8"))
+    assert "accent" not in brand and brand["accent_pending"] is True and "on_accent" not in brand
 
 
 def test_svg_en_linea_del_header(web, tmp_path):
@@ -170,3 +177,95 @@ def test_looks_like_image():
     assert S.looks_like_image(b"  <svg xmlns='x'></svg>") and S.looks_like_image(b"<?xml version='1.0'?><svg/>")
     assert S.looks_like_image(b"RIFF\x00\x00\x00\x00WEBPVP8 ")
     assert not S.looks_like_image(b"<html><body>404</body></html>") and not S.looks_like_image(b'{"error": 1}')
+
+
+# ── F28-299: widgets de terceros, colores de librerías, var(--…) en la fuente y «acento a confirmar» ─────────────────
+# Lo visto en 20 webs DTC reales: en 5 el acento salía solo de Okendo (--oke-*) o Judge.me (--jdgm-*), en una del admin de
+# WordPress, en otra de Swiper; en 6 la fuente quedaba como «var»; y nunca se decía «no lo sé».
+WIDGETS = (":root{--oke-button-backgroundcolor:#fc199d;--oke-button-bordercolor:#fc199d;--oke-highlightcolor:#ff32ac;"
+           "--jdgm-primary-color:#026725;--wp-admin-theme-color:#007cba;--swiper-theme-color:#007aff}"
+           + ".oke-button{background:#fc199d}" * 6 + ".jdgm-star{color:#026725}" * 3)
+
+
+def _site(web, host, css, logo_bgr):
+    """Una web con header (carrito + logo), una hoja CSS propia y un logo PNG de un color."""
+    web.update({f"https://{host}/": PAGE.replace("/assets/theme.css", "/own.css"), f"https://{host}/own.css": css,
+                f"https://{host}/logo.png": png(400, 120, (255, 255, 255), [((10, 10, 390, 110), logo_bgr)]),
+                f"https://{host}/cart.png": png(24, 24, (0, 0, 0)), f"https://{host}/social.png": png(1200, 630, (255, 255, 255))})
+
+
+def test_widgets_de_terceros_no_dan_el_acento(web, tmp_path):
+    _site(web, "w.example", WIDGETS + "body{font-family:'Lato',sans-serif}", BLUE)
+    r = S.from_site("https://w.example/", "w", tmp_path)
+    assert r["accent"] == "#0b4a97" and r["accent_status"] == "ok" and r["confidence"] == "alta" and r["accent_sources"] == ["logo"]
+    assert not any(s.startswith(("--oke", "--jdgm", "--wp-admin", "--swiper")) for c in r["candidates"] for s in c["sources"])
+    assert {"oke-button-backgroundcolor", "jdgm-primary-color", "wp-admin-theme-color", "swiper-theme-color"} <= set(r["ignored_vars"])
+    assert "#fc199d" not in [c["color"] for c in r["candidates"]]                       # ni por frecuencia: es el color del widget
+    assert {"#007aff", "#007cba"} <= set(r["ignored_colors"])
+    assert any("widgets de terceros" in w and "--oke-*" in w and "--jdgm-*" in w for w in r["warnings"])
+    assert json.loads((tmp_path / "w.json").read_text(encoding="utf-8"))["accent"] == "#0b4a97"
+
+
+def test_logo_y_tema_discrepan_queda_a_confirmar_y_brand_set_lo_guarda(web, tmp_path):
+    # logo rojo, pero el tema (variable propia + botones) usa magenta: no se decide por el usuario
+    css = ":root{--color-base-accent-1:#db008b}" + ".btn{background:#db008b}" * 10 + "body{font-family:Figtree,sans-serif}"
+    _site(web, "x.example", css, (1, 0, 232))                                          # BGR de #E80001
+    r = S.from_site("https://x.example/", "x", tmp_path)
+    assert r["accent"] is None and r["accent_status"] == "a confirmar" and r["confidence"] == "media"
+    assert {"#db008b", "#e80001"} <= {c["color"] for c in r["candidates"]} and r["accent_suggested"] == "#db008b"
+    assert any("a confirmar" in w and "#e80001 (logo)" in w for w in r["warnings"])
+    assert any("frame28 brand set x --accent" in w for w in r["warnings"])
+    brand = json.loads((tmp_path / "x.json").read_text(encoding="utf-8"))
+    assert "accent" not in brand and brand["accent_pending"] is True and brand["accent_candidates"][0]["color"] == "#db008b"
+    # build y cover se niegan diciendo qué hacer: nada de rellenar con el rosa por defecto
+    with pytest.raises(SystemExit, match="por confirmar.*brand set"):
+        build.load_brand_file(tmp_path / "x.json")
+    # el usuario elige: brand set guarda el acento, calcula el texto sobre acento y quita lo pendiente
+    res = CliRunner().invoke(main, ["brand", "set", str(tmp_path / "x.json"), "--accent", "#E80001", "--json"], catch_exceptions=False)
+    assert res.exit_code == 0 and json.loads(res.output)["accent"] == "#E80001" and json.loads(res.output)["accent_pending"] is False
+    brand = build.load_brand_file(tmp_path / "x.json")
+    assert brand["accent"] == "#E80001" and brand["on_accent"] and "accent_pending" not in brand and "accent_candidates" not in brand
+    res = CliRunner().invoke(main, ["brand", "set", str(tmp_path / "x.json"), "--accent", "rojo"])
+    assert res.exit_code != 0
+    # la salida legible de from-site lo dice sin reventar (no hay acento que imprimir)
+    res = CliRunner().invoke(main, ["brand", "from-site", "https://x.example/", "--name", "x2", "--out", str(tmp_path)],
+                             catch_exceptions=False)
+    assert res.exit_code == 0 and "ACENTO A CONFIRMAR" in res.output and "candidatos: #db008b" in res.output
+    assert "frame28 brand set x2 --accent" in res.output
+
+
+def test_colores_por_defecto_de_librerias_no_cuentan(web, tmp_path):
+    css = ".btn-primary{background:#0d6efd}" * 30 + ".x{color:#2a7f62}" * 4 + ":root{--swiper-theme-color:#007aff}"
+    web["https://l.example/"] = f"<html><head><style>{css}</style></head><body><p>sin logo</p></body></html>"
+    r = S.from_site("https://l.example/", "l", tmp_path)
+    assert r["accent"] is None and r["accent_status"] == "a confirmar" and r["accent_suggested"] == "#2a7f62"
+    assert "#0d6efd" not in [c["color"] for c in r["candidates"]] and {"#0d6efd", "#007aff"} <= set(r["ignored_colors"])
+
+
+def test_fuente_con_var_resuelta():
+    css = (':root{--font-body-family:"Figtree", sans-serif;--font-heading:var(--font-body-family);'
+           '--env-font-family:inherit;--env-font-family:inter}'
+           + "body{font-family:var(--font-heading)}" * 3 + 'h1{font-family:var(--no-existe, "Lora", serif)}'
+           + "p{font-family:var(--env-font-family)}" * 2 + '.sys{font-family:"system_ui",-apple-system,Roboto,sans-serif}'
+           + '.i{font-family:"Font Awesome 5 Free"}.v{font-family:var(--sin-definir)}')
+    an = S.analyze_html(f"<html><head><style>{css}</style></head><body></body></html>", "https://f.example/")
+    assert an["fonts"][0] == ("Figtree", 3) and ("Lora", 1) in an["fonts"] and ("inter", 2) in an["fonts"]
+    assert all(f.lower() not in ("var", "roboto") and "awesome" not in f.lower() for f, _ in an["fonts"])
+    assert S.first_family("var(--sin-definir)") is None and S.first_family("'Open Sans Condensed', sans-serif") == "Open Sans Condensed"
+    assert S.first_family("Roboto, sans-serif") == "Roboto" and S.first_family("-apple-system, Roboto") is None
+
+
+def test_una_sombra_del_logo_en_el_css_no_contradice_pero_otro_tono_si(web, tmp_path):
+    _site(web, "r.example", ".a{color:#ff4343}" * 3, (0, 0, 255))                   # logo rojo; el CSS repite un rojo claro
+    r = S.from_site("https://r.example/", "r", tmp_path)
+    assert r["accent"] == "#ff0000" and r["confidence"] == "alta"                    # rojo del logo (aunque sea el de YouTube en el CSS)
+    _site(web, "b.example", ".a{color:#0000ff}" * 3, (0, 0, 255))                   # mismo logo, pero el CSS tira a azul
+    r = S.from_site("https://b.example/", "b", tmp_path)
+    assert r["accent"] is None and r["accent_status"] == "a confirmar" and r["accent_suggested"] == "#ff0000"
+
+
+def test_marca_guardada_sin_acento_no_se_rellena_con_el_rosa(tmp_path):
+    p = write_json(tmp_path / "sin.json", {"name": "sin", "ink": "#111111"})
+    with pytest.raises(SystemExit, match="marca.accent: falta"):
+        build.load_brand_file(p)
+    assert build.load_brand_file(write_json(tmp_path / "ok.json", {"name": "ok", "accent": "#123456"}))["accent"] == "#123456"

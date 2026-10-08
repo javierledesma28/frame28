@@ -27,6 +27,42 @@ MAX_PAGE = 3_000_000     # bytes: portada y hojas CSS
 MAX_LOGO = 5_000_000
 MAX_CSS_FILES = 6
 
+# Variables CSS de widgets y librerías de terceros: su color es el del widget (o el valor por defecto de la librería), no el
+# de la marca. Probado sobre 20 webs DTC (F28-299): en 5 el acento salía solo de Okendo (--oke-*) o Judge.me (--jdgm-*),
+# en otra del admin de WordPress (--wp-admin-theme-color) y en otra de Swiper (--swiper-theme-color). El resto son widgets
+# habituales en tiendas: reseñas, email, chat, cookies, sliders, reproductores, buscadores, fidelización y pagos.
+THIRD_PARTY_VAR_PREFIXES = (
+    "oke-", "jdgm-", "yotpo-", "stamped-", "loox-", "reviewsio-",                                            # reseñas
+    "wp-admin-", "woocommerce", "wc-", "wpforms-", "gform",                                                   # WordPress y plugins
+    "swiper-", "slick-", "splide-", "glide-", "flickity-", "plyr-", "pswp", "fancybox-", "lightbox-",          # sliders y reproductores
+    "klaviyo-", "privy-", "omnisend-", "mailchimp-", "hubspot-", "hs-",                                        # email y marketing
+    "gorgias-", "intercom-", "crisp-", "tidio-", "zendesk-", "drift-", "tawk-",                                # chat
+    "onetrust-", "cky-", "pandectes-",                                                                        # cookies
+    "hawksearch-", "algolia-", "searchspring-", "boost-", "nosto-", "rebuy-", "recharge-", "smile-", "loyaltylion-",
+    "shopify-pay", "shop-pay", "payment-button", "paypal-", "klarna-", "afterpay-", "affirm-", "sezzle-", "gpay-", "applepay-",
+    "trustpilot-", "elfsight-",
+)
+THIRD_PARTY_VAR_WORDS = ("cookie", "consent")
+# Colores por defecto de librerías, pagos y redes sociales: aparecen en el CSS de muchas webs sin ser de la marca (Bootstrap,
+# Swiper, Plyr, WordPress, WooCommerce, Shop Pay, PayPal, Google, Stripe, Facebook, X, Instagram, YouTube, Pinterest,
+# WhatsApp, LinkedIn, Reddit, Discord, TikTok, Vimeo, Trustpilot). No cuentan como evidencia del CSS; en el logo sí.
+LIBRARY_COLORS = frozenset({
+    "#0d6efd", "#6610f2", "#6f42c1", "#d63384", "#dc3545", "#fd7e14", "#ffc107", "#198754", "#20c997", "#0dcaf0",
+    "#007bff", "#28a745", "#17a2b8", "#007aff", "#00b3ff",
+    "#007cba", "#0073aa", "#2271b1", "#3858e9", "#1e73be", "#720eec", "#7f54b3", "#96588a",
+    "#5a31f4", "#ffc439", "#0070ba", "#003087", "#009cde", "#4285f4", "#ea4335", "#34a853", "#fbbc05", "#635bff",
+    "#1877f2", "#4267b2", "#3b5998", "#1da1f2", "#e4405f", "#e1306c", "#c13584", "#ff0000", "#e60023", "#bd081c",
+    "#25d366", "#128c7e", "#0077b5", "#0a66c2", "#ff4500", "#5865f2", "#7289da", "#ff0050", "#00f2ea", "#1ab7ea", "#00b67a",
+    "#108474",   # Judge.me (visto como valor por defecto en su CSS y «configurado» igual en otra web)
+})
+WIDGET_FONT_WORDS = ("icon", "awesome", "emoji", "symbol", "glyph", "star", "judgeme", "jdgm", "okendo", "yotpo", "stamped",
+                     "loox", "swiper", "slick", "icomoon", "klaviyo")
+GENERIC_FONTS = frozenset({"inherit", "initial", "unset", "revert", "sans-serif", "serif", "monospace", "cursive", "fantasy",
+                           "system-ui", "ui-sans-serif", "ui-serif", "ui-monospace", "ui-rounded", "math", "emoji", "fangsong"})
+SYSTEM_FONTS = frozenset({"system_ui", "system-ui", "-apple-system", "blinkmacsystemfont", "segoe ui", "helvetica neue", "helvetica",
+                          "arial", "times new roman", "times", "courier new", "courier", "georgia", "verdana", "tahoma",
+                          "apple color emoji", "segoe ui emoji", "segoe ui symbol", "noto color emoji"})
+
 # Lo que necesita el motor y nada más: ni logos, ni reglas de logo, ni voz de ninguna otra marca (antes se copiaba
 # think28.json entero y un vídeo del cliente podía salir con elementos de Think28).
 TEMPLATE = {
@@ -118,6 +154,21 @@ def _chromatic(h: str) -> bool:
     return sat > CHROMA_MIN_SAT and 0.15 < lum < 0.88
 
 
+def _hue(h: str) -> float:
+    r, g, b = (c / 255 for c in _hex_to_rgb(h))
+    mx, mn = max(r, g, b), min(r, g, b)
+    if mx == mn:
+        return 0.0
+    d = mx - mn
+    hue = ((g - b) / d) % 6 if mx == r else (b - r) / d + 2 if mx == g else (r - g) / d + 4
+    return (hue * 60) % 360
+
+
+def _hue_dist(a: str, b: str) -> float:
+    d = abs(_hue(a) - _hue(b))
+    return min(d, 360 - d)
+
+
 def css_colors(text: str) -> list[str]:
     """Colores de un HTML o CSS: #rrggbb, #rgb y rgb()/rgba() (sin blanco ni negro puros)."""
     out = []
@@ -146,22 +197,90 @@ def _attr_logo(tag: str) -> bool:
     return bool(re.search(r"logo|brand|marca", tag, re.I))
 
 
+def third_party_var(name: str) -> str | None:
+    """Prefijo del widget o librería de terceros al que pertenece la variable CSS, o None si es de la propia web."""
+    n = name.lower().lstrip("-")
+    for p in THIRD_PARTY_VAR_PREFIXES:
+        if n.startswith(p):
+            return p
+    for w in THIRD_PARTY_VAR_WORDS:
+        if w in n:
+            return w
+    return None
+
+
+def custom_properties(text: str) -> dict[str, list[str]]:
+    """Todas las variables CSS (--nombre: valor) del HTML y sus hojas, en orden (una puede definirse varias veces)."""
+    props: dict[str, list[str]] = {}
+    for name, val in re.findall(r"--([A-Za-z0-9_-]+)\s*:\s*([^;}]{1,200})", text):
+        props.setdefault(name.lower(), []).append(val.strip())
+    return props
+
+
+def resolve_vars(value: str, props: dict[str, list[str]], depth: int = 0) -> str:
+    """Sustituye cada var(--x[, respaldo]) por su definición (recursivo, hasta 6 niveles); sin definición, el respaldo.
+    Las webs reales encadenan variables (--badge-font-family: var(--font-body--family)) y una misma variable puede estar
+    definida varias veces (`inherit` y la buena): se usa la primera definición que se resuelve."""
+    if depth > 6 or "var(" not in value:
+        return value
+
+    def sub(m: re.Match) -> str:
+        name, fallback = m.group(1).lower(), (m.group(2) or "").strip()
+        keyword = None   # `inherit`/`initial` en un ámbito no tapan la definición de verdad en otro
+        for cand in props.get(name, []):
+            r = resolve_vars(cand, props, depth + 1)
+            if "var(" in r:
+                continue
+            if r.strip().lower() in ("inherit", "initial", "unset", "revert", "none"):
+                keyword = keyword or r
+                continue
+            return r
+        if fallback:
+            return resolve_vars(fallback, props, depth + 1)
+        return keyword if keyword is not None else m.group(0)
+    return re.sub(r"var\(\s*--([A-Za-z0-9_-]+)\s*(?:,\s*([^()]*(?:\([^()]*\))?[^()]*))?\)", sub, value)
+
+
+def first_family(value: str) -> str | None:
+    """Primera familia con nombre propio de un `font-family` ya resuelto; None si la pila es genérica, de sistema, de
+    iconos o sigue sin resolver (nunca devuelve «var»)."""
+    fams = [f.strip().strip("'\"").strip() for f in value.replace("!important", "").split(",")]
+    fams = [f for f in fams if f]
+    if not fams or fams[0].lower() in SYSTEM_FONTS:
+        return None
+    for f in fams:
+        low = f.lower()
+        if low in GENERIC_FONTS or low in SYSTEM_FONTS or any(w in low for w in WIDGET_FONT_WORDS):
+            continue
+        return f if re.match(r"^[A-Za-z][A-Za-z0-9 _.-]{1,39}$", f) else None
+    return None
+
+
 def analyze_html(html: str, base_url: str, css: str = "") -> dict:
-    """Colores (frecuencia en el HTML y sus hojas CSS), variables CSS de color, fuentes y candidatos a logo."""
-    counts = Counter(css_colors(html + "\n" + css))
+    """Colores (frecuencia en el HTML y sus hojas CSS), variables CSS de color de la propia web (las de widgets de terceros
+    aparte, en `ignored_vars`), fuentes con las variables resueltas y candidatos a logo."""
+    text = html + "\n" + css
+    counts = Counter(css_colors(text))
+    props = custom_properties(text)
     css_vars: dict[str, str] = {}
+    ignored_vars: dict[str, str] = {}
     for name, val in re.findall(r"--([a-z0-9-]*(?:button|primary|accent|brand|highlight|main|theme)[a-z0-9-]*)\s*:\s*([^;}]{3,40})",
-                                html + "\n" + css, re.I):
-        v = val.strip()
+                                text, re.I):
+        v = resolve_vars(val.strip(), props)
         m = re.match(r"^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$", v)
         if m:
             v = "#%02x%02x%02x" % tuple(int(x) for x in m.groups())
         found = css_colors(v)
         if found or re.match(r"^#[0-9a-fA-F]{6}$", v):
-            css_vars.setdefault(name.lower(), (found[0] if found else v).lower())
-    fonts = Counter(f.strip().strip("'\"") for f in re.findall(r"font-family\s*:\s*['\"]?([A-Za-z0-9 ]{3,30})['\"]?", html + "\n" + css)
-                    if f.strip().lower() not in ("inherit", "sans-serif", "serif", "monospace", "system-ui", "initial", "arial",
-                                                 "helvetica", "icons", "fontawesome"))
+            color = (found[0] if found else v).lower()
+            (ignored_vars if third_party_var(name) else css_vars).setdefault(name.lower(), color)
+    fonts: Counter = Counter()
+    spelling: dict[str, str] = {}
+    for raw in re.findall(r"(?<![\w-])font-family\s*:\s*([^;}]{2,200})", text):   # no `--env-font-family:` (es una variable)
+        fam = first_family(resolve_vars(raw, props))
+        if fam:
+            spelling.setdefault(fam.lower(), fam)
+            fonts[fam.lower()] += 1
     # Logo: <img>/<svg> del header o con logo/brand en clase, id, alt o ruta; después iconos de alta resolución; la og:image al final
     header = (re.search(r"<header\b.*?</header>", html, re.I | re.S) or re.search(r"<nav\b.*?</nav>", html, re.I | re.S))
     head_html = header.group(0) if header else ""
@@ -187,7 +306,8 @@ def analyze_html(html: str, base_url: str, css: str = "") -> dict:
     og_image = urllib.parse.urljoin(base_url, og.group(1)) if og else None
     title = re.search(r"<title>([^<]{1,120})</title>", html, re.I)
     desc = re.search(r'name=["\']description["\']\s+content=["\']([^"\']{1,300})', html, re.I)
-    return {"colors": counts.most_common(20), "css_vars": css_vars, "fonts": fonts.most_common(5),
+    return {"colors": counts.most_common(20), "css_vars": css_vars, "ignored_vars": ignored_vars,
+            "fonts": [(spelling[k], n) for k, n in fonts.most_common(5)],
             "logos": list(dict.fromkeys(logos))[:5], "inline_svg": inline_svg, "icons": list(dict.fromkeys(icons))[:3],
             "og_image": og_image, "title": title.group(1).strip() if title else "", "description": desc.group(1).strip() if desc else ""}
 
@@ -230,11 +350,21 @@ def image_colors(path: Path, top: int = 4) -> list[str]:
 
 
 def propose(analysis: dict, logo_colors: list[str] | None = None) -> dict:
-    """Acento = el color con más peso entre los del logo (5, 4, 3…), las variables CSS de marca (4; de botón 2) y la
-    frecuencia en el CSS (hasta 3). Tinta = el oscuro más frecuente. Dice con qué confianza y por qué."""
+    """Acento = el color con más peso entre los del logo (5, 4, 3…), las variables CSS de marca de la propia web (4; de
+    botón 2) y la frecuencia en el CSS (hasta 3). Las variables de widgets de terceros y los colores por defecto de
+    librerías, pagos y redes no cuentan (F28-299). Confianza alta solo si manda el logo y ninguna otra fuente del CSS lo
+    contradice; con media o baja el acento queda «a confirmar» con sus candidatos: se pregunta en vez de inventar.
+    Tinta = el oscuro más frecuente."""
     score: Counter = Counter()
     why: dict[str, list[str]] = {}
-    css_chroma = [h for h, _ in analysis["colors"] if _chromatic(h)] + [v for v in analysis["css_vars"].values() if _chromatic(v)]
+    css_vars = {k: v for k, v in analysis["css_vars"].items() if v not in LIBRARY_COLORS}
+    # Las reglas CSS del widget repiten el color de sus variables: ese color tampoco cuenta por frecuencia (si además es
+    # el de la marca, lo dirán el logo o las variables propias de la web, como pasa cuando Okendo va configurado a juego)
+    widget_colors = set(analysis.get("ignored_vars", {}).values())
+    colors = [(h, n) for h, n in analysis["colors"] if h not in LIBRARY_COLORS and h not in widget_colors]
+    ignored_colors = sorted({h for h, _ in analysis["colors"] if h in LIBRARY_COLORS}
+                            | {v for v in analysis["css_vars"].values() if v in LIBRARY_COLORS})
+    css_chroma = [h for h, _ in colors if _chromatic(h)] + [v for v in css_vars.values() if _chromatic(v)]
 
     def twin(c: str) -> str:   # el color del logo (cuantizado) se junta con su gemelo del CSS si son casi iguales
         near = [(sum(abs(a - b) for a, b in zip(_hex_to_rgb(c), _hex_to_rgb(h))), h) for h in css_chroma]
@@ -245,11 +375,11 @@ def propose(analysis: dict, logo_colors: list[str] | None = None) -> dict:
         if _chromatic(c):
             c = twin(c)
             score[c] += max(1, 5 - n); why.setdefault(c, []).append("logo")
-    for name, v in analysis["css_vars"].items():
+    for name, v in css_vars.items():
         if _chromatic(v) and "text" not in name:
             w = 2 if "button" in name else 1 if "highlight" in name else 4
             score[v] += w; why.setdefault(v, []).append(f"--{name}")
-    chroma = [(h, n) for h, n in analysis["colors"] if _chromatic(h)]
+    chroma = [(h, n) for h, n in colors if _chromatic(h)]
     top_n = chroma[0][1] if chroma else 0
     for h, n in chroma:
         score[h] += round(3 * n / top_n, 2); why.setdefault(h, []).append(f"css x{n}")
@@ -257,21 +387,40 @@ def propose(analysis: dict, logo_colors: list[str] | None = None) -> dict:
     ink = darks[0] if darks else "#111111"
     font = analysis["fonts"][0][0] if analysis["fonts"] else None
     warnings = []
+    candidates = [{"color": h, "score": round(s, 2), "sources": why.get(h, [])} for h, s in score.most_common(5)]
     if score:
         accent, best = score.most_common(1)[0]
         sources = why.get(accent, [])
-        confidence = "alta" if "logo" in sources and len(sources) > 1 else "media" if best >= 3 else "baja"
+        # Contradice al logo otro color, de otro tono, que el CSS avale de verdad (variable propia o frecuencia alta). Otro
+        # color del propio logo, o una sombra del mismo tono que el CSS repite, no es una contradicción.
+        rivals = [h for h, s in score.most_common() if h != accent and s >= 3 and _hue_dist(h, accent) > 20
+                  and any(x != "logo" for x in why.get(h, []))]
+        if "logo" in sources and (len(sources) > 1 or not rivals):
+            confidence = "alta"
+        elif best >= 3:
+            confidence = "media"
+        else:
+            confidence = "baja"
     else:
-        accent, sources, confidence = "#2F6FEB", [], "baja"
-        warnings.append("no se encontró ningún color de marca en la web ni en el logo: el acento es provisional, pídeselo al usuario")
-    if confidence == "baja" and score:
-        warnings.append(f"acento {accent} con poca evidencia ({', '.join(sources) or 'sin fuentes'}): confírmalo con el usuario")
+        accent, sources, confidence = None, [], "baja"
+        warnings.append("no se encontró ningún color de marca en la web ni en el logo: pídele el acento al usuario")
+    status = "ok" if confidence == "alta" else "a confirmar"
+    if status == "a confirmar" and score:
+        opts = "; ".join(f"{c['color']} ({', '.join(c['sources'])})" for c in candidates[:4])
+        warnings.append(f"acento a confirmar (confianza {confidence}): el mejor candidato es {accent}, pero no lo avala el logo. "
+                        f"Pregunta al usuario entre {opts}"
+                        + (f"; sin contar {', '.join(ignored_colors[:4])} (colores de librerías, pagos o redes)" if ignored_colors else ""))
+    if analysis.get("ignored_vars"):
+        pref = sorted({p for p in (third_party_var(n) for n in analysis["ignored_vars"]) if p})
+        warnings.append("variables CSS de widgets de terceros ignoradas (" + ", ".join(f"--{p}*" for p in pref)
+                        + "): su color es del widget, no de la marca")
     if not font:
         warnings.append("no se detectó la fuente: se queda Inter")
     secondary = [h for h, _ in score.most_common(5) if h != accent][:4]
     logo = analysis.get("logos", [None])[0] if analysis.get("logos") else None
-    return {"accent": accent, "ink": ink, "font": font, "secondary": secondary, "logo": logo, "confidence": confidence,
-            "accent_sources": sources, "warnings": warnings}
+    return {"accent": accent if status == "ok" else None, "accent_suggested": accent, "accent_status": status,
+            "candidates": candidates, "ignored_colors": ignored_colors, "ink": ink, "font": font, "secondary": secondary,
+            "logo": logo, "confidence": confidence, "accent_sources": sources, "warnings": warnings}
 
 
 def trim_image(path: Path, tol: int = 18, pad: float = 0.04) -> bool:
@@ -389,17 +538,28 @@ def from_site(url: str, name: str, out_dir: str | Path = "brands", logo_url: str
         logo_info["files"] = logo_variants(out / name / "original.png", out / name, prop["ink"])   # con la tinta ya elegida
     host = urllib.parse.urlparse(url).netloc.replace("www.", "")
     brand = {"name": name, "site": host, "tagline": tagline or "", "endorsement": host, "source": url, **TEMPLATE,
-             "accent": prop["accent"], "ink": prop["ink"], "border": prop["ink"], "logo_files": logo_info.get("files", {})}
-    from .build import on_accent_color   # aquí: build no importa brandsite, pero así no se carga si no hace falta
-    brand["on_accent"] = on_accent_color(brand["accent"], brand["ink"])
+             "ink": prop["ink"], "border": prop["ink"], "logo_files": logo_info.get("files", {})}
+    if prop["accent"]:
+        brand["accent"] = prop["accent"]
+        from .build import on_accent_color   # aquí: build no importa brandsite, pero así no se carga si no hace falta
+        brand["on_accent"] = on_accent_color(brand["accent"], brand["ink"])
+    else:
+        # Sin acento seguro no se inventa (F28-299): el fichero lo dice, build y cover se niegan hasta que el usuario elija
+        brand["accent_pending"] = True
+        brand["accent_candidates"] = prop["candidates"]
+        warnings.append(f"cuando el usuario elija el acento: frame28 brand set {name} --accent #RRGGBB")
     if prop["font"]:
         fam = prop["font"]
+        if fam.islower():   # `--env-font-family:inter`: Google Fonts quiere «Inter»
+            fam = " ".join(w.capitalize() for w in fam.split())
         brand["sans"] = f'{fam}, Inter, "Segoe UI", Arial, sans-serif'
         brand["font_link"] = f"https://fonts.googleapis.com/css2?family={urllib.parse.quote(fam)}:wght@400;600;800&display=swap"
     path = out / f"{name}.json"
     path.write_text(json.dumps(brand, indent=2, ensure_ascii=False), encoding="utf-8")
-    return {"brand": str(path), "accent": brand["accent"], "ink": brand["ink"], "on_accent": brand["on_accent"], "font": prop["font"], "secondary": prop["secondary"],
-            "confidence": prop["confidence"], "accent_sources": prop["accent_sources"], "warnings": warnings,
+    return {"brand": str(path), "accent": prop["accent"], "accent_status": prop["accent_status"], "accent_suggested": prop["accent_suggested"],
+            "candidates": prop["candidates"], "ink": brand["ink"], "on_accent": brand.get("on_accent"), "font": prop["font"],
+            "secondary": prop["secondary"], "confidence": prop["confidence"], "accent_sources": prop["accent_sources"], "warnings": warnings,
             "logo": logo_info, "logo_colors": logo_cols, "title": an["title"], "description": an["description"],
-            "top_colors": an["colors"][:8], "css_vars": an["css_vars"], "fonts": an["fonts"], "stylesheets": len(css_parts),
+            "top_colors": an["colors"][:8], "css_vars": an["css_vars"], "ignored_vars": an["ignored_vars"],
+            "ignored_colors": prop["ignored_colors"], "fonts": an["fonts"], "stylesheets": len(css_parts),
             "stylesheet_errors": css_errors}

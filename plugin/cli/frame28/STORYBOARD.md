@@ -72,7 +72,9 @@ escalonadas, SplitText de GSAP). Los tiempos siguen siendo los `at` de cada pala
 
 `"brand": "think28"` usa la marca incluida (amarillo `#F5C500`, Inter, Space Mono, isotipo "28" en el rótulo).
 `frame28 brand init mimarca --accent "#0D4F87" --logo logo.svg` crea `./brands/mimarca.json`; `frame28 brand from-site https://cliente.com --name cliente`
-la propone a partir de la web (colores del CSS, fuente, logo con variantes para fondo oscuro y de acento); `frame28 brand list` las enumera.
+la propone a partir de la web (colores del CSS y del logo, fuente, logo con variantes para fondo oscuro y de acento); si no encuentra el acento
+con certeza lo deja «a confirmar» con candidatos (`accent_pending`) y `build` se niega hasta `frame28 brand set cliente --accent "#RRGGBB"`,
+que guarda lo que elija el usuario (también `--font`, `--ink`, `--tagline`); `frame28 brand list` las enumera.
 El `lower_third` muestra el isotipo de la marca; las `card` con `bg: accent` usan su color; la `brand_card` usa logo, tagline y endorsement.
 
 ## Nota de marca (antes del render)
