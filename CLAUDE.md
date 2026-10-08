@@ -86,7 +86,9 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     log.py                        registro de tiempo por orden (.frame28/log.jsonl, FRAME28_LOG) y `frame28 report` (+ `report note`)
     cover.py                      portada/miniatura: composición estática + hyperframes snapshot
     i18n.py                       extract/apply de textos traducidos; retime_words sobre el ritmo original
-    brandsite.py                  marca desde la web del cliente (colores CSS, fuente, logo con variantes)
+    brandsite.py                  marca desde la web del cliente (colores CSS y del logo, fuente con var(--…) resuelto, logo con variantes);
+                                  ignora las variables de widgets de terceros (--oke-, --jdgm-…) y los colores por defecto de librerías;
+                                  sin logo que lo avale el acento queda `accent_pending` con candidatos y `frame28 brand set` lo guarda (F28-299)
     build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings)
     brandcheck.py                 nota de marca del storyboard antes del render (`storyboard brandcheck`): textos en pantalla
                                   contra la marca, el brief.md del montaje (Memoria + campaña) y la Memoria en JSON

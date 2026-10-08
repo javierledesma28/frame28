@@ -220,6 +220,20 @@ def resolve_brand(name_or_path: str, near: Path | None = None) -> Path:
     raise SystemExit(f"marca '{name_or_path}' no encontrada. Buscado en: " + ", ".join(str(c) for c in cands))
 
 
+def load_brand_file(path: Path) -> dict:
+    """Lee una marca guardada y se niega si no tiene acento: con el valor por defecto el vídeo saldría con el rosa de
+    Think28, un color que no es de la marca (F28-299). `brand from-site` deja `accent_pending` cuando no lo encontró con
+    certeza; `frame28 brand set <marca> --accent` guarda el que elija el usuario."""
+    brand = json.loads(path.read_text(encoding="utf-8-sig"))
+    bad = brand_errors(brand)
+    if not brand.get("accent_pending") and not brand.get("accent"):
+        bad.append(f"marca.accent: falta en {path.name}; sin él el vídeo saldría con un color que no es de la marca. "
+                   f"Guárdalo con: frame28 brand set {path.stem} --accent #RRGGBB")
+    if bad:
+        raise SystemExit("Marca no válida:\n  - " + "\n  - ".join(bad))
+    return brand
+
+
 def list_brands() -> dict[str, Path]:
     found: dict[str, Path] = {}
     for d in (BUNDLED_BRANDS, USER_BRANDS, Path.cwd() / "brands"):
@@ -258,7 +272,7 @@ class Builder:
         self.brand_dir: Path | None = None
         if isinstance(brand, str):
             path = resolve_brand(brand, project_dir)
-            brand = json.loads(path.read_text(encoding="utf-8-sig"))
+            brand = load_brand_file(path)
             self.brand_dir = path.parent
         bad = brand_errors(brand)
         if bad:
@@ -1037,6 +1051,11 @@ def brand_errors(brand: dict) -> list[str]:
     """Valores de la marca que van dentro del <style> generado: colores con formato de color y fuentes sin caracteres que
     cierren la regla o la etiqueta."""
     errs = []
+    if brand.get("accent_pending"):
+        cands = ", ".join(str(c.get("color")) for c in brand.get("accent_candidates", []) if isinstance(c, dict))[:120]
+        errs.append("marca.accent: por confirmar (brand from-site no lo encontró con certeza"
+                    + (f"; candidatos: {cands}" if cands else "") + "). Pregunta al usuario y guárdalo con: "
+                    "frame28 brand set <marca> --accent #RRGGBB")
     for k in ("accent", "ink", "paper", "grey", "border", "on_accent"):
         v = brand.get(k)
         if v is not None and not (isinstance(v, str) and COLOR_RE.match(v.strip())):

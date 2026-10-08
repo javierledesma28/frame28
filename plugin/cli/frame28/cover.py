@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
-from .build import DEFAULT_BRAND, brand_errors, highlight_line_height, on_accent_color, resolve_brand
+from .build import DEFAULT_BRAND, brand_errors, highlight_line_height, load_brand_file, on_accent_color, resolve_brand
 from .env import env_with_ffmpeg, npx_cmd, run
 
 
@@ -41,7 +41,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
     b = dict(DEFAULT_BRAND); meta: dict = {}; brand_dir: Path | None = None
     if brand:
         if isinstance(brand, str):
-            bp = resolve_brand(brand, out); meta = json.loads(bp.read_text(encoding="utf-8-sig")); brand_dir = bp.parent
+            bp = resolve_brand(brand, out); meta = load_brand_file(bp); brand_dir = bp.parent
         else:
             meta = brand
         bad = brand_errors(meta)

@@ -862,9 +862,13 @@ def brand_from_site(url, name, out_dir, logo_url, tagline, as_json):
     r = from_site(url, name, out_dir, logo_url, tagline)
     if as_json:
         out(r, True); return
-    click.echo(f"  marca: {r['brand']}  ·  confianza {r['confidence']}")
-    click.echo(f"  acento {r['accent']} ({', '.join(r['accent_sources']) or 'provisional'})  tinta {r['ink']}  fuente {r['font'] or '(no detectada)'}"
+    pending = r["accent_status"] != "ok"
+    click.echo(f"  marca: {r['brand']}  ·  confianza {r['confidence']}" + ("  ·  ACENTO A CONFIRMAR" if pending else ""))
+    acc = r["accent"] or f"a confirmar (sugerido {r['accent_suggested'] or '-'})"
+    click.echo(f"  acento {acc} ({', '.join(r['accent_sources']) or 'sin evidencia'})  tinta {r['ink']}  fuente {r['font'] or '(no detectada)'}"
                f"  secundarios {', '.join(r['secondary']) or '-'}")
+    if pending and r["candidates"]:
+        click.echo("  candidatos: " + "; ".join(f"{c['color']} ({', '.join(c['sources'])})" for c in r["candidates"][:4]))
     click.echo(f"  colores más usados (portada + {r['stylesheets']} hoja(s) CSS): " + ", ".join(f"{h} x{n}" for h, n in r["top_colors"]))
     lg = r["logo"]
     click.echo(f"  logo: {lg.get('url') or '(no encontrado)'}" + (f" [{lg['kind']}]" if lg.get("kind") else "")
@@ -873,6 +877,49 @@ def brand_from_site(url, name, out_dir, logo_url, tagline, as_json):
         click.echo(f"  ! {w}")
     click.echo(f"  sitio: {r['title']}\n  {r['description'][:160]}")
     click.echo("  Revisa y ajusta con un editor (tagline, endorsement, colores) y úsala con \"brand\": \"" + name + "\" en el storyboard.")
+
+
+@brand.command("set")
+@click.argument("name")
+@click.option("--accent", default=None, help="color de acento #RRGGBB, el que eligió el usuario")
+@click.option("--ink", default=None, help="tinta #RRGGBB")
+@click.option("--font", default=None, help="familia tipográfica (p. ej. Poppins); añade el enlace a Google Fonts")
+@click.option("--tagline", default=None)
+@click.option("--json", "as_json", is_flag=True)
+def brand_set(name, accent, ink, font, tagline, as_json):
+    """Guarda en una marca lo que confirmó el usuario (acento, tinta, fuente, tagline). Quita el «acento a confirmar»
+    que deja `brand from-site` cuando no lo encontró con certeza; hasta entonces build y cover se niegan."""
+    import re
+    import urllib.parse
+    from .build import on_accent_color, resolve_brand
+    if all(v is None for v in (accent, ink, font, tagline)):
+        raise SystemExit("nada que guardar: --accent, --ink, --font o --tagline")
+    path = resolve_brand(name, Path.cwd())
+    d = json.loads(path.read_text(encoding="utf-8-sig"))
+    for k, v in (("accent", accent), ("ink", ink)):
+        if v is not None:
+            if not re.match(r"^#[0-9a-fA-F]{6}$", v.strip()):   # solo #RRGGBB: la Memoria de marca no admite otro formato
+                raise SystemExit(f"--{k}: color no válido '{v}' (formato #RRGGBB)")
+            d[k] = v.strip()
+    if accent is not None:
+        d.pop("accent_pending", None); d.pop("accent_candidates", None)
+    if d.get("accent") and (accent is not None or ink is not None):
+        d["on_accent"] = on_accent_color(d["accent"], d.get("ink", "#111111"))
+    if font is not None:
+        fam = font.strip().strip("'\"")
+        if not re.match(r"^[A-Za-z][A-Za-z0-9 _.-]{1,39}$", fam):
+            raise SystemExit(f"--font: nombre de familia no válido '{font}'")
+        d["sans"] = f'{fam}, Inter, "Segoe UI", Arial, sans-serif'
+        d["font_link"] = f"https://fonts.googleapis.com/css2?family={urllib.parse.quote(fam)}:wght@400;600;800&display=swap"
+    if tagline is not None:
+        d["tagline"] = tagline
+    path.write_text(json.dumps(d, indent=2, ensure_ascii=False), encoding="utf-8")
+    r = {"brand": str(path), "accent": d.get("accent"), "on_accent": d.get("on_accent"), "ink": d.get("ink"),
+         "font": d["sans"].split(",")[0].strip() if d.get("sans") else None, "accent_pending": bool(d.get("accent_pending"))}
+    if as_json:
+        out(r, True); return
+    click.echo(f"  marca: {path}\n  acento {r['accent']}  texto sobre acento {r['on_accent']}  tinta {r['ink']}  fuente {r['font']}"
+               + ("\n  ! el acento sigue por confirmar: --accent #RRGGBB" if r["accent_pending"] else ""))
 
 
 @brand.command("init")
