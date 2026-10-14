@@ -10,7 +10,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .env import ensure_rvm_model, ffmpeg, ffprobe, run
+from .env import ensure_rvm_model, ffmpeg, ffprobe, onnx_providers, run
 from .media import cut, frame_at
 from .imgio import imwrite
 
@@ -27,15 +27,16 @@ def auto_ratio(width: int, height: int) -> float:
     return 0.125
 
 
-def _session():
+def _session(gpu: bool | None = None):
+    """Sesión de RVM y el proveedor que de verdad usa: si CUDA no llega a cargar, onnxruntime sigue en CPU sin error."""
     import onnxruntime as ort
-    providers = ["CUDAExecutionProvider", "CPUExecutionProvider"] if "CUDAExecutionProvider" in ort.get_available_providers() else ["CPUExecutionProvider"]
-    return ort.InferenceSession(str(ensure_rvm_model()), providers=providers), providers[0]
+    sess = ort.InferenceSession(str(ensure_rvm_model()), providers=onnx_providers(gpu))
+    return sess, sess.get_providers()[0]
 
 
-def matte_frames(video: str | Path, png_dir: str | Path, ratio: float | None = None) -> dict:
-    """Genera PNG RGBA por fotograma (RGB = foreground predicho, A = alfa)."""
-    sess, provider = _session()
+def matte_frames(video: str | Path, png_dir: str | Path, ratio: float | None = None, gpu: bool | None = None) -> dict:
+    """Genera PNG RGBA por fotograma (RGB = foreground predicho, A = alfa). `gpu`: None = CUDA si la hay."""
+    sess, provider = _session(gpu)
     out = Path(png_dir); out.mkdir(parents=True, exist_ok=True)
     cap = cv2.VideoCapture(str(video))
     w, h = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -83,7 +84,8 @@ def png_to_webm(png_dir: str | Path, out_webm: str | Path, fps: int | float | st
 
 
 def matte(video: str | Path, out_webm: str | Path, start: float | None = None, end: float | None = None,
-          ratio: float | None = None, fps: int | float | str | None = None, keep_png: str | Path | None = None) -> dict:
+          ratio: float | None = None, fps: int | float | str | None = None, keep_png: str | Path | None = None,
+          gpu: bool | None = None) -> dict:
     """Máscara alfa como WebM VP9 con alfa. Con start/end recorta primero (solo el tramo que necesita texto detrás).
     Sale a los fps del tramo de origen (`fps` los fuerza): con 30 fijos, un original a 25 o 60 sin pasar por prep daba un
     alfa a otra velocidad, desincronizado del texto de detrás (F28-92). La carpeta temporal (un PNG RGBA por fotograma,
@@ -95,7 +97,7 @@ def matte(video: str | Path, out_webm: str | Path, start: float | None = None, e
             src = cut(video, start, end, tmp / "seg.mp4")
         rate = fps or frame_rate(src)
         png_dir = Path(keep_png) if keep_png else tmp / "png"
-        stats = matte_frames(src, png_dir, ratio)
+        stats = matte_frames(src, png_dir, ratio, gpu)
         png_to_webm(png_dir, out_webm, rate)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -210,6 +210,38 @@ def version_rows(cli: str, latest: str | None, plugin: tuple[bool, str | None]) 
     return rows
 
 
+def editable_dir() -> str | None:
+    """Carpeta del CLI si está instalado en modo editable (la de `uv tool install --editable`), para dar órdenes con
+    rutas de verdad en vez de «<ruta>»."""
+    try:
+        import importlib.metadata as md
+        from urllib.parse import unquote, urlparse
+        du = json.loads(md.distribution("frame28").read_text("direct_url.json") or "{}")
+        if not (du.get("dir_info") or {}).get("editable"):
+            return None
+        path = unquote(urlparse(du.get("url", "")).path)
+        return path[1:] if len(path) > 2 and path[0] == "/" and path[2] == ":" else path or None   # /C:/… → C:/…
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def onnx_rows(dists: list[str], available: list[str], editable_dir: str | None) -> list[dict]:
+    """Filas de onnxruntime: dos paquetes que dan el mismo módulo es un error (cada uno pisa los ficheros del otro y CUDA
+    queda a suertes); sin CUDA, el extra gpu es opcional."""
+    from .env import gpu_install_cmd
+    cmd = gpu_install_cmd(editable_dir)
+    rows = []
+    if len(dists) > 1:
+        rows.append({"name": "onnxruntime (un solo paquete)", "ok": False, "optional": False,
+                     "detail": f"{' y '.join(dists)} instalados a la vez: comparten el módulo y se pisan",
+                     "fix": f"reinstala excluyendo el de CPU: {cmd}"})
+    cuda = "CUDAExecutionProvider" in available
+    rows.append({"name": "gpu (matte y OCR)", "ok": cuda, "optional": True,
+                 "detail": ("CUDA (onnxruntime-gpu)" if cuda else "CPU") + " · " + ", ".join(available),
+                 "fix": "" if cuda else f"opcional, con una GPU NVIDIA: {cmd} (unos 3 GB con la transcripción en GPU)"})
+    return rows
+
+
 def doctor() -> list[dict]:
     rows = []
 
@@ -243,8 +275,8 @@ def doctor() -> list[dict]:
             add(mod, False, str(e)[:80], fix)
     try:
         import onnxruntime as ort
-        provs = ort.get_available_providers()
-        add("gpu (onnxruntime)", "CUDAExecutionProvider" in provs, ", ".join(provs), "opcional: uv pip install onnxruntime-gpu + CUDA 12 para matting rápido", optional=True)
+        from .env import onnxruntime_dists
+        rows.extend(onnx_rows(onnxruntime_dists(), ort.get_available_providers(), editable_dir()))
     except Exception:  # noqa: BLE001
         pass
     try:
@@ -260,7 +292,8 @@ def doctor() -> list[dict]:
     try:
         from .env import cuda_ready
         ok_gpu, why_gpu = cuda_ready()
-        add("gpu (transcripción)", ok_gpu, why_gpu, 'opcional: uv tool install --editable "<ruta>/plugin/cli[gpu]" --python 3.12 --reinstall (librerías CUDA, más de 1 GB); sin ellas `transcribe` va por CPU', optional=True)
+        from .env import gpu_install_cmd
+        add("gpu (transcripción)", ok_gpu, why_gpu, f"opcional: {gpu_install_cmd(editable_dir())} (librerías CUDA, unos 3 GB); sin ellas `transcribe` y matte van por CPU", optional=True)
     except Exception:  # noqa: BLE001
         pass
     from .audio import RNNOISE_MODEL_PATH, RNNOISE_MODEL_SHA256

@@ -20,7 +20,8 @@ Las licencias se han revisado en el origen de cada pieza; lo marcado «a confirm
 | mediapipe | pose y gestos | Apache-2.0 |
 | rapidocr | texto presente en el vídeo (PaddleOCR en ONNX, modelos dentro del wheel) | Apache-2.0 |
 | segno | códigos QR | BSD-3-Clause |
-| nvidia-cublas-cu12, nvidia-cudnn-cu12 (extra `gpu`, opcional) | transcripción en GPU NVIDIA | licencia de NVIDIA para sus librerías redistribuibles |
+| onnxruntime-gpu (extra `gpu`, opcional; sustituye a onnxruntime) | RVM y OCR en GPU NVIDIA | MIT |
+| nvidia-cublas-cu12, nvidia-cudnn-cu12, nvidia-cuda-runtime-cu12, nvidia-cufft-cu12, nvidia-curand-cu12, nvidia-cuda-nvrtc-cu12, nvidia-nvjitlink-cu12 (extra `gpu`, opcional) | transcripción, RVM y OCR en GPU NVIDIA | licencia de NVIDIA para sus librerías redistribuibles |
 
 ## Modelos que se descargan al usarse
 

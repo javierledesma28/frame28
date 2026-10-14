@@ -20,11 +20,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Transcripción en GPU NVIDIA: las librerías de CUDA 12 que ctranslate2 (faster-whisper) carga en tiempo de ejecución.
-# uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --reinstall   (más de 1 GB; sin esto todo va por CPU)
+# GPU NVIDIA: las librerías de CUDA 12 que ctranslate2 (faster-whisper) carga en tiempo de ejecución y onnxruntime-gpu
+# (matte y OCR). onnxruntime-gpu da el mismo módulo que onnxruntime, así que el de CPU se excluye al instalar:
+# uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --excludes ./plugin/cli/excluir-gpu.txt --reinstall
+# (unos 3 GB; sin esto todo va por CPU). `frame28 doctor` da la orden exacta para cada instalación.
 gpu = [
   "nvidia-cublas-cu12; sys_platform != 'darwin'",
   "nvidia-cudnn-cu12>=9,<10; sys_platform != 'darwin'",
+  "onnxruntime-gpu[cuda,cudnn]>=1.21,<1.27; sys_platform != 'darwin'",
 ]
 
 [project.scripts]

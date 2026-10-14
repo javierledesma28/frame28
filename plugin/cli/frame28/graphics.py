@@ -1,7 +1,8 @@
 """Gráficos ya presentes en un vídeo producido: texto en pantalla (rótulos, marca de agua, subtítulos quemados,
 texto impreso en objetos), tarjetas a pantalla completa y, a partir de eso, las zonas libres para nuestros overlays.
 
-Detector de texto: RapidOCR (PaddleOCR en ONNX, Apache-2.0) sobre onnxruntime en CPU, ~1 s por fotograma 1080p.
+Detector de texto: RapidOCR (PaddleOCR en ONNX, Apache-2.0) sobre onnxruntime, en CPU (~1,2 s por fotograma 1080p; en
+CUDA, con `--gpu`, fue más lento: ver `_ocr_engine`).
 Muestreamos el vídeo a `sample_fps` (1 por defecto), agrupamos las cajas en eventos (misma zona y texto parecido en
 muestras consecutivas) y clasificamos:
   watermark   presente en más del 60 % del vídeo, siempre en el mismo sitio
@@ -28,13 +29,31 @@ from .imgio import imwrite
 ZONES = ["top-left", "top-center", "top-right", "mid-left", "center", "mid-right", "bottom-left", "bottom-center", "bottom-right"]
 
 
-def _ocr_engine():
+def _ocr_engine(gpu: bool | None = None):
+    """RapidOCR en CPU salvo que se pida CUDA (`--gpu` o FRAME28_ONNX=gpu). Medido el 2026-10-14 (F28-116, RTX 4060
+    ocupada por otro programa, 16 núcleos): 1,2 s por fotograma en CPU y 1,5 s en CUDA, con los mismos textos, incluso
+    con las formas ya vistas. En CUDA, cuDNN en HEURISTIC: onnxruntime 1.2x traduce DEFAULT al plan de reserva de
+    cuDNN 9 («Fallback mode. May be extremely slow»: 98,5 s frente a 27,7 s en CPU con 20 muestras)."""
+    from .env import onnx_mode, onnx_providers
     logging.getLogger("RapidOCR").setLevel(logging.ERROR)
     try:
         from rapidocr import RapidOCR
     except ImportError as e:  # pragma: no cover
         raise SystemExit("Falta rapidocr (pip/uv: rapidocr). Reinstala el CLI: uv tool install --editable ./plugin/cli --python 3.12 --reinstall") from e
+    if gpu is None:
+        gpu = onnx_mode() == "gpu"
+    if gpu and onnx_providers(True)[0] == "CUDAExecutionProvider":   # sin CUDA, onnx_providers(True) ya da el error
+        return RapidOCR(params={"EngineConfig.onnxruntime.use_cuda": True,
+                                "EngineConfig.onnxruntime.cuda_ep_cfg.cudnn_conv_algo_search": "HEURISTIC"})
     return RapidOCR()
+
+
+def _ocr_provider(eng) -> str:
+    """Proveedor que usa de verdad el detector de RapidOCR (la sesión nace con el primer fotograma)."""
+    try:
+        return eng.text_det.session.session.get_providers()[0]
+    except Exception:  # noqa: BLE001  versión de rapidocr con otra estructura interna, o sin fotogramas
+        return "desconocido"
 
 
 def _iou(a, b) -> float:
@@ -62,7 +81,7 @@ def _card_like(frame: np.ndarray) -> tuple[bool, str]:
 
 
 def scan(video: str | Path, sample_fps: float = 1.0, canvas: tuple[int, int] | None = None, max_side: int = 1280,
-         min_score: float = 0.6) -> dict:
+         min_score: float = 0.6, gpu: bool | None = None) -> dict:
     from .captions import default_canvas
 
     cap = cv2.VideoCapture(str(video))
@@ -72,7 +91,7 @@ def scan(video: str | Path, sample_fps: float = 1.0, canvas: tuple[int, int] | N
     cw, ch = canvas or default_canvas(w, h)
     sx, sy = cw / w, ch / h
     step = 1.0 / sample_fps
-    eng = _ocr_engine()
+    eng = _ocr_engine(gpu)
     open_events: list[dict] = []; events: list[dict] = []; cards: list[dict] = []
     card_open: dict | None = None
     samples = 0
@@ -157,7 +176,8 @@ def scan(video: str | Path, sample_fps: float = 1.0, canvas: tuple[int, int] | N
     burned = len(subs) >= 3 and sum(e["end"] - e["start"] for e in subs) > 0.25 * dur
     out_events = watermark_pass(out_events, dur, cw)
     result = {"video": str(video), "duration": round(dur, 2), "canvas": [cw, ch], "sample_fps": sample_fps, "samples": samples,
-              "events": sorted(out_events, key=lambda e: e["start"]), "cards": cards, "burned_subtitles": burned}
+              "provider": _ocr_provider(eng), "events": sorted(out_events, key=lambda e: e["start"]), "cards": cards,
+              "burned_subtitles": burned}
     result["zones"] = zone_report(result)
     return result
 

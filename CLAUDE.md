@@ -143,8 +143,9 @@ _private/                         NO versionado: caras, fotogramas y transcripci
 Instalación de desarrollo (hecha en esta máquina, Windows 11, sin CUDA):
 ```bash
 uv tool install --editable ./plugin/cli --python 3.12     # CLI editable → ~/.local/bin/frame28
-uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --reinstall   # opcional: librerías CUDA (>1 GB) para transcribir en
-                                                           # GPU NVIDIA; es lo que hay instalado en esta máquina (2,5 GB en %APPDATA%/uv/tools/frame28)
+uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --excludes ./plugin/cli/excluir-gpu.txt --reinstall
+                                                           # opcional: CUDA 12 + onnxruntime-gpu (unos 3,3 GB) para transcribir, matte
+                                                           # y OCR en GPU NVIDIA; sin --excludes quedan onnxruntime y -gpu juntos (F28-116)
 claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # marketplace local "think28"
 claude plugin install frame28@think28 --scope user
 claude plugin validate ./plugin                             # SIEMPRE antes de commitear skills
@@ -257,7 +258,9 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   `nvidia-cudnn-cu12`) da a faster-whisper las librerías CUDA; `transcribe --device auto` usa la GPU si `env.cuda_ready()` lo
   confirma (float16) y cae a CPU (int8) si falla a mitad. La codificación va por NVENC por defecto (`FRAME28_ENCODER=auto`:
   prueba real de 1 s, `env.nvenc_ready`, en caché una semana por ffmpeg) en prep, reframe, cut, clips y render; `--cpu` o
-  `FRAME28_ENCODER=cpu` la fuerzan a libx264. onnxruntime sigue en CPU (matte, OCR). El render se acelera sobre todo con
+  `FRAME28_ENCODER=cpu` la fuerzan a libx264. Con el extra, matte (RVM) va en CUDA por `onnxruntime-gpu`
+  (`env.onnx_providers`, `--gpu/--cpu`, `FRAME28_ONNX=auto|gpu|cpu`); el OCR sigue en CPU salvo `--gpu`, porque ahí la
+  CPU ganó (F28-116). El render se acelera sobre todo con
   `--workers` (la GPU solo codifica el final).
 - **GSAP 3.13+** es gratis con plugins: `build.py` carga SplitText/DrawSVG solo cuando el storyboard los usa.
 - Limpieza de audio: `highpass 80` + `afftdn` (o `rnnoise` con modelo BSD en caché) + `loudnorm` en dos pasadas.
@@ -308,11 +311,22 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - **PyAV**: uv resolvía `av` 19, que rompe faster-whisper (`metadata_errors`); `av` 14 no tiene wheel Windows → pin `<18`.
 - **La GPU (RTX 4060 Laptop, 8 GB) ya transcribe**: las librerías CUDA van en el extra `gpu` y `doctor` lo confirma
   («gpu (transcripción) ✓ 1 GPU CUDA con cuBLAS y cuDNN»). **Medido el 2026-10-01**: el mismo audio de 160 s, 42,4 s en
-  GPU (float16) frente a 178,7 s en CPU (int8), 4,2× más rápido con un render ocupando la máquina. onnxruntime sigue siendo
-  la compilación de CPU (matte y OCR). NVENC en ffmpeg funciona sin instalar nada y, desde F28-114, **se usa solo**: el
+  GPU (float16) frente a 178,7 s en CPU (int8), 4,2× más rápido con un render ocupando la máquina. NVENC en ffmpeg funciona sin instalar nada y, desde F28-114, **se usa solo**: el
   render final y los intermedios de prep, reframe y cut (`env.encoder_args`; 5× medido, fichero mayor) salen con
   `h264_nvenc` si `doctor` dice «codificador NVENC (GPU)». En una máquina sin NVIDIA la prueba falla y todo va por CPU sin
   pedir nada; `--cpu` para comparar o forzar.
+- **onnxruntime-gpu y el OCR** (F28-116, medido el 2026-10-14 con la GPU ocupada al 98 % por un juego): (1) `onnxruntime` y
+  `onnxruntime-gpu` dan el mismo módulo; con los dos instalados se pisan los ficheros y CUDA queda a suertes. faster-whisper
+  pide `onnxruntime` por nombre, así que el extra `gpu` se instala con `--excludes plugin/cli/excluir-gpu.txt` (también como
+  URL: uv guarda el nombre excluido en `uv-receipt.toml` y `uv tool upgrade` lo respeta); `doctor` marca los dos juntos
+  como fallo y da la orden. `onnxruntime-gpu` < 1.27 (CUDA 12, la misma de ctranslate2; 1.27 pasa a CUDA 13). (2) Sin
+  `env.enable_cuda_dlls()` onnxruntime no encuentra cuDNN y **sigue en CPU sin error** (RapidOCR solo avisa): por eso matte
+  y graphics informan del proveedor real (`provider`). (3) RVM a 1080p: inferencia 592 → 103 ms por fotograma, pero el
+  total solo gana ~20 % (1,2–1,4 → 1,5–1,7 fps): mandan escribir los PNG y codificar el VP9. (4) OCR: 1,2 s por fotograma
+  en CPU y 1,5 s en CUDA con los mismos textos; por eso va en CPU salvo `--gpu`. (5) `cudnn_conv_algo_search=DEFAULT` en
+  onnxruntime 1.2x con cuDNN 9 es el plan de reserva («Fallback mode. May be extremely slow»): el OCR en CUDA tardó 98,5 s
+  frente a 27,7 s en CPU; usar HEURISTIC (EXHAUSTIVE ya no mide algoritmos: solo cambia la heurística). Los avisos de
+  onnxruntime salen por stderr en UTF-16: `tr -d ' '` antes de `grep`.
 - **Decodificar en la GPU (NVDEC) no siempre gana** (F28-115, medido el 2026-10-03, prep = fps 30 + NVENC, RTX 4060 + 16
   núcleos): H.264 de 83 s, 14,8 → 11,0 s con la CPU libre y 28,6 → 18,8 s con la CPU ocupada; **AV1** de 160 s, 21,5 → 20,5 s
   libre y **27,1 → 66,4 s ocupada** (dav1d en CPU gana de largo). Y solo con el camino entero en GPU

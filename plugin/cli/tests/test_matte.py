@@ -32,7 +32,7 @@ def _fake_pipeline(monkeypatch, tmp_path, fail: bool = False):
     monkeypatch.setattr(M, "frame_rate", lambda video: "25/1")
     seen = {}
 
-    def frames(src, png_dir, ratio):
+    def frames(src, png_dir, ratio, gpu=None):
         png_dir.mkdir(parents=True, exist_ok=True)
         (png_dir / "f_0000.png").write_bytes(b"x" * 1024)
         if fail:

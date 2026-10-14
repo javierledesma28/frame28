@@ -158,11 +158,12 @@ def transcribe(audio, out_dir, lang, model, device, compute, script, as_json):
 @click.option("--ratio", type=float, default=None, help="downsample_ratio de RVM (auto por resolución)")
 @click.option("--fps", default=None, help="fps del WebM (por defecto, los del vídeo de origen)")
 @click.option("--keep-png", type=click.Path(), default=None, help="Conservar la secuencia PNG RGBA aquí")
+@click.option("--gpu/--cpu", default=None, help="RVM en CUDA o en CPU; sin indicarlo, CUDA si el extra gpu la trae (FRAME28_ONNX=auto|gpu|cpu)")
 @click.option("--json", "as_json", is_flag=True)
-def matte(video, out_webm, start, end, ratio, fps, keep_png, as_json):
+def matte(video, out_webm, start, end, ratio, fps, keep_png, gpu, as_json):
     """Máscara alfa del hablante (RobustVideoMatting) como WebM VP9 con alfa. Usa --start/--end para solo un tramo."""
     from .matte import matte as _matte
-    out(_matte(video, out_webm, start, end, ratio, fps, keep_png), as_json or True)
+    out(_matte(video, out_webm, start, end, ratio, fps, keep_png, gpu), as_json or True)
 
 
 @main.command()
@@ -328,14 +329,15 @@ def reframe_map(reframe_json, gestures_json, points, canvas, out_json, as_json):
 @click.option("--canvas", default="auto", show_default=True, help="lienzo del storyboard, p. ej. 1920x1080")
 @click.option("--annotate", type=click.Path(), default=None, help="PNG con el mapa de zonas ocupadas y la lista de gráficos")
 @click.option("-o", "--out", "out_json", type=click.Path(), default=None, help="guardar graphics.json")
+@click.option("--gpu/--cpu", default=None, help="OCR en CUDA o en CPU; sin indicarlo, CPU (medido más rápido; FRAME28_ONNX=gpu lo pasa a CUDA)")
 @click.option("--json", "as_json", is_flag=True)
-def graphics(video, sample_fps, canvas, annotate, out_json, as_json):
-    """Gráficos ya presentes en el vídeo (rótulos, marca de agua, subtítulos quemados, texto en objetos, tarjetas) y zonas libres. OCR en CPU, ~1 s por muestra."""
+def graphics(video, sample_fps, canvas, annotate, out_json, gpu, as_json):
+    """Gráficos ya presentes en el vídeo (rótulos, marca de agua, subtítulos quemados, texto en objetos, tarjetas) y zonas libres. OCR con RapidOCR (CPU; --gpu para CUDA)."""
     from .graphics import scan, annotate as _annotate
     from .media import probe
     from .captions import parse_canvas
     v = probe(video, loudness=False).get("video") or {}
-    r = scan(video, sample_fps, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0)))
+    r = scan(video, sample_fps, canvas=parse_canvas(canvas, v.get("width", 0), v.get("height", 0)), gpu=gpu)
     if out_json:
         Path(out_json).write_text(json.dumps(r, indent=1, ensure_ascii=False), encoding="utf-8"); r["saved"] = out_json
     if annotate:
