@@ -95,8 +95,10 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   contra la marca, el brief.md del montaje (Memoria + campaña) y la Memoria en JSON
     render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto que cubre el vídeo entero)
     doctor.py, cli.py, STORYBOARD.md, brands/think28.json + brands/think28/*.svg
-  cli/tests/                      pytest (grupo dev): conftest con fixtures de poc/ y datos sintéticos; test_captions, test_cut,
-                                  test_clips, test_i18n, test_build, test_reframe, test_log, test_cli, test_release_check
+  cli/tests/                      pytest (grupo dev): conftest con fixtures de poc/ y datos sintéticos; un test_<módulo>.py por
+                                  módulo del CLI (todos tienen al menos una prueba) más test_pasos (fallos de ffmpeg en prep, cut
+                                  y audio), test_herramientas (localizar ffmpeg y uv), test_textos_entrada, test_instalar_detect,
+                                  test_watermark y test_release_check
 docs/                             GitHub Pages: presentacion/ (deck + engine/), instalar/ (asistente web), instalar.md,
                                   install.ps1, install.sh, guion-demo.md, guia-plugin.md, brand/, CNAME, .nojekyll, index.html
   roadmap/index.html              roadmap por versiones (Think28): los datos viven en el array ROADMAP del propio fichero
@@ -171,11 +173,13 @@ frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.j
 frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una versión traducida (subtítulos por frase del storyboard)
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (114 pruebas, ~3 s; módulos puros sin ffmpeg ni
-modelos: captions, cut, clips (incluidos `batch --no-render` y `markers`), i18n, build.validate/platform_warnings/build_project,
-reframe.map_*, log/report, smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`, los storyboards versionados y `poc/clip-caso-a/*.json`).
-`scripts/release-check.py` la ejecuta. Cada bug que se arregle lleva su prueba de regresión en `plugin/cli/tests/`.
-Lo que no cubre (render, matte, gestos, OCR) se prueba con `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
+Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (~320 pruebas, unos 20 s; sin modelos ni render y
+sin necesitar ffmpeg: las pruebas que lo llaman sustituyen ffmpeg y `run`, y la suite pasa igual con `FRAME28_FFMPEG=/no/existe`;
+todos los módulos del CLI tienen al menos una prueba; smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`,
+los storyboards versionados y `poc/clip-caso-a/*.json`). La CI (`.github/workflows/tests.yml`) la pasa en cada push que
+toque `plugin/cli/`, y `scripts/release-check.py` también. Cada bug que se arregle lleva su prueba de regresión en
+`plugin/cli/tests/`. Lo que no cubre (el render, el alfa de RVM, la detección de gestos y el OCR reales) se prueba con
+`frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
 Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards reales completos: `poc/clip-demo/`
 (16 overlays, cortes, vertical), `poc/clip-caso-a/` (vídeo producido, marca de cliente, shorts, i18n).
 
