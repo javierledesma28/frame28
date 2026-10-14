@@ -6,15 +6,24 @@
 <title>Instalar Frame28</title>
 <meta name="description" content="Asistente de instalación de Frame28: detecta tu sistema, te da la línea exacta y te acompaña paso a paso.">
 <link rel="alternate" hreflang="en" href="https://frame28.t28.io/instalar/en/">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/brand/think28-isotipo.svg" type="image/svg+xml">
+<!-- Fuentes de Google tras el primer pintado con contenido: no entran en el FCP (F28-121) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="t28-fuentes" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap" media="print">
+<script>(function(l){var n=0,h=0,P=window.PerformanceObserver;function on(){if(++n==2)l.media="all"}function pinto(){if(!h){h=1;on()}}if(l.sheet)on();else l.addEventListener("load",on);if(P&&(P.supportedEntryTypes||[]).indexOf("paint")>=0)new P(function(s,o){if(s.getEntriesByName("first-contentful-paint").length){o.disconnect();pinto()}}).observe({type:"paint",buffered:true});else requestAnimationFrame(function(){requestAnimationFrame(pinto)});setTimeout(pinto,3e3)})(document.getElementById("t28-fuentes"))</script>
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Mono:wght@400;700&display=swap"></noscript>
 <style>
-  :root{--y:#F5C500;--ink:#0A0A0A;--paper:#fff;--mute:#555;--line:#222;--soft:#161616;--ok:#3ddc84}
+  @font-face{font-family:"Space Mono Fallback";src:local("Courier New");ascent-override:109.8%;descent-override:35.29%;line-gap-override:0%;size-adjust:102%}
+  @font-face{font-family:"Inter Fallback";src:local("Arial");ascent-override:90.49%;descent-override:22.56%;line-gap-override:0%;size-adjust:107.06%}
+  :root{--y:#F5C500;--ink:#0A0A0A;--paper:#fff;--mute:#8a8a8a;--line:#222;--soft:#161616;--ok:#3ddc84}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--ink);color:#fff;font-family:Inter,'Segoe UI',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  body{background:var(--ink);color:#fff;font-family:Inter,'Inter Fallback','Segoe UI',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
   .wrap{max-width:880px;margin:0 auto;padding:40px 20px 80px}
   header{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:40px}
   .logo{font-weight:800;font-size:22px;letter-spacing:-.03em}.logo b{color:var(--y)}
-  .tag{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
+  .tag{font-family:'Space Mono','Space Mono Fallback',monospace;font-size:11px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
   h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-.035em;line-height:1.05;margin-bottom:14px}
   h1 span{color:var(--y)}
   .lead{color:#bbb;font-size:18px;max-width:640px;margin-bottom:36px}
@@ -22,8 +31,8 @@
   .os button{font:inherit;font-weight:600;background:var(--soft);color:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 18px;cursor:pointer}
   .os button[aria-pressed="true"]{background:var(--y);color:var(--ink);border-color:var(--y)}
   .card{background:var(--soft);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
-  .card h2{font-size:15px;font-family:'Space Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--y);margin-bottom:12px}
-  .cmd{display:flex;gap:10px;align-items:center;background:#000;border:1px solid #333;border-radius:12px;padding:14px 16px;font-family:'Space Mono',monospace;font-size:15px;overflow:auto}
+  .card h2{font-size:15px;font-family:'Space Mono','Space Mono Fallback',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--y);margin-bottom:12px}
+  .cmd{display:flex;gap:10px;align-items:center;background:#000;border:1px solid #333;border-radius:12px;padding:14px 16px;font-family:'Space Mono','Space Mono Fallback',monospace;font-size:15px;overflow:auto}
   .cmd code{flex:1;white-space:nowrap}
   .cmd button{font:inherit;font-weight:700;background:var(--y);color:var(--ink);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;white-space:nowrap}
   .cmd button.done{background:var(--ok)}
@@ -39,12 +48,12 @@
   .muted{color:var(--mute);font-size:14px}
   a{color:var(--y)}
   .hidden{display:none}
-  .pill{display:inline-block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;padding:3px 10px;border:1px solid #333;border-radius:999px;color:#bbb;margin-left:6px}
+  .pill{display:inline-block;font-family:'Space Mono','Space Mono Fallback',monospace;font-size:12px;letter-spacing:.1em;padding:3px 10px;border:1px solid #333;border-radius:999px;color:#bbb;margin-left:6px}
   .detected{background:#1d1a08;border:1px solid #4a3f00;border-radius:14px;padding:12px 16px;margin:-6px 0 20px;color:#eee;font-size:15px}
   .detected b{color:var(--y)}
   .detected.warn{background:#1f1010;border-color:#5a2a2a}
   .os button:focus-visible,.cmd button:focus-visible,a:focus-visible{outline:3px solid var(--y);outline-offset:2px}
-  footer{margin-top:50px;color:var(--mute);font-family:'Space Mono',monospace;font-size:12px;letter-spacing:.1em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  footer{margin-top:50px;color:var(--mute);font-family:'Space Mono','Space Mono Fallback',monospace;font-size:12px;letter-spacing:.1em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 </style>
 </head>
 <body>
@@ -54,6 +63,7 @@
     <span><a class="tag" href="en/" lang="en" hreflang="en">English</a> · <a class="tag" href="../presentacion/">Guía completa →</a></span>
   </header>
 
+  <main>
   <h1>Instalar Frame28 <span>sin sufrir.</span></h1>
   <p class="lead">Esta página reconoce tu sistema (en tu navegador; no se envía nada), te da la línea exacta y te cuenta qué vas a ver. La instalación es
   interactiva: te dice en qué paso está, por qué, y te pregunta antes de cada cosa. Vale para un equipo recién estrenado.</p>
@@ -146,6 +156,8 @@
       <p class="muted" style="margin-top:8px">¿Ya lo tenías instalado? Ejecuta la misma línea: reconoce lo que tienes, busca la versión nueva y actualiza solo lo que haga falta. Al final te dice qué ha cambiado (o que todo estaba al día).</p>
     </div>
   </section>
+
+  </main>
 
   <footer>
     <span>A THINK28 PRODUCT · <a href="https://t28.io">T28.IO</a></span>

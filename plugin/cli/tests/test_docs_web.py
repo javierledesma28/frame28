@@ -1,0 +1,80 @@
+"""F28-121: las páginas de frame28.t28.io pintan sin esperar a Google Fonts (costaba ~0,9 s de FCP móvil), tienen favicon
+(su 404 era un error de consola en las tres) y meta description, y el asistente de instalación pasa la accesibilidad.
+Y ningún fichero de texto versionado lleva un NUL: uno colado en CLAUDE.md hacía que grep lo tratara como binario."""
+import re
+import subprocess
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[3]
+DOCS = REPO / "docs"
+PAGINAS = ["instalar/index.html", "instalar/en/index.html", "roadmap/index.html", "presentacion/deck.html",
+           "presentacion/index.html"]
+INSTALAR = PAGINAS[:2]
+BINARIOS = {".png", ".ico", ".jpg", ".jpeg", ".gif", ".webp", ".mp4", ".wav", ".webm", ".woff", ".woff2", ".ttf", ".onnx",
+            ".zip", ".pdf"}
+
+
+def read(rel: str) -> str:
+    t = (DOCS / rel).read_text(encoding="utf-8")
+    if rel == "presentacion/deck.html":                        # el build mete la hoja de marca en index.html
+        t += (DOCS / "presentacion" / "think28-brand.css").read_text(encoding="utf-8")
+    return t
+
+
+@pytest.mark.parametrize("rel", PAGINAS)
+def test_fuentes_sin_bloquear_el_render(rel):
+    t = read(rel)
+    fuera = re.sub(r"<noscript>.*?</noscript>", "", t, flags=re.S)
+    hojas = re.findall(r"<link[^>]*fonts\.googleapis\.com/css2[^>]*>", fuera)
+    assert len(hojas) == 1 and 'media="print"' in hojas[0] and 'id="t28-fuentes"' in hojas[0]
+    assert 'getElementById("t28-fuentes")' in t and 'l.media="all"' in t
+    # tras el primer pintado con contenido: si las fuentes acaban antes, Lighthouse las cuenta como bloqueantes; los dos
+    # requestAnimationFrame no bastan con la máquina cargada (el fotograma se presenta tarde) y quedan para navegadores viejos
+    assert 'getEntriesByName("first-contentful-paint")' in t and '{type:"paint",buffered:true}' in t
+    assert "requestAnimationFrame(function(){requestAnimationFrame(pinto)})" in t
+    assert "setTimeout(pinto,3e3)" in t                                # una pestaña que nunca registra el FCP también las carga
+    assert re.search(r"<noscript><link rel=\"stylesheet\" href=\"https://fonts\.googleapis\.com/css2", t)
+    assert '"Inter Fallback";src:local("Arial")' in t and "'Inter Fallback'" in t   # declarada y usada en la pila
+    # Space Mono avanza 0,612 em y Consolas 0,550: sin reserva del mismo ancho la cabecera de /instalar/ cambiaba de líneas
+    assert '"Space Mono Fallback";src:local("Courier New")' in t and "size-adjust:102%" in t
+    assert not re.search(r"'Space Mono'(?!,\s*'Space Mono Fallback')", t)
+
+
+@pytest.mark.parametrize("rel", PAGINAS)
+def test_favicon_y_descripcion(rel):
+    t = read(rel)
+    assert '<link rel="icon" href="/favicon.ico"' in t and '<link rel="icon" href="/brand/think28-isotipo.svg"' in t
+    assert re.search(r'<meta name="description" content="[^"]{50,}">', t)
+
+
+def test_favicon_ico_valido():
+    b = (DOCS / "favicon.ico").read_bytes()
+    assert b[:4] == b"\x00\x00\x01\x00" and b[4] >= 1                # cabecera ICO con al menos una imagen
+    assert (DOCS / "brand" / "think28-isotipo.svg").is_file()
+    assert "favicon.ico" in (DOCS / "index.html").read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("rel", INSTALAR)
+def test_instalar_accesible(rel):
+    t = read(rel)
+    assert t.count("<main>") == 1 and t.index("</header>") < t.index("<main>") < t.index("</main>") < t.index("<footer>")
+    m = re.search(r"--mute:#([0-9a-fA-F]{3,6});", t)
+    assert m and m.group(1).lower() not in ("555", "555555")           # 2,65:1 sobre el fondo; #8a8a8a da 5,7:1
+
+
+def test_roadmap_y_deck():
+    assert '<a class="logo" href="https://t28.io">' in read("roadmap/index.html")   # el nombre lo da el SVG (role=img)
+    for rel in ("presentacion/deck.html", "presentacion/index.html"):
+        assert 'class="slide cover is-active"' in read(rel)          # la portada se ve antes de que llegue el JS del motor
+
+
+def test_ningun_texto_versionado_lleva_nul():
+    try:
+        out = subprocess.run(["git", "ls-files", "-z"], cwd=REPO, capture_output=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip("sin git o fuera de un checkout")
+    rutas = [p for p in out.decode("utf-8").split("\0") if p and Path(p).suffix.lower() not in BINARIOS]
+    malos = [p for p in rutas if (REPO / p).is_file() and b"\0" in (REPO / p).read_bytes()]
+    assert not malos
