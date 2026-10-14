@@ -105,6 +105,9 @@
 
   /* versiones */
   .version { margin-top: 36px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  /* Las versiones lejos de la pantalla no se maquetan hasta acercarse (F28-121: 1.530 objetos en el primer Layout y
+     otra vez al llegar las fuentes). El alto estimado sale de sus ítems (--n); el navegador recuerda el real. */
+  .version { content-visibility: auto; contain-intrinsic-size: auto calc(200px + var(--n, 8) * 92px); }
   .vhead { background: var(--bg-2); padding: 18px 20px; display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: baseline; }
   .vhead .num { font-family: var(--mono); font-weight: 700; font-size: 1.35rem; }
   .vhead h2 { font-size: 1.35rem; font-weight: 800; }
@@ -139,6 +142,7 @@
   @media (max-width: 640px) {
     .item { grid-template-columns: 1fr; gap: 6px; }
     .tags { justify-content: flex-start; }
+    .version { contain-intrinsic-size: auto calc(220px + var(--n, 8) * 190px); }
   }
 
   /* pie */
@@ -348,7 +352,7 @@ function render(filter) {
         <div class="tags"><span>esfuerzo ${esc(it.e)}</span><span class="val-${esc(it.val)}">valor ${esc(it.val)}</span>${it.ref ? `<span>${esc(it.ref)}</span>` : ""}</div>
       </li>`).join("");
     return `
-      <section class="version ${v.state === "next" ? "next" : ""} ${v.here ? "here" : ""}" id="${v.v.replace(/\./g, "-")}">
+      <section class="version ${v.state === "next" ? "next" : ""} ${v.here ? "here" : ""}" id="${v.v.replace(/\./g, "-")}" style="--n:${items.length}">
         <div class="vhead">
           <span class="num">${esc(v.v)}</span>
           <h2>${esc(v.name)} <span class="vtag ${cls}">${lbl}</span></h2>
