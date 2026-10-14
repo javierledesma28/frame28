@@ -29,6 +29,16 @@ def _storyboards() -> list[Path]:
 STORYBOARDS = _storyboards()
 
 
+@pytest.fixture(autouse=True)
+def _encoder_cpu(monkeypatch):
+    """Ninguna prueba sondea NVENC con el ffmpeg real (F28-304): `env.encoder_args()` lo probaba aunque la prueba hubiera
+    sustituido ffmpeg y run, y en la CI, sin ffmpeg, la de reframe fallaba desde el 2026-10-04 (en este PC pasaba porque
+    hay ffmpeg, y además escribía ~/.cache/frame28/nvenc.json). Las pruebas del modo de codificación lo cambian con
+    monkeypatch."""
+    from frame28 import env
+    monkeypatch.setenv(env.ENCODER_ENV, "cpu")
+
+
 @pytest.fixture(scope="session")
 def repo() -> Path:
     return REPO
