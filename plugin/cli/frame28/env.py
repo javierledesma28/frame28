@@ -278,6 +278,55 @@ def cuda_ready() -> tuple[bool, str]:
     return True, f"{n} GPU CUDA con cuBLAS y cuDNN"
 
 
+ONNX_ENV = "FRAME28_ONNX"   # auto (por defecto: CUDA si onnxruntime-gpu la trae; el OCR, CPU) · gpu · cpu
+GPU_EXCLUDES = "excluir-gpu.txt"
+GPU_EXCLUDES_URL = "https://raw.githubusercontent.com/javierledesma28/frame28/main/plugin/cli/" + GPU_EXCLUDES
+GIT_SPEC = "git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"
+
+
+def onnx_mode() -> str:
+    """auto, gpu o cpu según FRAME28_ONNX (cuda = gpu; vacío o desconocido = auto)."""
+    v = os.environ.get(ONNX_ENV, "").strip().lower()
+    return "gpu" if v in ("gpu", "cuda") else "cpu" if v == "cpu" else "auto"
+
+
+def onnx_providers(gpu: bool | None = None, available: list[str] | None = None) -> list[str]:
+    """Proveedores de onnxruntime para matte (RVM) y OCR: CUDA delante si onnxruntime-gpu la trae (extra `gpu`) y nadie
+    pidió CPU (`--cpu`, FRAME28_ONNX=cpu); la CPU siempre detrás, como caída. `gpu=True` (o FRAME28_ONNX=gpu) sin CUDA es
+    un error con el arreglo, no un paso a CPU callado."""
+    if available is None:
+        import onnxruntime as ort
+        available = ort.get_available_providers()
+    want = onnx_mode() if gpu is None else ("gpu" if gpu else "cpu")
+    if want != "cpu" and "CUDAExecutionProvider" in available:
+        enable_cuda_dlls()   # cuBLAS y cuDNN del extra, las mismas que usa faster-whisper
+        return ["CUDAExecutionProvider", "CPUExecutionProvider"]
+    if want == "gpu":
+        raise SystemExit("onnxruntime no trae CUDA: instala el extra gpu (frame28 doctor da la orden) o quita --gpu / FRAME28_ONNX=gpu")
+    return ["CPUExecutionProvider"]
+
+
+def gpu_install_cmd(editable_dir: str | None = None) -> str:
+    """Orden para instalar el CLI con el extra `gpu`. El extra trae onnxruntime-gpu, que ocupa el mismo módulo que
+    onnxruntime (lo pide faster-whisper): sin `--excludes` uv instala los dos y el que gane al copiar ficheros decide si
+    hay CUDA. uv guarda el `--excludes` en la instalación, así que `uv tool upgrade` lo respeta."""
+    if editable_dir:
+        d = editable_dir.rstrip("/\\")
+        return f'uv tool install --editable "{d}[gpu]" --python 3.12 --excludes "{d}/{GPU_EXCLUDES}" --reinstall'
+    return f'uv tool install "frame28[gpu] @ {GIT_SPEC}" --python 3.12 --excludes {GPU_EXCLUDES_URL} --reinstall'
+
+
+def onnxruntime_dists() -> list[str]:
+    """Paquetes instalados que dan el módulo onnxruntime (onnxruntime, onnxruntime-gpu, -directml…). Más de uno = roto:
+    comparten carpeta y cada uno pisa los ficheros del otro."""
+    import importlib.metadata as md
+    names = set()
+    for d in md.distributions():
+        if any(str(f).replace("\\", "/") == "onnxruntime/__init__.py" for f in (d.files or [])):
+            names.add((d.metadata.get("Name") or "").lower().replace("_", "-"))
+    return sorted(names)
+
+
 def note(msg: str) -> None:
     """Avisos para la persona (descargas, progreso): siempre por stderr. Muchas órdenes devuelven JSON por stdout y el
     director lo lee con json.loads; un aviso por stdout lo rompía justo en la primera ejecución en una máquina nueva."""

@@ -1,0 +1,4 @@
+# El extra gpu trae onnxruntime-gpu, que da el mismo módulo que onnxruntime (lo pide faster-whisper).
+# Con los dos instalados se pisan los ficheros y CUDA queda a suertes: este fichero va en --excludes.
+# Orden completa: frame28 doctor (fila «gpu (matte y OCR)»).
+onnxruntime
