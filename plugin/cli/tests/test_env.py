@@ -28,3 +28,14 @@ def test_third_party_notices_cover_every_dependency():
     missing = [n for n in names if n not in notices]
     assert not missing, f"añade a THIRD-PARTY-NOTICES.md: {missing}"
     assert "gpl-3.0" in notices and "dentro del propio proceso" in notices
+
+
+def test_the_suite_never_probes_nvenc_with_the_real_ffmpeg(monkeypatch):
+    # F28-304: encoder_args() sondeaba NVENC con el ffmpeg real aunque la prueba hubiera sustituido ffmpeg y run, y la CI
+    # (sin ffmpeg) quedó en rojo con la de reframe. conftest fija FRAME28_ENCODER=cpu para toda la suite.
+    def boom(*a, **k):
+        raise AssertionError("una prueba ha sondeado NVENC con el ffmpeg real")
+    monkeypatch.setattr(env, "nvenc_ready", boom)
+    monkeypatch.setattr(env, "ffmpeg", lambda: "/no/existe/ffmpeg")
+    assert env.encoder_mode() == "cpu"
+    assert env.encoder_args(18) == ["-c:v", "libx264", "-crf", "18"]
