@@ -89,7 +89,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     brandsite.py                  marca desde la web del cliente (colores CSS y del logo, fuente con var(--…) resuelto, logo con variantes);
                                   ignora las variables de widgets de terceros (--oke-, --jdgm-…) y los colores por defecto de librerías;
                                   sin logo que lo avale el acento queda `accent_pending` con candidatos y `frame28 brand set` lo guarda (F28-299)
-    build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings)
+    build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings,
+                                  marca de agua `watermark` con sus avisos de lo que queda debajo)
     brandcheck.py                 nota de marca del storyboard antes del render (`storyboard brandcheck`): textos en pantalla
                                   contra la marca, el brief.md del montaje (Memoria + campaña) y la Memoria en JSON
     render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto que cubre el vídeo entero)
@@ -215,7 +216,8 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 - Descripciones YAML de las skills entre comillas simples (los `:` rompen el frontmatter y la skill no se dispara).
 - Cada overlay del storyboard tiene `id` único; todo `<video>/<audio>` generado lleva `id` (si no, HyperFrames lo
   congela). Capas con z-index explícito: 1 fondo, 2 texto behind, 3 alfa del hablante, 4 overlays, 5 pizarras,
-  6 venta (hook/cta/steps), 9 subtítulos.
+  6 venta (hook/cta/steps), 9 subtítulos, 20 marca de agua (`"watermark"` en la raíz, F28-298: fija de 0 a la duración
+  total y en la zona segura del móvil; también `cover --watermark` y `clips scaffold|batch --watermark`).
 - Lienzo: `canvas` del storyboard (1920×1080, 1080×1920 o 1080×1080). `speaker`/`gestures` devuelven coordenadas en el
   lienzo que corresponde al formato del clip (`captions.default_canvas`); las claves `*_1080p` son alias antiguos. Con
   ancho < 1400 el generador añade la clase `narrow` (gráficas, contadores y tarjetas compactos). `platform`

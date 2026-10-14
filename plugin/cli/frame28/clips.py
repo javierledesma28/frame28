@@ -303,9 +303,10 @@ def extract(clip: dict, video: str | Path, audio: str | Path | None, words: str 
 
 def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 1920), platform: str = "tiktok",
              brand: str | dict | None = None, cta: dict | None = None, hook_index: int = 0, video_name: str = "clip.mp4",
-             name: str = "storyboard.json") -> dict:
+             name: str = "storyboard.json", watermark: str | dict | None = None) -> dict:
     """Storyboard de partida para el short: gancho, subtítulos por palabras, CTA al final. Construye tal cual.
-    `name` permite guardar varias variantes en la misma carpeta (storyboard-hook1.json)."""
+    `name` permite guardar varias variantes en la misma carpeta (storyboard-hook1.json). `watermark` va a la raíz del
+    storyboard (F28-298: la prueba gratis sale con «Frame28 Studio»)."""
     d = Path(clip_dir)
     words = load_words(d / "words.json") if (d / "words.json").exists() else []
     dur = round(clip["end"] - clip["start"] + 0.3, 2)
@@ -326,6 +327,8 @@ def scaffold(clip: dict, clip_dir: str | Path, canvas: tuple[int, int] = (1080, 
             sb["brand"] = os.path.relpath(bp.resolve(), d.resolve()).replace("\\", "/")  # relativa al storyboard del short
         else:
             sb["brand"] = brand
+    if watermark is not None:
+        sb["watermark"] = watermark
     warnings: list[str] = []
     if cta:
         c = {"type": "cta", "id": "cta", "start": round(max(dur - 5.0, 3.5), 2), "end": dur, "at": round(max(dur - 4.9, 3.6), 2), **cta}
@@ -367,13 +370,15 @@ def _free_band_y(clip_dir: Path, W: int, H: int) -> int | None:
 def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | Path = "work/clips", out_dir: str | Path = "out/shorts",
           hook_indexes: list[int] | None = None, canvas: tuple[int, int] = (1080, 1920), platform: str = "tiktok",
           brand: str | dict | None = None, cta: dict | None = None, video_name: str = "clip.mp4", render: bool = True,
-          quality: str = "high", keep: bool = False, workers: int | None = None, gpu: bool | None = None) -> dict:
+          quality: str = "high", keep: bool = False, workers: int | None = None, gpu: bool | None = None,
+          watermark: str | dict | None = None) -> dict:
     """Variantes de gancho en lote: para cada short (ya recortado con `clips cut`) y cada gancho, escribe
     `storyboard-hook<N>.json`, construye `project-hook<N>/` y, con `render`, pasa `check` y renderiza a
     `<out>/<id>-hook<N>.mp4` con su hoja de contacto. Deja `batch.json` en la carpeta de clips con el resultado de
     cada variante: lo que falla no detiene al resto. Las plataformas queman un creativo en 7–14 días: se rota el
     gancho, no el cuerpo, y esto deja todas las rotaciones listas de una vez. Con `keep`, un `storyboard-hook<N>.json`
-    que ya exista no se regenera: se construye y renderiza tal cual (los afinados a mano tras `--no-render`)."""
+    que ya exista no se regenera: se construye y renderiza tal cual (los afinados a mano tras `--no-render`), salvo la
+    marca de agua: con `watermark`, se añade a la raíz del que no la lleve, para que ninguna variante salga sin ella."""
     from .build import build_project
     plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8-sig"))
     cdir = Path(clips_dir); odir = Path(out_dir)
@@ -394,8 +399,14 @@ def batch(clips_json: str | Path, clip_ids: list[str] | None, clips_dir: str | P
                 if keep and sp.exists():
                     hk = c["hooks"][k]
                     v["storyboard"] = str(sp); v["hook"] = hk["lines"]; v["type"] = hk.get("type"); v["kept"] = True
+                    if watermark is not None:
+                        sbk = json.loads(sp.read_text(encoding="utf-8-sig"))
+                        if sbk.get("watermark") != watermark:
+                            sbk["watermark"] = watermark
+                            sp.write_text(json.dumps(sbk, indent=1, ensure_ascii=False), encoding="utf-8")
+                            v["watermark_added"] = True
                 else:
-                    s = scaffold(c, d, canvas, platform, brand, cta, k, video_name, name=sp.name)
+                    s = scaffold(c, d, canvas, platform, brand, cta, k, video_name, name=sp.name, watermark=watermark)
                     v["storyboard"] = s["storyboard"]; v["hook"] = s["hook"]["lines"]; v["type"] = s["hook"].get("type")
                 b = build_project(v["storyboard"], d / f"project-hook{k}")
                 v["project"] = b["project"]; v["warnings"] = (s["warnings"] if not v.get("kept") else []) + b["warnings"]

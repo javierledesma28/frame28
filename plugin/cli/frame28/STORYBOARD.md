@@ -18,6 +18,14 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
 ```
 
 - `duration` (raíz, opcional): duración total si es mayor que la del clip, p. ej. para una `brand_card` de cierre sobre negro.
+- `watermark` (raíz, opcional): marca de agua fija en **todos** los fotogramas, de 0 a la duración total (también sobre
+  pizarras y tarjetas de cierre), por encima de todo. Un texto (`"watermark": "Frame28 Studio"`) o un objeto
+  `{"text": "Frame28 Studio", "position": "br", "opacity": 0.9}`: `position` `br` (por defecto), `bl`, `tr` o `tl`; `opacity`
+  de 0.3 a 1. Texto blanco en píldora oscura: se lee sobre fondo claro y oscuro. En vertical para redes (`tiktok`, `reels`,
+  `shorts` o sin `platform`) las esquinas son las de la zona segura: `br` en el borde derecho justo encima de la columna de
+  iconos, `tl`/`tr` bajo la franja superior, `bl` sobre la inferior. `build` avisa si un overlay o los subtítulos quedan
+  debajo. Sin el campo no se pinta nada. Cuándo se pone lo decide el plan, no el storyboard: no la quites ni la tapes.
+  Portadas: `frame28 cover --watermark "Frame28 Studio"`; shorts: `frame28 clips scaffold|batch --watermark "Frame28 Studio"`.
 - `source.video`: clip a 30 fps **sin audio** (lo produce `frame28 prep`). `source.audio`: voz normalizada. Rutas relativas al storyboard.
 - `brand`: opcional. Un objeto con `accent`, `ink`, `paper`, `grey`, `sans`, `mono`, `caption_font_size`, `on_accent` (color del texto sobre el acento en hook, cta, steps, tarjetas y etiquetas; si falta, se elige por contraste WCAG la tinta o el blanco, el que dé 4,5:1), **o un nombre de marca incluida** (`"brand": "think28"`), o la ruta a tu propio `brand.json`.
 - `canvas`: tamaño del lienzo. El clip se ajusta con *cover* (se recorta lo que sobre). Con lienzo estrecho (< 1400 px de
@@ -90,7 +98,8 @@ validate` enseña la nota en una línea.
 
 ## Capas (z-index) que aplica el generador
 
-1 fondo (clip) · 2 texto `behind` · 3 vídeo alfa del hablante · 4 overlays sobre el hablante · 5 pizarras · 9 subtítulos.
+1 fondo (clip) · 2 texto `behind` · 3 vídeo alfa del hablante · 4 overlays sobre el hablante · 5 pizarras · 6 venta (hook,
+cta, steps) · 9 subtítulos · 20 marca de agua (`watermark`).
 
 ## Reglas de dirección (resumen; detalle en la skill `frame28-storyboard`)
 
