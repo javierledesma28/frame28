@@ -86,6 +86,16 @@ def run(cmd: list[str], **kw) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, **kw)
 
 
+def run_ok(cmd: list[str], what: str, **kw) -> subprocess.CompletedProcess:
+    """`run` para los pasos de los que depende el siguiente: si la orden falla, para diciendo qué paso era y el final
+    de su error. Antes prep, cut apply y audio seguían como si nada y dejaban el trabajo a medias (F28-93)."""
+    r = run(cmd, **kw)
+    if r.returncode != 0:
+        tail = (r.stderr or r.stdout or "").strip()[-800:]
+        raise SystemExit(f"{what}: {Path(cmd[0]).stem} salió con el código {r.returncode}" + (f"\n{tail}" if tail else ""))
+    return r
+
+
 def env_with_ffmpeg() -> dict:
     """Entorno con el directorio de ffmpeg en PATH (HyperFrames lo necesita en PATH)."""
     env = dict(os.environ)

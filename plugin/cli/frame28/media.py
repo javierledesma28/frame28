@@ -6,7 +6,7 @@ import math
 import re
 from pathlib import Path
 
-from .env import encoder_args, ffmpeg, ffprobe, run
+from .env import encoder_args, ffmpeg, ffprobe, run, run_ok
 
 
 def probe(video: str | Path, loudness: bool = True) -> dict:
@@ -77,8 +77,10 @@ def gpu_decode_args(info: dict, fps: int, size: int | None) -> tuple[list[str], 
     return ["-hwaccel", "cuda", "-hwaccel_output_format", "cuda"], f"fps={fps},{scale}"
 
 
-def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | None = None, normalize: bool = True) -> dict:
-    """Copia de trabajo: vídeo a `fps` sin audio, voz normalizada a -16 LUFS (48k estéreo) y mono 16k para ASR."""
+def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | None = None) -> dict:
+    """Copia de trabajo: vídeo a `fps` sin audio, voz tal cual (48k estéreo) y mono 16k para ASR. La limpieza y la
+    sonoridad las pone `audio.clean` (dos pasadas, al `--lufs` pedido): aquí antes se normalizaba a -16 LUFS en una
+    pasada e `--denoise none` ignoraba `--lufs` (F28-93)."""
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     info = probe(video)
     vf = f"fps={fps}" + scale_filter(info.get("video") or {}, width)
@@ -96,10 +98,11 @@ def prep(video: str | Path, out_dir: str | Path, fps: int = 30, width: int | Non
         raise SystemExit(r.stderr)
     result = {"clip": str(clip), "probe": info, "fps": fps, "decoder": decoder}
     if info["audio"]:
-        af = ["-af", "loudnorm=I=-16:TP=-1.5:LRA=11"] if normalize else []
         voice = out / "voice.wav"; a16 = out / "audio16k.wav"
-        run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "2", "-ar", "48000", *af, str(voice)])
-        run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", *af, str(a16)])
+        run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "2", "-ar", "48000", str(voice)],
+               f"prep: extraer la voz de {Path(video).name}")
+        run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", str(a16)],
+               f"prep: extraer el audio de 16 kHz de {Path(video).name}")
         result.update({"voice": str(voice), "audio16k": str(a16)})
     (out / "probe.json").write_text(json.dumps(result, indent=1, ensure_ascii=False), encoding="utf-8")
     return result

@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from .captions import load_captions, load_words
-from .env import encoder_args, ffmpeg, run
+from .env import encoder_args, ffmpeg, run, run_ok
 
 FILLERS = {
     "es": {"eh", "ehh", "ehm", "em", "emm", "mm", "mmm", "hmm", "uhm", "um", "uh", "ah", "aha", "ajá", "aja", "este...", "o sea..."},
@@ -255,6 +255,8 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
           words_path: str | Path | None = None, captions_path: str | Path | None = None, storyboard_path: str | Path | None = None,
           fade: float = 0.03) -> dict:
     cuts = json.loads(Path(cuts_path).read_text(encoding="utf-8-sig")); keep = cuts["keep"]
+    if not keep:  # ffmpeg recibiría concat=n=0 y fallaría con un error de filtros incomprensible
+        raise SystemExit(f"cut apply: el plan {Path(cuts_path).name} no conserva ningún tramo (keep vacío); revisa los cortes")
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
     res: dict = {"segments": len(keep), "result_duration": cuts["result_duration"]}
     # vídeo: trim + concat (re-encode; los tramos no caen en keyframes)
@@ -282,7 +284,9 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
             raise SystemExit(r.stderr)
         res["voice"] = str(aout)
         a16 = out / "audio16k.wav"
-        run([ffmpeg(), "-v", "error", "-y", "-i", str(aout), "-ac", "1", "-ar", "16000", str(a16)]); res["audio16k"] = str(a16)
+        run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(aout), "-ac", "1", "-ar", "16000", str(a16)],
+               "cut apply: audio de 16 kHz para la transcripción")
+        res["audio16k"] = str(a16)
     # tiempos
     if words_path:
         words = load_words(words_path, merge_symbols=False)

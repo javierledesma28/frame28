@@ -118,14 +118,19 @@ def prep(video, out_dir, fps, width, denoise, lufs, gpu, as_json):
     from .media import prep as _prep
     if gpu is not None:
         from .env import use_gpu_encoder; use_gpu_encoder(gpu)
-    r = _prep(video, out_dir, fps, width, normalize=(denoise == "none"))
-    if r.get("voice") and denoise != "none":
+    r = _prep(video, out_dir, fps, width)
+    if r.get("voice"):
         from .audio import clean
-        from .env import ffmpeg, run as _run
-        raw = Path(r["voice"]).with_name("voice_raw.wav"); Path(r["voice"]).replace(raw)
-        c = clean(raw, r["voice"], denoise, 12, lufs)
-        _run([ffmpeg(), "-v", "error", "-y", "-i", r["voice"], "-ac", "1", "-ar", "16000", r["audio16k"]])
-        r["audio"] = {"denoise": denoise, "before": c["before"], "after": c["after"], "raw": str(raw)}
+        from .env import ffmpeg, run_ok
+        voice = Path(r["voice"]); raw = voice.with_name("voice_raw.wav"); tmp = voice.with_name("voice.clean.wav")
+        try:  # se limpia a un temporal: si algo falla, voice.wav sigue ahí (antes se renombraba primero y desaparecía)
+            c = clean(voice, tmp, denoise, 12, lufs, highpass=0 if denoise == "none" else 80)
+            voice.replace(raw); tmp.replace(voice)
+        finally:
+            tmp.unlink(missing_ok=True)
+        run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(voice), "-ac", "1", "-ar", "16000", r["audio16k"]],
+               "prep: audio de 16 kHz para la transcripción")
+        r["audio"] = {"denoise": denoise, "lufs": lufs, "before": c["before"], "after": c["after"], "raw": str(raw)}
     out(r, as_json or True)
 
 

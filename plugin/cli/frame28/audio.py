@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .env import CACHE_DIR, ffmpeg, run
+from .env import CACHE_DIR, ffmpeg, run, run_ok
 
 # fijado a un commit (antes la rama master, que puede cambiar) y con su SHA-256
 RNNOISE_MODEL_URL = ("https://raw.githubusercontent.com/GregorR/rnnoise-models/3eee541a283fd3b8f81b85b1748e3b9ccbefa04d/"
@@ -28,7 +28,8 @@ RNNOISE_MODEL_PATH = CACHE_DIR / "rnnoise-sh.rnnn"
 
 def measure(path: str | Path) -> dict:
     """Sonoridad integrada (LUFS), rango (LU), pico real (dBTP) y suelo de ruido (dBFS, RMS del 10 % más silencioso)."""
-    r = run([ffmpeg(), "-hide_banner", "-i", str(path), "-af", "ebur128=peak=true", "-f", "null", "-"])
+    r = run_ok([ffmpeg(), "-hide_banner", "-i", str(path), "-af", "ebur128=peak=true", "-f", "null", "-"],
+               f"audio: medir la sonoridad de {Path(path).name}")
     txt = r.stderr
     def grab(pat):
         m = re.findall(pat, txt)
@@ -37,8 +38,9 @@ def measure(path: str | Path) -> dict:
            "true_peak_dbtp": grab(r"Peak:\s+([-\d.]+) dBFS")}
     # suelo de ruido: RMS por ventanas de 50 ms sobre un WAV temporal mono 16 kHz
     tmp = Path(tempfile.mkdtemp(prefix="frame28_audio_")) / "m.wav"
-    run([ffmpeg(), "-v", "error", "-y", "-i", str(path), "-ac", "1", "-ar", "16000", "-sample_fmt", "s16", str(tmp)])
     try:
+        run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(path), "-ac", "1", "-ar", "16000", "-sample_fmt", "s16", str(tmp)],
+               f"audio: pasar {Path(path).name} a WAV mono para medir el ruido")
         with wave.open(str(tmp), "rb") as w:
             x = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
             rate = w.getframerate()
@@ -89,30 +91,32 @@ def clean(src: str | Path, dst: str | Path, denoise: str = "afftdn", strength: i
     work = src
     cwd = str(CACHE_DIR) if denoise == "rnnoise" else None
     tmpdir = Path(tempfile.mkdtemp(prefix="frame28_clean_"))
-    if denoise == "deepfilter":
-        work = tmpdir / "df.wav"
-        run([ffmpeg(), "-v", "error", "-y", "-i", str(src), "-ac", "1", "-ar", "48000", str(tmpdir / "in.wav")])
-        _deepfilter(tmpdir / "in.wav", work)
-        pre = []
-    else:
-        f = _denoise_filter(denoise, strength)
-        pre = [f] if f else []
-    chain = ([f"highpass=f={highpass}"] if highpass else []) + pre + (["deesser"] if deess else [])
-    # pasada 1: medir con loudnorm
-    f1 = ",".join(chain + [f"loudnorm=I={lufs}:TP={tp}:LRA={lra}:print_format=json"])
-    r = run([ffmpeg(), "-hide_banner", "-i", str(work), "-af", f1, "-f", "null", "-"], cwd=cwd)
-    m = re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", r.stderr, re.S)
-    if not m:
-        raise SystemExit("loudnorm no devolvió medidas:\n" + r.stderr[-800:])
-    meas = json.loads(m.group(0))
-    # pasada 2: aplicar con las medidas (modo lineal, sin bombeo)
-    ln = (f"loudnorm=I={lufs}:TP={tp}:LRA={lra}:measured_I={meas['input_i']}:measured_TP={meas['input_tp']}:"
-          f"measured_LRA={meas['input_lra']}:measured_thresh={meas['input_thresh']}:offset={meas['target_offset']}:linear=true")
-    f2 = ",".join(chain + [ln])
-    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(work), "-af", f2, "-ar", "48000", "-ac", "2", str(dst)], cwd=cwd)
-    if r.returncode != 0:
-        raise SystemExit(r.stderr)
-    shutil.rmtree(tmpdir, ignore_errors=True)
+    try:  # la carpeta temporal se borra también si algo falla a medias
+        if denoise == "deepfilter":
+            work = tmpdir / "df.wav"
+            run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(src), "-ac", "1", "-ar", "48000", str(tmpdir / "in.wav")],
+                   f"audio: preparar {src.name} para deep-filter")
+            _deepfilter(tmpdir / "in.wav", work)
+            pre = []
+        else:
+            f = _denoise_filter(denoise, strength)
+            pre = [f] if f else []
+        chain = ([f"highpass=f={highpass}"] if highpass else []) + pre + (["deesser"] if deess else [])
+        # pasada 1: medir con loudnorm
+        f1 = ",".join(chain + [f"loudnorm=I={lufs}:TP={tp}:LRA={lra}:print_format=json"])
+        r = run([ffmpeg(), "-hide_banner", "-i", str(work), "-af", f1, "-f", "null", "-"], cwd=cwd)
+        m = re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", r.stderr, re.S)
+        if not m:
+            raise SystemExit("loudnorm no devolvió medidas:\n" + r.stderr[-800:])
+        meas = json.loads(m.group(0))
+        # pasada 2: aplicar con las medidas (modo lineal, sin bombeo)
+        ln = (f"loudnorm=I={lufs}:TP={tp}:LRA={lra}:measured_I={meas['input_i']}:measured_TP={meas['input_tp']}:"
+              f"measured_LRA={meas['input_lra']}:measured_thresh={meas['input_thresh']}:offset={meas['target_offset']}:linear=true")
+        f2 = ",".join(chain + [ln])
+        run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(work), "-af", f2, "-ar", "48000", "-ac", "2", str(dst)],
+               f"audio: limpiar y normalizar {src.name}", cwd=cwd)
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
     after = measure(dst)
     return {"output": str(dst), "denoise": denoise, "filters": f2, "before": before, "after": after,
             "noise_reduction_db": round((after["snr_db"] or 0) - (before["snr_db"] or 0), 1)}
