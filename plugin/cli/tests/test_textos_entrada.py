@@ -14,8 +14,9 @@ def read(p: Path) -> str:
     return p.read_text(encoding="utf-8")
 
 
-def test_hay_nueve_skills():
-    assert len(SKILLS) == 9 and (REPO / "plugin" / "skills" / "frame28" / "SKILL.md") in SKILLS
+def test_hay_diez_skills():
+    nombres = {p.parent.name for p in SKILLS}
+    assert len(SKILLS) == 10 and {"frame28", "frame28-memoria"} <= nombres
 
 
 @pytest.mark.parametrize("skill", SKILLS, ids=lambda p: p.parent.name)

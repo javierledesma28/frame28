@@ -15,9 +15,10 @@ gráficas, subtítulos, B-roll, gancho, pasos, antes/después, llamada a la acci
 un vídeo largo: shorts verticales, portada y versión en otro idioma. Todo generado por código, en local, en CPU.
 
 Dos piezas:
-- **Plugin de Claude Code** (`plugin/`): ocho skills. `frame28-director` orquesta; `frame28-transcribe`,
-  `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-i18n`, `frame28-compose`.
-  Claude dirige el montaje (decide qué va en pantalla y escribe el storyboard).
+- **Plugin de Claude Code** (`plugin/`): diez skills. `frame28` es la entrada cuando el usuario nombra Frame28;
+  `frame28-memoria` crea o corrige la Memoria de marca y consulta las campañas; `frame28-director` orquesta el montaje;
+  `frame28-transcribe`, `frame28-cutout`, `frame28-storyboard`, `frame28-broll`, `frame28-shorts`, `frame28-i18n`,
+  `frame28-compose`. Claude dirige el montaje (decide qué va en pantalla y escribe el storyboard).
 - **CLI Python `frame28`** (`plugin/cli/frame28/`, click): los pasos deterministas. Las skills lo invocan por Bash.
 
 El **contrato** entre ambos es el **storyboard JSON** (`plugin/cli/frame28/STORYBOARD.md` lo documenta;
@@ -56,7 +57,7 @@ hallazgo: "¿qué parte del CLI o de qué skill cambia para que esto no vuelva a
 plugin/                           EL PLUGIN (solo esto se instala; el resto del repo no se copia)
   .claude-plugin/plugin.json      manifiesto (name frame28; sin displayName: no está en el esquema; una sesión lo vio rechazado,
                                   con 2.1.126 valida, pero no aporta nada)
-  skills/frame28-*/SKILL.md       ocho skills: desde la v0.5 (2026-10-02) son cáscaras (descripción + «llama a frame28_start con la
+  skills/frame28*/SKILL.md        diez skills: desde la v0.5 (2026-10-02) son cáscaras (descripción + «llama a frame28_start con la
                                   tarea»); el método (cuerpos y referencias) vive en el repo privado frame28-app (api/frame28_api/metodo/)
                                   y lo sirve el MCP. Cambiar el criterio de montaje = editar allí y desplegar, no aquí
   .mcp.json                       servidor MCP remoto `frame28` → https://frame28.app/mcp (OAuth con Frame28 ID, sin client id)

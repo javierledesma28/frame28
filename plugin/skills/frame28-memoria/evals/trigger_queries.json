@@ -1,0 +1,22 @@
+[
+  {"split": "train", "should_trigger": true, "query": "Crea la Memoria de marca de acme-kits.com, te paso también sus dos vídeos de YouTube"},
+  {"split": "train", "should_trigger": true, "query": "Prepara mi marca para que los vídeos salgan con mis colores, mi voz y mis productos; la web es tiendadevelas.es"},
+  {"split": "train", "should_trigger": true, "query": "Cambia en la Memoria el precio del kit de inicio a 59 USD y el código de descuento a OTONO15"},
+  {"split": "train", "should_trigger": true, "query": "El gancho «De cero a tu primera vela en 10 minutos» funcionó muy bien en la última campaña, apúntalo para las próximas"},
+  {"split": "train", "should_trigger": true, "query": "¿Qué campañas tiene mi marca ahora mismo y en qué estado están?"},
+  {"split": "train", "should_trigger": true, "query": "Añade a mi marca que nunca podemos decir que el kit es apto para uso médico"},
+  {"split": "train", "should_trigger": false, "query": "Monta los vídeos de la campaña black-friday con estos tres clips de la carpeta raw/"},
+  {"split": "train", "should_trigger": false, "query": "Sácame tres shorts del tutorial largo con el código OTONO15 en la llamada a la acción"},
+  {"split": "train", "should_trigger": false, "query": "Hazme un manual de identidad corporativa en PDF para mi empresa, con logo, paleta y tipografías"},
+  {"split": "train", "should_trigger": false, "query": "Crea un brand kit en Canva con estos colores y esta fuente"},
+  {"split": "train", "should_trigger": false, "query": "¿Qué plan tengo en Frame28 y cuántos vídeos me quedan de la prueba?"},
+  {"split": "train", "should_trigger": false, "query": "Saca los colores y el logo de esta web para el rótulo del vídeo que estoy montando ahora"},
+  {"split": "validation", "should_trigger": true, "query": "¿Qué pide el brief de la campaña lanzamiento-kit-pro?"},
+  {"split": "validation", "should_trigger": true, "query": "Quiero que en inglés «mecha» se diga siempre «wick»; guárdalo en lo de mi marca"},
+  {"split": "validation", "should_trigger": true, "query": "Te confirmo la promesa y el catálogo que dedujiste de mi marca; corrige el tagline, es «Enciende lo que imaginas»"},
+  {"split": "validation", "should_trigger": true, "query": "Create the brand memory for my store from its website, we sell sewing kits"},
+  {"split": "validation", "should_trigger": false, "query": "Traduce al alemán el vídeo que montamos ayer, con los mismos tiempos"},
+  {"split": "validation", "should_trigger": false, "query": "Escribe la descripción de producto del kit de inicio para la ficha de Amazon"},
+  {"split": "validation", "should_trigger": false, "query": "Haz un análisis de la competencia de mi marca de kits de velas"},
+  {"split": "validation", "should_trigger": false, "query": "Ponle subtítulos por palabras a este clip y renderízalo en vertical"}
+]
