@@ -11,7 +11,7 @@ comando, cómo se comprueba y qué puede salir mal. Vamos tachando.
 - **Manifiesto** `.claude-plugin/plugin.json`: nombre, versión, autor. Con él las skills se instalan como
   `frame28:frame28-director`, etc.
 - **Marketplace** `.claude-plugin/marketplace.json`: catálogo de plugins. Un repo puede ser su propio marketplace
-  (es nuestro caso: `source: "./"`). Así otra persona hace `marketplace add` y `install` sin nada más.
+  (es nuestro caso: `source: "./plugin"`). Así otra persona hace `marketplace add` y `install` sin nada más.
 - **CLI `frame28`**: no forma parte del plugin en sentido estricto (es un paquete Python); las skills lo llaman.
   Se instala aparte con `uv tool install`.
 
@@ -62,8 +62,8 @@ que arreglar antes de subir:
   Regla: todo lo que se regenera (renders, máscaras, `node_modules`, secuencias) va en `.gitignore`.
 - **Finales de línea**: `.gitattributes` con `* text=auto eol=lf` y `core.autocrlf=false`. Importa de verdad:
   el `words.srt` que importa HyperFrames solo funciona con LF, y Windows lo convertiría a CRLF.
-- **Repo privado**: instalar desde GitHub exige credenciales git en la máquina que instala (`gh auth login`
-  basta). Para compartirlo con cualquiera, hacerlo público cuando esté listo.
+- **Repo privado** (entonces): instalar desde GitHub exigía credenciales git en la máquina que instala. Hoy el repo es
+  público y cualquiera instala sin credenciales.
 
 
 1. Repo: `javierledesma28/frame28` en GitHub (público para que cualquiera lo instale; privado funciona con
@@ -81,8 +81,8 @@ que arreglar antes de subir:
 
 Probado como lo haría otra persona, sin tocar la instalación local: `uvx --from
 "git+https://github.com/javierledesma28/frame28@v0.1.0#subdirectory=plugin/cli" frame28 --version` construye el
-paquete desde la etiqueta e imprime la versión en 24 s. Mientras el repo sea privado hace falta tener credenciales
-git en la máquina (`gh auth login` las deja configuradas). `uv tool update-shell` dejó `~/.local/bin` en el PATH
+paquete desde la etiqueta e imprime la versión en 24 s. Entonces el repo era privado y hacían falta credenciales git
+en la máquina; hoy es público. `uv tool update-shell` dejó `~/.local/bin` en el PATH
 del usuario, así que `frame28` funciona en cualquier terminal nueva.
 
 
@@ -125,16 +125,54 @@ Qué puede hacer un plugin: sus skills ejecutan comandos con **los permisos del 
 
 - **Nada de secretos en el repo** (ni claves de API, ni tokens de HeyGen). El CLI no necesita ninguno; si algún
   día lo necesita, se lee de variable de entorno y se documenta.
-- **Versiones fijadas**: HyperFrames va pineado (`0.8.105`) y las dependencias Python con mínimos; así lo que se
-  instala hoy es lo que probamos.
-- **Sin hooks ni MCP en v0.1**: no hay código que se ejecute solo al arrancar la sesión. Cuando añadamos un MCP,
-  irá declarado en `.mcp.json` y revisado.
+- **Versiones**: HyperFrames va pineado (`0.8.105`), pero las dependencias Python solo tienen mínimos y el instalador
+  y `uv tool upgrade` traen el último commit de `main`, no una release: hoy **no** está garantizado que lo que se
+  instala sea exactamente lo que pasó las pruebas. Fijarlo es una tarea abierta (techos de versión o lock exportado,
+  instalador con `@vX.Y.Z`).
+- **Sin hooks**: no hay código que se ejecute solo al arrancar la sesión. El único servidor MCP es el remoto declarado
+  en `plugin/.mcp.json`; qué implica, en el apartado siguiente.
 - **Modelos y binarios de terceros**: RVM se descarga de su release oficial a `~/.cache/frame28/`; Chrome lo
   descarga HyperFrames. Documentado en README y en `frame28 doctor`.
 - **Ámbito de instalación**: `--scope user` (para ti), `--scope project` (para un equipo, queda en
   `.claude/settings.json` del repo) o `--scope local` (solo tu máquina, no versionado).
 - **Revisión antes de cada release**: `claude plugin validate .`, `frame28 doctor`, un render de prueba del clip
-  de ejemplo y `git diff` de las skills (son instrucciones para un agente: lo que diga, se hará).
+  de ejemplo y `git diff` de las skills (son instrucciones para un agente: lo que diga, se hará). Desde la v0.5 las
+  skills son cáscaras y ese `git diff` ya no enseña el método: el método se revisa en su repo antes de desplegarlo.
+
+### El MCP remoto de la v0.5: qué se envía, qué se recibe y quién lo cambia
+
+Desde la v0.5 el plugin no lleva el método de montaje: cada skill pide a Claude que llame a `frame28_start` en el
+servidor `frame28` (`https://frame28.app/mcp`, declarado en `plugin/.mcp.json`) y siga lo que devuelve. Es un cambio
+de modelo de confianza, y conviene saber exactamente cuál.
+
+**Cómo se entra.** OAuth con la cuenta de Frame28 (Frame28 ID, sobre Microsoft Entra External ID): email y un código de
+un solo uso, sin contraseña. Claude Code es un cliente público con PKCE (no hay secreto de cliente en el plugin); el
+token lo emite y lo firma Entra y lo guarda Claude Code en su almacén de credenciales (en Windows,
+`~/.claude/.credentials.json`). Para desconectarse: `/mcp` → `frame28` → borrar la autenticación, o desactivar el plugin.
+
+**Qué se envía al servidor.** El token (identifica la cuenta, con su nombre y su email) y los argumentos de cada
+herramienta, que son pocos: el nombre de la tarea o del documento, el de la marca y el de la campaña. La única que sube
+contenido es `frame28_memoria_guardar`: la Memoria de marca entera (marca, voz, historia, catálogo, ganchos…), y cada
+guardado es una versión nueva. **Ninguna herramienta tiene dónde recibir el vídeo, el audio, la transcripción ni el
+storyboard**: el montaje, el render y los ficheros siguen en tu máquina. Claude Code enseña los argumentos de cada
+llamada y, salvo que lo hayas permitido, te pide permiso antes de hacerla.
+
+**Qué se recibe.** Solo texto, que queda en la conversación y se puede leer: al empezar, la cuenta, el plan y sus reglas,
+la lista de marcas y el método de la tarea (con la versión del método en la cabecera); después, los documentos de
+referencia que el método cite, el brief de la Memoria con el JSON de marca que Claude escribe en `work/brands/<marca>.json`
+(y, si trae URLs de logos, los descarga) y el brief de cada campaña. Toda lectura y escritura va contra la cuenta del
+token, nunca contra un identificador que mande el cliente; en la base lo refuerza la seguridad por fila.
+
+**Quién lo cambia.** El método y las reglas de cada plan los escribe Think28 en el repo privado de la plataforma y se
+publican al desplegar frame28.app: **cambian sin release del plugin y sin que su versión se mueva**, para todas las
+cuentas a la vez. La Memoria y las campañas las cambia el dueño de la cuenta (en el estudio web o pidiéndoselo a Claude).
+
+**Qué significa.** El servidor no ejecuta nada en tu máquina: por MCP solo devuelve texto. Pero ese texto son
+instrucciones que un agente sigue con tus permisos, igual que una skill, con la diferencia de que puede cambiar cualquier
+día sin que lo veas en un `git diff`. Tu control sigue siendo el modo de permisos de Claude Code: las órdenes de terminal
+y las escrituras piden permiso según tu configuración (en modo sin preguntas, no lo piden). Lo que toca tus ficheros lo
+hace el CLI `frame28`, que es local, de código abierto (MIT) y lo actualizas tú. Sin cuenta o sin red, las skills no
+montan; el CLI sigue funcionando a mano.
 
 ## 6. Brand kit ✅ (2026-09-29)
 
