@@ -11,7 +11,7 @@ import urllib.request
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION, __version__
-from .env import CACHE_DIR, RVM_MODEL_PATH, find_tool
+from .env import CACHE_DIR, RVM_MODEL_PATH, ffmpeg_install_hint, find_tool
 
 NODE_MIN = 22   # HyperFrames 0.8 necesita Node 22
 
@@ -224,7 +224,7 @@ def doctor() -> list[dict]:
         add("frame28", inst == __version__, f"{__version__} en código, {inst} instalada" + (" (editable)" if editable else ""),
             "el código y la instalación no coinciden: " + ("uv tool install --editable <ruta>/plugin/cli --python 3.12 --reinstall" if editable else "uv tool upgrade frame28"))
     ff = find_tool("ffmpeg", "FRAME28_FFMPEG")
-    add("ffmpeg", bool(ff), ff or "no encontrado", "winget install --id Gyan.FFmpeg -e  (o brew/apt) y reabrir la terminal")
+    add("ffmpeg", bool(ff), ff or "no encontrado", f"{ffmpeg_install_hint()} y abrir una terminal nueva")
     fp = find_tool("ffprobe", "FRAME28_FFPROBE")
     add("ffprobe", bool(fp), fp or "no encontrado", "viene con ffmpeg")
     node = shutil.which("node")
