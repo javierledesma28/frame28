@@ -859,6 +859,17 @@ class Builder:
             for k, c in enumerate(caps):
                 self.js.append(f'tl.set("#cap{k}", {{ visibility: "visible" }}, {c["start"]}); tl.set("#cap{k}", {{ visibility: "hidden" }}, {c["end"]});')
 
+    # ---------- marca de agua ----------
+    def watermark(self, wm: dict) -> None:
+        """Capa fija de 0 a la duración total (también sobre la tarjeta de cierre en negro), por encima de todo y sin
+        animación: texto blanco en píldora oscura con borde claro, que se lee sobre blanco y sobre negro (F28-298)."""
+        lay = watermark_layout(self.W, self.H, wm["position"], self.sb.get("platform"), wm["text"])
+        pos = "; ".join(f"{k}:{v}px" for k, v in lay["css"].items())
+        self.html.append(f'<div id="wm" class="clip wm" data-start="0" data-duration="{self.dur}" data-track-index="10" '
+                         f'style="z-index:20; inset:auto; {pos}; font-size:{lay["size"]}px; padding:{lay["pad"][0]}px {lay["pad"][1]}px; '
+                         f'opacity:{wm["opacity"]}">{esc(wm["text"])}</div>')
+        self.warnings.extend(watermark_warnings(self.sb, lay, wm["position"]))
+
     # ---------- documento ----------
     def build(self) -> str:
         sb = self.sb; src = sb["source"]
@@ -874,10 +885,13 @@ class Builder:
                 self.warnings.append(f"overlay {o.get('id')}: tipo desconocido '{t}', ignorado"); continue
             getattr(self, t)(o)
         self.captions(sb)
+        wm = watermark_spec(sb.get("watermark"))
+        if wm:
+            self.watermark(wm)
         b = self.brand
         css = (CSS.replace("{W}", str(self.W)).replace("{H}", str(self.H)).replace("{accent}", b["accent"]).replace("{on_accent}", b["on_accent"]).replace("{ink}", b["ink"])
                .replace("{paper}", b["paper"]).replace("{grey}", b["grey"]).replace("{sans}", b["sans"]).replace("{mono}", b["mono"])
-               .replace("{capsize}", str(b["caption_font_size"])))
+               .replace("{capsize}", str(b["caption_font_size"]))) + (WATERMARK_CSS if wm else "")
         body = "\n      ".join(self.html); js = "\n      ".join(self.js)
         fl = self.brand_meta.get("font_link")
         font_link = f'    <link rel="stylesheet" href="{esc(fl)}">\n' if fl else ""
@@ -1079,6 +1093,97 @@ def safe_svg(svg: str, origin: str) -> str:
     return svg
 
 
+# ── Marca de agua (F28-298) ──────────────────────────────────────────────────────────────────────────────────────────
+# La prueba gratis sale con «Frame28 Studio» en todo lo que se monta. Cuándo se pone lo decide el método que sirve la API
+# según el plan; el motor solo la pinta cuando el storyboard trae `"watermark"` en la raíz.
+WATERMARK_POSITIONS = ("br", "bl", "tr", "tl")
+WATERMARK_KEYS = {"text", "position", "opacity"}
+WATERMARK_MAX = 40
+WATERMARK_CSS = """      .wm { font-family: "Helvetica Neue", Inter, "Segoe UI", Arial, sans-serif; font-weight: 700; line-height: 1; letter-spacing: 0.01em; color: #fff; background: rgba(10,10,10,.58); border: 1px solid rgba(255,255,255,.35); border-radius: 999px; text-shadow: 0 1px 2px rgba(0,0,0,.6); white-space: nowrap; width: max-content; height: max-content; pointer-events: none; }
+"""
+
+
+def watermark_errors(value) -> list[str]:
+    """`watermark`: un texto ("Frame28 Studio") o {text, position?: br|bl|tr|tl, opacity?: 0.3–1}. Ausente o null = sin
+    marca de agua; un texto vacío es un error (para quitarla se quita el campo)."""
+    if value is None:
+        return []
+    obj = {"text": value} if isinstance(value, str) else value
+    if not isinstance(obj, dict):
+        return ['watermark: tiene que ser un texto ("Frame28 Studio") o un objeto {text, position?, opacity?}']
+    errs = []
+    extra = sorted(set(obj) - WATERMARK_KEYS)
+    if extra:
+        errs.append(f"watermark: claves desconocidas {extra} (text, position, opacity)")
+    t = obj.get("text")
+    if not isinstance(t, str) or not t.strip():
+        errs.append("watermark.text: falta el texto (si el vídeo no lleva marca de agua, quita el campo)")
+    elif len(t.strip()) > WATERMARK_MAX or any(c in t for c in "\r\n\t"):
+        errs.append(f"watermark.text: una sola línea de {WATERMARK_MAX} caracteres como mucho")
+    if obj.get("position", "br") not in WATERMARK_POSITIONS:
+        errs.append(f"watermark.position: '{obj.get('position')}' no vale (br, bl, tr, tl)")
+    op = obj.get("opacity", 0.9)
+    if not _is_num(op) or not 0.3 <= op <= 1:
+        errs.append("watermark.opacity: un número entre 0.3 y 1 (por debajo deja de leerse)")
+    return errs
+
+
+def watermark_spec(value, default_position: str = "br") -> dict | None:
+    """`watermark` ya validado → {text, position, opacity}; None si no hay."""
+    if value is None:
+        return None
+    obj = {"text": value} if isinstance(value, str) else value
+    return {"text": obj["text"].strip(), "position": obj.get("position", default_position), "opacity": float(obj.get("opacity", 0.9))}
+
+
+def watermark_layout(W: int, H: int, position: str = "br", platform: str | None = None, text: str = "") -> dict:
+    """Dónde va la marca de agua y cuánto mide. En vertical para redes (tiktok, reels, shorts, o sin platform) las esquinas
+    son las de la zona segura de platform_warnings: tl/tr por debajo de la franja superior, bl por encima de la inferior y
+    br en el borde derecho justo encima de la columna de iconos (fuera del gancho, del CTA y de los subtítulos del
+    scaffold). En apaisado, cuadrado o vertical de youtube/pdp, en la esquina, por debajo de la franja de subtítulos.
+    Devuelve el estilo (left/right/top/bottom en px), el tamaño de letra, el relleno y una caja aproximada
+    [x0, y0, x1, y1] que solo sirve para avisar de lo que quede debajo: en la página la píldora mide lo que mide el texto."""
+    size = round(min(W, H) * 0.026)
+    pad = [round(size * 0.22), round(size * 0.6)]
+    h = size + 2 * pad[0]
+    w = round(len(text) * size * 0.6) + 2 * pad[1]
+    if H > W and platform not in ("youtube", "pdp"):
+        m = round(W * 0.026)
+        css = {"br": {"right": m, "top": int(0.35 * H) - h - 16}, "tr": {"right": m, "top": int(0.08 * H) + 16},
+               "tl": {"left": m, "top": int(0.08 * H) + 16}, "bl": {"left": m, "bottom": int(0.16 * H) + 16}}[position]
+    else:
+        mx, my = round(min(W, H) * 0.022), round(min(W, H) * 0.012)
+        css = {("left" if position[1] == "l" else "right"): mx, ("top" if position[0] == "t" else "bottom"): my}
+    x0 = css["left"] if "left" in css else W - css["right"] - w
+    y0 = css["top"] if "top" in css else H - css["bottom"] - h
+    return {"css": css, "size": size, "pad": pad, "box": [x0, y0, x0 + w, y0 + h]}
+
+
+def watermark_warnings(sb: dict, lay: dict, position: str) -> list[str]:
+    """Lo que queda debajo de la marca de agua: overlays con caja (no las pizarras a pantalla completa, sobre las que va
+    a propósito) y la franja de subtítulos. Solo avisa; el storyboard mueve el overlay o cambia watermark.position."""
+    from .graphics import overlay_bbox
+    W = int((sb.get("canvas") or {}).get("width", 1920)); H = int((sb.get("canvas") or {}).get("height", 1080))
+    x0, y0, x1, y1 = lay["box"]
+    hint = "muévelo o cambia watermark.position (br, bl, tr, tl)"
+    out = []
+    for o in sb.get("overlays", []):
+        try:
+            bb = overlay_bbox(o, W, H)
+        except (KeyError, TypeError, ValueError, IndexError):
+            bb = None
+        if bb and bb[0] < x1 and bb[2] > x0 and bb[1] < y1 and bb[3] > y0:
+            out.append(f"marca de agua ({position}): {o.get('id')} ({o.get('type')}) queda debajo; {hint}")
+    cs = sb.get("caption_style") or {}
+    if sb.get("captions") or cs:
+        narrow = W < 1400
+        bottom = int(cs.get("bottom", 200 if narrow else 56))
+        height = round(int(cs.get("size", 72 if narrow else 64)) * 2.4) if cs.get("preset", "phrase") in ("pages", "karaoke") else 70
+        if H - bottom - height < y1 and H - bottom > y0:
+            out.append(f"marca de agua ({position}): la franja de subtítulos pasa por debajo; cambia watermark.position o caption_style.bottom")
+    return out
+
+
 def validate(sb: dict) -> list[str]:
     """Validación ligera del storyboard: devuelve lista de errores (vacía si es válido)."""
     errs = []
@@ -1135,6 +1240,7 @@ def validate(sb: dict) -> list[str]:
         errs.append("canvas demasiado pequeño (mínimo 480 px de lado)")
     if sb.get("platform") not in (None, "tiktok", "reels", "shorts", "youtube", "pdp"):
         errs.append("platform debe ser tiktok, reels, shorts, youtube o pdp")
+    errs += watermark_errors(sb.get("watermark"))
     errs += safety_errors(sb)
     if isinstance(sb.get("brand"), dict):
         errs += brand_errors(sb["brand"])

@@ -12,7 +12,8 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
-from .build import DEFAULT_BRAND, brand_errors, highlight_line_height, load_brand_file, on_accent_color, resolve_brand
+from .build import (DEFAULT_BRAND, WATERMARK_CSS, brand_errors, highlight_line_height, load_brand_file, on_accent_color, resolve_brand,
+                    watermark_errors, watermark_layout, watermark_spec)
 from .env import env_with_ffmpeg, npx_cmd, run
 
 
@@ -32,9 +33,13 @@ def _layout(W: int, H: int, size: int | None) -> dict:
 def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: str | None = None, badge: str | None = None,
                 size: tuple[int, int] = (1280, 720), brand: str | dict | None = None, bg: str = "accent", darken: float = 0.35,
                 ring: tuple[int, int, int] | None = None, focus: tuple[float, float] | None = None, zoom: float = 1.0,
-                font_size: int | None = None, lines: list[str] | None = None) -> Path:
-    """Escribe el proyecto HyperFrames de la portada en out_dir y devuelve su index.html."""
+                font_size: int | None = None, lines: list[str] | None = None, watermark: str | dict | None = None) -> Path:
+    """Escribe el proyecto HyperFrames de la portada en out_dir y devuelve su index.html. `watermark` como el campo del
+    storyboard (F28-298); por defecto abajo a la izquierda (abajo a la derecha en cuadrado), lejos del logo y del título."""
     W, H = size
+    bad = watermark_errors(watermark)
+    if bad:
+        raise SystemExit("Marca de agua no válida:\n  - " + "\n  - ".join(bad))
     out = Path(out_dir); (out / "assets").mkdir(parents=True, exist_ok=True)
     img = Path(image)
     shutil.copy2(img, out / "assets" / img.name)
@@ -69,6 +74,14 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
     fl = meta.get("font_link") or ""
     font_link = f'<link rel="stylesheet" href="{_esc(fl)}">' if fl else ""
     logo_pos = "right: 48px; bottom: 44px;" if lay["logo"] == "bottom" else "right: 48px; top: 44px;"
+    wm = watermark_spec(watermark, "br" if W == H else "bl")
+    wm_html = wm_css = ""
+    if wm:
+        wl = watermark_layout(W, H, wm["position"], None, wm["text"])
+        pos = "; ".join(f"{k}:{v}px" for k, v in wl["css"].items())
+        wm_html = (f'<div id="wm" class="wm" style="position:absolute; z-index:50; {pos}; font-size:{wl["size"]}px; '
+                   f'padding:{wl["pad"][0]}px {wl["pad"][1]}px; opacity:{wm["opacity"]}">{_esc(wm["text"])}</div>')
+        wm_css = WATERMARK_CSS
     css = f"""
       * {{ margin:0; padding:0; box-sizing:border-box; }}
       html, body {{ width:{W}px; height:{H}px; overflow:hidden; background:#000; }}
@@ -86,7 +99,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
       .badge {{ position:absolute; left:{lay['x']}px; top:{max(40, lay['y'] - 90)}px; font-family:var(--mono); font-size:{round(lay['size'] * 0.3)}px; letter-spacing:0.14em; text-transform:uppercase; padding:10px 18px; border-radius:999px; background:#fff; color:var(--ink); }}
       .logo {{ position:absolute; {logo_pos} height:{round(H * 0.06)}px; width:auto; filter:drop-shadow(0 4px 14px rgba(0,0,0,.6)); }}
       .ring {{ position:absolute; border:8px solid var(--accent); border-radius:50%; box-shadow:0 0 0 6px rgba(0,0,0,.35), inset 0 0 0 6px rgba(0,0,0,.25); }}
-    """
+    """ + wm_css
     doc = f"""<!doctype html>
 <html lang="es" data-resolution="{'portrait' if H > W else 'landscape'}">
   <head>
@@ -104,7 +117,7 @@ def build_cover(image: str | Path, out_dir: str | Path, title: str, subtitle: st
       {ring_html}
       {badge_html}
       <div class="title {bg}">{title_html}{sub_html}</div>
-      {logo_html}
+      {logo_html}{wm_html}
     </div>
     <script>
       const tl = gsap.timeline({{ paused: true }});

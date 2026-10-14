@@ -236,8 +236,9 @@ def gestures(video, words, sample_fps, annotate, canvas, out_json, as_json):
 @click.option("--focus", default=None, help="punto de interés del fondo en fracciones: 0.6,0.5 (recorte y zoom se centran ahí)")
 @click.option("--zoom", default=1.0, show_default=True, help="acercar el fondo (1.2 = 20 %)")
 @click.option("--font-size", type=int, default=None)
+@click.option("--watermark", default=None, help="marca de agua (texto, p. ej. 'Frame28 Studio'), como el campo watermark del storyboard")
 @click.option("--json", "as_json", is_flag=True)
-def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, darken, ring, focus, zoom, font_size, as_json):
+def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, darken, ring, focus, zoom, font_size, watermark, as_json):
     """Portada o miniatura: fotograma + título con resaltado, insignia, logo y aro opcional; captura con HyperFrames (mismas fuentes que el vídeo)."""
     from .cover import make_cover
     w, h = (int(v) for v in size.lower().replace("×", "x").split("x"))
@@ -245,7 +246,7 @@ def cover(video, out_png, title, subtitle, badge, at_s, image, size, brand, bg, 
     ring_t = tuple(int(v) for v in ring.split(",")) if ring else None
     focus_t = tuple(float(v) for v in focus.split(",")) if focus else None
     r = make_cover(video, out_png, lines[0], at_s, image, None, subtitle=subtitle, badge=badge, size=(w, h), brand=brand, bg=bg,
-                   darken=darken, ring=ring_t, focus=focus_t, zoom=zoom, font_size=font_size, lines=lines)
+                   darken=darken, ring=ring_t, focus=focus_t, zoom=zoom, font_size=font_size, lines=lines, watermark=watermark)
     out(r, as_json or True)
 
 
@@ -623,8 +624,9 @@ def clips_cut(clips_json, clip_id, video, audio, words, captions, out_dir, as_js
 @click.option("--cta", "cta_json", type=click.Path(exists=True), default=None, help="JSON con los campos del overlay cta (price, code, url…)")
 @click.option("--hook", "hook_index", default=0, show_default=True, help="cuál de los tres ganchos usar (0, 1, 2)")
 @click.option("--video", "video_name", default="clip.mp4", show_default=True, help="vídeo dentro de la carpeta (vertical.mp4 tras reframe)")
+@click.option("--watermark", default=None, help="marca de agua en la raíz del storyboard (texto, p. ej. 'Frame28 Studio')")
 @click.option("--json", "as_json", is_flag=True)
-def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_json, hook_index, video_name, as_json):
+def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_json, hook_index, video_name, watermark, as_json):
     """Escribe el storyboard de partida del short (gancho, subtítulos por palabras, CTA) que ya construye con `frame28 build`."""
     from .clips import scaffold
     plan_ = json.loads(Path(clips_json).read_text(encoding="utf-8-sig"))
@@ -633,7 +635,7 @@ def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_j
         raise SystemExit(f"{clip_id} no está en {clips_json}")
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     cta = json.loads(Path(cta_json).read_text(encoding="utf-8-sig")) if cta_json else None
-    out(scaffold(clip, clip_dir or f"work/clips/{clip_id}", (w, h), platform, brand, cta, hook_index, video_name), as_json or True)
+    out(scaffold(clip, clip_dir or f"work/clips/{clip_id}", (w, h), platform, brand, cta, hook_index, video_name, watermark=watermark), as_json or True)
 
 
 @clips.command("batch")
@@ -652,20 +654,22 @@ def clips_scaffold(clips_json, clip_id, clip_dir, canvas, platform, brand, cta_j
 @click.option("--quality", default="high", show_default=True, type=click.Choice(["draft", "standard", "high"]))
 @click.option("--workers", default=None, type=click.IntRange(1, 32), help="trabajadores de captura del render (como `frame28 render`)")
 @click.option("--gpu/--cpu", default=None, help="codificar los MP4 con NVENC o libx264; sin indicarlo, la GPU si la máquina la tiene")
+@click.option("--watermark", default=None, help="marca de agua en todas las variantes (texto); con --keep se añade a los storyboards que no la lleven")
 @click.option("--json", "as_json", is_flag=True)
-def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, keep, quality, workers, gpu, as_json):
+def clips_batch(clips_json, clip_ids, clips_dir, out_dir, hooks, canvas, platform, brand, cta_json, video_name, no_render, keep, quality, workers, gpu, watermark, as_json):
     """Variantes de gancho en lote: por cada short y cada gancho, storyboard + build (+ check + render) → <id>-hook<N>.mp4 y batch.json."""
     from .clips import batch
     w, h = (int(v) for v in canvas.lower().replace("×", "x").split("x"))
     cta = json.loads(Path(cta_json).read_text(encoding="utf-8-sig")) if cta_json else None
     hook_idx = None if hooks == "all" else [int(x) for x in hooks.split(",") if x.strip()]
     r = batch(clips_json, list(clip_ids) or None, clips_dir, out_dir, hook_idx, (w, h), platform, brand, cta, video_name, not no_render, quality, keep,
-              workers=workers, gpu=gpu)
+              workers=workers, gpu=gpu, watermark=watermark)
     if as_json:
         out(r, True); return
     for v in r["variants"]:
         mark = "✓" if v["ok"] else "✗"
         click.echo(f"  {mark} {v['name']:<14} {v.get('output') or v['storyboard']}" + ("  (storyboard conservado)" if v.get("kept") else "")
+                   + ("  (marca de agua añadida)" if v.get("watermark_added") else "")
                    + (f"  {v['error']}" if v.get("error") else ""))
     click.echo(f"  {r['ok']} de {len(r['variants'])} variantes · manifiesto: {r['manifest']}")
     if r["skipped"]:
