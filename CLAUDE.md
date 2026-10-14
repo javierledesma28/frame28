@@ -406,6 +406,9 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   porque los overlays animan `clip-path` y máscaras. Medido con el clip de 10 s (16 núcleos, 32 GB): 6 trabajadores
   (por defecto) 81 s; `--workers 10` 68 s; 14, 76 s (se pisan); `--gpu` (NVENC) 73 s; `--workers 10 --gpu` 57 s con
   un fichero un 47 % mayor. Con más de 5 trabajadores hay que subir el heap de Node (`render` lo hace).
+  F28-117 (2026-10-14, HyperFrames 0.8.105): Chrome con GPU (auto, ANGLE D3D11) y en software (SwiftShader) capturan
+  igual de rápido, y la captura rápida forzada (`--experimental-fast-capture`) es 1,6× más lenta con 10 trabajadores:
+  no hay nada que encender. Cifras en el docstring de `render.render_args`.
 - **`check` tarda ~49 s y no hace falta repetirlo** cuando solo cambian textos o posiciones de un storyboard ya
   comprobado (versiones traducidas, re-renders tras revisar): en un vídeo real se pasó 11 veces, el 16 % del tiempo.
 - **Trabajar en el CLI mientras hay renders en marcha**: en un worktree de git (`git worktree add <ruta> -b <rama>`);
