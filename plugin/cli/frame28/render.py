@@ -25,7 +25,14 @@ def render_args(output: Path, quality: str = "high", crf: int = 18, fps: int | N
     """Argumentos y entorno de `hyperframes render`. El tiempo se va en capturar cada fotograma con Chrome (que ya usa
     la GPU del navegador por defecto), repartido entre trabajadores: HyperFrames elige ~6; con más núcleos y memoria,
     `workers` lo sube (y el heap de Node con él). `gpu` codifica con la GPU (NVENC): algo más rápido, fichero mayor.
-    Medido en 16 núcleos, 32 GB y RTX 4060 con un clip de 10 s: 6 → 81 s; 10 → 68 s; 14 → 76 s; 10 + gpu → 57 s."""
+    Medido en 16 núcleos, 32 GB y RTX 4060 con un clip de 10 s: 6 → 81 s; 10 → 68 s; 14 → 76 s; 10 + gpu → 57 s.
+
+    No se pasan opciones de GPU del navegador ni de captura rápida (F28-117, medido el 2026-10-14 con HyperFrames 0.8.105
+    en la regresión de clip-javier, 585 fotogramas, `-w 10 --gpu`): `--browser-gpu` ya está en auto y aquí detecta la
+    RTX 4060 (ANGLE D3D11), pero la captura por pantallazo tarda igual en software (SwiftShader: 51-75 s frente a
+    49-76 s, 5-6 renders intercalados). `--experimental-fast-capture` (drawElementImage) cae a pantallazo porque el ~9 %
+    de los fotogramas anima `clip-path` (lo hacen el tecleo y los rótulos); forzada, con 10 trabajadores la captura
+    sube a 105-131 s. Volver a medir si HyperFrames cambia la captura o si las animaciones dejan `clip-path`."""
     args = ["render", "-o", str(output), "-q", quality, "--crf", str(crf)]
     env: dict = {}
     if fps:
