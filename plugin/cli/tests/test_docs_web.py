@@ -86,6 +86,14 @@ def test_deck_no_maqueta_lo_que_no_se_ve():
     assert llamadas and all(x.startswith(("if (editando", "else if (editando")) for x in llamadas)
 
 
+def test_roadmap_no_maqueta_lo_que_queda_lejos():
+    # 1.530 objetos en el primer Layout y otra vez al llegar las fuentes; en móvil ninguna versión se ve al cargar
+    t = read("roadmap/index.html")
+    assert ".version { content-visibility: auto; contain-intrinsic-size: auto calc(200px + var(--n, 8) * 92px); }" in t
+    assert "contain-intrinsic-size: auto calc(220px + var(--n, 8) * 190px)" in t        # filas apiladas bajo 640 px
+    assert 'style="--n:${items.length}"' in t                                            # el alto estimado sale de los ítems
+
+
 def test_ningun_texto_versionado_lleva_nul():
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=REPO, capture_output=True, check=True).stdout
