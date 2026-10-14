@@ -94,6 +94,10 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   display:flex;flex-direction:column;
 }
 .slide.is-active{visibility:visible;opacity:1;pointer-events:auto;z-index:2}
+/* Las que no se ven tampoco se maquetan: con las 19 maquetadas de golpe, el primer pintado esperaba ~0,5 s más
+   (F28-121). check() las maqueta un momento con .deck-midiendo para medir desbordes. */
+.deck-stage > .slide:not(.is-active):not(.is-exit){content-visibility:hidden}
+.deck-midiendo .deck-stage > .slide{content-visibility:visible !important}
 
 /* --------------------------------------------- 3 · transiciones entre slides
    Cuatro tipos, elegibles por slide con data-transition.
@@ -803,7 +807,7 @@ body.is-presenter .deck-viewport,body.is-presenter .deck-controls,body.is-presen
   .deck-viewport{position:static;overflow:visible}
   .deck-stage{position:static;width:auto;height:auto;transform:none !important}
   .slide{
-    position:relative;visibility:visible !important;opacity:1 !important;
+    position:relative;visibility:visible !important;opacity:1 !important;content-visibility:visible !important;
     display:flex !important;break-after:page;page-break-after:always;box-shadow:none;
     animation:none !important;
   }

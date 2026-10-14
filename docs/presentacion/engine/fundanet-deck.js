@@ -718,10 +718,12 @@
 
   /* ------------------------------------------------- 10 · control de desborde
      El error más caro de un deck es descubrir en la sala que una tabla se
-     cortaba. Las slides usan visibility:hidden, no display:none, así que el
-     layout de todas está calculado y se pueden medir sin mostrarlas. */
+     cortaba. Las slides usan visibility:hidden, no display:none, y las que no
+     se ven llevan content-visibility:hidden para no retrasar el primer pintado:
+     .deck-midiendo las maqueta todas un momento y se miden sin mostrarlas. */
   function check() {
     var bad = [];
+    document.documentElement.classList.add('deck-midiendo');
     deck.slides.forEach(function (sl, j) {
       var t = (sl.getAttribute('data-title') || 'slide ' + (j + 1)).trim();
 
@@ -759,6 +761,7 @@
         }
       });
     });
+    document.documentElement.classList.remove('deck-midiendo');
     if (bad.length) {
       console.warn('[Think28 Deck] ' + bad.length + ' aviso(s) de desborde:');
       console.table(bad);

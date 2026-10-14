@@ -110,6 +110,10 @@ body{font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased
   display:flex;flex-direction:column;
 }
 .slide.is-active{visibility:visible;opacity:1;pointer-events:auto;z-index:2}
+/* Las que no se ven tampoco se maquetan: con las 19 maquetadas de golpe, el primer pintado esperaba ~0,5 s más
+   (F28-121). check() las maqueta un momento con .deck-midiendo para medir desbordes. */
+.deck-stage > .slide:not(.is-active):not(.is-exit){content-visibility:hidden}
+.deck-midiendo .deck-stage > .slide{content-visibility:visible !important}
 
 /* --------------------------------------------- 3 · transiciones entre slides
    Cuatro tipos, elegibles por slide con data-transition.
@@ -819,7 +823,7 @@ body.is-presenter .deck-viewport,body.is-presenter .deck-controls,body.is-presen
   .deck-viewport{position:static;overflow:visible}
   .deck-stage{position:static;width:auto;height:auto;transform:none !important}
   .slide{
-    position:relative;visibility:visible !important;opacity:1 !important;
+    position:relative;visibility:visible !important;opacity:1 !important;content-visibility:visible !important;
     display:flex !important;break-after:page;page-break-after:always;box-shadow:none;
     animation:none !important;
   }
@@ -2485,10 +2489,12 @@ body.is-pointer{cursor:none}
 
   /* ------------------------------------------------- 10 · control de desborde
      El error más caro de un deck es descubrir en la sala que una tabla se
-     cortaba. Las slides usan visibility:hidden, no display:none, así que el
-     layout de todas está calculado y se pueden medir sin mostrarlas. */
+     cortaba. Las slides usan visibility:hidden, no display:none, y las que no
+     se ven llevan content-visibility:hidden para no retrasar el primer pintado:
+     .deck-midiendo las maqueta todas un momento y se miden sin mostrarlas. */
   function check() {
     var bad = [];
+    document.documentElement.classList.add('deck-midiendo');
     deck.slides.forEach(function (sl, j) {
       var t = (sl.getAttribute('data-title') || 'slide ' + (j + 1)).trim();
 
@@ -2526,6 +2532,7 @@ body.is-pointer{cursor:none}
         }
       });
     });
+    document.documentElement.classList.remove('deck-midiendo');
     if (bad.length) {
       console.warn('[Think28 Deck] ' + bad.length + ' aviso(s) de desborde:');
       console.table(bad);
