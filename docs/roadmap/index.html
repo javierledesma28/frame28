@@ -57,7 +57,7 @@
   .title p { margin: 0; max-width: 62ch; color: var(--fg-2); font-size: 1.05rem; }
 
   /* vía de versiones */
-  .track { margin-top: 32px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; position: relative; }
+  .track { margin-top: 32px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; position: relative; }
   .track::before { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 2px; background: var(--line); }
   .stop { position: relative; padding-top: 30px; min-width: 0; }
   .stop::before { content: ""; position: absolute; top: 4px; left: 0; width: 16px; height: 16px; border-radius: 50%;
@@ -69,9 +69,12 @@
   .stop.here .w, .stop.here .v { color: var(--fg); }
   .stop .here-tag { display: inline-block; margin-top: 6px; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
                     text-transform: uppercase; background: var(--accent); color: var(--accent-ink); padding: 2px 8px; border-radius: 999px; }
-  @media (max-width: 720px) {
-    .track { grid-template-columns: repeat(3, 1fr); row-gap: 18px; }
+  @media (max-width: 960px) {
+    .track { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
     .track::before { display: none; }
+  }
+  @media (max-width: 520px) {
+    .track { grid-template-columns: repeat(2, 1fr); }
   }
 
   /* cifras */
