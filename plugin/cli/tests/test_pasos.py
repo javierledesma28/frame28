@@ -120,7 +120,7 @@ def test_cut_apply_refuses_an_empty_plan(tmp_path):
 def test_cut_apply_stops_when_the_16k_audio_fails(monkeypatch, tmp_path):
     plan = tmp_path / "cuts.json"
     plan.write_text(json.dumps({"keep": [{"start": 0.0, "end": 1.0}], "removed": [], "result_duration": 1.0}), encoding="utf-8")
-    _fake_run(monkeypatch, lambda cmd: "16000" in cmd, "", K)
+    _fake_run(monkeypatch, lambda cmd: "16000" in cmd, "")
     with pytest.raises(SystemExit) as e:
         K.apply(tmp_path / "clip.mp4", tmp_path / "voice.wav", plan, tmp_path / "cut")
     assert "cut apply: audio de 16 kHz" in str(e.value)

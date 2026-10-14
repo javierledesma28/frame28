@@ -1,11 +1,14 @@
 """Localización de binarios externos (ffmpeg, npx) y rutas de caché. Windows-friendly."""
 from __future__ import annotations
 
+import functools
 import glob
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 CACHE_DIR = Path(os.environ.get("FRAME28_CACHE", Path.home() / ".cache" / "frame28"))
@@ -21,6 +24,19 @@ def _winget_candidates(exe: str) -> list[str]:
     return glob.glob(str(base / "**" / f"{exe}.exe"), recursive=True)
 
 
+def _version_key(path: str) -> tuple:
+    """Orden por versión, no por texto: ffmpeg-10.0 va después de ffmpeg-9.0.2 (como texto iba antes, F28-94)."""
+    return tuple(tuple(int(x) for x in v.split(".")) for v in re.findall(r"\d+(?:\.\d+)+", path)), path
+
+
+@functools.lru_cache(maxsize=None)
+def _winget_best(exe: str) -> str | None:
+    """El ejecutable de mayor versión entre los paquetes de WinGet. Se busca una vez por proceso: el glob recursivo
+    sobre Packages tarda y antes se repetía en cada ffmpeg() (F28-94)."""
+    cands = _winget_candidates(exe)
+    return max(cands, key=_version_key) if cands else None
+
+
 def find_tool(name: str, env_var: str | None = None) -> str | None:
     """Busca un ejecutable: variable de entorno explícita, PATH, y en Windows los paquetes de WinGet."""
     if env_var and os.environ.get(env_var):
@@ -29,16 +45,24 @@ def find_tool(name: str, env_var: str | None = None) -> str | None:
     if found:
         return found
     if os.name == "nt":
-        cands = _winget_candidates(name)
-        if cands:
-            return sorted(cands)[-1]
+        return _winget_best(name)
     return None
+
+
+def ffmpeg_install_hint() -> str:
+    """Cómo instalar ffmpeg en esta plataforma (antes el error decía winget también en Mac y Linux, F28-94)."""
+    if sys.platform == "win32":
+        return "winget install --id Gyan.FFmpeg -e"
+    if sys.platform == "darwin":
+        return "brew install ffmpeg"
+    return "sudo apt install ffmpeg (o el gestor de paquetes de tu distribución)"
 
 
 def ffmpeg() -> str:
     p = find_tool("ffmpeg", "FRAME28_FFMPEG")
     if not p:
-        raise SystemExit("ffmpeg no encontrado. Instala con: winget install --id Gyan.FFmpeg -e  (o define FRAME28_FFMPEG)")
+        raise SystemExit(f"ffmpeg no encontrado. Instálalo con: {ffmpeg_install_hint()} y abre una terminal nueva "
+                         "(o define FRAME28_FFMPEG)")
     return p
 
 
@@ -49,7 +73,8 @@ def ffprobe() -> str:
         cand = Path(ffmpeg()).with_name("ffprobe.exe" if os.name == "nt" else "ffprobe")
         if cand.exists():
             return str(cand)
-        raise SystemExit("ffprobe no encontrado")
+        raise SystemExit(f"ffprobe no encontrado: viene con ffmpeg. Instálalo con: {ffmpeg_install_hint()} "
+                         "(o define FRAME28_FFPROBE)")
     return p
 
 
@@ -86,14 +111,31 @@ def run(cmd: list[str], **kw) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, **kw)
 
 
+def _ok(r: subprocess.CompletedProcess, what: str) -> subprocess.CompletedProcess:
+    if r.returncode != 0:
+        tail = (r.stderr or r.stdout or "").strip()[-800:]
+        raise SystemExit(f"{what}: {Path(r.args[0]).stem} salió con el código {r.returncode}" + (f"\n{tail}" if tail else ""))
+    return r
+
+
 def run_ok(cmd: list[str], what: str, **kw) -> subprocess.CompletedProcess:
     """`run` para los pasos de los que depende el siguiente: si la orden falla, para diciendo qué paso era y el final
     de su error. Antes prep, cut apply y audio seguían como si nada y dejaban el trabajo a medias (F28-93)."""
-    r = run(cmd, **kw)
-    if r.returncode != 0:
-        tail = (r.stderr or r.stdout or "").strip()[-800:]
-        raise SystemExit(f"{what}: {Path(cmd[0]).stem} salió con el código {r.returncode}" + (f"\n{tail}" if tail else ""))
-    return r
+    return _ok(run(cmd, **kw), what)
+
+
+def run_filter_complex(before: list[str], fc: str, after: list[str], what: str) -> subprocess.CompletedProcess:
+    """ffmpeg con un -filter_complex que puede ser muy largo (cut apply con cientos de tramos). Va en un fichero: en
+    línea, con ~280 tramos pasa del límite de 32 767 caracteres de una orden de Windows y Python lanza WinError 206
+    (F28-94). `-/filter_complex fichero` es la forma de ffmpeg 7 o posterior (la 9 ya no tiene -filter_complex_script);
+    con uno anterior se repite con la antigua. Para como `run_ok` si falla."""
+    with tempfile.TemporaryDirectory(prefix="frame28_fc_") as tmp:
+        script = Path(tmp) / "filter_complex.txt"
+        script.write_text(fc, encoding="utf-8")
+        r = run([ffmpeg(), *before, "-/filter_complex", str(script), *after])
+        if r.returncode != 0 and "Unrecognized option" in (r.stderr or "") and "filter_complex" in r.stderr:
+            r = run([ffmpeg(), *before, "-filter_complex_script", str(script), *after])
+    return _ok(r, what)
 
 
 def env_with_ffmpeg() -> dict:

@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from .captions import load_captions, load_words
-from .env import encoder_args, ffmpeg, run, run_ok
+from .env import encoder_args, ffmpeg, run_filter_complex, run_ok
 
 FILLERS = {
     "es": {"eh", "ehh", "ehm", "em", "emm", "mm", "mmm", "hmm", "uhm", "um", "uh", "ah", "aha", "ajá", "aja", "este...", "o sea..."},
@@ -265,10 +265,9 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
         parts.append(f"[0:v]trim=start={k['start']}:end={k['end']},setpts=PTS-STARTPTS[v{i}]"); labels.append(f"[v{i}]")
     fc = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(keep)}:v=1:a=0[v]"
     vout = out / "clip.mp4"
-    r = run([ffmpeg(), "-v", "error", "-y", "-i", str(video), "-filter_complex", fc, "-map", "[v]", *encoder_args(16),
-             "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p", "-r", "30", str(vout)])
-    if r.returncode != 0:
-        raise SystemExit(r.stderr)
+    run_filter_complex(["-v", "error", "-y", "-i", str(video)], fc,
+                       ["-map", "[v]", *encoder_args(16), "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p", "-r", "30", str(vout)],
+                       "cut apply: montar el vídeo con los tramos")
     res["clip"] = str(vout)
     # audio: atrim + fundidos de 30 ms en cada borde + concat
     if audio:
@@ -279,9 +278,8 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
             labels.append(f"[a{i}]")
         fc = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(keep)}:v=0:a=1[a]"
         aout = out / "voice.wav"
-        r = run([ffmpeg(), "-v", "error", "-y", "-i", str(audio), "-filter_complex", fc, "-map", "[a]", "-ar", "48000", "-ac", "2", str(aout)])
-        if r.returncode != 0:
-            raise SystemExit(r.stderr)
+        run_filter_complex(["-v", "error", "-y", "-i", str(audio)], fc, ["-map", "[a]", "-ar", "48000", "-ac", "2", str(aout)],
+                           "cut apply: montar la voz con los tramos")
         res["voice"] = str(aout)
         a16 = out / "audio16k.wav"
         run_ok([ffmpeg(), "-v", "error", "-y", "-i", str(aout), "-ac", "1", "-ar", "16000", str(a16)],
