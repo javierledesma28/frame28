@@ -280,8 +280,9 @@ def annotate(res: dict, out_png: str | Path, video: str | Path | None = None) ->
 
 # ---------- colisiones con un storyboard ----------
 
-def overlay_bbox(o: dict, W: int, H: int) -> list[int] | None:
-    """Caja aproximada de un overlay del storyboard (los de pantalla completa devuelven None)."""
+def overlay_bbox(o: dict, W: int, H: int, sb: dict | None = None) -> list[int] | None:
+    """Caja aproximada de un overlay del storyboard (los de pantalla completa devuelven None). `sb`, el storyboard: la
+    posición por defecto del CTA depende de si lleva subtítulos."""
     t = o["type"]
     if t == "box":
         return [o["x"], o["y"], o["x"] + round(54 * 0.5 * len(o["text"]) + 52), o["y"] + 80]
@@ -307,9 +308,9 @@ def overlay_bbox(o: dict, W: int, H: int) -> list[int] | None:
         size = int(o.get("size", 96 if narrow else 110)); n = len(o.get("lines") or [o.get("text", "")])
         return [x, y, x + w, y + round(size * 1.2 * n)]
     if t == "cta":
-        x = int(o.get("x", 60)); w = int(o.get("w", W - x - (170 if narrow else x)))
-        y = int(o.get("y", H - (int(0.18 * H) if narrow else 56) - round((72 if narrow else 40) * 2.4) - 464))
-        return [x, y, x + w, y + 440]
+        from .build import CTA_H, cta_box
+        x, y, w = cta_box(o, W, H, sb)
+        return [x, y, x + w, y + CTA_H]
     if t == "steps":
         x = int(o.get("x", 60)); y = int(o.get("y", 60)); size = int(o.get("size", 34))
         longest = max((len(it["label"]) for it in o.get("items", [])), default=6)
@@ -327,7 +328,7 @@ def collisions(sb: dict, gfx: dict) -> list[str]:
     out = []
     full = {"card", "list_focus", "card_words", "brand_card"}
     for o in sb.get("overlays", []):
-        bb = overlay_bbox(o, W, H)
+        bb = overlay_bbox(o, W, H, sb)
         for e in gfx.get("events", []):
             if e["kind"] == "scene_text" and (e["end"] - e["start"]) < 2:
                 continue

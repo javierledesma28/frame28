@@ -588,18 +588,7 @@ class Builder:
         self.fade_out(f"#{i}", o["end"], 0.3)
 
     def cta_box(self, o: dict) -> tuple[int, int, int]:
-        """Posición por defecto del CTA: fuera de la columna de iconos (vertical) y encima de los subtítulos."""
-        x = int(o.get("x", 60))
-        w = int(o.get("w", self.W - x - (170 if self.narrow else x)))
-        cs = self.sb.get("caption_style") or {}
-        if self.sb.get("captions") or cs:
-            bottom = int(cs.get("bottom", 200 if self.narrow else 56))
-            size = int(cs.get("size", 72 if self.narrow else 64)) if cs else 40
-            cap_top = self.H - bottom - round(size * 2.4)
-        else:
-            cap_top = self.H - 80
-        y = int(o.get("y", cap_top - 440 - 24))
-        return x, y, w
+        return cta_box(o, self.W, self.H, self.sb)
 
     def steps(self, o: dict) -> None:
         """Indicador de progreso "1 / 3 · Tape the stencil" que cambia en el `at` de cada paso (visible start–end)."""
@@ -1136,6 +1125,29 @@ def watermark_spec(value, default_position: str = "br") -> dict | None:
     return {"text": obj["text"].strip(), "position": obj.get("position", default_position), "opacity": float(obj.get("opacity", 0.9))}
 
 
+CTA_H = 440   # alto con el que se reserva el CTA (título, precio, código y QR de 220 px)
+
+
+def cta_box(o: dict, W: int, H: int, sb: dict | None = None) -> tuple[int, int, int]:
+    """Posición por defecto del CTA (x, y, ancho): fuera de la columna de iconos (vertical) y encima de los subtítulos,
+    si el storyboard los lleva. Es la única cuenta: la usan el generador y graphics.overlay_bbox (avisos de plataforma,
+    marca de agua y colisiones); antes había dos y no coincidían (F28-95: en vertical sin subtítulos el CTA salía en
+    y=1376 y los avisos lo evaluaban en y=938)."""
+    sb = sb or {}
+    narrow = W < 1400
+    x = int(o.get("x", 60))
+    w = int(o.get("w", W - x - (170 if narrow else x)))
+    cs = sb.get("caption_style") or {}
+    if sb.get("captions") or cs:
+        bottom = int(cs.get("bottom", 200 if narrow else 56))
+        size = int(cs.get("size", 72 if narrow else 64)) if cs else 40
+        cap_top = H - bottom - round(size * 2.4)
+    else:
+        cap_top = H - 80
+    y = int(o.get("y", cap_top - CTA_H - 24))
+    return x, y, w
+
+
 def watermark_layout(W: int, H: int, position: str = "br", platform: str | None = None, text: str = "") -> dict:
     """Dónde va la marca de agua y cuánto mide. En vertical para redes (tiktok, reels, shorts, o sin platform) las esquinas
     son las de la zona segura de platform_warnings: tl/tr por debajo de la franja superior, bl por encima de la inferior y
@@ -1169,7 +1181,7 @@ def watermark_warnings(sb: dict, lay: dict, position: str) -> list[str]:
     out = []
     for o in sb.get("overlays", []):
         try:
-            bb = overlay_bbox(o, W, H)
+            bb = overlay_bbox(o, W, H, sb)
         except (KeyError, TypeError, ValueError, IndexError):
             bb = None
         if bb and bb[0] < x1 and bb[2] > x0 and bb[1] < y1 and bb[3] > y0:
@@ -1260,7 +1272,7 @@ def platform_warnings(sb: dict) -> list[str]:
              "franja superior (estado y pestañas)": [0, 0, W, int(0.08 * H)]}
     out = []
     for o in sb.get("overlays", []):
-        bb = overlay_bbox(o, W, H)
+        bb = overlay_bbox(o, W, H, sb)
         if bb is None:
             continue
         for name, z in zones.items():
