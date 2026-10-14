@@ -3,10 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Roadmap de Frame28 por versiones: qué está hecho, qué va a medias y qué viene después.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/brand/think28-isotipo.svg" type="image/svg+xml">
 <!-- artifact:head -->
 <title>Frame28 Roadmap</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<!-- Fuentes de Google tras el primer pintado con contenido: no entran en el FCP (F28-121) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="t28-fuentes" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" media="print">
+<script>(function(l){var n=0,h=0,P=window.PerformanceObserver;function on(){if(++n==2)l.media="all"}function pinto(){if(!h){h=1;on()}}if(l.sheet)on();else l.addEventListener("load",on);if(P&&(P.supportedEntryTypes||[]).indexOf("paint")>=0)new P(function(s,o){if(s.getEntriesByName("first-contentful-paint").length){o.disconnect();pinto()}}).observe({type:"paint",buffered:true});else requestAnimationFrame(function(){requestAnimationFrame(pinto)});setTimeout(pinto,3e3)})(document.getElementById("t28-fuentes"))</script>
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap"></noscript>
 <style>
+  @font-face{font-family:"Space Mono Fallback";src:local("Courier New");ascent-override:109.8%;descent-override:35.29%;line-gap-override:0%;size-adjust:102%}
+  @font-face{font-family:"Inter Fallback";src:local("Arial");ascent-override:90.49%;descent-override:22.56%;line-gap-override:0%;size-adjust:107.06%}
   /* Layout: una vía de versiones arriba (dónde estamos) y debajo cada versión como un vagón:
      cabecera con objetivo y criterio de cierre, y sus ítems en filas compactas con el estado a la izquierda. */
   :root {
@@ -20,8 +30,8 @@
     --ok: #1C7F49;  --ok-bg: #DFF2E6;
     --mid: #9A5F00; --mid-bg: #FAEBC8;
     --todo: #6E6E68; --todo-bg: #E9E8E2;
-    --sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --mono: 'Space Mono', 'Cascadia Mono', Consolas, monospace;
+    --sans: 'Inter', 'Inter Fallback', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'Space Mono', 'Space Mono Fallback', 'Cascadia Mono', Consolas, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -143,7 +153,7 @@
 <!-- artifact:body -->
 <div class="wrap">
   <header class="top">
-    <a class="logo" href="https://t28.io" aria-label="Think28">
+    <a class="logo" href="https://t28.io">
       <svg viewBox="0 0 480 120" role="img" aria-label="Think28"><rect width="480" height="120" rx="14" fill="#0a0a0a"/><text x="32" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-2">Think</text><text x="248" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#F5C500" letter-spacing="-3">28</text><rect x="32" y="88" width="24" height="1.5" fill="#F5C500" opacity="0.45"/><text x="32" y="106" font-family="Inter,Arial,sans-serif" font-weight="300" font-size="10" fill="#8a8a8a" letter-spacing="2">DIGITAL GROWTH PARTNER</text></svg>
     </a>
     <div class="date">Frame28 · roadmap · actualizado 2026-10-14</div>

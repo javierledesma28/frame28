@@ -188,6 +188,16 @@ Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards r
 Deck de la guía: editar `docs/presentacion/deck.html`, luego `node engine/build.mjs deck.html --out index.html`
 desde `docs/presentacion/` y comprobar en el navegador `FundanetDeck.check()` → `[]`. El build puede dejar CRLF
 en `index.html`: normalizar a LF antes de commitear (git lo hace solo, pero deja aviso).
+Las páginas de `docs/` cargan Google Fonts **sin bloquear el primer pintado** (F28-121: costaba ~0,9 s de FCP móvil):
+`<link id="t28-fuentes" … media="print">` + un script de una línea que lo pasa a `all` cuando la hoja ha cargado **y** el
+navegador ya registró el `first-contentful-paint` (`PerformanceObserver` de tipo `paint`; sin él, dos
+`requestAnimationFrame`; y a los 3 s pase lo que pase) + `<noscript>` de respaldo. Esperar al FCP no sobra: las fuentes van con prioridad VeryHigh y, si
+terminan antes del primer pintado observado, Lighthouse las cuenta como bloqueantes y el FCP simulado salta de ~1,1 a
+~2,8 s; con la máquina cargada el fotograma se presenta tarde y los dos `requestAnimationFrame` no bastaban. Detrás de cada fuente, su reserva con las mismas métricas
+(`@font-face` con `size-adjust`): `'Inter Fallback'` (Arial) y `'Space Mono Fallback'` (Courier New al 102 %; con Consolas,
+0,550 em frente a 0,612, la cabecera de /instalar/ cambiaba de una a dos líneas y la página entera bajaba: CLS 0,8). Una
+página nueva copia ese bloque de `docs/instalar/index.html`, con los dos `<link rel="icon">` (`/favicon.ico` y
+`/brand/think28-isotipo.svg`) y su `meta description`; `tests/test_docs_web.py` lo comprueba.
 
 Roadmap: editar el array `ROADMAP` de `docs/roadmap/index.html` (estado `s` de cada ítem: hecho | medias |
 pendiente; `next: true` marca el siguiente). Comprobar con `node --check` el script extraído y republicar el
@@ -326,7 +336,7 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   en CPU y 1,5 s en CUDA con los mismos textos; por eso va en CPU salvo `--gpu`. (5) `cudnn_conv_algo_search=DEFAULT` en
   onnxruntime 1.2x con cuDNN 9 es el plan de reserva («Fallback mode. May be extremely slow»): el OCR en CUDA tardó 98,5 s
   frente a 27,7 s en CPU; usar HEURISTIC (EXHAUSTIVE ya no mide algoritmos: solo cambia la heurística). Los avisos de
-  onnxruntime salen por stderr en UTF-16: `tr -d ' '` antes de `grep`.
+  onnxruntime salen por stderr en UTF-16: `tr -d '\000'` antes de `grep`.
 - **Decodificar en la GPU (NVDEC) no siempre gana** (F28-115, medido el 2026-10-03, prep = fps 30 + NVENC, RTX 4060 + 16
   núcleos): H.264 de 83 s, 14,8 → 11,0 s con la CPU libre y 28,6 → 18,8 s con la CPU ocupada; **AV1** de 160 s, 21,5 → 20,5 s
   libre y **27,1 → 66,4 s ocupada** (dav1d en CPU gana de largo). Y solo con el camino entero en GPU

@@ -4,7 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Frame28 · Guía de instalación y uso</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap">
+<meta name="description" content="Guía de Frame28: qué es, cómo se instala en Claude Code, cómo se conecta tu cuenta y cómo sacarle partido, sin ser informático.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/brand/think28-isotipo.svg" type="image/svg+xml">
+<!-- Fuentes de Google tras el primer pintado con contenido: no entran en el FCP (F28-121) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="t28-fuentes" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" media="print">
+<script>(function(l){var n=0,h=0,P=window.PerformanceObserver;function on(){if(++n==2)l.media="all"}function pinto(){if(!h){h=1;on()}}if(l.sheet)on();else l.addEventListener("load",on);if(P&&(P.supportedEntryTypes||[]).indexOf("paint")>=0)new P(function(s,o){if(s.getEntriesByName("first-contentful-paint").length){o.disconnect();pinto()}}).observe({type:"paint",buffered:true});else requestAnimationFrame(function(){requestAnimationFrame(pinto)});setTimeout(pinto,3e3)})(document.getElementById("t28-fuentes"))</script>
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap"></noscript>
 <style>
 /* =============================================================================
    FUNDANET DECK ENGINE · hoja de estilo
@@ -1223,14 +1231,16 @@ body.is-pointer{cursor:none}
 }
 </style>
 <style>
+@font-face{font-family:"Space Mono Fallback";src:local("Courier New");ascent-override:109.8%;descent-override:35.29%;line-gap-override:0%;size-adjust:102%}
+@font-face{font-family:"Inter Fallback";src:local("Arial");ascent-override:90.49%;descent-override:22.56%;line-gap-override:0%;size-adjust:107.06%}
 :root{
   /* Marca Think28 sobre el motor de decks: negro profundo + amarillo Think, Inter y Space Mono */
   --fn-primary:#0A0A0A;
   --fn-secondary:#F5C500;
   --fn-primary-lt:#2b2b2b;
   --fn-primary-dk:#000000;
-  --font:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
-  --mono:'Space Mono','Cascadia Code',ui-monospace,Consolas,monospace;
+  --font:'Inter','Inter Fallback','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'Space Mono','Space Mono Fallback','Cascadia Code',ui-monospace,Consolas,monospace;
   --fn-logo:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0NCiAgVGhpbmsyOCDigJQgTG9nbyBuZWdhdGl2byAoZm9uZG8gYmxhbmNvKQ0KICBWZXJzacOzbjogdjEuMCDCtyAyMDI2DQogIFVzbzogRG9jdW1lbnRvcyBpbXByZXNvcywgcGFwZWxlcsOtYSBlbiBibGFuY28sIGZvbmRvcyBjbGFyb3MNCiAgU3BlY3M6IDQ4MMOXMTIwIHB4IMK3IHZpZXdCb3ggMCAwIDQ4MCAxMjAgwrcgSW50ZXIgODAwIMK3IGFjZW50byAjQzlBMDAwIChnb2xkIGRhcmspDQotLT4NCjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDQ4MCAxMjAiPg0KICA8cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2ZmZmZmZiIvPg0KICA8dGV4dCB4PSIzMiIgeT0iNzgiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iODAwIiBmb250LXNpemU9IjY0IiBmaWxsPSIjMTExMTExIiBsZXR0ZXItc3BhY2luZz0iLTIiPlRoaW5rPC90ZXh0Pg0KICA8dGV4dCB4PSIyNDgiIHk9Ijc4IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI2NCIgZmlsbD0iI0M5QTAwMCIgbGV0dGVyLXNwYWNpbmc9Ii0zIj4yODwvdGV4dD4NCiAgPHJlY3QgeD0iMzIiIHk9Ijg4IiB3aWR0aD0iMjQiIGhlaWdodD0iMS41IiBmaWxsPSIjQzlBMDAwIiBvcGFjaXR5PSIwLjQ1Ii8+DQogIDx0ZXh0IHg9IjMyIiB5PSIxMDYiIGZvbnQtZmFtaWx5PSJJbnRlcixBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iMzAwIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNTU1NTU1IiBsZXR0ZXItc3BhY2luZz0iMiI+RElHSVRBTCBHUk9XVEggUEFSVE5FUjwvdGV4dD4NCjwvc3ZnPg0K');
   --fn-logo-blanco:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjwhLS0NCiAgVGhpbmsyOCDigJQgTG9nbyBwcmltYXJpbyAoZm9uZG8gb3NjdXJvKQ0KICBUYWdsaW5lOiBEaWdpdGFsIEdyb3d0aCBQYXJ0bmVyDQogIFZlcnNpw7NuOiB2MS4wIMK3IDIwMjYNCiAgVXNvOiBXZWIsIHByZXNlbnRhY2lvbmVzLCBkb2N1bWVudG9zIGVuIGZvbmRvIG9zY3Vybw0KICBTcGVjczogNDgww5cxMjAgcHggwrcgdmlld0JveCAwIDAgNDgwIDEyMCDCtyBJbnRlciA4MDAgwrcgI0Y1QzUwMA0KLS0+DQo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA0ODAgMTIwIj4NCiAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMwYTBhMGEiLz4NCiAgPHRleHQgeD0iMzIiIHk9Ijc4IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSI2NCIgZmlsbD0iI2ZmZmZmZiIgbGV0dGVyLXNwYWNpbmc9Ii0yIj5UaGluazwvdGV4dD4NCiAgPHRleHQgeD0iMjQ4IiB5PSI3OCIgZm9udC1mYW1pbHk9IkludGVyLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI4MDAiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IiNGNUM1MDAiIGxldHRlci1zcGFjaW5nPSItMyI+Mjg8L3RleHQ+DQogIDxyZWN0IHg9IjMyIiB5PSI4OCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjEuNSIgZmlsbD0iI0Y1QzUwMCIgb3BhY2l0eT0iMC40NSIvPg0KICA8dGV4dCB4PSIzMiIgeT0iMTA2IiBmb250LWZhbWlseT0iSW50ZXIsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjMwMCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzY2NjY2NiIgbGV0dGVyLXNwYWNpbmc9IjIiPkRJR0lUQUwgR1JPV1RIIFBBUlRORVI8L3RleHQ+DQo8L3N2Zz4NCg==');
   --t28-yellow:#F5C500;
@@ -1276,7 +1286,7 @@ body.is-pointer{cursor:none}
   <div class="deck-stage">
 
   <!-- ====================== PORTADA ====================== -->
-  <section class="slide cover" data-transition="fade" data-bg="net" data-net-nodes="52" data-title="Portada" data-seconds="30">
+  <section class="slide cover is-active" data-transition="fade" data-bg="net" data-net-nodes="52" data-title="Portada" data-seconds="30">
     <div class="cover-inner">
       <span class="fn-logo blanco lg" role="img" aria-label="Think28"></span>
       <div class="cover-tag">Digital Growth Partner</div>
@@ -1723,7 +1733,7 @@ body.is-pointer{cursor:none}
       <h2 class="s-title" style="font-size:62px;max-width:60%">Tú grabas y decides.<br><span class="t28-y">Frame28</span> monta el resto.</h2>
       <p class="s-sub" style="max-width:60%">Tu cuenta, tu Memoria de marca y tus campañas, en frame28.app. El plugin y el motor, abiertos, en <a href="https://github.com/javierledesma28/frame28" style="color:inherit;text-decoration:underline">GitHub</a>. Lo que viene, versión a versión, en <a href="https://frame28.t28.io/roadmap/" style="color:inherit;text-decoration:underline">frame28.t28.io/roadmap</a>.</p>
       <div class="qr-card">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMzIiIGhlaWdodD0iMjMyIiBjbGFzcz0ic2Vnbm8iPjxwYXRoIHRyYW5zZm9ybT0ic2NhbGUoOCkiIGNsYXNzPSJxcmxpbmUiIHN0cm9rZT0iIzBhMGEwYSIgZD0iTTIgMi41aDdtMiAwaDRtMSAwaDFtMSAwaDFtMSAwaDdtLTI1IDFoMW01IDBoMW0xIDBoMW01IDBoMW0xIDBoMW0xIDBoMW01IDBoMW0tMjUgMWgxbTEgMGgzbTEgMGgxbTEgMGgybTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTEgMGgzbTEgMGgxbS0yNSAxaDFtMSAwaDNtMSAwaDFtMyAwaDZtMiAwaDFtMSAwaDNtMSAwaDFtLTI1IDFoMW0xIDBoM20xIDBoMW00IDBoMW0zIDBoMm0xIDBoMW0xIDBoM20xIDBoMW0tMjUgMWgxbTUgMGgxbTIgMGgxbTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTUgMGgxbS0yNSAxaDdtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDdtLTE0IDFoMm0xIDBoM20tMTYgMWgzbTEgMGgybTIgMGgzbTEgMGgxbTEgMGgybTUgMGgybS0yNCAxaDFtMSAwaDJtNSAwaDFtMSAwaDJtNCAwaDFtMSAwaDFtMyAwaDFtLTIyIDFoMW0zIDBoMm0xIDBoMW0xIDBoMW0yIDBoMW0yIDBoMW0tMTggMWgxbTEgMGgybTMgMGgybTEgMGgybTEgMGgxbTIgMGgxbTEgMGgxbTIgMGgybS0yMiAxaDFtMSAwaDJtMSAwaDFtMSAwaDNtNSAwaDNtMSAwaDFtMSAwaDNtLTIzIDFoMW0yIDBoMW0xIDBoM20xIDBoMW0xIDBoM20xIDBoNG0zIDBoMW0tMjQgMWgxbTEgMGgxbTEgMGgybTIgMGgxbTYgMGgxbTMgMGgxbTEgMGgybS0yNCAxaDFtMSAwaDFtMSAwaDFtNSAwaDFtMSAwaDJtMyAwaDRtMyAwaDFtLTIzIDFoMm0yIDBoNG0xIDBoMW00IDBoOW0tMTcgMWgybTEgMGg2bTMgMGgxbTEgMGgxbTEgMGgxbS0yNSAxaDdtMiAwaDFtMSAwaDFtNCAwaDFtMSAwaDFtMSAwaDFtMSAwaDNtLTI1IDFoMW01IDBoMW0xIDBoNG00IDBoMW0zIDBoMW0zIDBoMW0tMjUgMWgxbTEgMGgzbTEgMGgxbTIgMGgybTMgMGgxbTEgMGg2bS0yMiAxaDFtMSAwaDNtMSAwaDFtMSAwaDFtMSAwaDFtMyAwaDFtMiAwaDJtMSAwaDVtLTI1IDFoMW0xIDBoM20xIDBoMW0xIDBoMW0xIDBoNG0xIDBoMW0xIDBoMm0xIDBoMW0xIDBoMm0tMjQgMWgxbTUgMGgxbTEgMGgxbTIgMGgzbTMgMGgybTEgMGgxbTEgMGgxbS0yMyAxaDdtNyAwaDFtMiAwaDgiLz48L3N2Zz4NCg==" alt="Código QR con el enlace a frame28.app">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMzIiIGhlaWdodD0iMjMyIiBjbGFzcz0ic2Vnbm8iPjxwYXRoIHRyYW5zZm9ybT0ic2NhbGUoOCkiIGNsYXNzPSJxcmxpbmUiIHN0cm9rZT0iIzBhMGEwYSIgZD0iTTIgMi41aDdtMiAwaDRtMSAwaDFtMSAwaDFtMSAwaDdtLTI1IDFoMW01IDBoMW0xIDBoMW01IDBoMW0xIDBoMW0xIDBoMW01IDBoMW0tMjUgMWgxbTEgMGgzbTEgMGgxbTEgMGgybTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTEgMGgzbTEgMGgxbS0yNSAxaDFtMSAwaDNtMSAwaDFtMyAwaDZtMiAwaDFtMSAwaDNtMSAwaDFtLTI1IDFoMW0xIDBoM20xIDBoMW00IDBoMW0zIDBoMm0xIDBoMW0xIDBoM20xIDBoMW0tMjUgMWgxbTUgMGgxbTIgMGgxbTEgMGgxbTEgMGgxbTIgMGgxbTEgMGgxbTUgMGgxbS0yNSAxaDdtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDFtMSAwaDdtLTE0IDFoMm0xIDBoM20tMTYgMWgzbTEgMGgybTIgMGgzbTEgMGgxbTEgMGgybTUgMGgybS0yNCAxaDFtMSAwaDJtNSAwaDFtMSAwaDJtNCAwaDFtMSAwaDFtMyAwaDFtLTIyIDFoMW0zIDBoMm0xIDBoMW0xIDBoMW0yIDBoMW0yIDBoMW0tMTggMWgxbTEgMGgybTMgMGgybTEgMGgybTEgMGgxbTIgMGgxbTEgMGgxbTIgMGgybS0yMiAxaDFtMSAwaDJtMSAwaDFtMSAwaDNtNSAwaDNtMSAwaDFtMSAwaDNtLTIzIDFoMW0yIDBoMW0xIDBoM20xIDBoMW0xIDBoM20xIDBoNG0zIDBoMW0tMjQgMWgxbTEgMGgxbTEgMGgybTIgMGgxbTYgMGgxbTMgMGgxbTEgMGgybS0yNCAxaDFtMSAwaDFtMSAwaDFtNSAwaDFtMSAwaDJtMyAwaDRtMyAwaDFtLTIzIDFoMm0yIDBoNG0xIDBoMW00IDBoOW0tMTcgMWgybTEgMGg2bTMgMGgxbTEgMGgxbTEgMGgxbS0yNSAxaDdtMiAwaDFtMSAwaDFtNCAwaDFtMSAwaDFtMSAwaDFtMSAwaDNtLTI1IDFoMW01IDBoMW0xIDBoNG00IDBoMW0zIDBoMW0zIDBoMW0tMjUgMWgxbTEgMGgzbTEgMGgxbTIgMGgybTMgMGgxbTEgMGg2bS0yMiAxaDFtMSAwaDNtMSAwaDFtMSAwaDFtMSAwaDFtMyAwaDFtMiAwaDJtMSAwaDVtLTI1IDFoMW0xIDBoM20xIDBoMW0xIDBoMW0xIDBoNG0xIDBoMW0xIDBoMm0xIDBoMW0xIDBoMm0tMjQgMWgxbTUgMGgxbTEgMGgxbTIgMGgzbTMgMGgybTEgMGgxbTEgMGgxbS0yMyAxaDdtNyAwaDFtMiAwaDgiLz48L3N2Zz4K" alt="Código QR con el enlace a frame28.app">
         <div class="qr-t"><b>Frame28</b><span>Crea tu cuenta gratis y prepara tu primera campaña.</span><code>frame28.app</code></div>
       </div>
       <div class="made-with">
