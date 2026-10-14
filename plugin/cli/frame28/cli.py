@@ -1037,6 +1037,9 @@ def friendly_error(e: BaseException) -> tuple[str, int] | None:
     if isinstance(e, subprocess.TimeoutExpired):
         cmd = e.cmd[0] if isinstance(e.cmd, (list, tuple)) and e.cmd else e.cmd
         return f"{Path(str(cmd)).name} no terminó en {int(e.timeout)} s. Repite; si se repite, prueba con un clip más corto.", 4
+    if getattr(e, "winerror", None) == 206:  # Windows lo da como FileNotFoundError, pero no falta nada (F28-94)
+        return ("la orden pasa del límite de longitud de Windows (32 767 caracteres): no falta nada por instalar. "
+                "Es un fallo de Frame28; mientras se arregla, prueba con un tramo más corto."), 2
     if isinstance(e, FileNotFoundError):
         return f"no se encontró {e.filename or e}. `frame28 doctor` dice qué falta y cómo instalarlo.", 2
     if isinstance(e, PermissionError):
