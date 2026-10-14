@@ -198,6 +198,9 @@ terminan antes del primer pintado observado, Lighthouse las cuenta como bloquean
 0,550 em frente a 0,612, la cabecera de /instalar/ cambiaba de una a dos líneas y la página entera bajaba: CLS 0,8). Una
 página nueva copia ese bloque de `docs/instalar/index.html`, con los dos `<link rel="icon">` (`/favicon.ico` y
 `/brand/think28-isotipo.svg`) y su `meta description`; `tests/test_docs_web.py` lo comprueba.
+El motor del deck deja sin maquetar las diapositivas que no se ven (`content-visibility:hidden` salvo `.is-active` e
+`.is-exit`): las 19 maquetadas de golpe eran un `Layout` de 473 ms antes del primer pintado. `check()` las maqueta un
+momento con la clase `deck-midiendo`; quien añada otra medición de slides ocultas tiene que hacer lo mismo.
 
 Roadmap: editar el array `ROADMAP` de `docs/roadmap/index.html` (estado `s` de cada ítem: hecho | medias |
 pendiente; `next: true` marca el siguiente). Comprobar con `node --check` el script extraído y republicar el

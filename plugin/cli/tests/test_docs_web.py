@@ -70,6 +70,18 @@ def test_roadmap_y_deck():
         assert 'class="slide cover is-active"' in read(rel)          # la portada se ve antes de que llegue el JS del motor
 
 
+def test_deck_no_maqueta_lo_que_no_se_ve():
+    # las 19 slides maquetadas de golpe costaban 473 ms antes del primer pintado (traza en vivo); ahora solo la visible
+    css = (DOCS / "presentacion" / "engine" / "deck.css").read_text(encoding="utf-8")
+    js = (DOCS / "presentacion" / "engine" / "deck.js").read_text(encoding="utf-8")
+    regla = ".deck-stage > .slide:not(.is-active):not(.is-exit){content-visibility:hidden}"
+    assert regla in css and regla in read("presentacion/index.html")              # index.html reconstruido
+    assert ".deck-midiendo .deck-stage > .slide{content-visibility:visible !important}" in css
+    assert "content-visibility:visible !important;" in css.split("@media print")[1]  # al imprimir salen todas
+    cuerpo = js[js.index("function check()"):js.index("return bad;")]                # check() sigue midiendo todas
+    assert "classList.add('deck-midiendo')" in cuerpo and "classList.remove('deck-midiendo')" in cuerpo
+
+
 def test_ningun_texto_versionado_lleva_nul():
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=REPO, capture_output=True, check=True).stdout
