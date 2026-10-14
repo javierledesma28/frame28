@@ -151,7 +151,7 @@ def transcribe(audio, out_dir, lang, model, device, compute, script, as_json):
 @click.option("--start", type=float, default=None)
 @click.option("--end", type=float, default=None)
 @click.option("--ratio", type=float, default=None, help="downsample_ratio de RVM (auto por resolución)")
-@click.option("--fps", default=30, show_default=True)
+@click.option("--fps", default=None, help="fps del WebM (por defecto, los del vídeo de origen)")
 @click.option("--keep-png", type=click.Path(), default=None, help="Conservar la secuencia PNG RGBA aquí")
 @click.option("--json", "as_json", is_flag=True)
 def matte(video, out_webm, start, end, ratio, fps, keep_png, as_json):
