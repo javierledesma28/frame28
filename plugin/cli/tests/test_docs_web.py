@@ -80,6 +80,10 @@ def test_deck_no_maqueta_lo_que_no_se_ve():
     assert "content-visibility:visible !important;" in css.split("@media print")[1]  # al imprimir salen todas
     cuerpo = js[js.index("function check()"):js.index("return bad;")]                # check() sigue midiendo todas
     assert "classList.add('deck-midiendo')" in cuerpo and "classList.remove('deck-midiendo')" in cuerpo
+    # y por eso el chequeo automático solo corre al editar: publicado eran 753 ms de hilo principal tras el FCP por visita
+    assert "var editando = location.protocol === 'file:'" in js
+    llamadas = [x.strip() for x in js.splitlines() if "setTimeout(check," in x]
+    assert llamadas and all(x.startswith(("if (editando", "else if (editando")) for x in llamadas)
 
 
 def test_ningun_texto_versionado_lleva_nul():
