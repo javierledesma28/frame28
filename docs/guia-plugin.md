@@ -20,7 +20,8 @@ comando, cómo se comprueba y qué puede salir mal. Vamos tachando.
 ```
 .claude-plugin/marketplace.json     catálogo (este mismo repo, source: ./plugin)
 plugin/.claude-plugin/plugin.json   manifiesto
-plugin/skills/frame28-*/SKILL.md    ocho skills (desde la v0.5, cáscaras que piden el método al MCP)
+plugin/skills/frame28*/SKILL.md     diez skills (desde la v0.5, cáscaras que piden el método al MCP): la entrada
+                                    frame28, frame28-memoria (Memoria de marca y campañas) y las ocho del montaje
 plugin/.mcp.json                    servidor MCP remoto https://frame28.app/mcp (login con Frame28 ID)
 plugin/cli/                         paquete Python
 ```

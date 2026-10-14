@@ -143,13 +143,13 @@
     <a class="logo" href="https://t28.io" aria-label="Think28">
       <svg viewBox="0 0 480 120" role="img" aria-label="Think28"><rect width="480" height="120" rx="14" fill="#0a0a0a"/><text x="32" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-2">Think</text><text x="248" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#F5C500" letter-spacing="-3">28</text><rect x="32" y="88" width="24" height="1.5" fill="#F5C500" opacity="0.45"/><text x="32" y="106" font-family="Inter,Arial,sans-serif" font-weight="300" font-size="10" fill="#8a8a8a" letter-spacing="2">DIGITAL GROWTH PARTNER</text></svg>
     </a>
-    <div class="date">Frame28 · roadmap · actualizado 2026-10-03</div>
+    <div class="date">Frame28 · roadmap · actualizado 2026-10-14</div>
   </header>
 
   <section class="title">
     <div class="eyebrow">Dónde estamos y qué viene</div>
     <h1>Frame28, versión a versión</h1>
-    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Cinco versiones publicadas en cuatro días; la 0.5.0 conecta el plugin con tu cuenta de Frame28: identidad, plan y método servidos desde frame28.app.</p>
+    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Seis versiones publicadas en ocho días; la 0.5 conecta el plugin con tu cuenta de Frame28: identidad, plan, método, Memoria de marca y campañas servidos desde frame28.app.</p>
   </section>
 
   <nav class="track" aria-label="Versiones">
@@ -157,17 +157,18 @@
     <div class="stop done"><div class="v">v0.2.0</div><div class="w">30 sep · suena y se instala bien</div></div>
     <div class="stop done"><div class="v">v0.3.0</div><div class="w">30 sep · del clip al vídeo que vende</div></div>
     <div class="stop done"><div class="v">v0.4.0</div><div class="w">1 oct · fiable para entregar a clientes</div></div>
-    <div class="stop done here"><div class="v">v0.5.0</div><div class="w">2 oct · conectado a tu cuenta</div><span class="here-tag">Estás aquí</span></div>
+    <div class="stop done"><div class="v">v0.5.0</div><div class="w">2 oct · conectado a tu cuenta</div></div>
+    <div class="stop done here"><div class="v">v0.5.1</div><div class="w">6 oct · «Usa Frame28» a la primera</div><span class="here-tag">Estás aquí</span></div>
     <div class="stop"><div class="v">v0.6.0</div><div class="w">calidad y alcance</div></div>
     <div class="stop"><div class="v">v1.0.0</div><div class="w">Frame28 Cloud, si la demanda lo pide</div></div>
   </nav>
 
   <section class="facts" aria-label="Cifras de hoy">
-    <div class="fact"><b>42</b><span>órdenes del CLI</span></div>
+    <div class="fact"><b>45</b><span>órdenes del CLI</span></div>
     <div class="fact"><b>17</b><span>tipos de overlay</span></div>
-    <div class="fact"><b>8</b><span>skills del plugin</span></div>
+    <div class="fact"><b>10</b><span>skills del plugin</span></div>
     <div class="fact"><b>5</b><span>casos reales montados</span></div>
-    <div class="fact"><b>5</b><span>releases públicas</span></div>
+    <div class="fact"><b>6</b><span>releases públicas</span></div>
   </section>
 
   <div class="controls" role="group" aria-label="Filtrar por estado">
@@ -244,7 +245,7 @@ const ROADMAP = [
       { t: "Callouts del original al vertical", d: "reframe-map convierte los pointers detectados en apaisado (gestures.json) y cualquier punto del lienzo al vertical del reencuadre, marcando los que quedan fuera del encuadre en modo crop.", s: "hecho", e: "S", val: "medio" },
       { t: "Marcadores de resultado", d: "frame28 clips markers: en cada frase de resultado de la transcripción propone el antes/después con dos instantes del clip, el check y el cinético con la frase real; en cada promesa, el cinético.", s: "hecho", e: "S", val: "medio", ref: "R5 #8" }
     ] },
-  { v: "v0.5.0", name: "Conectado a tu cuenta", date: "2 oct 2026", state: "pub", here: true,
+  { v: "v0.5.0", name: "Conectado a tu cuenta", date: "2 oct 2026", state: "pub",
     goal: "El plugin deja de ser un paquete de skills y pasa a ser la puerta de tu cuenta: identidad, plan y método servidos desde frame28.app.",
     close: "Publicada como release v0.5.0: el plugin entra con Frame28 ID, el método se sirve por MCP según el plan, y las mejoras del motor de esta etapa (frases completas, GPU, hoja de contacto entera, CI).",
     items: [
@@ -263,10 +264,24 @@ const ROADMAP = [
       { t: "doctor avisa de la última release", d: "Compara la versión instalada con la última release de GitHub y dice cómo actualizar el CLI y el plugin.", s: "hecho", e: "S", val: "medio" },
       { t: "HyperFrames al día", d: "Subido del 0.8.72 al 0.8.105 (y GSAP 3.15) con las dos regresiones en verde: clip-javier y clip-grabado (render y hoja de contacto).", s: "hecho", e: "S", val: "medio" }
     ] },
+  { v: "v0.5.1", name: "«Usa Frame28» a la primera", date: "6 oct 2026", state: "pub", here: true,
+    goal: "Quien nombra Frame28 llega siempre a su cuenta, la marca y las campañas que escribe en el estudio entran en cada montaje y los instaladores sirven en un ordenador recién estrenado.",
+    close: "Publicada como release v0.5.1: la skill de entrada frame28, instaladores que se actualizan solos y el motor con gráficas automáticas, legibilidad en vertical y más seguridad.",
+    items: [
+      { t: "«Usa Frame28» llega a Frame28", d: "Skill de entrada frame28: cuando el usuario nombra Frame28 (su cuenta, su plan, su marca, su Memoria o un montaje) llama a frame28_start y nunca a otro conector de vídeo que tenga instalado.", s: "hecho", e: "S", val: "alto" },
+      { t: "Memoria de marca y campañas en el estudio", d: "La marca (colores, logo, voz, historia, catálogo, ganchos, glosario, reglas legales) y las campañas se escriben en el estudio de frame28.app, versionadas; la Memoria arranca sola desde la web de la marca y cada montaje recibe la Memoria y el brief por MCP.", s: "hecho", e: "L", val: "alto" },
+      { t: "Instaladores desde cero y que se actualizan", d: "Instalan Git si falta, Node 22+ y Python 3.12; explican el paso de entrar con la cuenta; repetidos, actualizan solo lo necesario. /instalar reconoce el sistema del visitante.", s: "hecho", e: "M", val: "alto" },
+      { t: "Cifra dicha, cifra en gráfica", d: "clips markers propone un contador, barras si se comparan o un cinético si es rango o lista, y reconoce resultados sin palabra clave.", s: "hecho", e: "S", val: "alto" },
+      { t: "Legible en vertical y sobre fondo claro", d: "Barras a todo el ancho con la etiqueta encima, subtítulos con caja automática sobre fondos claros (caption_style.backdrop) y texto sobre el acento en blanco o tinta según el contraste.", s: "hecho", e: "S", val: "alto" },
+      { t: "i18n check", d: "Antes del render avisa de los textos que siguen en el idioma original.", s: "hecho", e: "S", val: "medio" },
+      { t: "Seguridad y licencias", d: "El HTML generado no admite valores en crudo del storyboard; THIRD-PARTY-NOTICES y aviso de licencia al descargar cada modelo; descargas atómicas con SHA-256; el B-roll anota si salen personas o marcas.", s: "hecho", e: "M", val: "alto" }
+    ] },
   { v: "v0.6.0", name: "Calidad y alcance", date: "siguiente", state: "next",
     goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
     close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
     items: [
+      { t: "Skill para la Memoria y las campañas", d: "frame28-memoria crea o corrige la Memoria de marca desde Claude Code (desde la web y los vídeos de la marca) y consulta las campañas y su brief, aunque el usuario no nombre Frame28. Ya en el repositorio; llega a los plugins instalados con la próxima release.", s: "hecho", e: "S", val: "alto" },
+      { t: "Marca de agua de la prueba gratis", d: "\"watermark\" en la raíz del storyboard: fija en todo el vídeo, por encima de todo y dentro de la zona segura del móvil; también en portadas y shorts. Ya en el motor.", s: "hecho", e: "S", val: "alto" },
       { t: "Comparador antes/después en la web", d: "Un vídeo de demostración sin Frame28 y con Frame28, lado a lado con barra deslizante (SBS en canvas, sin dependencias); research y POC hechos, integrado en la landing nueva con el clip de 10 s.", s: "medias", why: "integrado en la landing nueva (Next.js), pendiente de publicar; falta un vídeo de demostración más largo", e: "S", val: "alto" },
       { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
       { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
@@ -291,7 +306,7 @@ const ROADMAP = [
     close: "Decisión tomada con datos de clientes reales; hasta entonces el plugin y el servicio son el producto.",
     items: [
       { t: "Interfaz sobre el storyboard", d: "Entrada web, cola de render en servidor, revisión de la hoja de contacto y entrega.", s: "pendiente", e: "L", val: "alto" },
-      { t: "Director por API, cuentas y pagos", d: "Las skills como prompts sobre la API de Claude; coste por vídeo en vez de suscripción del operador.", s: "pendiente", e: "L", val: "alto" },
+      { t: "Director por API", d: "Las skills como prompts sobre la API de Claude; coste por vídeo en vez de suscripción del operador. Las cuentas ya existen desde la v0.5 (Frame28 ID) y los planes viven en frame28.app.", s: "pendiente", e: "L", val: "alto" },
       { t: "Diarización para entrevistas", d: "Rótulos por hablante con WhisperX o pyannote.", s: "pendiente", e: "M", val: "medio", ref: "R4 #13" },
       { t: "Imágenes generadas", d: "OpenAI o Stability en la nube; FLUX schnell en local si hay GPU.", s: "pendiente", e: "M", val: "medio", ref: "R4 #15" },
       { t: "Publicación en YouTube y GIF", d: "Subida privada hasta verificar la app; GIF de previsualización.", s: "pendiente", e: "S", val: "bajo", ref: "R4 #16" },

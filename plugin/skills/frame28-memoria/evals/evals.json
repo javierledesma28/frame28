@@ -1,0 +1,40 @@
+{
+  "skill_name": "frame28-memoria",
+  "evals": [
+    {
+      "id": 1,
+      "name": "crear-memoria",
+      "prompt": "Crea la Memoria de marca de https://acme-kits.example. Venden kits de grabado láser; tienen este vídeo: https://youtu.be/xxxx",
+      "expected_output": "Lo primero es pedir el método a la cuenta: frame28_start con tarea memoria, y seguirlo. No se redacta la Memoria con conocimiento genérico antes de tenerlo, ni se inventan precios o claims.",
+      "files": [],
+      "assertions": [
+        "La primera acción es llamar a frame28_start con tarea \"memoria\"",
+        "No redacta ni guarda un JSON de Memoria antes de recibir el método",
+        "No inventa precios, cifras ni claims de la marca"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "consultar-campana",
+      "prompt": "¿Qué pide la campaña black-friday de mi marca acme-kits?",
+      "expected_output": "Lee el brief con frame28_campana (marca acme-kits, campaña black-friday), sin pasar por frame28_start ni montar nada.",
+      "files": [],
+      "assertions": [
+        "Llama a frame28_campana con marca acme-kits y campana black-friday (o antes a frame28_campanas para confirmar el nombre)",
+        "No empieza ningún montaje ni pide vídeos"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "crear-campana-y-sin-cuenta",
+      "prompt": "Créame una campaña nueva de verano para el kit avanzado. Por cierto, no me salen las herramientas de Frame28.",
+      "expected_output": "Explica que las campañas se crean en el estudio (https://frame28.app/app/) y que, para que aparezcan las herramientas, tiene que entrar con su cuenta (mcp login del plugin o /mcp → Authenticate) y abrir una sesión nueva. No lanza mcp login para comprobar el estado.",
+      "files": [],
+      "assertions": [
+        "Dice que la campaña se crea en el estudio de frame28.app (https://frame28.app/app/)",
+        "Explica cómo entrar con la cuenta de Frame28 y que hay que abrir una sesión nueva después",
+        "No ejecuta mcp login para comprobar si ya entró (como mucho claude mcp list)"
+      ]
+    }
+  ]
+}

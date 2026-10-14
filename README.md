@@ -123,10 +123,11 @@ frame28 doctor
 **Desde la v0.5 el plugin entra con tu cuenta de Frame28** (gratis para empezar). La primera vez, en una terminal:
 `claude mcp login plugin:frame28:frame28` (si no conoce `login`, antes `claude update`; o dentro de Claude Code, `/mcp` → el servidor
 `frame28` del plugin → *Authenticate*). Se abre el navegador y te das de alta con tu email y un código de un solo uso;
-después abre una sesión nueva, en la terminal o en la app de escritorio. El método del director (qué poner en pantalla, ganchos, marca) se sirve desde tu cuenta y según tu plan:
-la cuenta gratuita monta en modo demo (marca Think28 y tarjeta final «Hecho con Frame28»); la Memoria de tu marca y lo demás
-llegan con los planes de [frame28.app](https://frame28.app/#precios). El motor (el CLI `frame28`) sigue siendo código abierto
-y no necesita cuenta.
+después abre una sesión nueva, en la terminal o en la app de escritorio. El método del director (qué poner en pantalla, ganchos, marca) se sirve desde tu cuenta y según tu plan.
+Tu **Memoria de marca** (colores, logo, voz, historia, catálogo, ganchos, reglas legales) y tus **campañas** viven en tu
+estudio, [frame28.app/app](https://frame28.app/app/), y el plugin las recibe en cada montaje; la Memoria también se crea
+desde Claude Code. La cuenta gratuita sirve para probarlo; lo que incluye cada plan está en
+[frame28.app](https://frame28.app/#precios). El motor (el CLI `frame28`) sigue siendo código abierto y no necesita cuenta.
 
 `frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable ./plugin/cli --python 3.12`.
 Para ponerlo al día más adelante, mira [Actualizar](#actualizar).
@@ -177,6 +178,17 @@ Las piezas también van sueltas: `frame28-transcribe`, `frame28-cutout`, `frame2
 (planos de apoyo propios o de Pexels/Pixabay, con la licencia guardada), `frame28-shorts` (de un vídeo largo a
 varios shorts verticales con gancho, subtítulos y llamada a la acción), `frame28-i18n` (el mismo montaje en otro
 idioma, mismos tiempos) y `frame28-compose`.
+
+Tu marca, una vez y para todos los vídeos:
+
+> Crea la Memoria de mi marca con mi web, acme-kits.com, y este vídeo.
+
+Eso dispara `frame28-memoria`, que la redacta desde tu web y tus vídeos, marca lo que dedujo para que lo revises en el
+estudio y la guarda en tu cuenta. La misma skill la corrige («cambia el precio del kit de inicio a 59 USD») y te dice
+qué campañas tienes y qué pide cada una; las campañas se escriben en el estudio y se montan con «Monta los vídeos de la
+campaña black-friday». Y si nombras Frame28 («usa Frame28», «qué plan tengo»), entra la skill `frame28`, que lleva
+cada petición a tu cuenta.
+
 Y el CLI a mano, para quien prefiera la terminal:
 
 ```bash
@@ -194,7 +206,8 @@ demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que de
 
 ## Estado y roadmap
 
-v0.5.1 conecta el plugin con tu cuenta de Frame28: identidad, plan y método servidos desde frame28.app. El motor funciona
+v0.5.1 conecta el plugin con tu cuenta de Frame28: identidad, plan y método servidos desde frame28.app, y la Memoria de
+tu marca y tus campañas, que escribes en el estudio de frame28.app, llegan a cada montaje. El motor funciona
 de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limpieza de audio, gestos,
 recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
 gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts con variantes de gancho en lote, portada y versión
@@ -214,7 +227,7 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 
 | Ruta | Qué es |
 |---|---|
-| `plugin/` | el plugin: manifiesto, `.mcp.json` (servidor de Frame28), ocho skills que piden el método a tu cuenta y el CLI `frame28`. Es lo único que se instala |
+| `plugin/` | el plugin: manifiesto, `.mcp.json` (servidor de Frame28), las skills (la entrada `frame28`, `frame28-memoria` y las ocho del montaje) que piden el método a tu cuenta y el CLI `frame28`. Es lo único que se instala |
 | `.claude-plugin/marketplace.json` | este repo es su propio marketplace |
 | `docs/guia-plugin.md` | el ciclo completo del plugin: crear, probar, publicar, consumir, securizar |
 | `docs/brand/` | logos de Think28 (del [press kit](https://t28.io/press-kit.html)) |
@@ -225,7 +238,7 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 | `research/06-monetizacion.md`, `research/07-producto-frame28-app.md` | cómo se monetiza Frame28 y la definición del producto frame28.app (oferta, precios propuestos, plan) |
 | `docs/roadmap/` | el roadmap por versiones, publicado en [frame28.t28.io/roadmap](https://frame28.t28.io/roadmap/); los datos viven en el propio `index.html` |
 | `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde y confidencialidad |
-| `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, 114 pruebas en unos 3 segundos) |
+| `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, unas 320 pruebas en unos 20 segundos; la CI las pasa en cada cambio del CLI) |
 | `site/` | el sitio del producto [frame28.app](https://frame28.app) (estático, para Cloudflare Pages; se regenera con `uv run --with markdown python site/build.py`): landing ES/EN, condiciones, base de conocimiento y curso |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |

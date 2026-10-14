@@ -15,6 +15,8 @@ Frame28 y llegan por el servidor MCP `frame28` de este plugin (`https://frame28.
    - preguntas sobre su cuenta, su plan o qué puede hacer → `director` (la respuesta empieza por su cuenta, su plan y sus
      marcas: contesta con eso y no hagas nada más si no lo pide);
    - crear o corregir su marca, su Memoria → `memoria`;
+   - sus campañas: listarlas con `frame28_campanas` y leer el brief con `frame28_campana` (no hace falta `frame28_start`);
+     se crean y se editan en su estudio, https://frame28.app/app/; montar una → `director`;
    - montar un vídeo entero → `director`; shorts → `shorts`; otro idioma → `i18n`; solo transcribir → `transcribe`;
      planos de apoyo → `broll`.
 3. Si `frame28_start` no aparece o pide autenticación, el usuario tiene que entrar con su cuenta de Frame28 (una vez; si
