@@ -2479,9 +2479,12 @@ body.is-pointer{cursor:none}
     var start = parseInt(q.get('slide') || '1', 10) - 1;
     show(isNaN(start) ? 0 : start, { step: q.get('step') != null ? parseInt(q.get('step'), 10) : 0, init: true });
 
-    // El chequeo necesita las fuentes cargadas para medir de verdad
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(check, 60); });
-    else setTimeout(check, 400);
+    // El chequeo necesita las fuentes cargadas para medir de verdad. Solo al editar (file://, localhost o ?check):
+    // maqueta todas las slides de golpe y en la página publicada costaba ~0,7 s de hilo principal a cada visitante.
+    var editando = location.protocol === 'file:' || q.has('check') ||
+                   /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    if (editando && document.fonts && document.fonts.ready) document.fonts.ready.then(function () { setTimeout(check, 60); });
+    else if (editando) setTimeout(check, 400);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
