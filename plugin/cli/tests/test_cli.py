@@ -513,6 +513,9 @@ def test_friendly_errors():
     msg, code = friendly_error(subprocess.TimeoutExpired(["C:/x/npx.cmd", "hyperframes"], 300))
     assert code == 4 and "npx.cmd" in msg and "300 s" in msg
     assert "doctor" in friendly_error(FileNotFoundError(2, "No such file", "ffmpeg"))[0]
+    too_long = FileNotFoundError(2, "The filename or extension is too long"); too_long.winerror = 206
+    msg, code = friendly_error(too_long)                              # F28-94: antes «no se encontró… doctor»
+    assert code == 2 and "32 767" in msg and "doctor" not in msg
     assert friendly_error(ValueError("x")) is None
 
 
