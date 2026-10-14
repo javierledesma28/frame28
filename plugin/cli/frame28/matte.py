@@ -10,7 +10,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .env import ensure_rvm_model, ffmpeg, run
+from .env import ensure_rvm_model, ffmpeg, ffprobe, run
 from .media import cut, frame_at
 from .imgio import imwrite
 
@@ -57,7 +57,24 @@ def matte_frames(video: str | Path, png_dir: str | Path, ratio: float | None = N
     return {"frames": n, "seconds": round(dt, 1), "fps": round(n / dt, 2) if dt else None, "ratio": ratio, "provider": provider, "width": w, "height": h}
 
 
-def png_to_webm(png_dir: str | Path, out_webm: str | Path, fps: int = 30, crf: int = 20) -> Path:
+def frame_rate(video: str | Path) -> str:
+    """Fotogramas por segundo del vídeo como fracción exacta de ffprobe ("30000/1001", "25/1"). Primero la media
+    (avg_frame_rate: en un vídeo de móvil de frecuencia variable da la duración real con los fotogramas que hay) y, si
+    no la trae, la nominal (r_frame_rate). Sin dato fiable, "30/1"."""
+    r = run([ffprobe(), "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=avg_frame_rate,r_frame_rate",
+             "-of", "default=noprint_wrappers=1", str(video)])
+    rates = dict(line.split("=", 1) for line in (r.stdout or "").splitlines() if "=" in line)
+    for key in ("avg_frame_rate", "r_frame_rate"):
+        num, _, den = rates.get(key, "").partition("/")
+        try:
+            if float(num) > 0 and float(den or 1) > 0:
+                return f"{num}/{den or 1}"
+        except ValueError:
+            continue
+    return "30/1"
+
+
+def png_to_webm(png_dir: str | Path, out_webm: str | Path, fps: int | float | str = 30, crf: int = 20) -> Path:
     r = run([ffmpeg(), "-v", "error", "-y", "-framerate", str(fps), "-i", str(Path(png_dir) / "f_%04d.png"),
              "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", str(crf), "-auto-alt-ref", "0", str(out_webm)])
     if r.returncode != 0:
@@ -66,17 +83,23 @@ def png_to_webm(png_dir: str | Path, out_webm: str | Path, fps: int = 30, crf: i
 
 
 def matte(video: str | Path, out_webm: str | Path, start: float | None = None, end: float | None = None,
-          ratio: float | None = None, fps: int = 30, keep_png: str | Path | None = None) -> dict:
-    """Máscara alfa como WebM VP9 con alfa. Con start/end recorta primero (solo el tramo que necesita texto detrás)."""
+          ratio: float | None = None, fps: int | float | str | None = None, keep_png: str | Path | None = None) -> dict:
+    """Máscara alfa como WebM VP9 con alfa. Con start/end recorta primero (solo el tramo que necesita texto detrás).
+    Sale a los fps del tramo de origen (`fps` los fuerza): con 30 fijos, un original a 25 o 60 sin pasar por prep daba un
+    alfa a otra velocidad, desincronizado del texto de detrás (F28-92). La carpeta temporal (un PNG RGBA por fotograma,
+    ~3 GB por 30 s de 1080p) se borra también si algo falla a medias."""
     tmp = Path(tempfile.mkdtemp(prefix="frame28_matte_"))
-    src = Path(video)
-    if start is not None and end is not None:
-        src = cut(video, start, end, tmp / "seg.mp4")
-    png_dir = Path(keep_png) if keep_png else tmp / "png"
-    stats = matte_frames(src, png_dir, ratio)
-    png_to_webm(png_dir, out_webm, fps)
-    stats.update({"webm": str(out_webm), "start": start, "end": end})
-    shutil.rmtree(tmp, ignore_errors=True)
+    try:
+        src = Path(video)
+        if start is not None and end is not None:
+            src = cut(video, start, end, tmp / "seg.mp4")
+        rate = fps or frame_rate(src)
+        png_dir = Path(keep_png) if keep_png else tmp / "png"
+        stats = matte_frames(src, png_dir, ratio)
+        png_to_webm(png_dir, out_webm, rate)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    stats.update({"webm": str(out_webm), "start": start, "end": end, "frame_rate": str(rate)})
     return stats
 
 
