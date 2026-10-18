@@ -23,7 +23,7 @@ asistido por Claude Code).
 | Segmento | Qué quiere | Qué compra | Encaje |
 |---|---|---|---|
 | Marcas DTC y pymes con producto (tipo Cliente A) | Vídeos que vendan, cada semana, sin aprender nada | El vídeo terminado: largo, shorts, portada, idiomas | Servicio, y a medio plazo plataforma |
-| Fundadores y equipos técnicos que ya usan Claude Code | Montar sus propios clips sin editor | El plugin (gratis) y, quizá, marca y plantillas premium | Plugin abierto |
+| Fundadores y equipos técnicos que ya usan Claude Code | Montar sus propios clips desde Claude Code | El plugin (gratis) y, quizá, marca y plantillas premium | Plugin abierto |
 | Agencias y freelances de vídeo | Producir más en menos horas | Herramienta con licencia de uso comercial y soporte | Plugin más formación o licencia de equipo |
 | Equipos de marketing con alguien técnico | Volumen de variantes para anuncios | Servicio o plataforma con cuentas | Plataforma, cuando exista |
 

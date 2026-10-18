@@ -11,7 +11,7 @@
 
 <p align="center">
   Rótulos, títulos que aparecen al ritmo de tu voz, texto gigante que pasa por detrás de ti,<br>
-  callouts donde señalas, pizarras y subtítulos. Sin editor de video. Sin plantillas que rellenar.
+  callouts donde señalas, pizarras y subtítulos. Lo repetitivo lo hace Frame28; tú decides y das el acabado.
 </p>
 
 <p align="center">
@@ -56,8 +56,10 @@ nada. Lo estudiamos plano a plano antes de escribir una línea ([qué sacamos de
 
 ## Para quién
 
-- **Fundadores y equipos de producto** que anuncian algo y no tienen editor.
-- **Formadores y consultores** que graban explicaciones y quieren que se vean cuidadas.
+- **Marcas que venden su propio producto** y ya graban tutoriales o demos: cada semana salen shorts, anuncios y
+  versiones en otros idiomas con su marca, con el equipo que ya tienen.
+- **Quien edita, diseña o lleva el contenido**, en la marca, por su cuenta o en una agencia: Frame28 hace los cortes,
+  los subtítulos, las versiones, los formatos y los idiomas; el criterio y el acabado siguen siendo suyos.
 - **Equipos técnicos** que prefieren un JSON a una línea de tiempo con doscientas capas.
 
 ## Cómo funciona
