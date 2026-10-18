@@ -115,8 +115,8 @@ Necesitas [uv](https://docs.astral.sh/uv/) (trae Python 3.12), Node.js 22+, ffmp
 claude plugin marketplace add javierledesma28/frame28
 claude plugin install frame28@think28
 
-# El CLI
-uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
+# El CLI, con las versiones exactas de las librerías con las que pasaron las pruebas ([probado])
+uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"
 frame28 doctor
 ```
 
@@ -129,7 +129,7 @@ estudio, [frame28.app/app](https://frame28.app/app/), y el plugin las recibe en 
 desde Claude Code. La cuenta gratuita sirve para probarlo; lo que incluye cada plan está en
 [frame28.app](https://frame28.app/#precios). El motor (el CLI `frame28`) sigue siendo código abierto y no necesita cuenta.
 
-`frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable ./plugin/cli --python 3.12`.
+`frame28 doctor` te dice qué falta y cómo instalarlo. Desde un clon local: `uv tool install --editable "./plugin/cli[probado]" --python 3.12`.
 Para ponerlo al día más adelante, mira [Actualizar](#actualizar).
 
 ## Actualizar
@@ -153,14 +153,16 @@ plugin ha cambiado (cada release lo sube); si no hay nada nuevo responde «alrea
 uv tool upgrade frame28
 ```
 
-Lo reinstala desde GitHub en unos 15 segundos. Si lo instalaste con el instalador de una línea, también vale volver a
-ejecutarlo: solo toca lo que haya cambiado.
+Lo reinstala desde GitHub en unos 15 segundos, con las versiones de las librerías con las que se probó. Si lo instalaste
+con el instalador de una línea, también vale volver a ejecutarlo: solo toca lo que haya cambiado. Una instalación de antes
+de que existieran esas versiones no las recibe con `upgrade` (uv conserva cómo se instaló): `frame28 doctor` lo marca en la
+fila «librerías (versiones probadas)» y se arregla repitiendo una vez el instalador o la orden de instalación de arriba.
 
 **Comprueba** que todo está al día: `frame28 --version` debe decir la versión de la
 [última release](https://github.com/javierledesma28/frame28/releases/latest) y `frame28 doctor` debe acabar en «Todo listo».
 
 ¿Lo tienes instalado desde un clon con `--editable`? `git pull`; si cambió `pyproject.toml` o la versión,
-`uv tool install --editable ./plugin/cli --python 3.12 --reinstall`; si cambiaron las skills con la misma versión,
+`uv tool install --editable "./plugin/cli[probado]" --python 3.12 --reinstall`; si cambiaron las skills con la misma versión,
 `claude plugin uninstall frame28@think28 && claude plugin install frame28@think28` (con la misma versión, `update` no
 refresca el caché).
 

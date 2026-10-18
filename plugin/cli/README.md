@@ -3,7 +3,7 @@
 Pasos deterministas de Frame28. Las skills de Claude Code lo invocan; también sirve a mano.
 
 ```bash
-uv tool install --editable . --python 3.12   # desde este directorio
+uv tool install --editable ".[probado]" --python 3.12   # desde este directorio, con las versiones de las pruebas
 frame28 doctor                      # qué falta (ffmpeg, Node, modelos, red para GSAP) y si código e instalación coinciden
 frame28 prep clip.mp4 -o work       # copia 30 fps + voz limpia y normalizada (--denoise none|afftdn|rnnoise|deepfilter)
 frame28 audio measure work/voice.wav # LUFS, pico, suelo de ruido, señal/ruido

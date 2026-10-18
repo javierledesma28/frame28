@@ -65,9 +65,10 @@ def test_gpu_extra_brings_cuda12_onnxruntime_and_the_excludes_file_removes_the_c
 
 def test_gpu_install_cmd_always_excludes_cpu_onnxruntime():
     ed = env.gpu_install_cmd("C:/repo/plugin/cli/")
-    assert '--editable "C:/repo/plugin/cli[gpu]"' in ed and '--excludes "C:/repo/plugin/cli/excluir-gpu.txt"' in ed
+    # con las versiones exactas de las pruebas también en el extra gpu (F28-91)
+    assert '--editable "C:/repo/plugin/cli[gpu,probado]"' in ed and '--excludes "C:/repo/plugin/cli/excluir-gpu.txt"' in ed
     git = env.gpu_install_cmd()
-    assert '"frame28[gpu] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"' in git
+    assert f'"frame28[gpu,probado] @ {env.GIT_SPEC}"' in git and env.GIT_SPEC.startswith("git+https://github.com/javierledesma28/frame28")
     assert "--excludes " + env.GPU_EXCLUDES_URL in git
     assert all("--reinstall" in c and "--python 3.12" in c for c in (ed, git))
 

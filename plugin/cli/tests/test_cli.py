@@ -284,9 +284,12 @@ def test_doctor_marketplace_clash(tmp_path):
 
 
 def test_doctor_version_rows():
-    from frame28.doctor import CLI_UPGRADE, PLUGIN_INSTALL, PLUGIN_UPGRADE, version_rows
+    from frame28.doctor import PLUGIN_INSTALL, PLUGIN_UPGRADE, version_rows
+    from frame28.env import installer_cmd
     cli, plug = version_rows("0.5.0", "v0.6.0", (True, "0.4.0"))
-    assert cli["name"] == "última release (CLI)" and not cli["ok"] and cli["fix"] == CLI_UPGRADE and "v0.6.0 publicada" in cli["detail"]
+    # el instalador también deja las versiones probadas; `uv tool upgrade` solo si ya se instaló con él (F28-91)
+    assert cli["name"] == "última release (CLI)" and not cli["ok"] and "v0.6.0 publicada" in cli["detail"]
+    assert cli["fix"].startswith(f"repite el instalador: {installer_cmd()}") and "uv tool upgrade frame28" in cli["fix"]
     assert plug["name"] == "plugin (Claude Code)" and not plug["ok"] and plug["fix"] == PLUGIN_UPGRADE and plug["detail"].startswith("0.4.0")
     assert all(r["optional"] for r in (cli, plug))                                                        # nunca bloquean «Todo listo»
     cli, plug = version_rows("0.6.0", "v0.6.0", (True, "0.6.0"))

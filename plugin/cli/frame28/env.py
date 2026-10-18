@@ -280,8 +280,26 @@ def cuda_ready() -> tuple[bool, str]:
 
 ONNX_ENV = "FRAME28_ONNX"   # auto (por defecto: CUDA si onnxruntime-gpu la trae; el OCR, CPU) · gpu · cpu
 GPU_EXCLUDES = "excluir-gpu.txt"
-GPU_EXCLUDES_URL = "https://raw.githubusercontent.com/javierledesma28/frame28/main/plugin/cli/" + GPU_EXCLUDES
-GIT_SPEC = "git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"
+# De dónde se instala el motor y con qué versiones (F28-91). PINNED_EXTRA es el extra de pyproject con las versiones
+# exactas con las que pasaron las pruebas; RELEASE_REF, la rama de la que sale el código: main hasta la primera release
+# fijada, después `release` (apunta siempre a la última release publicada, y `uv tool upgrade` la sigue).
+GIT_REPO = "https://github.com/javierledesma28/frame28"
+RELEASE_REF = ""
+PINNED_EXTRA = "probado"
+GIT_SPEC = f"git+{GIT_REPO}{'@' + RELEASE_REF if RELEASE_REF else ''}#subdirectory=plugin/cli"
+GPU_EXCLUDES_URL = f"https://raw.githubusercontent.com/javierledesma28/frame28/{RELEASE_REF or 'main'}/plugin/cli/{GPU_EXCLUDES}"
+INSTALLER = {"win32": "irm https://frame28.t28.io/install.ps1 | iex"}
+INSTALLER_UNIX = "curl -fsSL https://frame28.t28.io/install.sh | bash"
+
+
+def install_spec(gpu: bool = False) -> str:
+    """Lo que se instala con uv: el CLI con las versiones probadas (y el extra gpu si se pide)."""
+    return f"frame28[{'gpu,' if gpu else ''}{PINNED_EXTRA}] @ {GIT_SPEC}"
+
+
+def installer_cmd() -> str:
+    """La línea del instalador de esta plataforma: también actualiza y deja el motor con las versiones probadas."""
+    return INSTALLER.get(sys.platform, INSTALLER_UNIX)
 
 
 def onnx_mode() -> str:
@@ -312,8 +330,8 @@ def gpu_install_cmd(editable_dir: str | None = None) -> str:
     hay CUDA. uv guarda el `--excludes` en la instalación, así que `uv tool upgrade` lo respeta."""
     if editable_dir:
         d = editable_dir.rstrip("/\\")
-        return f'uv tool install --editable "{d}[gpu]" --python 3.12 --excludes "{d}/{GPU_EXCLUDES}" --reinstall'
-    return f'uv tool install "frame28[gpu] @ {GIT_SPEC}" --python 3.12 --excludes {GPU_EXCLUDES_URL} --reinstall'
+        return f'uv tool install --editable "{d}[gpu,{PINNED_EXTRA}]" --python 3.12 --excludes "{d}/{GPU_EXCLUDES}" --reinstall'
+    return f'uv tool install "{install_spec(gpu=True)}" --python 3.12 --excludes {GPU_EXCLUDES_URL} --reinstall'
 
 
 def onnxruntime_dists() -> list[str]:

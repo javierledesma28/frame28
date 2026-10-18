@@ -18,6 +18,8 @@
 try {
 $ErrorActionPreference = "Continue"
 $Repo = "https://github.com/javierledesma28/frame28"
+$MotorGit = "git+$Repo#subdirectory=plugin/cli"   # de donde sale el motor (F28-91: con la primera release fijada, la rama release)
+$GpuExcludes = "https://raw.githubusercontent.com/javierledesma28/frame28/main/plugin/cli/excluir-gpu.txt"
 $Marketplace = "javierledesma28/frame28"
 $Guide = "https://frame28.t28.io/presentacion/"
 $Log = Join-Path $env:USERPROFILE "frame28-install.log"
@@ -40,6 +42,11 @@ function Plugin-Version {  # version del plugin instalado en Claude Code, "" si 
   if (-not (Test-Path $f)) { return "" }
   try { $j = Get-Content $f -Raw | ConvertFrom-Json; $ps = $j.plugins; if (-not $ps) { $ps = $j }
         $e = $ps."frame28@think28"; if ($e) { return (@($e)[0]).version } } catch {}
+  return ""
+}
+function Motor-Receipt {  # como esta instalado el motor segun uv (uv-receipt.toml), "" si no lo esta
+  try { $d = uv tool dir 2>$null | Select-Object -First 1
+        if ($d) { $f = Join-Path $d "frame28\uv-receipt.toml"; if (Test-Path $f) { return (Get-Content $f -Raw) } } } catch {}
   return ""
 }
 function Node-Major { if (Has node) { $v = (node --version 2>$null) -replace '^v', ''; try { return [int]($v -split '\.')[0] } catch { return 0 } } return 0 }
@@ -154,12 +161,21 @@ else {
 # ---------- 4) motor de Frame28 ----------
 Step "Motor de Frame28" "El programa 'frame28' que transcribe, corta, recorta y renderiza. Se descarga de GitHub con uv (trae su propio Python)."
 if (Has uv) {
-  if ($PrevMotor) { Say ("   Tienes el motor " + $PrevMotor + ". Busco la version publicada y, si es nueva, la instalo...") }
-  else { Say "   Descargando e instalando (1-3 minutos la primera vez)..." }
-  if (With-Retry "No se pudo instalar el motor de Frame28." { if ($PrevMotor) { uv tool upgrade frame28; if ($LASTEXITCODE -ne 0) { uv tool install --python 3.12 --force "git+$Repo#subdirectory=plugin/cli" } } else { uv tool install --python 3.12 --force "git+$Repo#subdirectory=plugin/cli" } }) {
-    uv tool update-shell 2>&1 | Out-Null
-    Refresh-Path
-    if (Has frame28) { Ok ("frame28 " + ((frame28 --version) -split " ")[-1]) } else { Warn "frame28 quedo en %USERPROFILE%\.local\bin; abre una terminal nueva para usarlo." }
+  # Con las versiones exactas de las librerias con las que pasaron las pruebas (extra probado, F28-91), y el extra gpu si
+  # ya lo tenia. Una instalacion anterior (sin esas versiones) se reinstala; una de este instalador se actualiza.
+  $rec = Motor-Receipt; $extras = "probado"; $gpuArgs = @()
+  if ($rec -match '"gpu"') { $extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes) }
+  $spec = "frame28[" + $extras + "] @ " + $MotorGit
+  $upgrade = ($rec -match '"probado"')
+  if ($rec -match 'editable') { Say "   --  el motor esta instalado en modo desarrollo (editable, desde un clon): no lo toco" "DarkGray" }
+  else {
+    if ($PrevMotor) { Say ("   Tienes el motor " + $PrevMotor + ". Busco la version publicada y, si es nueva, la instalo...") }
+    else { Say "   Descargando e instalando (1-3 minutos la primera vez)..." }
+    if (With-Retry "No se pudo instalar el motor de Frame28." { if ($upgrade) { uv tool upgrade frame28; if ($LASTEXITCODE -eq 0) { return } }; uv tool install --python 3.12 --force $spec @gpuArgs }) {
+      uv tool update-shell 2>&1 | Out-Null
+      Refresh-Path
+      if (Has frame28) { Ok ("frame28 " + ((frame28 --version) -split " ")[-1]) } else { Warn "frame28 quedo en %USERPROFILE%\.local\bin; abre una terminal nueva para usarlo." }
+    }
   }
 } else { Fail "uv no esta disponible; no puedo instalar el motor. Abre una terminal nueva y vuelve a ejecutar la linea." }
 

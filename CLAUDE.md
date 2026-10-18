@@ -142,8 +142,8 @@ _private/                         NO versionado: caras, fotogramas y transcripci
 
 Instalación de desarrollo (hecha en esta máquina, Windows 11, sin CUDA):
 ```bash
-uv tool install --editable ./plugin/cli --python 3.12     # CLI editable → ~/.local/bin/frame28
-uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --excludes ./plugin/cli/excluir-gpu.txt --reinstall
+uv tool install --editable "./plugin/cli[probado]" --python 3.12     # CLI editable → ~/.local/bin/frame28, versiones probadas
+uv tool install --editable "./plugin/cli[gpu,probado]" --python 3.12 --excludes ./plugin/cli/excluir-gpu.txt --reinstall
                                                            # opcional: CUDA 12 + onnxruntime-gpu (unos 3,3 GB) para transcribir, matte
                                                            # y OCR en GPU NVIDIA; sin --excludes quedan onnxruntime y -gpu juntos (F28-116)
 claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # marketplace local "think28"
@@ -151,8 +151,9 @@ claude plugin install frame28@think28 --scope user
 claude plugin validate ./plugin                             # SIEMPRE antes de commitear skills
 ```
 Tras editar skills: `claude plugin uninstall frame28@think28 && claude plugin install frame28@think28 --scope user`
-(con la misma versión, `update` no refresca el caché). Tras añadir una dependencia al pyproject o cambiar `__version__`:
-`uv tool install --editable ./plugin/cli --python 3.12 --reinstall`.
+(con la misma versión, `update` no refresca el caché). Tras añadir o cambiar una dependencia del pyproject:
+`python scripts/fijar-dependencias.py --escribir` (rehace el extra `probado`), pruebas y
+`uv tool install --editable "./plugin/cli[probado]" --python 3.12 --reinstall` (también tras cambiar `__version__`).
 
 Pipeline manual (lo que hace la skill directora):
 ```bash
@@ -175,7 +176,8 @@ frame28 i18n extract work/storyboard.json ; frame28 i18n apply work/storyboard.j
 frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una versión traducida (subtítulos por frase del storyboard)
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
-Pruebas automatizadas: `cd plugin/cli && uv run --group dev pytest` (~320 pruebas, unos 20 s; sin modelos ni render y
+Pruebas automatizadas: `cd plugin/cli && uv run --extra probado --group dev pytest` (~360 pruebas, con las versiones exactas
+que reciben los clientes; `FRAME28_PRUEBA_INSTALACION=1` suma la instalación limpia de punta a punta, ~40 s con la caché de uv, unos 20 s; sin modelos ni render y
 sin necesitar ffmpeg: las pruebas que lo llaman sustituyen ffmpeg y `run`, y la suite pasa igual con `FRAME28_FFMPEG=/no/existe`;
 todos los módulos del CLI tienen al menos una prueba; smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`,
 los storyboards versionados y `poc/clip-caso-a/*.json`). La CI (`.github/workflows/tests.yml`) la pasa en cada push que
@@ -210,7 +212,9 @@ artefacto de claude.ai (https://claude.ai/artifact/CxhtKMffGhQRsKUhAqwUS8, «Fra
 `artifact:head` y `artifact:body`).
 
 Release: `python scripts/release-check.py --notes` (versiones, árbol, rama, tags, cuenta gh, release, CLI, plugin,
-pruebas, confidencialidad; `--notes` lista los commits desde el último tag). Notas con el formato de `gh release view v0.4.0`.
+pruebas, extra `probado`, rama `release`, confidencialidad; `--notes` lista los commits desde el último tag). Notas con el
+formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`**: `git push origin vX.Y.Z^{}:refs/heads/release`
+(de ella instalan el instalador, el plugin y `uv tool upgrade`, F28-91).
 
 ## Convenciones
 
@@ -221,7 +225,9 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
   `.claude-plugin/marketplace.json` y el README. `python scripts/release-check.py` antes de etiquetar; `--notes` da el
   punto de partida de las notas. Luego `git tag -a vX.Y.Z`, push del tag y `gh release create` con la cuenta personal.
 - Cómo actualizan los usuarios (README §Actualizar y `docs/instalar.md`): `uv tool upgrade frame28` (verificado el
-  2026-10-01: reinstala desde el último commit de GitHub en ~15 s aunque la versión no cambie) y `claude plugin marketplace
+  2026-10-01: reinstala desde GitHub en ~15 s aunque la versión no cambie; sigue la rama y los extras guardados en
+  `uv-receipt.toml`, así que una instalación sin `[probado]` no recibe las versiones probadas: el instalador la reinstala y
+  `doctor` lo marca en «librerías (versiones probadas)») y `claude plugin marketplace
   update think28 && claude plugin update frame28@think28` (solo actúa si cambió la versión del plugin: por eso cada release
   sube los cuatro sitios). `frame28 doctor` lo dice solo: filas «última release (CLI)» y «plugin (Claude Code)» (lee
   `~/.claude/plugins/installed_plugins.json`), cada una con su orden; la consulta a GitHub se guarda 12 h (1 h si falla) en
@@ -261,6 +267,11 @@ pruebas, confidencialidad; `--notes` lista los commits desde el último tag). No
 
 ## Decisiones técnicas
 
+- **Qué recibe un cliente** (F28-91): dependencias con techo de versión mayor y un extra `probado` con la versión exacta de
+  cada paquete, en todas las plataformas (resolución universal desde Python 3.11), con la que pasó la suite. Extra y no
+  `--constraint`: uv guarda los constraints en el receipt tal cual y `uv tool upgrade` los repetiría viejos, mientras que
+  el extra viaja en los metadatos del paquete y cada release trae los suyos. El código sale de la rama `release` (no de
+  un tag: con `@vX.Y.Z` el upgrade no se movería nunca), que cada release adelanta.
 - **HyperFrames 0.8.105** (Apache-2.0) como compositor, pineado (subido del 0.8.72 el 2026-10-01 pasando la regresión de clip-javier; subir exige pasar las
   regresiones de `poc/clip-javier` y `poc/clip-caso-a`); Remotion descartado (licencia de empresa >3 personas).
   PoC comparativa en `research/03-poc-compositores.md`.

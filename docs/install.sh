@@ -13,10 +13,15 @@
 #
 #  Sin preguntas (para automatizar):   curl -fsSL https://frame28.t28.io/install.sh | bash -s -- -y
 # =============================================================================
+# Todo va dentro de main(), que se llama en la última línea: con curl | bash, una descarga cortada a medias no ejecuta
+# nada en vez de ejecutar medio instalador.
+main() {
 set -u
 
 # ---------- ajustes ----------
 REPO="https://github.com/javierledesma28/frame28"
+MOTOR_GIT="git+$REPO#subdirectory=plugin/cli"   # de dónde sale el motor (F28-91: con la primera release fijada, la rama release)
+GPU_EXCLUDES="https://raw.githubusercontent.com/javierledesma28/frame28/main/plugin/cli/excluir-gpu.txt"
 MARKET="javierledesma28/frame28"
 GUIDE="https://frame28.t28.io/presentacion/"
 LOG="$HOME/frame28-install.log"
@@ -39,6 +44,9 @@ plugin_version() {  # versión del plugin instalado en Claude Code, vacío si no
   sed -n '/"frame28@think28"/,/]/p' "$f" | sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' | head -1
 }
 node_major() { has node && node --version 2>/dev/null | sed 's/^v//; s/\..*//' || echo 0; }
+motor_receipt() {  # cómo está instalado el motor según uv (uv-receipt.toml); vacío si no lo está
+  d=$(uv tool dir 2>/dev/null) && [ -f "$d/frame28/uv-receipt.toml" ] && cat "$d/frame28/uv-receipt.toml"; return 0
+}
 run()   { "$@" >> "$LOG" 2>&1; }
 
 # Leer del teclado aunque el script llegue por una tubería (curl | bash)
@@ -202,14 +210,24 @@ fi
 # ---------- 4) motor de Frame28 ----------
 STEP=$((STEP+1)); step $STEP "Motor de Frame28" "El programa 'frame28' que transcribe, corta, recorta y renderiza. Se descarga de GitHub con uv (trae su propio Python)."
 if has uv; then
-  if [ -n "$PREV_MOTOR" ]; then say "   Tienes el motor $PREV_MOTOR. Busco la versión publicada y, si es nueva, la instalo…"
-  else say "   Descargando e instalando (1–3 minutos la primera vez)…"; fi
-  if [ -n "$PREV_MOTOR" ]; then MOTOR_CMD="uv tool upgrade frame28 || uv tool install --python 3.12 --force 'git+$REPO#subdirectory=plugin/cli'"
-  else MOTOR_CMD="uv tool install --python 3.12 --force 'git+$REPO#subdirectory=plugin/cli'"; fi
-  if with_retry "No se pudo instalar el motor de Frame28." bash -c "$MOTOR_CMD"; then
-    run uv tool update-shell || true
-    export PATH="$HOME/.local/bin:$PATH"
-    has frame28 && ok "frame28 $(frame28 --version 2>/dev/null | awk '{print $NF}')" || warn "frame28 quedó instalado en ~/.local/bin; abre una Terminal nueva para usarlo."
+  # Con las versiones exactas de las librerías con las que pasaron las pruebas (extra probado, F28-91), y el extra gpu si
+  # ya lo tenía. Una instalación anterior (sin esas versiones) se reinstala; una de este instalador se actualiza.
+  REC=$(motor_receipt); EXTRAS="probado"; GPU_ARGS=""
+  if printf '%s' "$REC" | grep -q '"gpu"'; then EXTRAS="gpu,probado"; GPU_ARGS=" --excludes $GPU_EXCLUDES"; fi
+  INSTALL="uv tool install --python 3.12 --force 'frame28[$EXTRAS] @ $MOTOR_GIT'$GPU_ARGS"
+  MOTOR_CMD="$INSTALL"
+  if printf '%s' "$REC" | grep -q 'editable'; then MOTOR_CMD=""
+  elif printf '%s' "$REC" | grep -q '"probado"'; then MOTOR_CMD="uv tool upgrade frame28 || $INSTALL"; fi
+  if [ -z "$MOTOR_CMD" ]; then
+    say "   ${D}– el motor está instalado en modo desarrollo (editable, desde un clon): no lo toco${N}"
+  else
+    if [ -n "$PREV_MOTOR" ]; then say "   Tienes el motor $PREV_MOTOR. Busco la versión publicada y, si es nueva, la instalo…"
+    else say "   Descargando e instalando (1–3 minutos la primera vez)…"; fi
+    if with_retry "No se pudo instalar el motor de Frame28." bash -c "$MOTOR_CMD"; then
+      run uv tool update-shell || true
+      export PATH="$HOME/.local/bin:$PATH"
+      has frame28 && ok "frame28 $(frame28 --version 2>/dev/null | awk '{print $NF}')" || warn "frame28 quedó instalado en ~/.local/bin; abre una Terminal nueva para usarlo."
+    fi
   fi
 else
   fail "uv no está disponible; no puedo instalar el motor. Abre una Terminal nueva y vuelve a ejecutar la línea."
@@ -273,3 +291,6 @@ say ""
 say "   Guía completa con imágenes: ${B}$GUIDE${N}"
 say "   Si algo falló, envía el fichero ${B}$LOG${N} a quien te pasó Frame28 o pégaselo a Claude."
 say ""
+}
+
+main "$@"

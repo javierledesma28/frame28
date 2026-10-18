@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """Checklist de release de Frame28 (solo biblioteca estándar): la versión en los cuatro sitios, el árbol limpio,
-el tag libre, la cuenta activa de `gh`, el CLI instalado, el manifiesto del plugin, la suite de pruebas en verde y
-la confidencialidad (términos que no pueden aparecer en nada público).
+el tag libre, la rama `release`, la cuenta activa de `gh`, el CLI instalado, el manifiesto del plugin, las versiones
+exactas de las librerías (extra `probado`), la suite de pruebas en verde con ellas y la confidencialidad (términos que
+no pueden aparecer en nada público).
 
     python scripts/release-check.py            # comprueba; sale con 1 si algo bloquea
     python scripts/release-check.py --notes    # además lista los commits desde el último tag (punto de partida de las notas)
@@ -10,6 +11,8 @@ Nace de la 0.3.0: el bump de ficheros se olvidó de `__init__.py` y `frame28 --v
 La fila de confidencialidad nace de la 0.4.0: el nombre de un cliente se limpió del árbol y del historial, pero
 seguía en las notas de una release y en una carpeta sin ignorar. Los términos viven en `_private/confidencial.txt`
 (no versionado): uno por línea, texto o expresión regular, sin distinguir mayúsculas; `#` comenta.
+Las filas de `release` y de las versiones exactas nacen de F28-91: el instalador, el plugin y `uv tool upgrade` instalan
+de la rama `release`, que cada release adelanta a su tag, con las versiones con las que pasaron las pruebas.
 """
 from __future__ import annotations
 
@@ -22,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OWNER = "javierledesma28"          # cuenta dueña del repo; con la corporativa activa el push da 403
 REPO = f"{OWNER}/frame28"
+RELEASE_BRANCH = "release"         # la rama de la última release publicada: de ella instalan los clientes (F28-91)
 CONF_FILE = ROOT / "_private" / "confidencial.txt"   # no versionado: los términos no pueden estar en el repo
 
 for _s in (sys.stdout, sys.stderr):
@@ -173,6 +177,18 @@ def main() -> int:
     add(code == 0 and not remote, f"tag remoto {tag}", "libre" if (code == 0 and not remote) else (bump if remote else "no se pudo consultar"))
     code, ahead = sh("git", "rev-list", "--count", "origin/main..HEAD")
     add(True, "commits sin push", ahead if code == 0 else "?", blocking=False)
+    adelantar = f"tras el tag: git push origin {tag}^{{}}:refs/heads/{RELEASE_BRANCH}"
+    code, remote_rel = git("ls-remote", "--heads", "origin", RELEASE_BRANCH)
+    rel_sha = remote_rel.split()[0] if code == 0 and remote_rel.strip() else ""
+    if code != 0:
+        add(False, f"rama {RELEASE_BRANCH}", "no se pudo consultar origin", blocking=False)
+    elif not rel_sha:
+        add(True, f"rama {RELEASE_BRANCH}", f"no existe todavía: la crea esta release ({adelantar})", blocking=False)
+    else:
+        known = git("cat-file", "-e", rel_sha)[0] == 0
+        ff = known and git("merge-base", "--is-ancestor", rel_sha, "HEAD")[0] == 0
+        add(ff, f"rama {RELEASE_BRANCH}", (f"{rel_sha[:7]}, se adelanta sin reescribir ({adelantar})" if ff else
+            f"{rel_sha[:7]} no es antepasado de HEAD: " + ("haz git fetch origin" if not known else "no se puede adelantar sin reescribir; revisa qué pasó")))
 
     code, login = sh("gh", "api", "user", "--jq", ".login")
     add(login == OWNER, "cuenta activa de gh", login or "sin sesión", blocking=False)
@@ -184,8 +200,11 @@ def main() -> int:
     add(bool(m) and m.group(1) == ref, "frame28 instalado", (m.group(1) if m else cliv[:60] or "no encontrado") + (" (reinstala el editable con --reinstall)" if m and m.group(1) != ref else ""), blocking=False)
     code, val = sh("claude", "plugin", "validate", str(ROOT / "plugin"))
     add(code == 0 and "passed" in val.lower(), "claude plugin validate", "ok" if code == 0 else val.splitlines()[-1][:80])
-    # el pyproject ya lleva -q en addopts; otro -q (-qq) quitaría la línea "N passed"
-    code, tests = sh("uv", "run", "--group", "dev", "pytest", "--no-header", "-p", "no:cacheprovider", cwd=ROOT / "plugin/cli")
+    code, pins = sh(sys.executable, str(ROOT / "scripts" / "fijar-dependencias.py"))
+    add(code == 0, "versiones exactas (extra probado)", (pins.splitlines() or ["sin salida"])[-1][:100])
+    # con las versiones exactas que reciben los clientes; el pyproject ya lleva -q en addopts (otro -q quitaría "N passed")
+    code, tests = sh("uv", "run", "--extra", "probado", "--group", "dev", "pytest", "--no-header", "-p", "no:cacheprovider",
+                     cwd=ROOT / "plugin/cli")
     summary = next((ln for ln in reversed(tests.splitlines()) if "passed" in ln or "failed" in ln or "error" in ln.lower()), tests[-80:])
     add(code == 0, "pytest (plugin/cli/tests)", summary.strip()[:80] or "sin salida")
 
@@ -214,6 +233,8 @@ def main() -> int:
         print(f"Faltan {len(bad)} comprobación(es) antes de etiquetar {tag}.")
         return 1
     print(f"Listo para etiquetar {tag}." + (f" Avisos: {', '.join(r[2] for r in warn)}." if warn else ""))
+    print(f"Después: git tag -a {tag} -m … && git push origin {tag} && git push origin {tag}^{{}}:refs/heads/{RELEASE_BRANCH}"
+          " (sin la rama, los clientes siguen en la release anterior).")
     return 0
 
 

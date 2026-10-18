@@ -144,14 +144,32 @@ def cut(video: str | Path, start: float, end: float, out_mp4: str | Path) -> Pat
     return Path(out_mp4)
 
 
+# Cota inferior de yt-dlp (F28-91): las webs cambian y un yt-dlp viejo falla con errores que no dicen que es viejo.
+YTDLP_MIN = "2026.8.19"
+
+
+def _date_version(v: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", v)[:4])
+
+
+def ytdlp_cmd(path_ytdlp: str | None, path_version: str | None, uv: str) -> list[str]:
+    """yt-dlp del PATH solo si no es anterior a YTDLP_MIN; si no, el de uv (`uv tool run`, entorno efímero que no instala
+    nada) con la cota inferior. Antes ganaba cualquiera del PATH, por viejo que fuera."""
+    if path_ytdlp and path_version and _date_version(path_version) >= _date_version(YTDLP_MIN):
+        return [path_ytdlp]
+    return [uv, "tool", "run", "--python", "3.12", "--from", f"yt-dlp>={YTDLP_MIN}", "yt-dlp"]
+
+
 def fetch_url(url: str, out_mp4: str | Path, max_height: int = 1080) -> dict:
-    """Descarga un vídeo de YouTube/Vimeo/etc. como MP4 (vídeo <= max_height + audio) con yt-dlp. Si yt-dlp no está
-    instalado, lo ejecuta con `uvx` (entorno efímero: no instala nada). Devuelve título, duración y ruta."""
+    """Descarga un vídeo de YouTube/Vimeo/etc. como MP4 (vídeo <= max_height + audio) con yt-dlp. Si el yt-dlp del PATH
+    falta o es anterior a YTDLP_MIN, lo ejecuta con `uv tool run` (entorno efímero: no instala nada). Devuelve título,
+    duración y ruta."""
     import json as _json
     from .env import find_tool, run
     out = Path(out_mp4); out.parent.mkdir(parents=True, exist_ok=True)
-    ytdlp = find_tool("yt-dlp")
-    base = [ytdlp] if ytdlp else ([find_tool("uv") or "uv", "tool", "run", "--python", "3.12", "yt-dlp"])
+    ytdlp = find_tool("yt-dlp", "FRAME28_YTDLP")
+    ver = run([ytdlp, "--version"]).stdout.strip() if ytdlp else None
+    base = ytdlp_cmd(ytdlp, ver, find_tool("uv") or "uv")
     node = find_tool("node")
     common = ["--no-playlist"] + (["--js-runtimes", "node"] if node else [])
     info = run(base + common + ["--print", "%(title)s\t%(duration)s\t%(uploader)s\t%(upload_date)s", url])

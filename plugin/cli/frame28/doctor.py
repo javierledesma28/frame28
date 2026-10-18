@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -52,7 +53,6 @@ def cdn_reachable(url: str = GSAP_CDN, timeout: float = 5.0) -> bool:
 
 
 RELEASES_API = "https://api.github.com/repos/javierledesma28/frame28/releases/latest"
-CLI_UPGRADE = "uv tool upgrade frame28  (o repetir el instalador)"
 PLUGIN_UPGRADE = ("claude plugin marketplace update think28 && claude plugin update frame28@think28  "
                   "(y abrir una sesión nueva de Claude Code)")
 PLUGIN_INSTALL = "claude plugin marketplace add javierledesma28/frame28 && claude plugin install frame28@think28"
@@ -192,9 +192,11 @@ def version_rows(cli: str, latest: str | None, plugin: tuple[bool, str | None]) 
     """Las dos filas de versiones: el CLI y el plugin de Claude Code contra la última release, cada una con su orden (un
     usuario con una instalación vieja no sabía que había versión nueva ni cómo actualizar; `claude plugin update` solo
     actúa si cambia la versión, así que el plugin es lo que más se queda atrás)."""
+    from .env import installer_cmd
     rows = []
     newer = release_newer(cli, latest)
-    rows.append({"name": "última release (CLI)", "ok": newer is not True, "optional": True, "fix": CLI_UPGRADE if newer else "",
+    upgrade = f"repite el instalador: {installer_cmd()}  (o `uv tool upgrade frame28` si lo instalaste con él)"
+    rows.append({"name": "última release (CLI)", "ok": newer is not True, "optional": True, "fix": upgrade if newer else "",
                  "detail": f"{latest} publicada, {cli} instalada" if newer else (f"{cli} al día" if newer is False else f"{cli} · sin respuesta de GitHub")})
     has_claude, pv = plugin
     if not has_claude:
@@ -208,6 +210,46 @@ def version_rows(cli: str, latest: str | None, plugin: tuple[bool, str | None]) 
         rows.append({"name": "plugin (Claude Code)", "ok": pnew is not True, "optional": True, "fix": PLUGIN_UPGRADE if pnew else "",
                      "detail": f"{pv} instalado, {latest} publicada" if pnew else (f"{pv} al día" if pnew is False else f"{pv} instalado")})
     return rows
+
+
+def _canon(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def pinned_versions(requires: list[str] | None, extra: str) -> dict[str, str]:
+    """Las versiones exactas del extra `probado` (las de las pruebas) que aplican a esta máquina: nombre → versión."""
+    from packaging.requirements import Requirement
+    out = {}
+    for line in requires or []:
+        r = Requirement(line)
+        if r.marker is None or "extra" not in str(r.marker) or not r.marker.evaluate({"extra": extra}):
+            continue
+        exact = [s.version for s in r.specifier if s.operator == "=="]
+        if exact:
+            out[_canon(r.name)] = exact[0]
+    return out
+
+
+def pinned_row(pins: dict[str, str], installed: dict[str, str], editable_dir: str | None) -> dict:
+    """Las librerías instaladas contra las versiones con las que pasaron las pruebas (F28-91): una instalación desde el
+    instalador las tiene todas; una vieja, un `uv tool upgrade` sobre una instalación anterior o un `uv pip install`
+    a mano, no. Con el extra gpu, onnxruntime-gpu sustituye a onnxruntime."""
+    from .env import PINNED_EXTRA, installer_cmd
+    fix = (f'uv tool install --editable "{editable_dir.rstrip("/")}[{PINNED_EXTRA}]" --python 3.12 --reinstall' if editable_dir
+           else f"repite el instalador: {installer_cmd()}")
+    name = "librerías (versiones probadas)"
+    if not pins:
+        return {"name": name, "ok": False, "optional": True, "fix": fix,
+                "detail": "esta instalación no trae la lista de versiones probadas (es anterior a F28-91)"}
+    gpu = "onnxruntime-gpu" in installed
+    otras = [f"{n} {installed[n]} (probada {v})" for n, v in sorted(pins.items()) if n in installed and installed[n] != v]
+    faltan = [n for n in sorted(pins) if n not in installed and not (gpu and n == "onnxruntime")]
+    if not otras and not faltan:
+        return {"name": name, "ok": True, "optional": True, "fix": "", "detail": f"las {len(pins)} de la release"}
+    detail = "; ".join(x for x in (", ".join(otras[:3]) + (" …" if len(otras) > 3 else ""),
+                                    ("sin instalar: " + ", ".join(faltan[:3]) + (" …" if len(faltan) > 3 else "")) if faltan else "") if x)
+    return {"name": name, "ok": False, "optional": True, "fix": fix,
+            "detail": f"{len(otras) + len(faltan)} de {len(pins)} no son las probadas: {detail}"}
 
 
 def editable_dir() -> str | None:
@@ -273,6 +315,13 @@ def doctor() -> list[dict]:
             add(mod, True, getattr(m, "__version__", "ok"))
         except Exception as e:  # noqa: BLE001
             add(mod, False, str(e)[:80], fix)
+    try:
+        import importlib.metadata as md
+        from .env import PINNED_EXTRA
+        installed = {_canon(d.metadata["Name"] or ""): d.version for d in md.distributions()}
+        rows.append(pinned_row(pinned_versions(md.requires("frame28"), PINNED_EXTRA), installed, editable_dir()))
+    except Exception:  # noqa: BLE001
+        pass
     try:
         import onnxruntime as ort
         from .env import onnxruntime_dists

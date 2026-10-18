@@ -28,8 +28,9 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
    - Linux (Debian/Ubuntu): `sudo apt-get install -y ffmpeg git`, Node desde nodesource, uv desde `https://astral.sh/uv/install.sh`.
 3. **Claude Code** en terminal, si `claude` no existe: `curl -fsSL https://claude.ai/install.sh | bash` (macOS/Linux)
    o `irm https://claude.ai/install.ps1 | iex` (Windows). La persona tendrá que iniciar sesión después con `claude`.
-4. **Motor de Frame28**: `uv tool install --python 3.12 --force git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`
-   y después `uv tool update-shell`. Comprueba `frame28 --version`.
+4. **Motor de Frame28**: `uv tool install --python 3.12 --force "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"`
+   (`[probado]` trae las versiones exactas de las librerías con las que pasaron las pruebas; no lo quites) y después
+   `uv tool update-shell`. Comprueba `frame28 --version`.
 5. **Plugin**: `claude plugin marketplace add javierledesma28/frame28` y `claude plugin install frame28@think28 --scope user`.
    Si falla por no haber iniciado sesión, indícale que lo haga y repite.
 6. **Comprobación**: `frame28 doctor`. Explica cada línea. Las aspas en «gpu» y «modelo RVM» son normales.
@@ -57,7 +58,9 @@ Puedes lanzarlo tú desde su terminal con su permiso; en Mac, Homebrew seguirá 
 Si Frame28 ya está instalado y la persona quiere la versión nueva, no hace falta repetir la instalación:
 
 1. **CLI**: `uv tool upgrade frame28` (lo reinstala desde GitHub en unos 15 segundos, aunque el número de versión no haya
-   cambiado). Comprueba `frame28 --version` contra https://github.com/javierledesma28/frame28/releases/latest.
+   cambiado). Comprueba `frame28 --version` contra https://github.com/javierledesma28/frame28/releases/latest. Si
+   `frame28 doctor` marca la fila «librerías (versiones probadas)», la instalación es anterior a esas versiones y `upgrade`
+   no se las da: repite una vez la orden del paso 4.
 2. **Plugin**: `claude plugin marketplace update think28` y después `claude plugin update frame28@think28`. Solo actúa si el
    número de versión del plugin cambió; «already at the latest version» significa que no había nada nuevo. Hay que reiniciar
    Claude Code para que cargue las skills nuevas.

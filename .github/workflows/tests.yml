@@ -1,12 +1,13 @@
 # Pruebas del CLI en cada push y pull request: los módulos puros (sin ffmpeg, modelos ni render), como en local.
+# Con el extra `probado` (F28-91): las versiones exactas de las librerías que reciben los clientes, no lo último de cada una.
 name: tests
 
 on:
   push:
     branches: [main]
-    paths: ["plugin/cli/**", ".github/workflows/tests.yml"]
+    paths: ["plugin/cli/**", "scripts/fijar-dependencias.py", "docs/install.sh", "docs/install.ps1", ".github/workflows/tests.yml"]
   pull_request:
-    paths: ["plugin/cli/**", ".github/workflows/tests.yml"]
+    paths: ["plugin/cli/**", "scripts/fijar-dependencias.py", "docs/install.sh", "docs/install.ps1", ".github/workflows/tests.yml"]
 
 jobs:
   pytest:
@@ -19,5 +20,10 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
+      - name: Versiones exactas (extra probado)
+        run: python ../../scripts/fijar-dependencias.py
       - name: Pruebas
-        run: uv run --group dev pytest
+        run: uv run --extra probado --group dev pytest
+        env:
+          # incluye la instalación limpia de punta a punta desde una rama release local (tests/test_instalacion.py)
+          FRAME28_PRUEBA_INSTALACION: "1"

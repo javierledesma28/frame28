@@ -73,10 +73,12 @@ que arreglar antes de subir:
 3. Etiquetar versiones: `git tag -a v0.1.0 -m ... && git push origin v0.1.0`. La versión vive en cuatro sitios y los
    cuatro deben coincidir con la etiqueta: `plugin/cli/frame28/__init__.py` (`__version__`; `pyproject.toml` la lee de ahí),
    `plugin/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` y el README. `python scripts/release-check.py`
-   lo comprueba, junto con el árbol limpio, que el tag no exista, la cuenta activa de `gh` y `claude plugin validate`;
-   `--notes` lista los commits desde el último tag para redactar las notas.
+   lo comprueba, junto con el árbol limpio, que el tag no exista, la cuenta activa de `gh`, `claude plugin validate` y
+   que el extra `probado` cuadre con las dependencias; `--notes` lista los commits desde el último tag para redactar las notas.
+   Tras el tag, `git push origin vX.Y.Z^{}:refs/heads/release`: la rama `release` es la que siguen los clientes
+   (F28-91), y sin adelantarla se quedan en la release anterior.
 4. Opcional: publicar el CLI en PyPI (`uv build && uv publish`) para que `uv tool install frame28` funcione sin
-   git. Mientras tanto: `uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli`.
+   git. Mientras tanto: `uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"`.
 
 ## 4. Consumir ✅ probado (2026-09-29)
 
@@ -90,7 +92,7 @@ del usuario, así que `frame28` funciona en cualquier terminal nueva.
 ```bash
 claude plugin marketplace add javierledesma28/frame28
 claude plugin install frame28@think28
-uv tool install --python 3.12 git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli
+uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"
 frame28 doctor
 ```
 Para alguien no técnico esto son demasiados pasos, así que existe el **instalador de una línea** (hecho el
@@ -102,7 +104,8 @@ irm https://frame28.t28.io/install.ps1 | iex        # Windows
 ```bash
 curl -fsSL https://frame28.t28.io/install.sh | bash  # macOS (Homebrew) y Linux (apt)
 ```
-Instalan solo lo que falta (ffmpeg, Node.js 22+, uv, Git), el CLI desde GitHub con `uv tool install --force`, el plugin si
+Instalan solo lo que falta (ffmpeg, Node.js 22+, uv, Git), el CLI desde GitHub con las versiones exactas de las
+librerías con las que pasaron las pruebas (`frame28[probado]`; si ya estaba instalado así, `uv tool upgrade`), el plugin si
 `claude` está en el PATH, y terminan con `frame28 doctor`. Son idempotentes. Fuente: `docs/install.ps1` y
 `docs/install.sh`; cualquier cambio se publica solo al hacer push. Es el mismo patrón `irm | iex` / `curl | bash`
 que usan uv, Homebrew o Scoop: el script se lee entero desde HTTPS en tu dominio, y quien desconfíe puede abrir
@@ -126,10 +129,13 @@ Qué puede hacer un plugin: sus skills ejecutan comandos con **los permisos del 
 
 - **Nada de secretos en el repo** (ni claves de API, ni tokens de HeyGen). El CLI no necesita ninguno; si algún
   día lo necesita, se lee de variable de entorno y se documenta.
-- **Versiones**: HyperFrames va pineado (`0.8.105`), pero las dependencias Python solo tienen mínimos y el instalador
-  y `uv tool upgrade` traen el último commit de `main`, no una release: hoy **no** está garantizado que lo que se
-  instala sea exactamente lo que pasó las pruebas. Fijarlo es una tarea abierta (techos de versión o lock exportado,
-  instalador con `@vX.Y.Z`).
+- **Versiones** (F28-91): HyperFrames va pineado (`0.8.105`); las dependencias Python tienen techo en la siguiente
+  versión mayor, y el instalador, `uv tool upgrade` y las órdenes de `frame28 doctor` instalan el extra `probado`: cada
+  librería, en todas las plataformas, en la versión exacta con la que pasó la suite (la CI y `release-check` la pasan con
+  ese extra; `scripts/fijar-dependencias.py` lo comprueba y lo rehace). El código sale de la rama `release`, que cada
+  release adelanta a su tag, en vez del último commit de `main`; hasta la primera release fijada todavía sale de `main`.
+  `tests/test_instalacion.py` lo prueba de punta a punta: una instalación limpia baja la release, no `main`, con esas
+  versiones, y `uv tool upgrade` la sigue.
 - **Sin hooks**: no hay código que se ejecute solo al arrancar la sesión. El único servidor MCP es el remoto declarado
   en `plugin/.mcp.json`; qué implica, en el apartado siguiente.
 - **Modelos y binarios de terceros**: RVM se descarga de su release oficial a `~/.cache/frame28/`; Chrome lo
@@ -202,5 +208,5 @@ Diseño original (para referencia):
 ## 7. Iterar
 
 Cada mejora sigue el mismo ciclo: cambiar skill o CLI → `claude plugin validate .` → probar con
-`poc/clip-javier` → subir versión → `python scripts/release-check.py` → tag → push. Las personas que lo tengan instalado actualizan con
+`poc/clip-javier` → subir versión → `python scripts/release-check.py` → tag → push del tag y de la rama `release`. Las personas que lo tengan instalado actualizan con
 `claude plugin marketplace update think28` y `uv tool upgrade frame28`.

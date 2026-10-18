@@ -39,7 +39,7 @@ def _ocr_engine(gpu: bool | None = None):
     try:
         from rapidocr import RapidOCR
     except ImportError as e:  # pragma: no cover
-        raise SystemExit("Falta rapidocr (pip/uv: rapidocr). Reinstala el CLI: uv tool install --editable ./plugin/cli --python 3.12 --reinstall") from e
+        raise SystemExit('Falta rapidocr (pip/uv: rapidocr). Reinstala el CLI con el instalador de Frame28 o, desde un clon: uv tool install --editable "./plugin/cli[probado]" --python 3.12 --reinstall') from e
     if gpu is None:
         gpu = onnx_mode() == "gpu"
     if gpu and onnx_providers(True)[0] == "CUDAExecutionProvider":   # sin CUDA, onnx_providers(True) ya da el error
