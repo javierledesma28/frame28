@@ -233,15 +233,19 @@ def pinned_versions(requires: list[str] | None, extra: str) -> dict[str, str]:
 def pinned_row(pins: dict[str, str], installed: dict[str, str], editable_dir: str | None) -> dict:
     """Las librerías instaladas contra las versiones con las que pasaron las pruebas (F28-91): una instalación desde el
     instalador las tiene todas; una vieja, un `uv tool upgrade` sobre una instalación anterior o un `uv pip install`
-    a mano, no. Con el extra gpu, onnxruntime-gpu sustituye a onnxruntime."""
-    from .env import PINNED_EXTRA, installer_cmd
-    fix = (f'uv tool install --editable "{editable_dir.rstrip("/")}[{PINNED_EXTRA}]" --python 3.12 --reinstall' if editable_dir
-           else f"repite el instalador: {installer_cmd()}")
+    a mano, no. Con el extra gpu, onnxruntime-gpu sustituye a onnxruntime (y la orden de una editable lo conserva; el
+    instalador lo conserva solo, leyendo cómo se instaló)."""
+    from .env import PINNED_EXTRA, gpu_install_cmd, installer_cmd
+    gpu = "onnxruntime-gpu" in installed
+    if editable_dir:
+        fix = (gpu_install_cmd(editable_dir) if gpu else
+               f'uv tool install --editable "{editable_dir.rstrip("/")}[{PINNED_EXTRA}]" --python 3.12 --reinstall')
+    else:
+        fix = f"repite el instalador: {installer_cmd()}"
     name = "librerías (versiones probadas)"
     if not pins:
         return {"name": name, "ok": False, "optional": True, "fix": fix,
                 "detail": "esta instalación no trae la lista de versiones probadas (es anterior a F28-91)"}
-    gpu = "onnxruntime-gpu" in installed
     otras = [f"{n} {installed[n]} (probada {v})" for n, v in sorted(pins.items()) if n in installed and installed[n] != v]
     faltan = [n for n in sorted(pins) if n not in installed and not (gpu and n == "onnxruntime")]
     if not otras and not faltan:

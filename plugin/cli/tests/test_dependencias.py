@@ -171,6 +171,9 @@ def test_pinned_row():
     assert "sin instalar: onnxruntime" in mal["detail"] and mal["fix"].startswith("repite el instalador: ")
     ed = D.pinned_row(pins, {}, "C:/repo/plugin/cli/")
     assert ed["fix"] == 'uv tool install --editable "C:/repo/plugin/cli[probado]" --python 3.12 --reinstall'
+    # una editable con el extra gpu no lo pierde al ponerse las versiones probadas
+    edg = D.pinned_row(pins, {"onnxruntime-gpu": "1.26.1"}, "C:/repo/plugin/cli/")
+    assert edg["fix"] == env.gpu_install_cmd("C:/repo/plugin/cli/") and "[gpu,probado]" in edg["fix"]
     vieja = D.pinned_row({}, {"click": "8.6.1"}, None)
     assert not vieja["ok"] and "anterior a F28-91" in vieja["detail"]
 
