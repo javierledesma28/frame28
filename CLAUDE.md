@@ -176,7 +176,8 @@ Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards r
 (16 overlays, cortes, vertical), `poc/clip-caso-a/` (vídeo producido, marca de cliente, shorts, i18n).
 
 Deck de la guía: editar `docs/presentacion/deck.html`, luego `node engine/build.mjs deck.html --out index.html`
-desde `docs/presentacion/` y comprobar en el navegador `Deck.check()` → `[]`. El build puede dejar CRLF
+desde `docs/presentacion/` y comprobar en el navegador `Deck.check()` → `[]`. El motor (`engine/`) es neutro: no trae
+logo ni marca (F28-109); los pone `think28-brand.css` (`--brand-*`, `.brand-logo`). El build puede dejar CRLF
 en `index.html`: normalizar a LF antes de commitear (git lo hace solo, pero deja aviso).
 Las páginas de `docs/` cargan Google Fonts **sin bloquear el primer pintado** (F28-121: costaba ~0,9 s de FCP móvil):
 `<link id="t28-fuentes" … media="print">` + un script de una línea que lo pasa a `all` cuando la hoja ha cargado **y** el

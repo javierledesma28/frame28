@@ -86,6 +86,18 @@ def test_deck_no_maqueta_lo_que_no_se_ve():
     assert llamadas and all(x.startswith(("if (editando", "else if (editando")) for x in llamadas)
 
 
+def test_el_motor_del_deck_es_neutro():
+    # F28-109: el motor no lleva el logo ni el nombre de otra marca; la marca la pone el deck (think28-brand.css)
+    pres = DOCS / "presentacion"
+    ajenas = ("fund" "anet", "semi" "crol")  # partidas: el repo entero tampoco debe contener la palabra (grep de F28-109)
+    for f in [pres / "deck.html", pres / "index.html", *sorted((pres / "engine").iterdir())]:
+        t = f.read_text(encoding="utf-8").lower()
+        assert not any(m in t for m in ajenas), f.name
+    assert "data:image/png" not in (pres / "engine" / "logo.css").read_text(encoding="utf-8")
+    assert "--brand-logo:url(" in (pres / "think28-brand.css").read_text(encoding="utf-8")
+    assert "window.Deck = {" in (pres / "engine" / "deck.js").read_text(encoding="utf-8")
+
+
 def test_roadmap_no_maqueta_lo_que_queda_lejos():
     # 1.530 objetos en el primer Layout y otra vez al llegar las fuentes; en móvil ninguna versión se ve al cargar
     t = read("roadmap/index.html")
