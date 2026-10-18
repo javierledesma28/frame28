@@ -126,6 +126,8 @@ def test_install_sh_instala_el_motor_con_las_versiones_probadas():
     assert "git+$REPO#subdirectory" not in t.replace('MOTOR_GIT="git+$REPO#subdirectory', "")  # nada instala main a pelo
     # instalación del instalador nuevo → upgrade; anterior → reinstalar con las versiones; editable → no se toca
     assert 'grep -q \'"probado"\'' in t and "uv tool upgrade frame28 || $INSTALL" in t and "grep -q 'editable'" in t
+    # una instalación de main (la de antes de la release fijada) no se actualiza: se reinstala desde la rama release
+    assert f"grep -q 'rev={env.RELEASE_REF}'" in t
     # con curl | bash, una descarga cortada no ejecuta medio instalador
     assert re.search(r"^main\(\) \{\nset -u\n", t, re.M) and t.rstrip().endswith('main "$@"')
 
@@ -137,7 +139,18 @@ def test_install_ps1_instala_el_motor_con_las_versiones_probadas():
     assert f'$GpuExcludes = "{env.GPU_EXCLUDES_URL}"' in t
     assert '$extras = "probado"' in t and '$extras = "gpu,probado"' in t and '"frame28[" + $extras + "] @ " + $MotorGit' in t
     assert "$rec -match '\"probado\"'" in t and "$rec -match 'editable'" in t
+    assert f"-and ($rec -match 'rev={env.RELEASE_REF}')" in t
     assert 'install --python 3.12 --force "git+$Repo' not in t
+
+
+def test_el_plugin_sale_de_la_misma_rama_que_el_motor():
+    """El marketplace vive en main (los usuarios lo añadieron así) pero sirve el plugin de la rama release: `plugin update`
+    trae la release publicada, no lo que haya en main."""
+    import json
+    m = json.loads((REPO / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"))
+    src = next(p for p in m["plugins"] if p["name"] == "frame28")["source"]
+    assert src == {"source": "git-subdir", "url": env.GIT_REPO + ".git", "path": "plugin", "ref": env.RELEASE_REF}
+    assert env.RELEASE_REF == "release"
 
 
 # ---------- doctor ----------
@@ -176,6 +189,18 @@ def test_pinned_row():
     assert edg["fix"] == env.gpu_install_cmd("C:/repo/plugin/cli/") and "[gpu,probado]" in edg["fix"]
     vieja = D.pinned_row({}, {"click": "8.6.1"}, None)
     assert not vieja["ok"] and "anterior a F28-91" in vieja["detail"]
+
+
+def test_origin_row():
+    vcs = lambda rev: {"url": env.GIT_REPO, "vcs_info": {"vcs": "git", "commit_id": "abc1234", **({"requested_revision": rev} if rev else {})},
+                       "subdirectory": "plugin/cli"}
+    ok = D.origin_row(vcs("release"), "release")
+    assert ok["ok"] and ok["optional"] and "release" in ok["detail"] and ok["fix"] == ""
+    for rev in (None, "main", "v0.5.1"):  # de main (fase 1), sin rama o fijada a un tag: no sigue las releases
+        mal = D.origin_row(vcs(rev), "release")
+        assert not mal["ok"] and mal["fix"].startswith("repite el instalador") and (rev or "main") in mal["detail"]
+    assert D.origin_row({"url": "file:///c/repo/plugin/cli", "dir_info": {"editable": True}}, "release") is None
+    assert D.origin_row(None, "release") is None and D.origin_row(vcs("main"), "") is None
 
 
 def test_la_release_nueva_se_instala_con_el_instalador():

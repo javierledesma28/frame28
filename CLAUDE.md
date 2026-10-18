@@ -146,12 +146,13 @@ uv tool install --editable "./plugin/cli[probado]" --python 3.12     # CLI edita
 uv tool install --editable "./plugin/cli[gpu,probado]" --python 3.12 --excludes ./plugin/cli/excluir-gpu.txt --reinstall
                                                            # opcional: CUDA 12 + onnxruntime-gpu (unos 3,3 GB) para transcribir, matte
                                                            # y OCR en GPU NVIDIA; sin --excludes quedan onnxruntime y -gpu juntos (F28-116)
-claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # marketplace local "think28"
+claude plugin marketplace add C:/Workspaces/personal/Skill-Director   # marketplace local "think28" (el plugin sale de la rama release)
 claude plugin install frame28@think28 --scope user
 claude plugin validate ./plugin                             # SIEMPRE antes de commitear skills
 ```
-Tras editar skills: `claude plugin uninstall frame28@think28 && claude plugin install frame28@think28 --scope user`
-(con la misma versión, `update` no refresca el caché). Tras añadir o cambiar una dependencia del pyproject:
+Tras editar skills: probarlas con `claude --plugin-dir ./plugin` (el marketplace sirve el plugin de la rama `release`
+de GitHub, no de esta carpeta, F28-91); ya publicadas, `claude plugin uninstall frame28@think28 && claude plugin install
+frame28@think28 --scope user` (con la misma versión, `update` no refresca el caché). Tras añadir o cambiar una dependencia del pyproject:
 `python scripts/fijar-dependencias.py --escribir` (rehace el extra `probado`), pruebas y
 `uv tool install --editable "./plugin/cli[probado]" --python 3.12 --reinstall` (también tras cambiar `__version__`).
 

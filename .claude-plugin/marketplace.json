@@ -8,7 +8,12 @@
   "plugins": [
     {
       "name": "frame28",
-      "source": "./plugin",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/javierledesma28/frame28.git",
+        "path": "plugin",
+        "ref": "release"
+      },
       "description": "Frame28: de un clip hablando a cámara a un video con overlays sincronizados con la voz.",
       "version": "0.5.1",
       "category": "media",

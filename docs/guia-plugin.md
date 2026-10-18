@@ -78,7 +78,7 @@ que arreglar antes de subir:
    Tras el tag, `git push origin vX.Y.Z^{}:refs/heads/release`: la rama `release` es la que siguen los clientes
    (F28-91), y sin adelantarla se quedan en la release anterior.
 4. Opcional: publicar el CLI en PyPI (`uv build && uv publish`) para que `uv tool install frame28` funcione sin
-   git. Mientras tanto: `uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"`.
+   git. Mientras tanto: `uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli"`.
 
 ## 4. Consumir ✅ probado (2026-09-29)
 
@@ -92,7 +92,7 @@ del usuario, así que `frame28` funciona en cualquier terminal nueva.
 ```bash
 claude plugin marketplace add javierledesma28/frame28
 claude plugin install frame28@think28
-uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"
+uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli"
 frame28 doctor
 ```
 Para alguien no técnico esto son demasiados pasos, así que existe el **instalador de una línea** (hecho el
@@ -133,7 +133,8 @@ Qué puede hacer un plugin: sus skills ejecutan comandos con **los permisos del 
   versión mayor, y el instalador, `uv tool upgrade` y las órdenes de `frame28 doctor` instalan el extra `probado`: cada
   librería, en todas las plataformas, en la versión exacta con la que pasó la suite (la CI y `release-check` la pasan con
   ese extra; `scripts/fijar-dependencias.py` lo comprueba y lo rehace). El código sale de la rama `release`, que cada
-  release adelanta a su tag, en vez del último commit de `main`; hasta la primera release fijada todavía sale de `main`.
+  release adelanta a su tag, en vez del último commit de `main`: el motor (`@release` en la orden de uv) y el plugin
+  (el marketplace, en `main`, lo sirve con `git-subdir` y `ref: release`).
   `tests/test_instalacion.py` lo prueba de punta a punta: una instalación limpia baja la release, no `main`, con esas
   versiones, y `uv tool upgrade` la sigue.
 - **Sin hooks**: no hay código que se ejecute solo al arrancar la sesión. El único servidor MCP es el remoto declarado

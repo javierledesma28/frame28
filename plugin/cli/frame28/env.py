@@ -281,10 +281,10 @@ def cuda_ready() -> tuple[bool, str]:
 ONNX_ENV = "FRAME28_ONNX"   # auto (por defecto: CUDA si onnxruntime-gpu la trae; el OCR, CPU) · gpu · cpu
 GPU_EXCLUDES = "excluir-gpu.txt"
 # De dónde se instala el motor y con qué versiones (F28-91). PINNED_EXTRA es el extra de pyproject con las versiones
-# exactas con las que pasaron las pruebas; RELEASE_REF, la rama de la que sale el código: main hasta la primera release
-# fijada, después `release` (apunta siempre a la última release publicada, y `uv tool upgrade` la sigue).
+# exactas con las que pasaron las pruebas; RELEASE_REF, la rama de la que sale el código: `release`, que cada release
+# adelanta a su tag (apunta siempre a la última release publicada, y `uv tool upgrade` la sigue). Vacío = main.
 GIT_REPO = "https://github.com/javierledesma28/frame28"
-RELEASE_REF = ""
+RELEASE_REF = "release"
 PINNED_EXTRA = "probado"
 GIT_SPEC = f"git+{GIT_REPO}{'@' + RELEASE_REF if RELEASE_REF else ''}#subdirectory=plugin/cli"
 GPU_EXCLUDES_URL = f"https://raw.githubusercontent.com/javierledesma28/frame28/{RELEASE_REF or 'main'}/plugin/cli/{GPU_EXCLUDES}"
