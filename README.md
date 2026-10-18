@@ -214,8 +214,7 @@ de punta a punta en clips reales (Windows, CPU): transcripción, jump cuts, limp
 recorte, gráficas, marca, revelados GSAP, vertical con reencuadre, subtítulos por palabras, B-roll, detección de los
 gráficos que ya trae un vídeo, overlays de venta, fábrica de shorts con variantes de gancho en lote, portada y versión
 en otro idioma. Probado con tutoriales reales de una marca DTC además de los clips del autor. Y es
-fiable para entregar: suite de pruebas, tiempo y coste por vídeo (`frame28 report`), y el sitio del producto en `site/`
-con condiciones, base de conocimiento y curso online. Lo siguiente:
+fiable para entregar: suite de pruebas y tiempo y coste por vídeo (`frame28 report`). Lo siguiente:
 
 - B-roll contra la API real, marcadores de resultado y doblaje con voz sintética.
 - Puertas de calidad automáticas (contraste, legibilidad, sonoridad) y gráficas ampliadas.
@@ -241,7 +240,6 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 | `docs/roadmap/` | el roadmap por versiones, publicado en [frame28.t28.io/roadmap](https://frame28.t28.io/roadmap/); los datos viven en el propio `index.html` |
 | `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde y confidencialidad |
 | `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, unas 320 pruebas en unos 20 segundos; la CI las pasa en cada cambio del CLI) |
-| `site/` | el sitio del producto [frame28.app](https://frame28.app) (estático, para Cloudflare Pages; se regenera con `uv run --with markdown python site/build.py`): landing ES/EN, condiciones, base de conocimiento y curso |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
 

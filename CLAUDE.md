@@ -32,7 +32,7 @@ instaladores `/install.ps1` y `/install.sh`, instrucciones para que Claude insta
 versiones `/roadmap/`.
 
 **Desde el 2026-09-30 Frame28 es también un producto monetizable** del ecosistema Think28, con dominio **frame28.app**
-(sitio estático en vivo desde el 2026-10-01 en el VPS t28server, ver `deploy/`). **Giro del 2026-10-01 (noche), decidido
+(en vivo desde el 2026-10-01 en el VPS t28server; lo publica el repo privado `frame28-app`). **Giro del 2026-10-01 (noche), decidido
 por Javier:** Frame28 deja de venderse como servicio («nos envías el vídeo») y pasa a ser **una plataforma: plugin de pago
 en el Claude Code del cliente + frame28.app como panel de control** de la cuenta, la membresía, la **Memoria de marca**
 (brand kit, historia, voz, catálogo, ganchos, idiomas) y las **campañas**; el plugin se autentica con el mismo usuario
@@ -116,18 +116,6 @@ research/                         01 análisis del vídeo de referencia (resumen
                                   08 PLATAFORMA (giro del 2026-10-01: plugin de pago + frame28.app como panel; Memoria de marca,
                                   campañas, MCP remoto con OAuth, arquitectura, stack Next.js + FastAPI + Think28 ID + Paddle + R2,
                                   diseño, tiers a validar, plan por fases, referencias web verificadas)
-site/                             sitio del producto frame28.app, estático para Cloudflare Pages (root `site`, sin build en el despliegue).
-                                  build.py (plantilla común + CONFIG: plazas, buzón, caso público) ensambla src/{es,en}/*.html y convierte
-                                  content/condiciones.es.md + terms.en.md → index.html, en/, fundadores/, contacto/, condiciones/, en/founders/,
-                                  en/contact/, en/terms/ (HTML commiteado). content/landing.{es,en}.md = referencia editorial.
-                                  content/kb/{es,en}/ (8 artículos) y content/curso/{es,en}/ (6 lecciones con guion; `video:` vacío
-                                  = pendiente de grabar) → /kb, /curso, /en/kb, /en/course con noindex, tras Cloudflare Access.
-                                  functions/api/contact.js (formulario → email con binding send_email), _redirects, _headers, wrangler.toml,
-                                  README.md (pasos de despliegue y de Access). Regenerar: `uv run --with markdown python site/build.py`
-deploy/                           despliegue de frame28.app en t28server (/opt/frame28): docker-compose.yml (nginx:alpine + cloudflared, sin
-                                  puertos), nginx.conf (traduce site/_headers y _redirects; cierra /kb y /curso hasta Access; 503 en /api/contact
-                                  hasta el Worker), remote-up.sh (nginx -t antes de recrear), deploy.sh (sube HEAD, backup, hash, comprueba URLs),
-                                  .env.example (el token del túnel solo vive en el .env del servidor)
 poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
@@ -259,7 +247,7 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
 - Los análisis de negocio (`research/06`, `07`, `08`) se versionan en este repo público por decisión del usuario. Los
   **precios vigentes** son los de `research/08` §11 (decididos el 2026-10-01: Creator 79 · Brand 199 · Agency 499 USD/mes,
   anual ×10; Studio 990 y 2.490, heredados de `research/07`) y son los que muestra la landing. Un cambio de precios se hace
-  en `research/08` primero y después en la landing (`site/src/{es,en}/index.html`); no se inventan ni redondean cifras en
+  en `research/08` primero y después en la landing (repo `frame28-app`, `web/`); no se inventan ni redondean cifras en
   ningún otro sitio.
 - Precios y oferta se expresan en USD (el primer cliente es estadounidense); la landing es la fuente pública de
   precios cuando exista; `research/07` es la propuesta.
@@ -296,17 +284,11 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
 - B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
 - Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
   o "Instala Frame28 siguiendo https://frame28.t28.io/instalar.md" pegado en Claude Code.
-- **Desde el 2026-10-02 frame28.app es la landing en Next.js del repo `frame28-app` (`web/`), publicada con su
-  `deploy/deploy.sh`**; `site/` y `deploy/` de aquí quedan como histórico y vuelta atrás (`deploy/deploy.sh` se niega a
-  subir si el servidor tiene la plataforma, F28-44: la vuelta atrás es `deploy/deploy.sh --rollback` de frame28-app). Lo que sigue describe la base común, que no cambia:
-- Sitio del producto: frame28.app se sirve desde el **VPS t28server** (Hetzner, Ubuntu 24.04) con el patrón de todos los
-  sitios de Think28: `nginx:alpine` + túnel `cloudflared` en `/opt/frame28`, cero puertos abiertos, HTTPS de Cloudflare;
-  CNAME apex y `www` → `<id-túnel>.cfargotunnel.com` (proxied). Publicar = commitear y `deploy/deploy.sh` (decidido el
-  2026-10-01 por Javier, en lugar de Cloudflare Pages; `site/functions`, `_headers`, `_redirects` y `wrangler.toml` se
-  conservan por si algún día se usa Pages). Pendientes sobre esa base: Worker en la ruta `frame28.app/api/contact*` con
-  el envío de email (el formulario ya hace `fetch` JSON a `/api/contact`), **Cloudflare Access** con PIN por email sobre
-  `/kb`, `/curso`, `/en/kb`, `/en/course` (hasta entonces nginx devuelve 404 ahí) y Turnstile. frame28.t28.io sigue en
-  GitHub Pages para el plugin.
+- **frame28.app no vive en este repo**: es la landing en Next.js del repo privado `frame28-app` (`web/`), publicada con su
+  `deploy/deploy.sh` en el VPS t28server (`nginx` + túnel `cloudflared` en `/opt/frame28`, cero puertos abiertos), y su
+  vuelta atrás es `deploy/deploy.sh --rollback` de allí. La landing estática anterior (`site/`, con la KB y el curso en
+  Markdown) y su despliegue (`deploy/`) salieron de aquí el 2026-10-19 (F28-107): vendían planes que ya no existen y
+  dejaban leer la KB y el curso. frame28.t28.io sigue en GitHub Pages para el plugin.
 - El roadmap público vive en `docs/roadmap/index.html` con sus datos inline; no hay otra copia de los estados.
 - **Identidad (Think28 ID para Frame28)**: tenant externo propio `frame28ciam.onmicrosoft.com` (Microsoft Entra External ID,
   creado el 2026-10-01; no es el de Synapse28, por decisión de Javier) con las apps `frame28-api`, `frame28-web` y
@@ -420,8 +402,6 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
   en las notas de la release v0.3.0, en los tags viejos y en una carpeta bajada de la nube sin ignorar dentro del repo (a
   un `git add -A` de publicarse). La fila `confidencialidad` de `release-check` cubre los cuatro sitios; necesita
   `_private/confidencial.txt`. Lo que se baje y nombre al cliente va a `_private/`.
-- **Guiones bajos seguidos en el Markdown del sitio** (líneas de firma): Python-Markdown los toma por énfasis y el HTML
-  cambia según la versión de la librería, así que el build ensucia el árbol en otra máquina. Escaparlos (`\_`).
 - **Lo "entregado fuera del repo" por una sesión en la nube puede no llegar al PC** (pasó con el script de tags, el
   bundle y las notas): lo que el siguiente paso necesite tiene que poder reconstruirse desde el repo.
 - **Los segmentos de Whisper no son frases**: cortan cada ~4,5 s y, si la transcripción trae pocas comas, a mitad de
@@ -471,9 +451,6 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
   y Email Routing): el túnel `frame28` y sus *Public Hostnames* se hacen en el panel (Zero Trust → Networks → Tunnels) o se
   añade al token `Cloudflare Tunnel → Edit`. DNS, Access apps, Workers y Turnstile sí van por API. El token del túnel (el del
   `cloudflared … run --token`) se decodifica en base64 y trae el id del túnel; va solo al `.env` del servidor.
-- **`sha256sum` en Git Bash escribe `hash *ruta`** (modo binario) y en Linux `hash  ruta`: comparar manifiestos entre PC y
-  servidor exige normalizar (`deploy.sh::norm`). Y el alias `t28server` lleva `RequestTTY yes`: sin terminal, cada `ssh`
-  avisa de la pseudo-terminal salvo con `-T`.
 - **Python en Windows no entiende las rutas `/c/…` de Git Bash**: dentro de un script bash, `python -c "open('$S/x.json')"` con
   `S=/c/Users/…` da `FileNotFoundError` (y con `2>/dev/null` parece que «no hay estado»). Pasar a Python rutas `C:/Users/…`
   (`cygpath -m "$S"`) o hacer el parseo con `az … --query` / `jq`, sin Python. Lo mismo para cualquier ejecutable nativo.
