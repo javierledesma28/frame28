@@ -18,8 +18,8 @@
 try {
 $ErrorActionPreference = "Continue"
 $Repo = "https://github.com/javierledesma28/frame28"
-$MotorGit = "git+$Repo#subdirectory=plugin/cli"   # de donde sale el motor (F28-91: con la primera release fijada, la rama release)
-$GpuExcludes = "https://raw.githubusercontent.com/javierledesma28/frame28/main/plugin/cli/excluir-gpu.txt"
+$MotorGit = "git+$Repo@release#subdirectory=plugin/cli"   # la rama release: la ultima release publicada, no main (F28-91)
+$GpuExcludes = "https://raw.githubusercontent.com/javierledesma28/frame28/release/plugin/cli/excluir-gpu.txt"
 $Marketplace = "javierledesma28/frame28"
 $Guide = "https://frame28.t28.io/presentacion/"
 $Log = Join-Path $env:USERPROFILE "frame28-install.log"
@@ -162,11 +162,11 @@ else {
 Step "Motor de Frame28" "El programa 'frame28' que transcribe, corta, recorta y renderiza. Se descarga de GitHub con uv (trae su propio Python)."
 if (Has uv) {
   # Con las versiones exactas de las librerias con las que pasaron las pruebas (extra probado, F28-91), y el extra gpu si
-  # ya lo tenia. Una instalacion anterior (sin esas versiones) se reinstala; una de este instalador se actualiza.
+  # ya lo tenia. Una instalacion anterior (sin esas versiones o de main) se reinstala; una de este instalador se actualiza.
   $rec = Motor-Receipt; $extras = "probado"; $gpuArgs = @()
   if ($rec -match '"gpu"') { $extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes) }
   $spec = "frame28[" + $extras + "] @ " + $MotorGit
-  $upgrade = ($rec -match '"probado"')
+  $upgrade = ($rec -match '"probado"') -and ($rec -match 'rev=release')
   if ($rec -match 'editable') { Say "   --  el motor esta instalado en modo desarrollo (editable, desde un clon): no lo toco" "DarkGray" }
   else {
     if ($PrevMotor) { Say ("   Tienes el motor " + $PrevMotor + ". Busco la version publicada y, si es nueva, la instalo...") }

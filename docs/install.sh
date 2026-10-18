@@ -20,8 +20,8 @@ set -u
 
 # ---------- ajustes ----------
 REPO="https://github.com/javierledesma28/frame28"
-MOTOR_GIT="git+$REPO#subdirectory=plugin/cli"   # de dónde sale el motor (F28-91: con la primera release fijada, la rama release)
-GPU_EXCLUDES="https://raw.githubusercontent.com/javierledesma28/frame28/main/plugin/cli/excluir-gpu.txt"
+MOTOR_GIT="git+$REPO@release#subdirectory=plugin/cli"   # la rama release: la última release publicada, no main (F28-91)
+GPU_EXCLUDES="https://raw.githubusercontent.com/javierledesma28/frame28/release/plugin/cli/excluir-gpu.txt"
 MARKET="javierledesma28/frame28"
 GUIDE="https://frame28.t28.io/presentacion/"
 LOG="$HOME/frame28-install.log"
@@ -211,13 +211,13 @@ fi
 STEP=$((STEP+1)); step $STEP "Motor de Frame28" "El programa 'frame28' que transcribe, corta, recorta y renderiza. Se descarga de GitHub con uv (trae su propio Python)."
 if has uv; then
   # Con las versiones exactas de las librerías con las que pasaron las pruebas (extra probado, F28-91), y el extra gpu si
-  # ya lo tenía. Una instalación anterior (sin esas versiones) se reinstala; una de este instalador se actualiza.
+  # ya lo tenía. Una instalación anterior (sin esas versiones o de main) se reinstala; una de este instalador se actualiza.
   REC=$(motor_receipt); EXTRAS="probado"; GPU_ARGS=""
   if printf '%s' "$REC" | grep -q '"gpu"'; then EXTRAS="gpu,probado"; GPU_ARGS=" --excludes $GPU_EXCLUDES"; fi
   INSTALL="uv tool install --python 3.12 --force 'frame28[$EXTRAS] @ $MOTOR_GIT'$GPU_ARGS"
   MOTOR_CMD="$INSTALL"
   if printf '%s' "$REC" | grep -q 'editable'; then MOTOR_CMD=""
-  elif printf '%s' "$REC" | grep -q '"probado"'; then MOTOR_CMD="uv tool upgrade frame28 || $INSTALL"; fi
+  elif printf '%s' "$REC" | grep -q '"probado"' && printf '%s' "$REC" | grep -q 'rev=release'; then MOTOR_CMD="uv tool upgrade frame28 || $INSTALL"; fi
   if [ -z "$MOTOR_CMD" ]; then
     say "   ${D}– el motor está instalado en modo desarrollo (editable, desde un clon): no lo toco${N}"
   else

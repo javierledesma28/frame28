@@ -118,7 +118,7 @@ claude plugin marketplace add javierledesma28/frame28
 claude plugin install frame28@think28
 
 # El CLI, con las versiones exactas de las librerías con las que pasaron las pruebas ([probado])
-uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"
+uv tool install --python 3.12 "frame28[probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli"
 frame28 doctor
 ```
 

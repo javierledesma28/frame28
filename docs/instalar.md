@@ -28,7 +28,7 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
    - Linux (Debian/Ubuntu): `sudo apt-get install -y ffmpeg git`, Node desde nodesource, uv desde `https://astral.sh/uv/install.sh`.
 3. **Claude Code** en terminal, si `claude` no existe: `curl -fsSL https://claude.ai/install.sh | bash` (macOS/Linux)
    o `irm https://claude.ai/install.ps1 | iex` (Windows). La persona tendrá que iniciar sesión después con `claude`.
-4. **Motor de Frame28**: `uv tool install --python 3.12 --force "frame28[probado] @ git+https://github.com/javierledesma28/frame28#subdirectory=plugin/cli"`
+4. **Motor de Frame28**: `uv tool install --python 3.12 --force "frame28[probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli"`
    (`[probado]` trae las versiones exactas de las librerías con las que pasaron las pruebas; no lo quites) y después
    `uv tool update-shell`. Comprueba `frame28 --version`.
 5. **Plugin**: `claude plugin marketplace add javierledesma28/frame28` y `claude plugin install frame28@think28 --scope user`.

@@ -256,6 +256,22 @@ def pinned_row(pins: dict[str, str], installed: dict[str, str], editable_dir: st
             "detail": f"{len(otras) + len(faltan)} de {len(pins)} no son las probadas: {detail}"}
 
 
+def origin_row(direct_url: dict | None, release_ref: str) -> dict | None:
+    """De dónde salió el motor instalado (F28-91): de la rama de la última release o de otra (main, la de una instalación
+    anterior a la release fijada, que `uv tool upgrade` seguiría para siempre). None si no se sabe o no aplica: una
+    editable (desarrollo, desde un clon) o una instalación que no viene de git."""
+    vcs = (direct_url or {}).get("vcs_info")
+    if not release_ref or not vcs:
+        return None
+    from .env import installer_cmd
+    rev = vcs.get("requested_revision") or "main"
+    ok = rev == release_ref
+    return {"name": "origen del motor", "ok": ok, "optional": True,
+            "fix": "" if ok else f"repite el instalador: {installer_cmd()}",
+            "detail": (f"rama {release_ref} (la última release publicada)" if ok else
+                       f"{rev}: no es la release publicada; `uv tool upgrade` seguiría esa rama")}
+
+
 def editable_dir() -> str | None:
     """Carpeta del CLI si está instalado en modo editable (la de `uv tool install --editable`), para dar órdenes con
     rutas de verdad en vez de «<ruta>»."""
@@ -324,6 +340,11 @@ def doctor() -> list[dict]:
         from .env import PINNED_EXTRA
         installed = {_canon(d.metadata["Name"] or ""): d.version for d in md.distributions()}
         rows.append(pinned_row(pinned_versions(md.requires("frame28"), PINNED_EXTRA), installed, editable_dir()))
+        from .env import RELEASE_REF
+        du = md.distribution("frame28").read_text("direct_url.json")
+        origin = origin_row(json.loads(du) if du else None, RELEASE_REF)
+        if origin:
+            rows.append(origin)
     except Exception:  # noqa: BLE001
         pass
     try:
