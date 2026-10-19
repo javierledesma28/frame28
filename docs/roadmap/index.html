@@ -67,7 +67,7 @@
   .title p { margin: 0; max-width: 62ch; color: var(--fg-2); font-size: 1.05rem; }
 
   /* vía de versiones */
-  .track { margin-top: 32px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; position: relative; }
+  .track { margin-top: 32px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; position: relative; }
   .track::before { content: ""; position: absolute; left: 0; right: 0; top: 11px; height: 2px; background: var(--line); }
   .stop { position: relative; padding-top: 30px; min-width: 0; }
   .stop::before { content: ""; position: absolute; top: 4px; left: 0; width: 16px; height: 16px; border-radius: 50%;
@@ -80,7 +80,7 @@
   .stop .here-tag { display: inline-block; margin-top: 6px; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
                     text-transform: uppercase; background: var(--accent); color: var(--accent-ink); padding: 2px 8px; border-radius: 999px; }
   @media (max-width: 960px) {
-    .track { grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
+    .track { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); row-gap: 18px; }
     .track::before { display: none; }
   }
   @media (max-width: 520px) {
@@ -175,8 +175,9 @@
     <div class="stop done"><div class="v">v0.3.0</div><div class="w">30 sep · del clip al vídeo que vende</div></div>
     <div class="stop done"><div class="v">v0.4.0</div><div class="w">1 oct · fiable para entregar a clientes</div></div>
     <div class="stop done"><div class="v">v0.5.0</div><div class="w">2 oct · conectado a tu cuenta</div></div>
-    <div class="stop done here"><div class="v">v0.5.1</div><div class="w">6 oct · «Usa Frame28» a la primera</div><span class="here-tag">Estás aquí</span></div>
-    <div class="stop"><div class="v">v0.6.0</div><div class="w">calidad y alcance</div></div>
+    <div class="stop done"><div class="v">v0.5.1</div><div class="w">6 oct · «Usa Frame28» a la primera</div></div>
+    <div class="stop done here"><div class="v">v0.6.0</div><div class="w">19 oct · se instala lo que se probó</div><span class="here-tag">Estás aquí</span></div>
+    <div class="stop"><div class="v">v0.7.0</div><div class="w">calidad y alcance</div></div>
     <div class="stop"><div class="v">v1.0.0</div><div class="w">Frame28 Cloud, si la demanda lo pide</div></div>
   </nav>
 
@@ -185,7 +186,7 @@
     <div class="fact"><b>17</b><span>tipos de overlay</span></div>
     <div class="fact"><b>10</b><span>skills del plugin</span></div>
     <div class="fact"><b>5</b><span>casos reales montados</span></div>
-    <div class="fact"><b>6</b><span>releases públicas</span></div>
+    <div class="fact"><b>7</b><span>releases públicas</span></div>
   </section>
 
   <div class="controls" role="group" aria-label="Filtrar por estado">
@@ -281,7 +282,7 @@ const ROADMAP = [
       { t: "doctor avisa de la última release", d: "Compara la versión instalada con la última release de GitHub y dice cómo actualizar el CLI y el plugin.", s: "hecho", e: "S", val: "medio" },
       { t: "HyperFrames al día", d: "Subido del 0.8.72 al 0.8.105 (y GSAP 3.15) con las dos regresiones en verde: clip-javier y un tutorial producido (render y hoja de contacto).", s: "hecho", e: "S", val: "medio" }
     ] },
-  { v: "v0.5.1", name: "«Usa Frame28» a la primera", date: "6 oct 2026", state: "pub", here: true,
+  { v: "v0.5.1", name: "«Usa Frame28» a la primera", date: "6 oct 2026", state: "pub",
     goal: "Quien nombra Frame28 llega siempre a su cuenta, la marca y las campañas que escribe en el estudio entran en cada montaje y los instaladores sirven en un ordenador recién estrenado.",
     close: "Publicada como release v0.5.1: la skill de entrada frame28, instaladores que se actualizan solos y el motor con gráficas automáticas, legibilidad en vertical y más seguridad.",
     items: [
@@ -293,12 +294,23 @@ const ROADMAP = [
       { t: "i18n check", d: "Antes del render avisa de los textos que siguen en el idioma original.", s: "hecho", e: "S", val: "medio" },
       { t: "Seguridad y licencias", d: "El HTML generado no admite valores en crudo del storyboard; THIRD-PARTY-NOTICES y aviso de licencia al descargar cada modelo; descargas atómicas con SHA-256; el B-roll anota si salen personas o marcas.", s: "hecho", e: "M", val: "alto" }
     ] },
-  { v: "v0.6.0", name: "Calidad y alcance", date: "siguiente", state: "next",
+  { v: "v0.6.0", name: "Se instala lo que se probó", date: "19 oct 2026", state: "pub", here: true,
+    goal: "Quien instala o actualiza Frame28 recibe exactamente lo que pasó las pruebas, la Memoria se trabaja también desde Claude Code y la GPU acelera el alfa del hablante.",
+    close: "Publicada como release v0.6.0: motor y plugin desde la rama release con versiones fijadas, skill frame28-memoria, marca de agua, alfa en GPU y un motor más robusto en Windows.",
+    items: [
+      { t: "Se instala lo que pasó las pruebas", d: "El motor se instala con las versiones exactas de sus dependencias con las que pasó la suite, y el motor, el plugin y uv tool upgrade salen de la rama release, que cada release adelanta a su tag; doctor dice de qué rama viene el motor instalado.", s: "hecho", e: "M", val: "alto" },
+      { t: "Skill para la Memoria y las campañas", d: "frame28-memoria crea o corrige la Memoria de marca desde Claude Code (desde la web y los vídeos de la marca) y consulta las campañas y su brief, aunque el usuario no nombre Frame28.", s: "hecho", e: "S", val: "alto" },
+      { t: "Marca de agua de la prueba gratis", d: "\"watermark\" en la raíz del storyboard: fija en todo el vídeo, por encima de todo y dentro de la zona segura del móvil; también en portadas y shorts.", s: "hecho", e: "S", val: "alto" },
+      { t: "Alfa del hablante en GPU", d: "El extra frame28[gpu] trae onnxruntime-gpu: matte (RVM) va en CUDA por defecto; el OCR sigue en CPU, que ahí ganó al medirlo; doctor avisa si quedan los dos onnxruntime instalados a la vez.", s: "hecho", e: "S", val: "medio" },
+      { t: "Marca desde la web sin inventar", d: "brand from-site ignora los widgets de terceros, resuelve var(--…) en la fuente y, si ningún logo avala el acento, lo deja a confirmar con candidatos (brand set lo guarda).", s: "hecho", e: "S", val: "alto" },
+      { t: "Más robusto en Windows", d: "prep, cut apply y audio paran con un mensaje claro si falla un paso de ffmpeg; cut apply ya cabe en una orden de Windows con cientos de tramos; el alfa sale a los fps del tramo de origen.", s: "hecho", e: "S", val: "medio" },
+      { t: "Entrar desde la app de escritorio", d: "La cuenta de Frame28 también se conecta desde la app de escritorio de Claude, no solo desde la terminal.", s: "hecho", e: "S", val: "medio" },
+      { t: "Guía y roadmap más rápidos", d: "Fuentes después del primer pintado con reservas del mismo tamaño; el deck y el roadmap no maquetan lo que no se ve.", s: "hecho", e: "S", val: "bajo" }
+    ] },
+  { v: "v0.7.0", name: "Calidad y alcance", date: "siguiente", state: "next",
     goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
     close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
     items: [
-      { t: "Skill para la Memoria y las campañas", d: "frame28-memoria crea o corrige la Memoria de marca desde Claude Code (desde la web y los vídeos de la marca) y consulta las campañas y su brief, aunque el usuario no nombre Frame28. Ya en el repositorio; llega a los plugins instalados con la próxima release.", s: "hecho", e: "S", val: "alto" },
-      { t: "Marca de agua de la prueba gratis", d: "\"watermark\" en la raíz del storyboard: fija en todo el vídeo, por encima de todo y dentro de la zona segura del móvil; también en portadas y shorts. Ya en el motor.", s: "hecho", e: "S", val: "alto" },
       { t: "Comparador antes/después en la web", d: "Un vídeo de demostración sin Frame28 y con Frame28, lado a lado con barra deslizante (SBS en canvas, sin dependencias); research y POC hechos, integrado en la landing nueva con el clip de 10 s.", s: "medias", why: "integrado en la landing nueva (Next.js), pendiente de publicar; falta un vídeo de demostración más largo", e: "S", val: "alto" },
       { t: "B-roll probado contra la API real", d: "Claves de Pexels y Pixabay, búsqueda y descarga verificadas en un montaje.", s: "pendiente", e: "S", val: "alto", ref: "R4 #4", next: true },
       { t: "Doblaje y voz sintética", d: "Narración con Kokoro en español y clon de voz con Chatterbox para la versión en otro idioma; retiming de overlays.", s: "pendiente", e: "L", val: "alto", ref: "R4 #14" },
