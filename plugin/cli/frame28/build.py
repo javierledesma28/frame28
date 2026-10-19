@@ -1508,7 +1508,10 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
                     shutil.copy2(src, dst)
                 copied.append(rel)
             else:
-                b.warnings.append(f"asset no encontrado: {src}")
+                hint = next((f" (máscara del behind {o.get('id')}: genérala con `frame28 matte <clip> --start "
+                             f"{o.get('matte_start', o.get('start'))} --end {o.get('matte_end', o.get('end'))} -o {rel}`)"
+                             for o in sb.get("overlays", []) if o.get("type") == "behind" and o.get("matte") == rel), "")
+                b.warnings.append(f"asset no encontrado: {src}{hint}")
         for pub, srcfile in b.brand_assets.items():
             dst = out / pub; dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(srcfile, dst); copied.append(pub)
     return {"project": str(out), "index": str(out / "index.html"), "overlays": len(sb.get("overlays", [])),

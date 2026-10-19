@@ -11,7 +11,9 @@ Dos piezas que usa el generador:
   `words_at` se puede escribir `"word:<palabra>"` (o `"word:<palabra>#n"`, la enésima vez que se dice) y el tiempo sale
   de `words.json`; `behind.words_at: "auto"` busca la frase entera en la voz. Se resuelven antes de validar, con
   `ANCHOR_LEAD_S` de adelanto en las entradas. Una palabra que no se dice o que se dice varias veces sin `#n` es un
-  error con los candidatos: nunca un tiempo inventado.
+  error con los candidatos: nunca un tiempo inventado. Si el storyboard trae `source.audio`, los inicios de palabra se
+  pegan antes al arranque real de la voz (`snap_to_voice`): Whisper no deja huecos entre palabras y, tras una pausa, pone
+  el inicio de la siguiente dentro de la pausa (la palabra entraría antes de decirse) o unas décimas tarde.
 """
 from __future__ import annotations
 
@@ -19,6 +21,7 @@ import copy
 import difflib
 import re
 import unicodedata
+import wave
 from pathlib import Path
 
 ANCHOR_LEAD_S = 0.04     # la entrada empieza un poco antes de la palabra: el ojo la recibe a la vez que el oído
@@ -26,6 +29,9 @@ KICKER_LEAD_S = 0.5      # antetítulo con "at": "auto": medio segundo antes de 
 AUTO_WINDOW_S = 1.0      # words_at "auto" busca la frase desde 1 s antes del start del overlay hasta su end
 HOLD_MIN_S = 1.5         # behind: la frase completa tiene que quedarse quieta al menos esto antes de salir
 BEHIND_MIN_GAP_S = 20.0  # método: un behind cada ~20 s como mucho
+VOICE_DB = -36.0         # voz frente a silencio en voice.wav (prep la deja a -14 LUFS; las pausas quedan por debajo de -40)
+ONSET_PAUSE_S = 0.2      # un silencio así separa palabras; los más cortos son el cierre de una consonante (la t, la p)
+ONSET_BACK_S = 0.3       # lo más que se adelanta un inicio que Whisper puso dentro de la voz
 # Los mismos nombres que la Memoria y la campaña de frame28.app (memoria.py, F28-347): el director copia ahí lo que
 # diga el brief en «## Movimiento».
 STYLES = ("sober", "editorial", "promotional")
@@ -78,13 +84,21 @@ def motion_errors(motion) -> list[str]:
     return errs
 
 
+# Estilo promotional: entradas más rápidas y salidas más lentas, salvo que la marca fije enter_ms/exit_ms
+PROMOTIONAL = {"enter_ms": ("fast_ms", 120), "exit_ms": (None, 1400)}
+
+
 def motion_tokens(brand: dict | None) -> dict:
     """Tokens efectivos en segundos (y px para el desenfoque): los de la marca, los derivados del brand kit o los de serie."""
     m = (brand or {}).get("motion") or {}
+    style = m.get("style", "editorial")
     ms = {}
     for k, default in MOTION_DEFAULTS.items():
         if k in m:
             ms[k] = m[k]
+        elif style == "promotional" and k in PROMOTIONAL:
+            src, d = PROMOTIONAL[k]
+            ms[k] = m.get(src, d) if src else d
         elif k in DERIVED and DERIVED[k] in m:
             ms[k] = m[DERIVED[k]]
         else:
@@ -92,7 +106,7 @@ def motion_tokens(brand: dict | None) -> dict:
     return {"enter": ms["enter_ms"] / 1000, "exit": ms["exit_ms"] / 1000, "blur": ms["exit_blur_px"],
             "ease_in": ms["ease_in"], "ease_out": ms["ease_out"], "exit_stagger": ms["exit_stagger_ms"] / 1000,
             "kicker": ms["kicker_ms"] / 1000, "word_stagger": ms["word_stagger_ms"] / 1000,
-            "char_stagger": ms["char_stagger_ms"] / 1000, "style": m.get("style", "editorial"),
+            "char_stagger": ms["char_stagger_ms"] / 1000, "style": style,
             "avoid": list(m.get("avoid") or [])}
 
 
@@ -211,6 +225,59 @@ class _Resolver:
         return [x if x is not None else first for x in out]
 
 
+def voice_activity(audio: Path | str):
+    """(máscara de voz por ventana de 10 ms, duración de la ventana) de un WAV, o None si no se puede leer."""
+    from .cut import audio_silence_mask
+    try:
+        silent, hop = audio_silence_mask(audio, frame_ms=10, threshold_db=VOICE_DB)
+    except (OSError, EOFError, KeyError, ValueError, wave.Error):
+        return None
+    return ~silent, hop
+
+
+def snap_to_voice(words: list[dict], voiced, hop: float) -> list[dict]:
+    """Inicios de palabra pegados al arranque real de la voz; solo cambia `start` y solo en dos casos sin ambigüedad:
+
+    - el inicio cae en un silencio de `ONSET_PAUSE_S` o más: pasa a la primera voz (30 ms seguidos) antes del final de
+      la palabra. Es el caso típico tras una pausa: «primero… escucha» con «escucha» empezando en mitad del silencio;
+    - el inicio cae dentro de una voz que arrancó tras una pausa así, como mucho `ONSET_BACK_S` antes, y la palabra
+      anterior empezó antes de esa pausa (Whisper la estiró sobre el silencio): pasa a ese arranque.
+
+    El habla seguida, sin pausas, se queda como está: ahí Whisper acierta y los huecos cortos son consonantes."""
+    n = len(voiced)
+
+    def v(i: int) -> bool:
+        return 0 <= i < n and bool(voiced[i])
+
+    out = []
+    for k, w in enumerate(words):
+        s, e = float(w["start"]), float(w["end"])
+        i = int(s / hop + 1e-6)
+        new = s
+        if i < n and not v(i):
+            p = i
+            while p > 0 and not v(p - 1):
+                p -= 1
+            j = i
+            while j < n and j * hop < e and not (v(j) and v(j + 1) and v(j + 2)):
+                j += 1
+            if j < n and j * hop < e and (j - p) * hop >= ONSET_PAUSE_S - 1e-6:
+                new = j * hop
+        elif i < n:
+            j = i
+            while j > 0 and v(j - 1):
+                j -= 1
+            p = j
+            while p > 0 and not v(p - 1):
+                p -= 1
+            prev_start = float(out[-1]["start"]) if out else -1.0
+            if (j * hop < s and s - j * hop <= ONSET_BACK_S + 1e-6 and (j - p) * hop >= ONSET_PAUSE_S - 1e-6
+                    and prev_start < p * hop):
+                new = j * hop
+        out.append({**w, "start": round(new, 3)} if abs(new - s) > 1e-9 else w)
+    return out
+
+
 def resolve_anchors(sb: dict, words: list[dict] | None) -> tuple[dict, list[str]]:
     """Copia del storyboard con todas las anclas convertidas a segundos, y la lista de errores (vacía si todo casa)."""
     sb = copy.deepcopy(sb)
@@ -269,6 +336,11 @@ def resolve_storyboard(sb: dict, base: Path | str) -> tuple[dict, list[str]]:
             words = load_words(p)
         except TranscriptFormatError as e:
             return sb, [f"words.json de las anclas ({p.name}): {e}"]
+    audio = (sb.get("source") or {}).get("audio")
+    if words and isinstance(audio, str) and (Path(base) / audio).is_file():
+        va = voice_activity(Path(base) / audio)
+        if va is not None:
+            words = snap_to_voice(words, *va)
     return resolve_anchors(sb, words)
 
 

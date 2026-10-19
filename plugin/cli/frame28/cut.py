@@ -264,7 +264,9 @@ def apply(video: str | Path, audio: str | Path | None, cuts_path: str | Path, ou
     if not keep:  # ffmpeg recibiría concat=n=0 y fallaría con un error de filtros incomprensible
         raise SystemExit(f"cut apply: el plan {Path(cuts_path).name} no conserva ningún tramo (keep vacío); revisa los cortes")
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
-    res: dict = {"segments": len(keep), "result_duration": cuts["result_duration"]}
+    # un plan escrito a mano (un tramo para un short o una demo) no trae result_duration: se calcula de keep
+    res: dict = {"segments": len(keep),
+                 "result_duration": cuts.get("result_duration", round(sum(k["end"] - k["start"] for k in keep), 3))}
     # vídeo: trim + concat (re-encode; los tramos no caen en keyframes)
     parts = []; labels = []
     for i, k in enumerate(keep):

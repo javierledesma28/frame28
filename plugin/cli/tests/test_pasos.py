@@ -126,6 +126,15 @@ def test_cut_apply_stops_when_the_16k_audio_fails(monkeypatch, tmp_path):
     assert "cut apply: audio de 16 kHz" in str(e.value)
 
 
+def test_cut_apply_accepts_a_hand_written_plan_without_result_duration(monkeypatch, tmp_path):
+    # un tramo escrito a mano (showcase de F28-339): antes, «Error inesperado (KeyError): 'result_duration'»
+    plan = tmp_path / "cuts.json"
+    plan.write_text(json.dumps({"keep": [{"start": 28.4, "end": 66.48}], "removed": []}), encoding="utf-8")
+    _fake_run(monkeypatch, lambda cmd: False, "")
+    r = K.apply(tmp_path / "clip.mp4", None, plan, tmp_path / "cut")
+    assert r["result_duration"] == 38.08 and r["segments"] == 1
+
+
 def test_measure_stops_and_cleans_up_when_the_wav_fails(monkeypatch, tmp_path):
     tmp = tmp_path / "frame28_audio_x"
     monkeypatch.setattr(A.tempfile, "mkdtemp", lambda prefix="": (tmp.mkdir(), str(tmp))[1])

@@ -1,0 +1,180 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Frame28 · showcase del motor",
+  "lang": "es",
+  "note": "tramo de poc/clip-demo desde 28,4 s; una escena por cada R de la serie de movimiento (F28-339…)"
+ },
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30
+ },
+ "duration": 41.6,
+ "source": {
+  "video": "clip.mp4",
+  "audio": "voice.wav",
+  "duration": 38.08
+ },
+ "brand": "think28",
+ "speaker": {
+  "side": "center"
+ },
+ "words": "words.json",
+ "captions": [
+  {
+   "start": 0.5,
+   "end": 3.28,
+   "text": "Frame28 hace tres cosas:"
+  },
+  {
+   "start": 3.28,
+   "end": 10.62,
+   "text": "Primero escucha, segundo entiende y tercero monta."
+  },
+  {
+   "start": 10.62,
+   "end": 18.9,
+   "text": "¿Qué quiero decir con esto? Que un vídeo de un minuto tarda unos 90 minutos,"
+  },
+  {
+   "start": 18.9,
+   "end": 29.79,
+   "text": "pero con Frame28 solo tarda cuatro minutos, es decir, 22 veces más rápido. Y todo esto"
+  },
+  {
+   "start": 29.79,
+   "end": 38.04,
+   "text": "se queda en tu ordenador. No lo dudes más: Frame28. Graba, habla y listo."
+  }
+ ],
+ "overlays": [
+  {
+   "type": "behind",
+   "id": "r1",
+   "start": 1.9,
+   "end": 12.4,
+   "text": "ESCUCHA|ENTIENDE|MONTA",
+   "words_at": "auto",
+   "kicker": {
+    "text": "Tres cosas",
+    "at": "word:tres"
+   },
+   "x": 0.383,
+   "y": 0.235,
+   "fit": 0.31,
+   "color": "ink",
+   "matte": "alpha_2.0.webm",
+   "matte_start": 2.0,
+   "matte_end": 12.5
+  },
+  {
+   "type": "chart",
+   "id": "c1",
+   "kind": "bar",
+   "start": 16.5,
+   "end": 24.9,
+   "at": 16.6,
+   "bg": "black",
+   "title": "Un vídeo de un minuto",
+   "subtitle": "tiempo de montaje",
+   "unit": " min",
+   "decimals": 0,
+   "stagger": 3.6,
+   "series": [
+    {
+     "label": "A mano",
+     "value": 90
+    },
+    {
+     "label": "Con Frame28",
+     "value": 4
+    }
+   ],
+   "hero": "Con Frame28"
+  },
+  {
+   "type": "chart",
+   "id": "c2",
+   "kind": "counter",
+   "start": 25.5,
+   "end": 28.5,
+   "at": 25.58,
+   "bg": "accent",
+   "value": 22,
+   "suffix": "×",
+   "decimals": 0,
+   "duration": 0.9,
+   "label": "más rápido",
+   "subtitle": "un minuto de vídeo"
+  },
+  {
+   "type": "kinetic",
+   "id": "k2",
+   "start": 30.4,
+   "end": 32.8,
+   "x": 1300,
+   "y": 160,
+   "size": 96,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "se queda en",
+      "at": "word:se queda"
+     }
+    ],
+    [
+     {
+      "text": "tu ordenador",
+      "at": "word:tu ordenador",
+      "accent": true
+     }
+    ]
+   ]
+  },
+  {
+   "type": "kinetic",
+   "id": "k3",
+   "start": 33.3,
+   "end": 38.08,
+   "x": 560,
+   "y": 80,
+   "size": 110,
+   "reveal": "rise",
+   "lines": [
+    [
+     {
+      "text": "Frame28.",
+      "at": "word:frame28",
+      "accent": true
+     }
+    ],
+    [
+     {
+      "text": "Graba,",
+      "at": "word:graba"
+     },
+     {
+      "text": "habla",
+      "at": "word:habla"
+     },
+     {
+      "text": "y listo.",
+      "at": "word:y listo"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "brand_card",
+   "id": "end",
+   "start": 38.08,
+   "end": 41.6,
+   "at": 38.15,
+   "bg": "black",
+   "reveal": "chars",
+   "title": "Frame28"
+  }
+ ]
+}

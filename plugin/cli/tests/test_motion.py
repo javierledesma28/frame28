@@ -32,6 +32,15 @@ def test_tokens_derive_from_brand_kit_and_explicit_wins():
     assert (t["enter"], t["exit"], t["ease_out"]) == (0.15, 0.9, "expo.out")
 
 
+def test_promotional_style_enters_faster_and_leaves_slower():
+    t = motion.motion_tokens({"motion": {"style": "promotional", "standard_ms": 240}})
+    assert (t["enter"], t["exit"], t["style"]) == (0.12, 1.4, "promotional")
+    assert motion.motion_tokens({"motion": {"style": "promotional", "fast_ms": 100}})["enter"] == 0.1
+    t = motion.motion_tokens({"motion": {"style": "promotional", "enter_ms": 300, "exit_ms": 800}})
+    assert (t["enter"], t["exit"]) == (0.3, 0.8)                      # lo que fija la marca manda
+    assert motion.motion_tokens({"motion": {"style": "sober", "standard_ms": 240}})["enter"] == 0.24
+
+
 @pytest.mark.parametrize("bad,frag", [
     ({"ease_in": 'power1.out"); alert(1); ("'}, "ease_in: curva de GSAP no válida"),
     ({"exit_ms": 10}, "exit_ms: número entre"),
@@ -115,6 +124,53 @@ def test_anchors_without_words_file(tmp_path):
     write_json(tmp_path / "w.json", WORDS)
     out, errs = motion.resolve_storyboard({**sb, "words": "w.json"}, tmp_path)
     assert errs == [] and out["overlays"][0]["words_at"] == [4.22, 4.54]
+
+
+def _voice_wav(path, spans, dur):
+    """WAV de 16 kHz con tono (voz) en `spans` y ruido muy bajo en el resto."""
+    import wave
+
+    import numpy as np
+    sr = 16000
+    t = np.arange(int(dur * sr)) / sr
+    x = 0.001 * np.sin(2 * np.pi * 50 * t)
+    for a, b in spans:
+        m = (t >= a) & (t < b)
+        x[m] = 0.3 * np.sin(2 * np.pi * 220 * t[m])
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
+        w.writeframes((x * 32767).astype("<i2").tobytes())
+
+
+# voz: hola | pausa | primero | pausa | escucha · t · tercero | pausa | monta | pausa | y listo
+SPANS = [(0.0, 1.0), (1.5, 2.0), (2.4, 2.9), (2.97, 3.5), (4.0, 4.5), (5.0, 5.6)]
+# tiempos como los da Whisper: sin huecos; tras una pausa, la palabra empieza dentro de ella o se estira la anterior
+WHISPER = [{"text": "hola", "start": 0.0, "end": 1.0}, {"text": "primero", "start": 1.0, "end": 2.05},
+           {"text": "escucha", "start": 2.05, "end": 2.95}, {"text": "tercero", "start": 2.95, "end": 4.12},
+           {"text": "monta", "start": 4.12, "end": 4.5}, {"text": "y", "start": 5.0, "end": 5.1},
+           {"text": "listo", "start": 5.15, "end": 5.6}]
+
+
+def test_snap_to_voice_moves_only_the_starts_whisper_gets_wrong(tmp_path):
+    _voice_wav(tmp_path / "v.wav", SPANS, 6.0)
+    got = {w["text"]: w["start"] for w in motion.snap_to_voice(WHISPER, *motion.voice_activity(tmp_path / "v.wav"))}
+    assert got["primero"] == 1.5 and got["escucha"] == 2.4      # empezaban en la pausa: entrarían antes de decirse
+    assert got["monta"] == 4.0                                  # 0,12 s tarde, con «tercero» estirado sobre la pausa
+    assert got["tercero"] == 2.95                               # hueco de 70 ms: el cierre de la t, no una pausa
+    assert got["hola"] == 0.0 and got["y"] == 5.0
+    assert got["listo"] == 5.15                                 # «y» empezó tras la pausa: la voz de antes es suya
+
+
+def test_resolve_storyboard_snaps_anchors_to_the_voice(tmp_path):
+    _voice_wav(tmp_path / "voice.wav", SPANS, 6.0)
+    write_json(tmp_path / "w.json", WHISPER)
+    sb = {"words": "w.json", "source": {"video": "clip.mp4", "audio": "voice.wav"},
+          "overlays": [_behind(start=0.5, end=5.9, text="ESCUCHA|MONTA", words_at="auto",
+                               kicker={"text": "Primero", "at": "word:primero"})]}
+    out, errs = motion.resolve_storyboard(sb, tmp_path)
+    assert errs == [] and out["overlays"][0]["words_at"] == [2.36, 3.96] and out["overlays"][0]["kicker"]["at"] == 1.46
+    out, _ = motion.resolve_storyboard({**sb, "source": {"audio": "no-existe.wav"}}, tmp_path)   # sin audio: Whisper tal cual
+    assert out["overlays"][0]["words_at"] == [2.01, 4.08]
 
 
 def test_words_path_order(tmp_path):

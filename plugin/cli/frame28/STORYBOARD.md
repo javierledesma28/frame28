@@ -57,7 +57,9 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 suena); en `end`, su final. Varias palabras seguidas (`"word:por aquí"`) entran con la primera y, en `end`, acaban con
 la última. Si se dice más de una vez,
 manda el tramo del overlay; si sigue siendo ambigua, `build` se para y pide `"word:aquí#2"` (la segunda vez que se dice).
-Una palabra que no se dice nunca se convierte en un tiempo: el error lista las parecidas. `frame28 cut apply` deja las
+Una palabra que no se dice nunca se convierte en un tiempo: el error lista las parecidas. Con `source.audio`, el inicio de
+cada palabra se pega antes al arranque real de la voz: Whisper, tras una pausa, pone la palabra siguiente dentro del
+silencio (entraría antes de decirse) o unas décimas tarde. `frame28 cut apply` deja las
 anclas como están (se resuelven contra el `words.json` ya cortado) e `i18n apply` las fija en segundos antes de traducir.
 
 | type | Campos | Qué es (técnica del análisis) |
@@ -135,7 +137,7 @@ titulares; `motion` con los tokens de tiempo en milisegundos y las curvas de GSA
 | `exit_stagger_ms` | 300 | adelanto de la salida del antetítulo |
 | `kicker_ms` | `slow_ms` o 500 | entrada del antetítulo |
 | `word_stagger_ms`, `char_stagger_ms` | 300, 20 | escalonado si no hay `words_at` / entre letras con `chars` |
-| `style` | `editorial` | `sober`, `editorial` o `promotional`: los mismos estilos que la Memoria y la campaña (ritmo; lo lee el director) |
+| `style` | `editorial` | `sober`, `editorial` o `promotional`: los mismos estilos que la Memoria y la campaña (ritmo; lo lee el director). `promotional` entra más rápido (`fast_ms` o 120 ms) y sale más despacio (1400 ms) salvo que la marca fije `enter_ms`/`exit_ms` |
 | `avoid` | — | efectos que la marca no quiere (`behind`, `cards_3d`, `camera`, `transitions`, `live_photos`, `brand_open`); `build` avisa si hay un `behind` |
 
 `fast_ms`, `standard_ms` y `slow_ms` (los del brand kit) se aceptan como base. Un token desconocido, fuera de rango o una

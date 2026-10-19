@@ -421,6 +421,15 @@ def test_behind_warns_when_the_brand_avoids_it(tmp_path):
     assert any("la marca pide no usar texto detrás del hablante" in w for w in r["warnings"])
 
 
+def test_behind_missing_matte_says_how_to_make_it(tmp_path):
+    # sin la máscara el texto queda delante de la persona: el aviso da la orden con el tramo de la escena
+    write_json(tmp_path / "words.json", JAVIER_WORDS)
+    sb = _sb(overlays=[_bh2()], words="words.json")
+    r = build.build_project(write_json(tmp_path / "sb.json", sb), tmp_path / "p")
+    w = next(w for w in r["warnings"] if "a.webm" in w)
+    assert "máscara del behind bh2" in w and "frame28 matte <clip> --start 2.7 --end 7.6 -o a.webm" in w
+
+
 def test_legacy_behind_is_untouched(tmp_path, javier_storyboard):
     bh = next(o for o in javier_storyboard["overlays"] if o["type"] == "behind")
     assert not build.is_behind_v2(bh)
