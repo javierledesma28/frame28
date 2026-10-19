@@ -57,19 +57,20 @@ def javier_storyboard() -> dict:
     return json.loads((POC / "clip-javier" / "storyboard-gsap.json").read_text(encoding="utf-8"))
 
 
+# poc/clip-tutorial es un caso inventado (marca, producto, precios y transcripción): el público no lleva datos de clientes
 @pytest.fixture(scope="session")
 def tutorial_short() -> dict:
-    return json.loads((POC / "clip-caso-a" / "storyboard-short-s4.json").read_text(encoding="utf-8"))
+    return json.loads((POC / "clip-tutorial" / "storyboard-short-s5.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="session")
 def tutorial_strings() -> dict:
-    return json.loads((POC / "clip-caso-a" / "strings-short-s4.es.json").read_text(encoding="utf-8"))
+    return json.loads((POC / "clip-tutorial" / "strings-short-s5.es.json").read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="session")
 def tutorial_clips() -> dict:
-    return json.loads((POC / "clip-caso-a" / "clips.json").read_text(encoding="utf-8"))
+    return json.loads((POC / "clip-tutorial" / "clips.json").read_text(encoding="utf-8"))
 
 
 def words_from(spec: str, start: float = 0.0, dur: float = 0.3, gap: float = 0.05) -> list[dict]:

@@ -1,0 +1,57 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Short s5",
+  "lang": "en"
+ },
+ "canvas": {
+  "width": 1080,
+  "height": 1920,
+  "fps": 30
+ },
+ "platform": "tiktok",
+ "source": {
+  "video": "vertical.mp4",
+  "audio": "voice.wav",
+  "duration": 38.69
+ },
+ "speaker": {
+  "side": "center"
+ },
+ "caption_style": {
+  "preset": "pages",
+  "words": "words.json",
+  "max_words": 4,
+  "bottom": 345
+ },
+ "overlays": [
+  {
+   "type": "hook",
+   "id": "hook",
+   "start": 0.2,
+   "end": 3.2,
+   "at": 0.3,
+   "lines": [
+    "Your first candle",
+    "in one evening"
+   ],
+   "bg": "accent"
+  },
+  {
+   "type": "cta",
+   "id": "cta",
+   "start": 33.69,
+   "end": 38.69,
+   "at": 33.79,
+   "title": "Pour Kit™",
+   "price": "$39",
+   "old_price": "$52",
+   "discount": "25% OFF · 4 fragrance oils",
+   "line": "example.com · 30-day returns",
+   "url": "https://example.com/products/pour-kit",
+   "bg": "accent"
+  }
+ ],
+ "brand": "brands/velas-ejemplo.json",
+ "duration": 38.69
+}

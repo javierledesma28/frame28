@@ -1,0 +1,560 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "Tutorial producido · velas de soja (caso inventado)",
+  "lang": "en"
+ },
+ "canvas": {
+  "width": 1920,
+  "height": 1080,
+  "fps": 30
+ },
+ "source": {
+  "video": "clip.mp4",
+  "audio": "voice.wav",
+  "duration": 212.61
+ },
+ "brand": "brands/velas-ejemplo.json",
+ "speaker": {
+  "side": "center"
+ },
+ "captions": [
+  {
+   "start": 0.0,
+   "end": 2.48,
+   "text": "Hey, welcome back to the studio."
+  },
+  {
+   "start": 2.68,
+   "end": 7.71,
+   "text": "Today we're making soy candles at home, and it's easier than it looks."
+  },
+  {
+   "start": 8.03,
+   "end": 15.24,
+   "text": "A lot of you asked me, what if the wax gets too hot, or the candle comes out lumpy?"
+  },
+  {
+   "start": 15.68,
+   "end": 19.62,
+   "text": "Honestly, I was scared of it too the first time."
+  },
+  {
+   "start": 19.82,
+   "end": 27.76,
+   "text": "But with a thermometer, a steady pour and a little patience, it's one of the most beginner friendly crafts out there."
+  },
+  {
+   "start": 28.08,
+   "end": 31.65,
+   "text": "Everything we need today comes in the Pour Kit."
+  },
+  {
+   "start": 32.09,
+   "end": 37.48,
+   "text": "Soy wax flakes, cotton wicks, a pouring pitcher, a thermometer and four fragrance oils."
+  },
+  {
+   "start": 37.68,
+   "end": 40.89,
+   "text": "Before we start, a quick word on safety."
+  },
+  {
+   "start": 41.21,
+   "end": 46.24,
+   "text": "Always melt the wax in a double boiler, never directly on the burner."
+  },
+  {
+   "start": 46.68,
+   "end": 53.53,
+   "text": "Keep the handle dry, keep kids and pets away from the stove, and never leave melting wax alone."
+  },
+  {
+   "start": 53.73,
+   "end": 56.21,
+   "text": "First project, a classic jar candle."
+  },
+  {
+   "start": 56.53,
+   "end": 63.01,
+   "text": "Fill the pitcher about halfway with wax flakes and set it inside a pot of simmering water."
+  },
+  {
+   "start": 63.45,
+   "end": 68.11,
+   "text": "Stir gently until everything is clear and the thermometer reads 85 degrees."
+  },
+  {
+   "start": 68.31,
+   "end": 75.52,
+   "text": "While it melts, stick a wick to the bottom of the jar and center it with the wooden clip."
+  },
+  {
+   "start": 75.84,
+   "end": 82.69,
+   "text": "Now take the pitcher off the heat and add the fragrance oil, about 10% of the wax weight."
+  },
+  {
+   "start": 83.13,
+   "end": 88.52,
+   "text": "Stir slowly for two full minutes, so the scent really binds with the wax."
+  },
+  {
+   "start": 88.72,
+   "end": 93.75,
+   "text": "Let it cool down to 60 degrees and pour in one steady stream."
+  },
+  {
+   "start": 94.07,
+   "end": 99.46,
+   "text": "Leave about a centimeter at the top and let it set for four hours."
+  },
+  {
+   "start": 99.9,
+   "end": 100.93,
+   "text": "That's it!"
+  },
+  {
+   "start": 101.13,
+   "end": 103.61,
+   "text": "Look at that smooth, creamy top."
+  },
+  {
+   "start": 103.93,
+   "end": 107.87,
+   "text": "Simple, right? And the whole room already smells like vanilla."
+  },
+  {
+   "start": 108.31,
+   "end": 111.52,
+   "text": "Next, let's make something you can give away."
+  },
+  {
+   "start": 111.72,
+   "end": 114.2,
+   "text": "A two-tone candle, poured in layers."
+  },
+  {
+   "start": 114.52,
+   "end": 121.37,
+   "text": "I'm adding a few chips of terracotta dye to the bottom layer and leaving the top one natural."
+  },
+  {
+   "start": 121.81,
+   "end": 128.29,
+   "text": "Pour the first layer, then wait about 30 minutes until the surface is firm but still warm."
+  },
+  {
+   "start": 128.49,
+   "end": 134.61,
+   "text": "If the timing feels too hard, just touch the surface: it should feel like soft butter."
+  },
+  {
+   "start": 134.93,
+   "end": 141.05,
+   "text": "Now the natural layer goes on top, nice and slow, over the back of a spoon."
+  },
+  {
+   "start": 141.49,
+   "end": 145.43,
+   "text": "The line between the two colors turned out perfectly straight."
+  },
+  {
+   "start": 145.63,
+   "end": 149.93,
+   "text": "A ribbon and a handwritten tag, and it's ready to wrap."
+  },
+  {
+   "start": 150.25,
+   "end": 154.91,
+   "text": "For the last idea, let's give an old teacup a second life."
+  },
+  {
+   "start": 155.35,
+   "end": 161.47,
+   "text": "This one was hiding in the back of my cupboard with a chip on the rim."
+  },
+  {
+   "start": 161.67,
+   "end": 164.88,
+   "text": "Same wax, same wick, just a smaller pour."
+  },
+  {
+   "start": 165.2,
+   "end": 169.5,
+   "text": "Here, a few bumps on top are part of the charm."
+  },
+  {
+   "start": 169.94,
+   "end": 172.79,
+   "text": "Mismatched cups make the best candles anyway."
+  },
+  {
+   "start": 172.99,
+   "end": 178.74,
+   "text": "Once all three are set, let them cure for 48 hours before you light them."
+  },
+  {
+   "start": 179.06,
+   "end": 183.72,
+   "text": "Trim each wick to about six millimeters, and now it lights up."
+  },
+  {
+   "start": 184.16,
+   "end": 187.37,
+   "text": "And here they are, our three finished candles."
+  },
+  {
+   "start": 187.57,
+   "end": 191.87,
+   "text": "Anyone can make these in one evening with the Pour Kit."
+  },
+  {
+   "start": 192.19,
+   "end": 195.76,
+   "text": "And the same method works for almost any container."
+  },
+  {
+   "start": 196.2,
+   "end": 199.77,
+   "text": "Tins, teacups, coconut shells, even an old sugar bowl."
+  },
+  {
+   "start": 199.97,
+   "end": 202.45,
+   "text": "So, still afraid of hot wax?"
+  },
+  {
+   "start": 202.77,
+   "end": 207.07,
+   "text": "Tell us in the comments which scent we should try next."
+  },
+  {
+   "start": 207.51,
+   "end": 211.08,
+   "text": "And subscribe to keep your next weekend project easy."
+  },
+  {
+   "start": 211.28,
+   "end": 212.31,
+   "text": "Happy pouring!"
+  }
+ ],
+ "overlays": [
+  {
+   "type": "lower_third",
+   "id": "lt",
+   "start": 1.0,
+   "end": 7.71,
+   "x": 60,
+   "y": 700,
+   "title": "POUR KIT™",
+   "subtitle": "Soy candles at home · beginner friendly"
+  },
+  {
+   "type": "kinetic",
+   "id": "k_promise",
+   "start": 19.72,
+   "end": 27.76,
+   "x": 980,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "color": "#1F2A2E",
+   "lines": [
+    [
+     {
+      "text": "thermometer",
+      "at": 20.12
+     },
+     {
+      "text": "· steady pour",
+      "at": 21.12
+     },
+     {
+      "text": "· patience",
+      "at": 22.12
+     }
+    ],
+    [
+     {
+      "text": "beginner friendly",
+      "at": 24.02
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "b_kit",
+   "start": 31.99,
+   "end": 37.48,
+   "at": 32.15,
+   "text": "Wax, wicks, pitcher, 4 oils",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_boiler",
+   "start": 41.11,
+   "end": 46.24,
+   "at": 41.27,
+   "text": "Double boiler, never the burner",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_alone",
+   "start": 46.58,
+   "end": 53.53,
+   "at": 46.74,
+   "text": "Never leave melting wax alone",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "p1",
+   "start": 53.63,
+   "end": 56.21,
+   "at": 53.79,
+   "text": "Project 1 · Jar candle",
+   "x": 1150,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_temp",
+   "start": 63.35,
+   "end": 68.11,
+   "at": 63.51,
+   "text": "Melt to 85 °C",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_wick",
+   "start": 68.21,
+   "end": 75.52,
+   "at": 68.37,
+   "text": "Center the wick with the clip",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_oil",
+   "start": 75.74,
+   "end": 82.69,
+   "at": 75.9,
+   "text": "Fragrance: 10% of the wax",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_pour",
+   "start": 88.62,
+   "end": 93.75,
+   "at": 88.78,
+   "text": "Pour at 60 °C",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "kinetic",
+   "id": "k_done",
+   "start": 99.8,
+   "end": 100.93,
+   "x": 700,
+   "y": 100,
+   "size": 104,
+   "reveal": "rise",
+   "color": "#1F2A2E",
+   "lines": [
+    [
+     {
+      "text": "That's it!",
+      "at": 99.9
+     }
+    ]
+   ]
+  },
+  {
+   "type": "draw",
+   "id": "d_done",
+   "start": 99.8,
+   "end": 100.93,
+   "at": 100.0,
+   "icon": "circle-check",
+   "x": 600,
+   "y": 104,
+   "w": 80,
+   "color": "#1F2A2E",
+   "duration": 0.45
+  },
+  {
+   "type": "kinetic",
+   "id": "k_top",
+   "start": 101.03,
+   "end": 103.61,
+   "x": 1000,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "color": "#1F2A2E",
+   "lines": [
+    [
+     {
+      "text": "smooth, creamy top",
+      "at": 101.53
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "p2",
+   "start": 108.21,
+   "end": 111.52,
+   "at": 108.37,
+   "text": "Project 2 · Two-tone gift",
+   "x": 1150,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_layer",
+   "start": 121.71,
+   "end": 128.29,
+   "at": 121.87,
+   "text": "Wait 30 min, firm but warm",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_butter",
+   "start": 128.39,
+   "end": 134.61,
+   "at": 128.55,
+   "text": "Feels like soft butter? Pour.",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "kinetic",
+   "id": "k_line",
+   "start": 141.39,
+   "end": 145.43,
+   "x": 1000,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "color": "#1F2A2E",
+   "lines": [
+    [
+     {
+      "text": "perfectly straight",
+      "at": 143.09
+     }
+    ]
+   ]
+  },
+  {
+   "type": "box",
+   "id": "p3",
+   "start": 150.15,
+   "end": 154.91,
+   "at": 150.31,
+   "text": "Project 3 · Teacup candle",
+   "x": 1150,
+   "y": 840
+  },
+  {
+   "type": "box",
+   "id": "b_cure",
+   "start": 172.89,
+   "end": 183.72,
+   "at": 173.05,
+   "text": "Cure 48 h, trim the wick",
+   "x": 60,
+   "y": 840
+  },
+  {
+   "type": "kinetic",
+   "id": "k_lit",
+   "start": 178.96,
+   "end": 183.72,
+   "x": 1000,
+   "y": 100,
+   "size": 84,
+   "reveal": "rise",
+   "color": "#1F2A2E",
+   "lines": [
+    [
+     {
+      "text": "it lights up",
+      "at": 181.46
+     }
+    ]
+   ]
+  },
+  {
+   "type": "lower_third",
+   "id": "prod",
+   "start": 187.47,
+   "end": 191.87,
+   "x": 60,
+   "y": 700,
+   "title": "POUR KIT™ · $39",
+   "subtitle": "25% off · 4 fragrance oils · example.com"
+  },
+  {
+   "type": "kinetic",
+   "id": "k_list",
+   "start": 196.1,
+   "end": 199.77,
+   "x": 240,
+   "y": 90,
+   "size": 64,
+   "reveal": "fade",
+   "color": "#1F2A2E",
+   "lines": [
+    [
+     {
+      "text": "Tins",
+      "at": 196.2
+     },
+     {
+      "text": "· Teacups",
+      "at": 196.8
+     },
+     {
+      "text": "· Coconut shells",
+      "at": 197.5
+     }
+    ]
+   ]
+  },
+  {
+   "type": "chart",
+   "id": "proof",
+   "kind": "counter",
+   "start": 199.87,
+   "end": 207.07,
+   "at": 199.97,
+   "bg": "accent",
+   "value": 20,
+   "suffix": "K+",
+   "decimals": 0,
+   "duration": 1.1,
+   "label": "candles poured",
+   "subtitle": "4.8★ · 1,800+ reviews · 30-day returns"
+  }
+ ],
+ "duration": 212.61
+}

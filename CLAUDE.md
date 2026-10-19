@@ -116,12 +116,13 @@ research/                         01 análisis del vídeo de referencia (resumen
                                   08 PLATAFORMA (giro del 2026-10-01: plugin de pago + frame28.app como panel; Memoria de marca,
                                   campañas, MCP remoto con OAuth, arquitectura, stack Next.js + FastAPI + Think28 ID + Paddle + R2,
                                   diseño, tiers a validar, plan por fases, referencias web verificadas)
-poc/                              casos reales, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
+poc/                              casos, cada uno con README, storyboard(s) y cuts.json versionados; work/ y out/ NO:
                                   clip-javier (10 s, referencia de regresión), clip-auriculares (anuncio 58 s),
                                   clip-whatsapp (vertical de móvil, inglés), clip-demo (guion de demo 83 s, + vertical),
-                                  clip-caso-a (tutorial de YouTube de una marca: brief, storyboard, shorts, i18n),
-                                  clip-caso-a2 (segundo tutorial de la misma marca, montado el 2026-10-01 en EN/ES/DE con 6 shorts
-                                  y 4 portadas: TODO en carpetas ignoradas, nada versionado todavía; ver HANDOFF §A medias)
+                                  clip-tutorial (caso INVENTADO, F28-99: tutorial producido de una marca ficticia de velas;
+                                  brief, storyboard, clips, short e i18n; fixture de la suite). Los casos reales del Cliente A
+                                  son solo locales: fuera de git por `.git/info/exclude` (el `.gitignore` público los nombraría);
+                                  cuáles son, en `_private/cliente-a/casos-locales.md`
 _private/                         NO versionado: caras, fotogramas y transcripción del vídeo de referencia; `confidencial.txt` (términos
                                   que `release-check` busca); `cliente-a/` (propuesta, brief, guion y envío que nombran al cliente)
 ```
@@ -168,12 +169,12 @@ Pruebas automatizadas: `cd plugin/cli && uv run --extra probado --group dev pyte
 que reciben los clientes; `FRAME28_PRUEBA_INSTALACION=1` suma la instalación limpia de punta a punta, ~40 s con la caché de uv, unos 20 s; sin modelos ni render y
 sin necesitar ffmpeg: las pruebas que lo llaman sustituyen ffmpeg y `run`, y la suite pasa igual con `FRAME28_FFMPEG=/no/existe`;
 todos los módulos del CLI tienen al menos una prueba; smoke del CLI con `CliRunner`, fila de confidencialidad de `release-check`; fixtures = `poc/clip-javier/words.json`,
-los storyboards versionados y `poc/clip-caso-a/*.json`). La CI (`.github/workflows/tests.yml`) la pasa en cada push que
+los storyboards versionados y `poc/clip-tutorial/*.json`). La CI (`.github/workflows/tests.yml`) la pasa en cada push que
 toque `plugin/cli/`, y `scripts/release-check.py` también. Cada bug que se arregle lleva su prueba de regresión en
 `plugin/cli/tests/`. Lo que no cubre (el render, el alfa de RVM, la detección de gestos y el OCR reales) se prueba con
 `frame28 check` + render + mirar la hoja de contacto (`*_sheet.png`).
-Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards reales completos: `poc/clip-demo/`
-(16 overlays, cortes, vertical), `poc/clip-caso-a/` (vídeo producido, marca de cliente, shorts, i18n).
+Regresión rápida: `poc/clip-javier/storyboard-gsap.json` (10 s). Storyboards completos: `poc/clip-demo/`
+(16 overlays, cortes, vertical), `poc/clip-tutorial/` (vídeo producido con su marca, shorts, i18n; inventado y sin vídeo).
 
 Deck de la guía: editar `docs/presentacion/deck.html`, luego `node engine/build.mjs deck.html --out index.html`
 desde `docs/presentacion/` y comprobar en el navegador `Deck.check()` → `[]`. El motor (`engine/`) es neutro: no trae
@@ -240,7 +241,9 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
   (tiktok/reels/shorts) activa avisos de zonas seguras.
 - Salidas, medios (`*.mp4 *.wav *.webm`), `work*/`, `node_modules/`, modelos y `_private/` van en `.gitignore`.
   Caras, logos y material de terceros **nunca** entran en el repo (el historial ya se limpió una vez por esto); la
-  marca `cliente-a` vive en `poc/clip-caso-a/work/brands/` (no versionada) y se regenera con `frame28 brand from-site`.
+  marca del Cliente A vive en la carpeta local de su caso (no versionada) y se regenera con `frame28 brand from-site`.
+  Un caso de cliente no se versiona ni anonimizado: el público es inventado (`poc/clip-tutorial`, F28-99), porque la
+  transcripción, el precio o el sector bastan para encontrar la marca con una búsqueda.
 - Lo que sí se confirma antes: lo destructivo o irreversible (reescribir historia o `push --force`, borrar ramas o tags ya
   publicados, cambios en el DNS o en el sitio en vivo que afecten a clientes, gastar dinero, instalar software en la
   máquina de Javier). Lo demás se hace, y se explica en pocas frases qué se hizo y cómo se comprueba: Javier quiere
@@ -262,7 +265,7 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
   el extra viaja en los metadatos del paquete y cada release trae los suyos. El código sale de la rama `release` (no de
   un tag: con `@vX.Y.Z` el upgrade no se movería nunca), que cada release adelanta.
 - **HyperFrames 0.8.105** (Apache-2.0) como compositor, pineado (subido del 0.8.72 el 2026-10-01 pasando la regresión de clip-javier; subir exige pasar las
-  regresiones de `poc/clip-javier` y `poc/clip-caso-a`); Remotion descartado (licencia de empresa >3 personas).
+  regresiones de `poc/clip-javier` y de un vídeo producido, el caso local del Cliente A); Remotion descartado (licencia de empresa >3 personas).
   PoC comparativa en `research/03-poc-compositores.md`.
 - **faster-whisper** (CPU, medium int8) para tiempos por palabra; WhisperX/stable-ts con guion son mejora pendiente.
 - **RobustVideoMatting ONNX** (GPL-3; onnxruntime lo carga dentro del CLI, NO es un proceso aparte; el modelo se descarga
@@ -445,9 +448,9 @@ formato de `gh release view v0.4.0`. Tras el tag, **adelantar la rama `release`*
   del índice el 2026-10-01: si reaparece como modificado, es que alguien corrió el CLI desde la raíz, no un cambio real.
 - **Un `cd` dentro de un comando Bash cambia el directorio de las órdenes siguientes de la sesión**: `claude plugin validate
   ./plugin` falló buscando `plugin/cli/plugin` tras un `cd plugin/cli` anterior. Rutas absolutas, o el `cd` en el mismo comando.
-- **`poc/clip-caso-a2/input.source.json` nombra el canal del cliente** y lo único que lo mantiene fuera de `git add -A` es la
-  línea `*.source.json` del `.gitignore` (commiteada el 2026-10-01). Las sesiones que descarguen vídeos de clientes deben
-  comprobar `git status` antes de añadir nada.
+- **El `input.source.json` de `frame28 fetch` nombra el canal del cliente** (pasó con la segunda muestra del Cliente A): lo
+  mantienen fuera la línea `*.source.json` del `.gitignore` y, para las carpetas enteras de casos de clientes,
+  `.git/info/exclude`. Las sesiones que descarguen vídeos de clientes deben comprobar `git status` antes de añadir nada.
 - **El token de API de Cloudflare no ve los túneles** (401/403 en `cfd_tunnel`, también 403 en Pages, Access Organizations
   y Email Routing): el túnel `frame28` y sus *Public Hostnames* se hacen en el panel (Zero Trust → Networks → Tunnels) o se
   añade al token `Cloudflare Tunnel → Edit`. DNS, Access apps, Workers y Turnstile sí van por API. El token del túnel (el del

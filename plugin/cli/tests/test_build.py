@@ -1,4 +1,4 @@
-"""build: validación del storyboard (los 11 casos reales versionados y errores típicos), avisos de plataforma y build sin render."""
+"""build: validación del storyboard (los casos versionados de poc/ y errores típicos), avisos de plataforma y build sin render."""
 from __future__ import annotations
 
 import json
@@ -136,10 +136,10 @@ def test_hook_line_that_will_wrap_is_reported(tmp_path, tutorial_short):
 
 def test_highlighted_titles_get_taller_lines_for_accented_capitals(tmp_path, tutorial_short):
     # día 6: en una portada con una mayúscula acentuada en la segunda línea, la caja de la primera le tapaba la tilde
-    assert build.highlight_line_height(["AROMÁTICAS", "en una tarde"], 1.12) == 1.12      # en la primera línea no molesta
+    assert build.highlight_line_height(["AROMÁTICAS", "en una tarde"], 1.12) == 1.12       # en la primera línea no molesta
     assert build.highlight_line_height(["Velas", "AROMÁTICAS"], 1.12) == 1.34
     assert build.highlight_line_height(["Jetzt", "ÜBEN"], 1.15) == 1.37
-    assert build.highlight_line_height(["Velas", "aromáticas"], 1.15) == 1.15                 # las minúsculas caben
+    assert build.highlight_line_height(["Velas", "aromáticas"], 1.15) == 1.15               # las minúsculas caben
     sb = json.loads(json.dumps(tutorial_short)); sb["brand"] = "think28"
     hook = next(o for o in sb["overlays"] if o["type"] == "hook")
     hook.pop("text", None); hook["lines"] = ["Velas", "AROMÁTICAS"]

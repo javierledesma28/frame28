@@ -1,0 +1,26 @@
+{
+  "name": "Example Candle Co.",
+  "tagline": "Pour something cozy",
+  "site": "https://example.com",
+  "accent": "#C8553D",
+  "ink": "#1F2A2E",
+  "paper": "#FFF8F0",
+  "grey": "#6B6B6B",
+  "border": "#E5DCD3",
+  "sans": "Nunito, \"Segoe UI\", Arial, sans-serif",
+  "display_weight": 800,
+  "voice": {
+    "pillars": [
+      "cálido",
+      "cercano",
+      "claro"
+    ],
+    "max_words_per_sentence": 18,
+    "avoid": [
+      "revolucionario",
+      "mágico",
+      "el mejor del mundo"
+    ]
+  },
+  "font_link": "https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap"
+}

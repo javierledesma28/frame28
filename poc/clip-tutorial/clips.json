@@ -1,0 +1,357 @@
+{
+ "captions": "captions.json",
+ "lang": "en",
+ "target": 30.0,
+ "moments": 20,
+ "clips": [
+  {
+   "start": 8.03,
+   "end": 37.48,
+   "duration": 29.45,
+   "score": 12.46,
+   "moments": [
+    {
+     "t": 8.03,
+     "kind": "objection",
+     "text": "A lot of you asked me, what if the wax gets too hot, or the candle comes out lumpy?",
+     "match": "what if"
+    },
+    {
+     "t": 15.68,
+     "kind": "objection",
+     "text": "Honestly, I was scared of it too the first time.",
+     "match": "scared"
+    },
+    {
+     "t": 19.82,
+     "kind": "promise",
+     "text": "But with a thermometer, a steady pour and a little patience, it's one of the most beginner friendly crafts out there.",
+     "match": "beginner"
+    },
+    {
+     "t": 28.08,
+     "kind": "product",
+     "text": "Everything we need today comes in the Pour Kit.",
+     "match": "Pour Kit"
+    }
+   ],
+   "phrases": [
+    "A lot of you asked me, what if the wax gets too hot, or the candle comes out lumpy?",
+    "Honestly, I was scared of it too the first time.",
+    "But with a thermometer, a steady pour and a little patience, it's one of the most beginner friendly crafts out there.",
+    "Everything we need today comes in the Pour Kit.",
+    "Soy wax flakes, cotton wicks, a pouring pitcher, a thermometer and four fragrance oils."
+   ],
+   "id": "s1",
+   "hooks": [
+    {
+     "type": "objection",
+     "lines": [
+      "What if the wax",
+      "gets too hot?"
+     ],
+     "quote": "A lot of you asked me, what if the wax gets too hot, or the candle comes out lumpy?",
+     "t": 8.03
+    },
+    {
+     "type": "promise",
+     "lines": [
+      "Of the most beginner",
+      "friendly crafts out there"
+     ],
+     "quote": "But with a thermometer, a steady pour and a little patience, it's one of the most beginner friendly crafts out there.",
+     "t": 19.82
+    },
+    {
+     "type": "statement",
+     "lines": [
+      "A lot of you",
+      "asked me, what if?"
+     ],
+     "quote": "A lot of you asked me, what if the wax gets too hot, or the candle comes out lumpy?",
+     "t": 8.03
+    }
+   ]
+  },
+  {
+   "start": 63.45,
+   "end": 103.61,
+   "duration": 40.16,
+   "score": 11.32,
+   "moments": [
+    {
+     "t": 63.45,
+     "kind": "number",
+     "text": "Stir gently until everything is clear and the thermometer reads 85 degrees.",
+     "match": "85"
+    },
+    {
+     "t": 75.84,
+     "kind": "number",
+     "text": "Now take the pitcher off the heat and add the fragrance oil, about 10% of the wax weight.",
+     "match": "10%"
+    },
+    {
+     "t": 88.72,
+     "kind": "number",
+     "text": "Let it cool down to 60 degrees and pour in one steady stream.",
+     "match": "60"
+    },
+    {
+     "t": 99.9,
+     "kind": "result",
+     "text": "That's it!",
+     "match": "That's it"
+    },
+    {
+     "t": 101.13,
+     "kind": "result",
+     "text": "Look at that smooth, creamy top.",
+     "match": "Look at that"
+    }
+   ],
+   "phrases": [
+    "Stir gently until everything is clear and the thermometer reads 85 degrees.",
+    "While it melts, stick a wick to the bottom of the jar and center it with the wooden clip.",
+    "Now take the pitcher off the heat and add the fragrance oil, about 10% of the wax weight.",
+    "Stir slowly for two full minutes, so the scent really binds with the wax.",
+    "Let it cool down to 60 degrees and pour in one steady stream.",
+    "Leave about a centimeter at the top and let it set for four hours.",
+    "That's it!",
+    "Look at that smooth, creamy top."
+   ],
+   "id": "s2",
+   "hooks": [
+    {
+     "type": "result",
+     "lines": [
+      "That's it"
+     ],
+     "quote": "That's it!",
+     "t": 99.9
+    },
+    {
+     "type": "number",
+     "lines": [
+      "Is clear and the",
+      "thermometer reads 85"
+     ],
+     "quote": "Stir gently until everything is clear and the thermometer reads 85 degrees.",
+     "t": 63.45
+    },
+    {
+     "type": "statement",
+     "lines": [
+      "Stir gently until",
+      "everything is clear"
+     ],
+     "quote": "Stir gently until everything is clear and the thermometer reads 85 degrees.",
+     "t": 63.45
+    }
+   ]
+  },
+  {
+   "start": 101.13,
+   "end": 145.43,
+   "duration": 44.3,
+   "score": 16.55,
+   "moments": [
+    {
+     "t": 101.13,
+     "kind": "result",
+     "text": "Look at that smooth, creamy top.",
+     "match": "Look at that"
+    },
+    {
+     "t": 103.93,
+     "kind": "promise",
+     "text": "Simple, right? And the whole room already smells like vanilla.",
+     "match": "Simple"
+    },
+    {
+     "t": 121.81,
+     "kind": "number",
+     "text": "Pour the first layer, then wait about 30 minutes until the surface is firm but still warm.",
+     "match": "30"
+    },
+    {
+     "t": 128.49,
+     "kind": "objection",
+     "text": "If the timing feels too hard, just touch the surface: it should feel like soft butter.",
+     "match": "too hard"
+    },
+    {
+     "t": 141.49,
+     "kind": "result",
+     "text": "The line between the two colors turned out perfectly straight.",
+     "match": "turned out"
+    }
+   ],
+   "phrases": [
+    "Look at that smooth, creamy top.",
+    "Simple, right? And the whole room already smells like vanilla.",
+    "Next, let's make something you can give away.",
+    "A two-tone candle, poured in layers.",
+    "I'm adding a few chips of terracotta dye to the bottom layer and leaving the top one natural.",
+    "Pour the first layer, then wait about 30 minutes until the surface is firm but still warm.",
+    "If the timing feels too hard, just touch the surface: it should feel like soft butter.",
+    "Now the natural layer goes on top, nice and slow, over the back of a spoon.",
+    "The line between the two colors turned out perfectly straight."
+   ],
+   "id": "s3",
+   "hooks": [
+    {
+     "type": "objection",
+     "lines": [
+      "If the timing",
+      "feels too hard?"
+     ],
+     "quote": "If the timing feels too hard, just touch the surface: it should feel like soft butter.",
+     "t": 128.49
+    },
+    {
+     "type": "result",
+     "lines": [
+      "Look at that smooth"
+     ],
+     "quote": "Look at that smooth, creamy top.",
+     "t": 101.13
+    },
+    {
+     "type": "promise",
+     "lines": [
+      "Simple"
+     ],
+     "quote": "Simple, right? And the whole room already smells like vanilla.",
+     "t": 103.93
+    }
+   ]
+  },
+  {
+   "start": 145.63,
+   "end": 172.79,
+   "duration": 27.16,
+   "score": -0.19,
+   "moments": [],
+   "phrases": [
+    "A ribbon and a handwritten tag, and it's ready to wrap.",
+    "For the last idea, let's give an old teacup a second life.",
+    "This one was hiding in the back of my cupboard with a chip on the rim.",
+    "Same wax, same wick, just a smaller pour.",
+    "Here, a few bumps on top are part of the charm.",
+    "Mismatched cups make the best candles anyway."
+   ],
+   "id": "s4",
+   "hooks": [
+    {
+     "type": "statement",
+     "lines": [
+      "Mismatched cups make",
+      "the best candles anyway"
+     ],
+     "quote": "Mismatched cups make the best candles anyway.",
+     "t": 145.63
+    },
+    {
+     "type": "curiosity",
+     "lines": [
+      "Can you actually do this",
+      "with your own hands?"
+     ],
+     "quote": "",
+     "t": 145.63
+    }
+   ]
+  },
+  {
+   "start": 172.99,
+   "end": 211.08,
+   "duration": 38.09,
+   "score": 17.46,
+   "moments": [
+    {
+     "t": 172.99,
+     "kind": "number",
+     "text": "Once all three are set, let them cure for 48 hours before you light them.",
+     "match": "48"
+    },
+    {
+     "t": 179.06,
+     "kind": "result",
+     "text": "Trim each wick to about six millimeters, and now it lights up.",
+     "match": "lights up"
+    },
+    {
+     "t": 184.16,
+     "kind": "result",
+     "text": "And here they are, our three finished candles.",
+     "match": "finished"
+    },
+    {
+     "t": 187.57,
+     "kind": "promise",
+     "text": "Anyone can make these in one evening with the Pour Kit.",
+     "match": "Anyone can"
+    },
+    {
+     "t": 187.57,
+     "kind": "product",
+     "text": "Anyone can make these in one evening with the Pour Kit.",
+     "match": "Pour Kit"
+    },
+    {
+     "t": 199.97,
+     "kind": "objection",
+     "text": "So, still afraid of hot wax?",
+     "match": "afraid"
+    },
+    {
+     "t": 207.51,
+     "kind": "promise",
+     "text": "And subscribe to keep your next weekend project easy.",
+     "match": "easy"
+    }
+   ],
+   "phrases": [
+    "Once all three are set, let them cure for 48 hours before you light them.",
+    "Trim each wick to about six millimeters, and now it lights up.",
+    "And here they are, our three finished candles.",
+    "Anyone can make these in one evening with the Pour Kit.",
+    "And the same method works for almost any container.",
+    "Tins, teacups, coconut shells, even an old sugar bowl.",
+    "So, still afraid of hot wax?",
+    "Tell us in the comments which scent we should try next.",
+    "And subscribe to keep your next weekend project easy."
+   ],
+   "id": "s5",
+   "hooks": [
+    {
+     "type": "objection",
+     "lines": [
+      "Still afraid of hot wax?",
+      "Not anymore."
+     ],
+     "quote": "So, still afraid of hot wax?",
+     "t": 199.97
+    },
+    {
+     "type": "result",
+     "lines": [
+      "It lights up"
+     ],
+     "quote": "Trim each wick to about six millimeters, and now it lights up.",
+     "t": 179.06
+    },
+    {
+     "type": "promise",
+     "lines": [
+      "Anyone can make",
+      "these in one evening"
+     ],
+     "quote": "Anyone can make these in one evening with the Pour Kit.",
+     "t": 187.57
+    }
+   ]
+  }
+ ]
+}
