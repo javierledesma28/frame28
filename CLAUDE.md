@@ -61,7 +61,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   `enable_cuda_dlls`, `onnx_providers`), NVENC (`nvenc_ready`, `encoder_args`), `npx_cmd`
     media.py                      probe, prep (30 fps sin audio + voz limpia), sheet, frame_at, cut
     fetch.py                      trae un vídeo o su audio desde su enlace con yt-dlp (`uv tool run`, extra default; F28-358):
-                                  enlace sin hosts locales ni privados, puerta de derechos (`--rights own|licensed`, nunca por
+                                  enlace y medios sin hosts locales ni privados, yt-dlp sin la configuración ni los plugins
+                                  del usuario, puerta de derechos (`--rights own|licensed`, nunca por
                                   defecto; respuesta y versión del aviso en source.json y en `.frame28/fetch.json`), selector
                                   de vídeos de una página, topes 3 h / 2 GB, caché por fuente, modo y tramo, subtítulos,
                                   errores traducidos y un reintento con la nightly; lo que falte preguntar sale con código 3

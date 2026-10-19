@@ -209,6 +209,18 @@ def test_ytdlp_channel_from_environment(monkeypatch):
     assert y.channel == "nightly" and "--prerelease" in y.base()
 
 
+def test_ytdlp_ignores_the_users_config_and_plugins(monkeypatch):
+    """Una cookie, un proxy o un proveedor de PO Token de la configuración o de los plugins del usuario se usarían sin que
+    nadie lo supiera (Seguridad, F28-358)."""
+    monkeypatch.setattr(F, "find_tool", lambda *a: None)
+    monkeypatch.setattr("frame28.env.ffmpeg", lambda: "/opt/ffmpeg/bin/ffmpeg")
+    seen = []
+    monkeypatch.setattr(F, "run", lambda cmd, **k: seen.append(cmd) or subprocess.CompletedProcess(cmd, 0, "{}", ""))
+    F.YtDlp(channel="stable").call(["-J", YT])
+    assert "--ignore-config" in seen[0] and "--no-plugin-dirs" in seen[0]
+    assert seen[0].index("--ignore-config") < seen[0].index("-J")
+
+
 # ---------- piezas ----------
 
 def test_parsers():
@@ -432,6 +444,62 @@ def test_drm_stops_without_looking_for_another_way(tmp_path):
         run_fetch(y, tmp_path, rights="own")
     assert e.value.kind == "drm" and "DRM" in str(e.value) and y.downloads == []
     assert len(y.calls) == 1
+
+
+# ---------- lo que se baja también pasa el filtro ----------
+
+@pytest.mark.parametrize("where", ["url", "requested", "manifest"])
+@pytest.mark.parametrize("bad", ["http://192.168.1.20/v.mp4", "http://localhost:8080/v.mp4", "http://[::1]/v.m3u8",
+                                 "rtmp://cdn.example.org/live/v", "file:///C:/Users/x/v.mp4"])
+def test_media_urls_pointing_inside_are_refused(tmp_path, where, bad):
+    info = video(url="https://cdn.example.org/v.mp4")
+    if where == "url":
+        info["url"] = bad
+    elif where == "requested":
+        info["requested_formats"] = [{"url": "https://cdn.example.org/v.mp4", "filesize": 1}, {"url": bad, "filesize": 1}]
+    else:
+        info["requested_formats"] = [{"url": "https://cdn.example.org/v.mp4", "manifest_url": bad, "filesize": 1}]
+    y = FakeYtDlp({YT: info})
+    with pytest.raises(F.FetchError) as e:
+        run_fetch(y, tmp_path, rights="own")
+    assert e.value.kind == "url" and "no se descarga" in str(e.value) and y.downloads == []
+
+
+def test_media_check_runs_before_asking_for_rights_and_for_info(tmp_path):
+    y = FakeYtDlp({YT: video(url="http://10.0.0.7/v.mp4")})
+    for kw in ({}, {"info_only": True}):
+        with pytest.raises(F.FetchError):
+            run_fetch(y, tmp_path, **kw)
+
+
+def test_subtitle_urls_are_checked_only_with_subs(tmp_path):
+    info = video(url="https://cdn.example.org/v.mp4",
+                 subtitles={"en": [{"ext": "vtt", "url": "http://192.168.0.9/en.vtt"}]})
+    assert run_fetch(FakeYtDlp({YT: info}), tmp_path, rights="own")["downloaded"] is True
+    with pytest.raises(F.FetchError) as e:
+        run_fetch(FakeYtDlp({YT: info}), tmp_path, out=tmp_path / "b.mp4", subs="en")
+    assert e.value.kind == "url"
+
+
+def test_media_urls_one_per_server():
+    info = {"url": "https://a.example/1", "manifest_url": "https://a.example/m.m3u8",
+            "requested_formats": [{"url": "https://b.example/v"}, {"url": "https://B.example/a"}],
+            "automatic_captions": {lang: [{"url": f"https://c.example/{lang}"}] for lang in ("en", "es", "fr")}}
+    assert F.media_urls(info) == ["https://a.example/1", "https://b.example/v"]
+    assert F.media_urls(info, subs=True)[-1] == "https://c.example/en"
+    assert len(F.media_urls(info, subs=True)) == 3
+    assert F.media_urls({}) == []
+
+
+def test_unresolvable_media_host_is_a_network_error(tmp_path):
+    def only_page(host, port):
+        if host == "cdn.example.org":
+            raise socket.gaierror(11001, "getaddrinfo failed")
+        return public(host, port)
+    y = FakeYtDlp({YT: video(url="https://cdn.example.org/v.mp4")})
+    with pytest.raises(F.FetchError) as e:
+        F.fetch(YT, tmp_path / "input.mp4", rights="own", ytdlp=y, resolve=only_page)
+    assert e.value.kind == "network"
 
 
 # ---------- topes ----------

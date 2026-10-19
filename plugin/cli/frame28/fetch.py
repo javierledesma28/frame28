@@ -2,7 +2,11 @@
 
 Orden de cada descarga, y por qué:
 1. Enlace válido: solo http(s), sin usuario ni contraseña y sin hosts locales o privados (SSRF en el PC del cliente).
-2. Metadatos con `-J`, sin descargar: título, duración, subtítulos, capítulos y el tamaño de los formatos elegidos.
+2. Metadatos con `-J`, sin descargar: título, duración, subtítulos, capítulos y el tamaño de los formatos elegidos. Las URL
+   de lo que se va a bajar pasan el mismo filtro que el enlace: una página pública puede servir el vídeo desde 192.168.x.
+   yt-dlp corre sin la configuración ni los plugins del usuario (`--ignore-config --no-plugin-dirs`): una cookie, un
+   proxy o un proveedor de PO Token de ahí se usarían sin que nadie lo supiera. Residual (Seguridad, F28-358): las
+   redirecciones y el rebinding de DNS dentro de yt-dlp no se pueden cerrar desde aquí.
 3. Una página con varios vídeos (extractor genérico) no se baja a ciegas: se listan y se pregunta cuál (`--pick`). La prueba
    de Research bajó 108 MB de una página del NASA SVS sin saber qué vídeo era. Listas y canales no se bajan.
 4. DRM: se para y no busca otra vía.
@@ -119,6 +123,40 @@ def check_url(url: str, resolve=socket.getaddrinfo) -> str:
     return url
 
 
+def media_urls(info: dict, subs: bool = False) -> list[str]:
+    """Las URL de lo que yt-dlp va a bajar, una por servidor: el formato elegido (o los dos que se juntan), sus manifiestos
+    y, con --subs, los subtítulos."""
+    urls: list = []
+    for f in [info, *(info.get("requested_formats") or [])]:
+        urls += [f.get("url"), f.get("manifest_url")]
+    if subs:
+        for group in ("subtitles", "automatic_captions"):
+            for tracks in (info.get(group) or {}).values():
+                urls += [t.get("url") for t in tracks or [] if isinstance(t, dict)]
+    seen, out = set(), []
+    for u in urls:
+        if not isinstance(u, str) or not u:
+            continue
+        p = urllib.parse.urlsplit(u.strip())
+        if (p.scheme.lower(), p.netloc.lower()) not in seen:
+            seen.add((p.scheme.lower(), p.netloc.lower()))
+            out.append(u)
+    return out
+
+
+def check_media(info: dict, resolve=socket.getaddrinfo, subs: bool = False) -> None:
+    """FetchError si algo de lo que se va a bajar apunta a un equipo local o privado, o no va por http(s)."""
+    for u in media_urls(info, subs):
+        try:
+            check_url(u, resolve)
+        except FetchError as e:
+            if e.kind == "network":
+                raise
+            host = urllib.parse.urlsplit(u.strip()).hostname or u.split(":")[0][:20]
+            raise FetchError(f"La página es pública, pero el vídeo que trae se sirve desde {host}, un equipo local o de una "
+                             "red privada, o por un protocolo que Frame28 no usa: no se descarga.", "url") from e
+
+
 # ---------- yt-dlp ----------
 
 def _date_version(v: str) -> tuple[int, ...]:
@@ -212,8 +250,8 @@ class YtDlp:
         self.uv = find_tool("uv") or "uv"
         node = find_tool("node")
         node_ver = run([node, "--version"]).stdout.strip() if node else ""
-        self.common = (["--no-progress", "--ffmpeg-location", str(Path(ffmpeg()).parent)]
-                       + js_runtime_args(find_tool("deno"), node, node_ver))
+        self.common = (["--ignore-config", "--no-plugin-dirs", "--no-progress", "--ffmpeg-location",
+                        str(Path(ffmpeg()).parent)] + js_runtime_args(find_tool("deno"), node, node_ver))
         self.retried = False
 
     def base(self) -> list[str]:
@@ -446,6 +484,7 @@ def fetch(url: str, out: str | Path | None = None, *, rights: str | None = None,
             raise FetchError("Ese elemento de la página es otra lista: pásame el enlace del vídeo concreto.", "playlist")
     if has_drm(info):
         raise FetchError(EXPLAIN[0][2], "drm")
+    check_media(info, resolve, subs=bool(subs))
     if info_only:
         return {"ok": True, "downloaded": False, "url": url, "picked": picked, "source": summary(info),
                 "notice_short": NOTICE_SHORT}
