@@ -54,7 +54,7 @@ distribución. Revisión legal pendiente.
 | Node.js | MIT |
 | uv | Apache-2.0 o MIT |
 | Git | GPL-2.0 |
-| yt-dlp (vía `uvx`, solo en `frame28 fetch`) | Unlicense |
+| yt-dlp con su extra `default` (vía `uv tool run`, en un entorno efímero; solo en `frame28 fetch`) | Unlicense; yt-dlp-ejs, Unlicense, MIT e ISC |
 
 ## Fuentes de la marca Think28 incluida
 

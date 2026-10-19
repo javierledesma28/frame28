@@ -67,16 +67,41 @@ def report_note(ctx, text, tokens, cost, minutes):
 
 @main.command()
 @click.argument("url")
-@click.option("-o", "--out", "out_mp4", default="input.mp4", show_default=True, type=click.Path())
+@click.option("-o", "--out", "out_path", default=None, type=click.Path(),
+              help="fichero de salida (por defecto input.mp4, o input.m4a con --audio)")
+@click.option("--rights", type=click.Choice(["own", "licensed"]), default=None,
+              help="la respuesta de la persona al aviso: own = es suyo (de su marca), licensed = tiene permiso del titular. "
+                   "Obligatorio en la primera descarga de cada vídeo; nunca lo elijas por ella")
+@click.option("--audio", is_flag=True, help="solo el audio (m4a)")
+@click.option("--subs", default=None, help="baja también los subtítulos del vídeo en esos idiomas (es,en o all) como .srt")
+@click.option("--section", default=None, help="solo un tramo, inicio-fin en segundos o mm:ss (1:20-2:05)")
+@click.option("--pick", type=int, default=None, help="en una página con varios vídeos, el número del que se quiere")
+@click.option("--max-duration", default="3h", show_default=True, help="tope de duración (600, 90m, 3h); subirlo confirma un vídeo más largo")
+@click.option("--max-size", default="2GB", show_default=True, help="tope de tamaño (500MB, 2GB); subirlo confirma un vídeo más grande")
 @click.option("--max-height", default=1080, show_default=True)
+@click.option("--force", is_flag=True, help="bajarlo de nuevo aunque ya esté en la caché del proyecto")
+@click.option("--info", "info_only", is_flag=True, help="solo los datos (título, duración, subtítulos, capítulos), sin descargar ni pedir derechos")
 @click.option("--json", "as_json", is_flag=True)
-def fetch(url, out_mp4, max_height, as_json):
-    """Descarga un vídeo de YouTube/Vimeo/etc. (yt-dlp; vía uvx si no está instalado) y deja <out>.source.json con título y origen.
-    Solo para material propio o autorizado."""
-    from .media import fetch_url
+@click.pass_context
+def fetch(ctx, url, out_path, rights, audio, subs, section, pick, max_duration, max_size, max_height, force, info_only, as_json):
+    """Trae un vídeo (o su audio) desde su enlace a este ordenador con yt-dlp (vía uvx si no está instalado) y deja
+    <out>.source.json con el origen y la respuesta de derechos. Solo vídeos propios o con permiso de su titular.
+
+    Si falta una respuesta de la persona no descarga nada: imprime en JSON `needs` (rights: enseñar `notice` con sus tres
+    respuestas; pick: qué vídeo de la página; limit: pasa del tope) con `next`, cómo repetir la orden, y sale con código 3.
+    Un error sale en español con el siguiente paso y código 1."""
     from .env import note
-    note("  Descarga solo vídeos tuyos o que tengas derecho a usar (de tu marca o con permiso): el montaje no cambia los derechos.")
-    out(fetch_url(url, out_mp4, max_height), as_json or True)
+    from .fetch import NOTICE_SHORT, FetchError, FetchStop, fetch as _fetch
+    note("  " + NOTICE_SHORT["es"])
+    try:
+        r = _fetch(url, out_path, rights=rights, audio=audio, subs=subs, section=section, pick=pick,
+                   max_duration=max_duration, max_size=max_size, max_height=max_height, force=force, info_only=info_only)
+    except FetchStop as e:
+        out(e.payload, True)
+        ctx.exit(3)
+    except FetchError as e:
+        raise SystemExit(str(e)) from None
+    out(r, as_json or True)
 
 
 @main.command()

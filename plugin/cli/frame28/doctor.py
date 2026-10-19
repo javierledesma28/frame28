@@ -328,6 +328,11 @@ def doctor() -> list[dict]:
         f"Node.js {NODE_MIN}+ desde https://nodejs.org (HyperFrames lo necesita); o repite el instalador, que lo actualiza")
     has_npx = bool(shutil.which("npx") or shutil.which("npx.cmd"))
     add("npx", has_npx, "ok" if has_npx else "no encontrado", "viene con Node.js")
+    # yt-dlp resuelve el reto de JavaScript de YouTube con Deno (solo) o con Node 22+ (si se lo pide `fetch`, F28-358)
+    deno = shutil.which("deno")
+    ok_js = bool(deno) or (bool(node) and major >= NODE_MIN)
+    add("javascript (fetch)", ok_js, "Deno" if deno else (f"Node {ver}" if ok_js else f"sin Deno ni Node {NODE_MIN}+"),
+        f"Node.js {NODE_MIN}+ desde https://nodejs.org (o Deno): sin él, `frame28 fetch` no baja de YouTube", optional=True)
     add("hyperframes", True, f"{HYPERFRAMES_VERSION} pineado (npx lo descarga la primera vez que se use)")
     for mod, fix in [("faster_whisper", "uv pip install faster-whisper"), ("onnxruntime", "uv pip install onnxruntime"), ("cv2", "uv pip install opencv-python-headless")]:
         try:

@@ -14,7 +14,7 @@ import pytest
 from packaging.requirements import Requirement
 
 from frame28 import doctor as D
-from frame28 import env, media
+from frame28 import env
 
 CLI = Path(__file__).resolve().parents[1]
 REPO = CLI.parents[1]
@@ -212,9 +212,14 @@ def test_la_release_nueva_se_instala_con_el_instalador():
 # ---------- yt-dlp ----------
 
 def test_ytdlp_del_path_solo_si_no_es_anterior_a_la_cota():
-    nuevo = media.ytdlp_cmd("/usr/bin/yt-dlp", "2026.10.07", "uv")
+    from frame28 import fetch
+    nuevo = fetch.ytdlp_cmd("/usr/bin/yt-dlp", "2026.10.07", "uv")
     assert nuevo == ["/usr/bin/yt-dlp"]
-    assert media.ytdlp_cmd("/usr/bin/yt-dlp", media.YTDLP_MIN, "uv") == ["/usr/bin/yt-dlp"]
+    assert fetch.ytdlp_cmd("/usr/bin/yt-dlp", fetch.YTDLP_MIN, "uv") == ["/usr/bin/yt-dlp"]
     for path, ver in (("/usr/bin/yt-dlp", "2024.12.23"), ("/usr/bin/yt-dlp", "2026.8.1"), (None, None), ("/x/yt-dlp", "")):
-        cmd = media.ytdlp_cmd(path, ver, "uv")
-        assert cmd[:2] == ["uv", "tool"] and f"yt-dlp>={media.YTDLP_MIN}" in cmd and cmd[-1] == "yt-dlp", (path, ver)
+        cmd = fetch.ytdlp_cmd(path, ver, "uv")
+        assert cmd[:2] == ["uv", "tool"] and f"yt-dlp[default]>={fetch.YTDLP_MIN}" in cmd and cmd[-1] == "yt-dlp", (path, ver)
+        assert "--prerelease" not in cmd
+    # la nightly siempre por uv, con prerreleases, aunque el del PATH sea nuevo
+    nightly = fetch.ytdlp_cmd("/usr/bin/yt-dlp", "2026.10.07", "uv", channel="nightly")
+    assert nightly[:2] == ["uv", "tool"] and nightly[nightly.index("--prerelease") + 1] == "allow"

@@ -59,7 +59,12 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
     __init__.py                   __version__ (única fuente de la versión del CLI; pyproject la lee con hatch), HYPERFRAMES_VERSION, GSAP_VERSION
     env.py                        localiza ffmpeg/uv/npx (WinGet), caché ~/.cache/frame28, modelos; CUDA (`cuda_ready`,
                                   `enable_cuda_dlls`, `onnx_providers`), NVENC (`nvenc_ready`, `encoder_args`), `npx_cmd`
-    media.py                      probe, prep (30 fps sin audio + voz limpia), sheet, frame_at, cut, fetch_url (yt-dlp vía uvx)
+    media.py                      probe, prep (30 fps sin audio + voz limpia), sheet, frame_at, cut
+    fetch.py                      trae un vídeo o su audio desde su enlace con yt-dlp (`uv tool run`, extra default; F28-358):
+                                  enlace sin hosts locales ni privados, puerta de derechos (`--rights own|licensed`, nunca por
+                                  defecto; respuesta y versión del aviso en source.json y en `.frame28/fetch.json`), selector
+                                  de vídeos de una página, topes 3 h / 2 GB, caché por fuente, modo y tramo, subtítulos,
+                                  errores traducidos y un reintento con la nightly; lo que falte preguntar sale con código 3
     transcribe.py                 faster-whisper (`--device auto`: GPU NVIDIA si cuBLAS/cuDNN están, si no CPU; si la GPU falla
                                   a mitad repite en CPU) → words.json, captions.json (por frase), words.srt (LF), transcript.json
     cut.py                        jump cuts: silencios (también dentro de palabras estiradas), muletillas, falsos arranques; apply remapea
@@ -136,7 +141,9 @@ del pyproject: `python scripts/fijar-dependencias.py --escribir` (rehace el extr
 
 Pipeline manual (lo que hace la skill directora):
 ```bash
-frame28 fetch <url> -o input.mp4           # opcional: YouTube/Vimeo con yt-dlp (uvx, sin instalar)
+frame28 fetch <url> --rights own           # opcional: trae el vídeo de su enlace; sin --rights no descarga: sale con código 3 y
+                                           # JSON `needs` (rights: el aviso y sus respuestas; pick: qué vídeo; limit: pasa del tope)
+                                           # --audio, --subs es, --section 1:20-2:05, --info (solo datos), --force
 frame28 prep input.mp4 -o work             # clip 30 fps sin audio, voz limpia a -14 LUFS (+voice_raw.wav), audio16k.wav; NVENC si hay GPU (--cpu lo evita)
 frame28 transcribe work/audio16k.wav -o work --lang es   # --device auto (GPU si `doctor` la da por lista, si no CPU); --script nombres.txt sesga nombres propios
 frame28 cut plan work/words.json --audio work/voice.wav -o work/cuts.json && frame28 cut apply work/clip.mp4 work/cuts.json --audio work/voice.wav --words work/words.json --captions work/captions.json -o work/cut
@@ -204,11 +211,13 @@ etiquetar. La versión vive en **cuatro sitios**: `__version__` en `plugin/cli/f
 roadmap»). Cada release los sube todos: `claude plugin update` solo actúa si cambió la versión del plugin.
 
 1. En el worktree, rebase sobre `origin/main`; versión en los cuatro sitios; en el roadmap, la versión pasa a `"pub"` con
-   `here: true` (quitárselo a la anterior), su parada de la cabecera a `done here` y el contador de releases.
+   `here: true` (quitárselo a la anterior), su parada de la cabecera a `done here` y el contador de releases. `YTDLP_MIN`
+   (`plugin/cli/frame28/fetch.py`) sube a la última estable de yt-dlp, probada con `frame28 fetch` y un vídeo de dominio
+   público.
 2. Pruebas dos veces (normal y con `FRAME28_FFMPEG=/no/existe`), `claude plugin validate ./plugin` y `claude plugin validate .`.
 3. Avance rápido de `main` en la carpeta principal y, **desde ella**, `python -X utf8 scripts/release-check.py --notes`:
-   versiones, árbol, rama, tags, cuenta de `gh`, release, CLI, plugin, pruebas, extra `probado`, rama `release` y
-   confidencialidad. Desde un worktree no hay `_private/` y la fila de confidencialidad se salta.
+   versiones, árbol, rama, tags, cuenta de `gh`, release, CLI, plugin, pruebas, extra `probado`, cota de yt-dlp, rama
+   `release` y confidencialidad. Desde un worktree no hay `_private/` y la fila de confidencialidad se salta.
 4. `git tag -a vX.Y.Z -m "Frame28 vX.Y.Z"` y un solo push atómico de main, tag y rama `release` (de ella instalan el
    instalador, el plugin y `uv tool upgrade`, F28-91):
    `git push --atomic origin main vX.Y.Z 'vX.Y.Z^{}:refs/heads/release'`
@@ -288,6 +297,10 @@ instalación sin `[probado]` no recibe las versiones probadas: el instalador la 
   → `~/.config/frame28/brands/` → incluidas. `frame28 brand from-site <url>` la propone desde la web del cliente.
 - La traducción a otro idioma la hace el agente (sin API ni modelo local); el CLI solo extrae, aplica y retiming.
 - B-roll solo de Pexels/Pixabay (licencia comercial sin atribución) o material del usuario; licencia en sidecar.
+- **`fetch` descarga solo en el PC de quien monta, nunca en el servidor** (A-312, F28-358): sin cookies ni sesión del
+  usuario, sin proveedor de PO Token, con DRM se para y no busca otra vía, y listas o canales no se bajan. El aviso de
+  derechos es de Seguridad (`NOTICE`, versionado con `NOTICE_VERSION`): cambiar el texto es cambiar la versión, y las
+  respuestas guardadas con otra dejan de valer.
 - Instalación para no técnicos: `irm https://frame28.t28.io/install.ps1 | iex` / `curl -fsSL .../install.sh | bash`,
   o «Instala Frame28 siguiendo https://frame28.t28.io/instalar.md» pegado en Claude Code.
 - El roadmap público vive en `docs/roadmap/index.html` con sus datos inline; no hay otra copia de los estados.

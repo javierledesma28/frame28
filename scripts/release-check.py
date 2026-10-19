@@ -13,6 +13,8 @@ seguía en las notas de una release y en una carpeta sin ignorar. Los términos 
 (no versionado): uno por línea, texto o expresión regular, sin distinguir mayúsculas; `#` comenta.
 Las filas de `release` y de las versiones exactas nacen de F28-91: el instalador, el plugin y `uv tool upgrade` instalan
 de la rama `release`, que cada release adelanta a su tag, con las versiones con las que pasaron las pruebas.
+La de la cota de yt-dlp nace de F28-358: `frame28 fetch` usa yt-dlp >= YTDLP_MIN y cada release la sube a la última
+estable, porque las plataformas cambian y un yt-dlp viejo falla con errores que no dicen que es viejo.
 """
 from __future__ import annotations
 
@@ -150,6 +152,34 @@ def confidential_hits(rx: re.Pattern) -> tuple[dict[str, list[str]], list[str]]:
     return find_hits(rx, files, log, tags, releases), skipped
 
 
+def date_version(v: str | None) -> tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", v or "")[:4])
+
+
+def ytdlp_floor(fetch_py: str, latest: str | None) -> tuple[bool | None, str]:
+    """(¿al día?, detalle) de YTDLP_MIN en fetch.py frente a la última estable de PyPI; None si no se pudo consultar."""
+    m = re.search(r'^YTDLP_MIN = "([^"]+)"', fetch_py, re.M)
+    if not m:
+        return False, "no encuentro YTDLP_MIN en plugin/cli/frame28/fetch.py"
+    cur = m.group(1)
+    if not latest:
+        return None, f"{cur}; no se pudo consultar PyPI"
+    if date_version(cur) >= date_version(latest):
+        return True, f"{cur} (la última estable)"
+    return False, (f"{cur} y la última estable es {latest}: sube YTDLP_MIN en plugin/cli/frame28/fetch.py y prueba "
+                   "`frame28 fetch` con un vídeo de dominio público")
+
+
+def pypi_latest(package: str, timeout: float = 10) -> str | None:
+    """Última versión estable en PyPI (`info.version` no cuenta prerreleases); None sin red."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(f"https://pypi.org/pypi/{package}/json", timeout=timeout) as r:
+            return json.load(r)["info"]["version"]
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def main() -> int:
     notes = "--notes" in sys.argv
     rows: list[tuple[bool, bool, str, str]] = []  # (ok, blocking, name, detail)
@@ -202,6 +232,8 @@ def main() -> int:
     add(code == 0 and "passed" in val.lower(), "claude plugin validate", "ok" if code == 0 else val.splitlines()[-1][:80])
     code, pins = sh(sys.executable, str(ROOT / "scripts" / "fijar-dependencias.py"))
     add(code == 0, "versiones exactas (extra probado)", (pins.splitlines() or ["sin salida"])[-1][:100])
+    ok, detail = ytdlp_floor((ROOT / "plugin/cli/frame28/fetch.py").read_text(encoding="utf-8"), pypi_latest("yt-dlp"))
+    add(bool(ok), "cota de yt-dlp (fetch)", detail, blocking=ok is not None)
     # con las versiones exactas que reciben los clientes; el pyproject ya lleva -q en addopts (otro -q quitaría "N passed")
     code, tests = sh("uv", "run", "--extra", "probado", "--group", "dev", "pytest", "--no-header", "-p", "no:cacheprovider",
                      cwd=ROOT / "plugin/cli")

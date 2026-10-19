@@ -55,6 +55,22 @@ def test_find_hits_clean(rc, tmp_path):
     assert rc.find_hits(rc.load_patterns(p), {"a.md": "Cliente A"}, "@@commit abc\nlimpio\n", {"v1": "ok"}, {"v1": "ok"}) == {}
 
 
+def test_ytdlp_floor(rc):
+    src = 'x = 1\nYTDLP_MIN = "2026.8.19"\n'
+    assert rc.ytdlp_floor(src, "2026.8.19")[0] is True
+    assert rc.ytdlp_floor(src, "2026.07.01")[0] is True        # PyPI por detrás (caché): no bloquea
+    ok, detail = rc.ytdlp_floor(src, "2026.10.7")
+    assert ok is False and "2026.10.7" in detail and "YTDLP_MIN" in detail
+    assert rc.ytdlp_floor(src, None)[0] is None                 # sin red: aviso, no bloqueo
+    assert rc.ytdlp_floor("sin cota", "2026.10.7")[0] is False
+
+
+def test_ytdlp_floor_reads_the_real_module(rc, repo):
+    src = (repo / "plugin/cli/frame28/fetch.py").read_text(encoding="utf-8")
+    from frame28 import fetch
+    assert rc.ytdlp_floor(src, fetch.YTDLP_MIN) == (True, f"{fetch.YTDLP_MIN} (la última estable)")
+
+
 def test_json_stream_concatenated_pages(rc):
     assert rc._json_stream('[{"a": 1}]\n[{"a": 2}]') == [{"a": 1}, {"a": 2}]
     assert rc._json_stream('{"description": "x"}') == [{"description": "x"}]
