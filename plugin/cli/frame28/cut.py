@@ -226,25 +226,31 @@ def remap_storyboard(sb: dict, keep: list[dict]) -> tuple[dict, list[str]]:
         # la máscara alfa se compara con los cortes en tiempos ORIGINALES (antes de remapear el overlay)
         m0, m1 = o.get("matte_start", o.get("start")), o.get("matte_end", o.get("end"))
         for k in ("start", "end", "at", "matte_start", "matte_end"):
+            if k in o and not isinstance(o[k], (int, float)):
+                continue   # ancla a la voz ("word:…", F28-339): se resuelve después contra el words.json ya cortado
             if k in o and o[k] <= old_src + 0.01:
                 o[k] = f(o[k])
             elif k in o:  # tarjetas de cierre más allá del clip: desplazar en bloque
                 o[k] = round(o[k] - (old_src - new_total), 3)
-        if o.get("type") == "behind" and m0 is not None and m1 is not None:
+        if o.get("type") == "behind" and isinstance(m0, (int, float)) and isinstance(m1, (int, float)):
             gaps = [r for r in sb.get("_removed", []) if r["start"] < m1 and r["end"] > m0]
             if gaps:
                 warnings.append(f"overlay {o['id']} (behind): un corte cae dentro de su máscara alfa; regenera la máscara con `frame28 matte` sobre el clip cortado")
+        if isinstance(o.get("words_at"), list):
+            o["words_at"] = [f(x) if isinstance(x, (int, float)) else x for x in o["words_at"]]
+        if isinstance(o.get("kicker"), dict) and isinstance(o["kicker"].get("at"), (int, float)):
+            o["kicker"]["at"] = f(o["kicker"]["at"])
         for line in o.get("lines", []) or []:
             for w in line:
-                if "at" in w:
+                if isinstance(w.get("at"), (int, float)):
                     w["at"] = f(w["at"])
         for it in o.get("items", []) or []:
-            if "at" in it:
+            if isinstance(it.get("at"), (int, float)):
                 it["at"] = f(it["at"])
         for key in ("title", "subtitle"):
-            if isinstance(o.get(key), dict) and "at" in o[key]:
+            if isinstance(o.get(key), dict) and isinstance(o[key].get("at"), (int, float)):
                 o[key]["at"] = f(o[key]["at"])
-        if "end" in o and "start" in o and o["end"] <= o["start"]:
+        if isinstance(o.get("end"), (int, float)) and isinstance(o.get("start"), (int, float)) and o["end"] <= o["start"]:
             o["end"] = round(o["start"] + 0.5, 3); warnings.append(f"overlay {o['id']}: duración colapsada por un corte; ajustada a 0,5 s")
     sb.pop("_removed", None)
     return sb, warnings

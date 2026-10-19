@@ -140,3 +140,18 @@ def test_remap_storyboard_collapsed_overlay_gets_half_second():
     o = new["overlays"][0]
     assert o["start"] == 2.0 and o["end"] == 2.5
     assert any("colapsada" in w for w in warns)
+
+
+def test_remap_storyboard_keeps_voice_anchors_and_moves_phrase_times():
+    # F28-339: "word:…" se resuelve después contra el words.json ya cortado; los tiempos en número se mueven con el corte
+    sb = {"version": 1, "source": {"video": "c.mp4", "duration": 10.0}, "_removed": [{"start": 1.0, "end": 2.0}],
+          "overlays": [{"type": "behind", "id": "bh", "start": "word:distintos", "end": 7.5, "text": "A B", "matte": "a.webm",
+                        "words_at": [4.2, "word:componentes"], "kicker": {"text": "k", "at": 3.0}},
+                       {"type": "kinetic", "id": "k", "start": 3.0, "end": 4.0, "x": 0, "y": 0,
+                        "lines": [[{"text": "x", "at": "word:ver"}, {"text": "y", "at": 3.5}]]}]}
+    new, _ = cut.remap_storyboard(sb, [{"start": 0.0, "end": 1.0}, {"start": 2.0, "end": 10.0}])
+    bh, kin = new["overlays"]
+    assert bh["start"] == "word:distintos" and bh["end"] == pytest.approx(6.5)
+    assert bh["words_at"][0] == pytest.approx(3.2) and bh["words_at"][1] == "word:componentes"
+    assert bh["kicker"]["at"] == pytest.approx(2.0)
+    assert kin["lines"][0][0]["at"] == "word:ver" and kin["lines"][0][1]["at"] == pytest.approx(2.5)

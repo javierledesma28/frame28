@@ -794,7 +794,9 @@ def storyboard():
 @click.argument("path", type=click.Path(exists=True))
 def sb_validate(path):
     from .build import validate
-    errs = validate(json.loads(Path(path).read_text(encoding="utf-8-sig")))
+    from .motion import resolve_storyboard
+    sb, errs = resolve_storyboard(json.loads(Path(path).read_text(encoding="utf-8-sig")), Path(path).parent)
+    errs += validate(sb)
     if errs:
         click.echo("Storyboard inválido:\n  - " + "\n  - ".join(errs)); raise SystemExit(1)
     click.echo("Storyboard válido.")

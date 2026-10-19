@@ -84,6 +84,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   sin logo que lo avale el acento queda `accent_pending` con candidatos y `frame28 brand set` lo guarda (F28-299)
     build.py                      generador storyboard → HyperFrames (overlays, CSS, timeline GSAP, validate, platform_warnings,
                                   marca de agua `watermark` con sus avisos de lo que queda debajo); escapa todo lo que mete en el HTML (F28-84)
+    motion.py                     tokens de movimiento de la marca (`motion`: entradas, salidas, curvas, style/avoid con los nombres
+                                  de la Memoria) y anclas a la voz (`"word:x"`, `words_at: "auto"`) que build resuelve con words.json (F28-339)
     brandcheck.py                 nota de marca del storyboard antes del render (`storyboard brandcheck`): textos en pantalla
                                   contra la marca, el brief.md del montaje (Memoria + campaña) y la Memoria en JSON
     render.py                     check (separa errores/contraste/falsos positivos) y render (+ hoja de contacto que cubre el vídeo entero)

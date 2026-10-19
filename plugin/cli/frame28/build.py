@@ -14,6 +14,8 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
+from .motion import (AUTO_WINDOW_S, BEHIND_MIN_GAP_S, HOLD_MIN_S, KICKER_LEAD_S, TIME_KEYS, is_anchor, motion_errors,
+                     motion_tokens, phrase_tokens, resolve_storyboard)
 
 OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw", "broll",
                  "hook", "cta", "steps", "before_after"}
@@ -53,6 +55,15 @@ CSS = """
       .accent { color: var(--accent); }
       .behind { display: flex; align-items: center; justify-content: center; }
       .behind .w { font-weight: 700; letter-spacing: -0.05em; white-space: nowrap; text-shadow: 0 8px 40px rgba(0,0,0,.35); opacity: 0; }
+      /* behind v2 (F28-339): frase palabra a palabra con antetítulo; el bloque se centra en (x, y) y nunca se anima */
+      .bhv2 { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; white-space: nowrap; line-height: 0.92; text-align: center; text-shadow: 0 0 60px rgba(0,0,0,.35); }
+      .bhv2 .bh-l { display: block; }
+      .bhv2 .bh-w { display: inline-block; opacity: 0; }
+      .bhv2 .bh-w + .bh-w { margin-left: 0.24em; }
+      .bhv2 .bh-w .wi { display: inline-block; }
+      .bhv2 .bh-w.rise { overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+      .bhv2 .bh-k { position: relative; z-index: 1; text-transform: uppercase; line-height: 1; opacity: 0; }
+      .bhv2 .bh-k + .bh-l { margin-top: 0; }
       .conn { position: absolute; height: 3px; background: #fff; transform-origin: left center; width: 0; }
       .dot { position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 6px rgba(255,255,255,.25); transform: scale(0); }
       .card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -280,6 +291,8 @@ class Builder:
         self.brand = {**DEFAULT_BRAND, **{k: v for k, v in brand.items() if k in DEFAULT_BRAND}}
         self.brand["on_accent"] = brand.get("on_accent") or on_accent_color(self.brand["accent"], self.brand["ink"])
         self.brand_meta = brand
+        self.motion = motion_tokens(brand)       # duraciones y curvas de entradas y salidas (F28-339)
+        self.uses_fit = False                    # algún texto se ajusta al ancho en el navegador (data-fit)
         self.brand_assets: dict[str, Path] = {}  # ruta publicada -> fichero origen (logos)
         # duración total: puede superar la del clip (tarjetas de cierre sobre negro)
         self.dur = float(sb.get("duration", sb["source"]["duration"]))
@@ -406,6 +419,8 @@ class Builder:
 
     def behind(self, o: dict) -> None:
         """Texto detrás del hablante: capa 2 = texto, capa 3 = vídeo con alfa (solo en su tramo)."""
+        if is_behind_v2(o):
+            return self.behind_v2(o)
         i = o["id"]; size = o.get("size", 240)
         mode = o.get("reveal", "fade")
         self.timed(o, "", cls="clip behind", inner=f'<div class="w{" rise" if mode == "rise" else ""}" id="{i}-w" style="font-size:{size}px;"><span class="wi">{esc(o["text"])}</span></div>', z=2, track=1)
@@ -418,6 +433,103 @@ class Builder:
         else:
             self.js.append(f'tl.fromTo("#{i}-w", {{ opacity: 0, scale: 1.15 }}, {{ opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }}, {at});')
         self.fade_out(f"#{i}-w", o["end"], 0.25)
+
+    def matte_layer(self, o: dict) -> tuple[float, float]:
+        """Vídeo con alfa del hablante encima del texto (capa 3), solo en su tramo; devuelve ese tramo."""
+        i = o["id"]
+        m = self.asset(o["matte"]); ms = o.get("matte_start", o["start"]); me = o.get("matte_end", o["end"])
+        self.html.append(f'<video id="{i}-fg" class="clip cover" data-start="{ms}" data-duration="{round(me - ms, 3)}" data-track-index="2" '
+                         f'src="{m}" muted playsinline style="z-index:3"></video>')
+        return ms, me
+
+    def behind_v2(self, o: dict) -> None:
+        """Frase detrás del hablante palabra a palabra (F28-339): cada palabra entra en su `words_at` (anclado a la voz),
+        el antetítulo un poco antes, y todo sale con desenfoque lento; el antetítulo, `exit_stagger` antes. Duraciones y
+        curvas, de los tokens de movimiento de la marca. El tamaño lo ajusta el navegador al ancho pedido (`fit`)."""
+        i = o["id"]; m = self.motion
+        lines = [ln for ln in (phrase_tokens(x) for x in str(o["text"]).split("|")) if ln]
+        n = sum(len(ln) for ln in lines)
+        ats = o.get("words_at")
+        if not (isinstance(ats, list) and len(ats) == n and all(_is_num(a) for a in ats)):
+            at0 = o.get("at", o["start"]) if _is_num(o.get("at", o["start"])) else o["start"]
+            ats = [round(at0 + k * m["word_stagger"], 3) for k in range(n)]
+        enter = o.get("enter", "fade_word"); out = o.get("out", "blur")
+        od = float(o.get("out_dur", m["exit"])); ein = m["enter"]; ease_in = m["ease_in"]; ease_out = m["ease_out"]
+        fit = o.get("fit", None if "size" in o else 0.85)
+        longest = max(len(" ".join(ln)) for ln in lines)
+        cap = round(self.H * (0.42 if len(lines) == 1 else 0.3))
+        size = int(o["size"]) if "size" in o else min(cap, round(fit * self.W / (0.6 * max(longest, 1))))
+        weight = int(o.get("weight", self.brand_meta.get("display_weight", 800)))
+        tracking = self.brand_meta.get("display_tracking", "-0.02em")
+        col = o.get("color", "#fff")
+        color = {"accent": "var(--accent)", "ink": "var(--ink)", "paper": "var(--paper)"}.get(col, col)
+        x = round(float(o.get("x", 0.5)) * self.W); y = round(float(o.get("y", 0.28)) * self.H)
+        halo = "" if o.get("halo", True) else " text-shadow: none;"
+        k = o.get("kicker")
+        k = {"text": k} if isinstance(k, str) else (k if isinstance(k, dict) and k.get("text") else None)
+        kick = ""
+        if k:
+            ks = int(k.get("size", round(0.032 * self.H))); kt = float(k.get("tracking", 0.3)); kw = int(k.get("weight", 400))
+            kc = {"accent": "var(--accent)", "ink": "var(--ink)", "paper": "var(--paper)"}.get(k.get("color", ""), k.get("color", ""))
+            kick = (f'<div class="bh-k" id="{i}-k" style="font-size:{ks}px; letter-spacing:{kt}em; padding-left:{kt}em; font-weight:{kw};'
+                    + (f" color:{kc};" if kc else "") + f'">{esc(k["text"])}</div>')
+        rows, idx = [], 0
+        for ln in lines:
+            spans = []
+            for w in ln:
+                spans.append(f'<span class="bh-w{" rise" if enter == "rise" else ""}" id="{i}-w{idx}"><span class="wi">{esc(w)}</span></span>')
+                idx += 1
+            rows.append(f'<div class="bh-l">{"".join(spans)}</div>')
+        fit_attr = ""
+        if fit:
+            fit_attr = f' data-fit="{fit}" data-cap="{cap}"'; self.uses_fit = True
+        block = (f'<div class="bhv2" id="{i}-b"{fit_attr} style="left:{x}px; top:{y}px; font-size:{size}px; font-weight:{weight}; '
+                 f'letter-spacing:{tracking}; color:{color};{halo}">{kick}{"".join(rows)}</div>')
+        self.timed(o, "", cls="clip", inner=block, z=2, track=1)
+        ms, me = self.matte_layer(o)
+        # entradas: el antetítulo con un fundido y cada palabra en su instante
+        kat = None
+        if k:
+            kat = k.get("at")
+            if not _is_num(kat):
+                kat = round(max(o["start"], min(ats) - KICKER_LEAD_S), 3)
+            self.js.append(f'tl.fromTo("#{i}-k", {{ opacity: 0 }}, {{ opacity: 1, duration: {m["kicker"]}, ease: "{ease_in}" }}, {kat});')
+        sc = o.get("enter_scale")
+        for j, at in enumerate(ats):
+            sel = f"#{i}-w{j}"
+            if enter == "rise":
+                self.js.append(f'tl.set("{sel}", {{ opacity: 1 }}, {at}); tl.fromTo("{sel} .wi", {{ yPercent: 110 }}, '
+                               f'{{ yPercent: 0, duration: {ein}, ease: "{ease_in}" }}, {at});')
+            elif enter == "chars":
+                self.uses_split = True
+                self.js.append(f'{{ const sp = SplitText.create("{sel} .wi", {{ type: "chars" }}); tl.set("{sel}", {{ opacity: 1 }}, {at}); '
+                               f'tl.fromTo(sp.chars, {{ opacity: 0, yPercent: 40 }}, {{ opacity: 1, yPercent: 0, duration: {ein}, '
+                               f'stagger: {m["char_stagger"]}, ease: "{ease_in}" }}, {at}); }}')
+            else:
+                fr = f"opacity: 0, scale: {sc}" if sc else "opacity: 0"
+                to = "opacity: 1, scale: 1" if sc else "opacity: 1"
+                self.js.append(f'tl.fromTo("{sel}", {{ {fr} }}, {{ {to}, duration: {ein}, ease: "{ease_in}" }}, {at});')
+        # salida lenta: desenfoque (o fundido) de las líneas; el antetítulo, exit_stagger antes
+        bf = 'filter: "blur(0px)", ' if out == "blur" else ""
+        bt = f'filter: "blur({m["blur"]}px)", ' if out == "blur" else ""
+        t_out = round(o["end"] - od, 3)
+        self.js.append(f'tl.fromTo("#{i}-b .bh-l", {{ {bf}opacity: 1 }}, {{ {bt}opacity: 0, duration: {od}, ease: "{ease_out}", '
+                       f'immediateRender: false }}, {t_out});')
+        if k:
+            self.js.append(f'tl.fromTo("#{i}-k", {{ {bf}opacity: 1 }}, {{ {bt}opacity: 0, duration: {od}, ease: "{ease_out}", '
+                           f'immediateRender: false }}, {round(max(kat + m["kicker"], t_out - m["exit_stagger"]), 3)});')
+        # avisos: frase completa demasiado poco tiempo quieta y máscara que no cubre lo que se ve
+        last = max(ats) + ein
+        hold = round(t_out - last, 2); hm = float(o.get("hold_min", HOLD_MIN_S))
+        if hold < hm - 1e-6:
+            self.warnings.append(f"behind {i}: la frase completa se queda quieta {hold} s antes de salir (hold_min {hm}); alarga end "
+                                 f"hasta {round(last + hm + od, 2)} o acorta out_dur")
+        first = max(o["start"], min(ats + ([kat] if kat is not None else [])))
+        tol = 1 / self.fps
+        if ms > first + tol or me < o["end"] - tol:
+            self.warnings.append(f"behind {i}: la máscara del hablante ({ms}–{me} s) no cubre lo que se ve ({round(first, 2)}–{o['end']} s, "
+                                 "salida incluida): ahí el texto queda delante de la persona; regenera la máscara con `frame28 matte` "
+                                 "para ese tramo o ajusta matte_start/matte_end")
 
     def pointer(self, o: dict) -> None:
         """Callout con punto + línea que crece hasta la caja. La línea se calcula sola desde el punto a la caja."""
@@ -874,6 +986,14 @@ class Builder:
                 self.warnings.append(f"overlay {o.get('id')}: tipo desconocido '{t}', ignorado"); continue
             getattr(self, t)(o)
         self.captions(sb)
+        bh = sorted((o for o in sb.get("overlays", []) if o.get("type") == "behind"), key=lambda o: o["start"])
+        for a, b2 in zip(bh, bh[1:]):
+            if b2["start"] - a["start"] < BEHIND_MIN_GAP_S:
+                self.warnings.append(f"behind {a['id']} y {b2['id']}: {round(b2['start'] - a['start'], 1)} s entre uno y otro; el método pide "
+                                     f"uno cada ~{int(BEHIND_MIN_GAP_S)} s como mucho (pierde fuerza si se repite)")
+        if bh and "behind" in self.motion["avoid"]:
+            self.warnings.append(f"behind {', '.join(o['id'] for o in bh)}: la marca pide no usar texto detrás del hablante "
+                                 "(motion.avoid); cámbialo por un kinetic o una card")
         wm = watermark_spec(sb.get("watermark"))
         if wm:
             self.watermark(wm)
@@ -896,6 +1016,8 @@ class Builder:
         if self.uses_draw:
             reg.append("DrawSVGPlugin")
         js = (f"gsap.registerPlugin({', '.join(reg)});\n      " if reg else "") + js
+        if self.uses_fit:
+            js = FIT_JS.replace("{W}", str(self.W)) + "\n      " + js
         lang = sb.get("meta", {}).get("lang", "es")
         return f"""<!doctype html>
 <html lang="{lang}" data-resolution="{"portrait" if self.H > self.W else "landscape"}">
@@ -922,6 +1044,22 @@ class Builder:
 """
 
 
+# Ajuste al ancho (behind v2): mide un clon invisible (el original puede estar oculto fuera de su tramo) y escala la
+# fuente para que la línea más larga ocupe data-fit del lienzo, sin pasar de data-cap. Otra vez al cargar las fuentes.
+FIT_JS = ("function f28fit() { document.querySelectorAll('[data-fit]').forEach(function (el) { "
+          "var c = el.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(function (n) { n.removeAttribute('id'); }); "
+          "c.style.visibility = 'hidden'; c.style.left = '0px'; c.style.top = '0px'; document.getElementById('root').appendChild(c); "
+          "var w = 0; c.querySelectorAll('.bh-l').forEach(function (l) { w = Math.max(w, l.scrollWidth); }); c.remove(); "
+          "if (!w) return; var fs = parseFloat(el.style.fontSize); "
+          "el.style.fontSize = Math.min(parseFloat(el.dataset.cap), fs * parseFloat(el.dataset.fit) * {W} / w).toFixed(1) + 'px'; }); }\n"
+          "      f28fit(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(f28fit);")
+
+
+def is_behind_v2(o: dict) -> bool:
+    """El behind nuevo (F28-339) se activa con cualquiera de sus campos; sin ellos, el de siempre (cero regresión)."""
+    return o.get("type") == "behind" and any(k in o for k in ("words_at", "kicker", "enter", "out"))
+
+
 # ── Seguridad del HTML generado (F28-84) ─────────────────────────────────────────────────────────────────────────────
 # El storyboard lo escribe el agente a partir de transcripciones, vídeos y webs de clientes: una inyección de prompt podía
 # colar un id, un color, una ruta o un SVG que ejecutara JS en el Chrome de check/render (con red). Los textos ya se
@@ -932,11 +1070,13 @@ PATH_D_RE = re.compile(r"^[MmLlHhVvCcSsQqTtAaZz0-9eE\s,.+-]+$")
 VIEWBOX_RE = re.compile(r"^-?[\d.]+(\s+-?[\d.]+){3}$")
 LANG_RE = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
 NUM_KEYS = {"start", "end", "at", "x", "y", "w", "h", "size", "duration", "value", "stroke_width", "logo_width", "in",
-            "before_t", "after_t", "matte_start", "matte_end", "decimals", "stagger", "total", "bottom", "max_words"}
+            "before_t", "after_t", "matte_start", "matte_end", "decimals", "stagger", "total", "bottom", "max_words",
+            "fit", "out_dur", "hold_min", "weight", "tracking", "enter_scale"}
 PATH_KEYS = {"src", "matte", "before", "after"}
 BG_TOKENS = {"black", "white", "accent", "none"}
 ENUMS = {"reveal": {"fade", "rise", "chars"}, "kind": {"bar", "counter"}, "pan": {"left", "right", "up", "down"},
-         "sort": {"asc", "desc"}}
+         "sort": {"asc", "desc"}, "enter": {"fade", "fade_word", "rise", "chars"}, "out": {"blur", "fade"}}
+TRACKING_RE = re.compile(r"^-?\d*\.?\d+(em|px)$")
 SVG_BAD = re.compile(r"<\s*script|<\s*foreignObject|\bon[a-z]+\s*=|javascript\s*:|<\s*iframe|<\s*object|<\s*embed", re.I)
 CSS_BAD = re.compile(r"[<>{};]|/\*|\\")
 
@@ -963,8 +1103,10 @@ def _walk(o, path: str, errs: list[str]) -> None:
     if isinstance(o, dict):
         for k, v in o.items():
             p = f"{path}.{k}"
-            if k in NUM_KEYS and not (_is_num(v) or v is None):
-                errs.append(f"{p}: tiene que ser un número")
+            if k in NUM_KEYS and not (_is_num(v) or v is None or (k in TIME_KEYS and is_anchor(v))):
+                errs.append(f"{p}: tiene que ser un número" + (" (o un ancla a la voz: \"word:palabra\")" if k in TIME_KEYS else ""))
+            elif k == "words_at" and not (v == "auto" or (isinstance(v, list) and all(_is_num(x) or is_anchor(x) for x in v))):
+                errs.append(f"{p}: \"auto\" o una lista con un tiempo (o \"word:palabra\") por palabra")
             elif k in ("dot", "box") and isinstance(v, list) and not (len(v) == 2 and all(_is_num(x) for x in v)):
                 errs.append(f"{p}: tiene que ser [x, y] con números")
             elif k == "color" and not (isinstance(v, str) and COLOR_RE.match(v.strip())):
@@ -994,6 +1136,8 @@ def safety_errors(sb: dict) -> list[str]:
         if oid is not None and not (isinstance(oid, str) and ID_RE.match(oid)):
             errs.append(f"overlays[{n}].id: '{oid}' no vale: letra inicial y luego letras, cifras, - o _ (sin espacios)")
         _walk({k: v for k, v in o.items() if k not in ("id", "type")}, f"overlays[{n}]", errs)
+    if sb.get("words") is not None and not safe_rel_path(sb["words"]):
+        errs.append("words: ruta no permitida (el words.json de las anclas, relativo al storyboard)")
     src = sb.get("source") or {}
     for k in ("video", "audio"):
         if src.get(k) is not None and not safe_rel_path(src[k]):
@@ -1069,6 +1213,11 @@ def brand_errors(brand: dict) -> list[str]:
             errs.append(f"marca.{k}: tipografía con caracteres no permitidos (< > {{ }} ; \\)")
     if "caption_font_size" in brand and not _is_num(brand["caption_font_size"]):
         errs.append("marca.caption_font_size: tiene que ser un número")
+    if "display_weight" in brand and not (_is_num(brand["display_weight"]) and 100 <= brand["display_weight"] <= 1000):
+        errs.append("marca.display_weight: número entre 100 y 1000")
+    if "display_tracking" in brand and not (isinstance(brand["display_tracking"], str) and TRACKING_RE.match(brand["display_tracking"].strip())):
+        errs.append("marca.display_tracking: medida en em o px (-0.03em)")
+    errs += motion_errors(brand.get("motion"))
     fl = brand.get("font_link")
     if fl and not (isinstance(fl, str) and fl.startswith("https://") and not re.search(r"[\"'<>`\s\\]", fl)):
         errs.append("marca.font_link: tiene que ser una URL https:// sin comillas, espacios ni < >")
@@ -1217,7 +1366,7 @@ def validate(sb: dict) -> list[str]:
         ids.add(o.get("id"))
         if o.get("type") not in OVERLAY_TYPES:
             errs.append(f"{p}: tipo desconocido '{o.get('type')}' (válidos: {sorted(OVERLAY_TYPES)})")
-        if "start" in o and "end" in o:
+        if _is_num(o.get("start")) and _is_num(o.get("end")):
             if o["end"] <= o["start"]:
                 errs.append(f"{p}: end debe ser > start")
             if dur and o["end"] > dur + 0.01:
@@ -1232,6 +1381,8 @@ def validate(sb: dict) -> list[str]:
         for k in req:
             if k not in o:
                 errs.append(f"{p} ({t}): falta '{k}'")
+        if is_behind_v2(o):
+            errs += _behind_v2_errors(o, p)
         if t == "chart":
             if o.get("kind") == "bar" and not o.get("series"):
                 errs.append(f"{p} (chart bar): falta 'series' [{{label, value, group?}}]")
@@ -1256,6 +1407,33 @@ def validate(sb: dict) -> list[str]:
     errs += safety_errors(sb)
     if isinstance(sb.get("brand"), dict):
         errs += brand_errors(sb["brand"])
+    return errs
+
+
+def _behind_v2_errors(o: dict, p: str) -> list[str]:
+    errs = []
+    n = len(phrase_tokens(o.get("text", "")))
+    if not 1 <= n <= 4:
+        errs.append(f"{p} (behind): {n} palabras; la frase detrás del hablante lleva de 1 a 4 (una cifra y un sustantivo)")
+    wa = o.get("words_at")
+    if isinstance(wa, list) and len(wa) != n:
+        errs.append(f"{p} (behind): words_at tiene {len(wa)} tiempos y el texto {n} palabras (uno por palabra, o \"auto\")")
+    if isinstance(wa, list) and _is_num(o.get("start")) and _is_num(o.get("end")):
+        fuera = [x for x in wa if _is_num(x) and not (o["start"] - AUTO_WINDOW_S <= x < o["end"])]
+        if fuera:
+            errs.append(f"{p} (behind): words_at fuera del tramo {o['start']}–{o['end']}: {fuera}")
+    for k in ("x", "y"):
+        if _is_num(o.get(k)) and not 0 <= o[k] <= 1:
+            errs.append(f"{p} (behind): {k} es una fracción del lienzo (0–1) en la frase detrás; el centro de la frase")
+    if _is_num(o.get("fit")) and not 0.2 <= o["fit"] <= 0.98:
+        errs.append(f"{p} (behind): fit es la fracción del ancho que ocupa la frase (0.2–0.98)")
+    k = o.get("kicker")
+    if k is not None and not (isinstance(k, str) and k.strip() or isinstance(k, dict) and isinstance(k.get("text"), str) and k["text"].strip()):
+        errs.append(f"{p} (behind): kicker es un texto o {{text, at?, size?, tracking?, weight?, color?}}")
+    if isinstance(k, dict) and k.get("at") not in (None, "auto") and not (_is_num(k["at"]) or is_anchor(k["at"])):
+        errs.append(f"{p} (behind): kicker.at es un número, \"auto\" o \"word:palabra\"")
+    if _is_num(o.get("out_dur")) and _is_num(o.get("start")) and _is_num(o.get("end")) and o["out_dur"] > o["end"] - o["start"]:
+        errs.append(f"{p} (behind): out_dur {o['out_dur']} no cabe en el tramo {o['start']}–{o['end']}")
     return errs
 
 
@@ -1290,7 +1468,8 @@ def platform_warnings(sb: dict) -> list[str]:
 def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets: bool = True) -> dict:
     sb_path = Path(storyboard_path)
     sb = json.loads(sb_path.read_text(encoding="utf-8-sig"))
-    errs = validate(sb)
+    sb, errs = resolve_storyboard(sb, sb_path.parent)   # "word:…" y words_at "auto" → segundos (F28-339)
+    errs += validate(sb)
     if errs:
         raise SystemExit("Storyboard inválido:\n  - " + "\n  - ".join(errs))
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)

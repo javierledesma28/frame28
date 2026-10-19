@@ -33,6 +33,8 @@ Un storyboard es un JSON que describe **qué aparece, cuándo y dónde** sobre e
   sus coordenadas en el lienzo que corresponde al formato del clip (o el que pases con `--canvas 1080x1920`).
 - `platform` (opcional): `tiktok`, `reels`, `shorts`, `youtube` o `pdp`. En vertical, `frame28 build` avisa de overlays que caen
   bajo la interfaz del móvil (columna derecha de iconos, franja inferior, franja superior) y de subtítulos demasiado bajos.
+- `words` (opcional): ruta al `words.json` contra el que se resuelven las anclas a la voz (`"word:…"`, ver más abajo). Si
+  falta, se usa `caption_style.words` y, si tampoco está, `words.json` junto al storyboard.
 - `captions`: subtítulos por frase (de `captions.json`). Se dibujan en caja negra centrada abajo (preset `phrase`).
 - `caption_style` (opcional): subtítulos **por palabras** en vez de por frase. `{"preset": "pages" | "karaoke", "words":
   "words.json", "max_words": 4, "max_chars": 22, "size": 72, "bottom": 200, "uppercase": true, "backdrop": "auto"}`.
@@ -49,12 +51,21 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 `x`, `y` son siempre la **esquina superior izquierda** del elemento en el lienzo, no su centro (`box`, `kinetic`, `steps`,
 `draw`, `image`, `lower_third`…): para centrar un rótulo de ancho `w`, `x = (ancho del lienzo - w) / 2`.
 
+**Anclas a la voz.** En `start`, `end`, `at`, `matte_start` y `matte_end` (también en los `at` de líneas, ítems y títulos, en
+`words_at` y en `kicker.at`) puedes escribir `"word:palabra"` en vez de segundos: `build` lo resuelve con el `words.json`
+(sin mayúsculas, tildes ni puntuación). En `start`/`at` vale el inicio de la palabra menos 0,04 s (la letra ya está cuando
+suena); en `end`, su final. Varias palabras seguidas (`"word:por aquí"`) entran con la primera y, en `end`, acaban con
+la última. Si se dice más de una vez,
+manda el tramo del overlay; si sigue siendo ambigua, `build` se para y pide `"word:aquí#2"` (la segunda vez que se dice).
+Una palabra que no se dice nunca se convierte en un tiempo: el error lista las parecidas. `frame28 cut apply` deja las
+anclas como están (se resuelven contra el `words.json` ya cortado) e `i18n apply` las fija en segundos antes de traducir.
+
 | type | Campos | Qué es (técnica del análisis) |
 |---|---|---|
 | `lower_third` | `x`, `y`, `title`, `subtitle?` | Tarjeta de identidad monoespaciada que se escribe carácter a carácter (T1). La caja mide lo que mide el texto (sin recortes con logos anchos o fuentes distintas). |
 | `box` | `x`, `y`, `text`, `at?` | Frase corta en caja con esquinas de encuadre (T7). Aparece con pop. |
 | `kinetic` | `x`, `y`, `size?` (124), `color?` (CSS; para fondos claros, pone sombra clara), `lines: [[{text, at, accent?}]]` | Tipografía cinética: cada palabra entra en su `at` (T2). Una lista por línea. `accent: true` la pinta con el color de acento. |
-| `behind` | `text`, `at?`, `size?` (240), `matte`, `matte_start?`, `matte_end?` | Palabra gigante **detrás** del hablante (T3). `matte` es el WebM con alfa de `frame28 matte`; `matte_start/end` su rango en el clip (por defecto `start/end`). |
+| `behind` | `text`, `at?`, `size?` (240), `matte`, `matte_start?`, `matte_end?`; frase palabra a palabra: `words_at`, `kicker?`, `enter?`, `out?` (ver abajo) | Palabra gigante **detrás** del hablante (T3). `matte` es el WebM con alfa de `frame28 matte`; `matte_start/end` su rango en el clip (por defecto `start/end`). |
 | `pointer` | `dot: [x,y]`, `box: [x,y]`, `text`, `at?` | Callout con punto, línea que crece y caja (T6). Ponlo donde el hablante señala; la línea se calcula sola. |
 | `card` | `bg` (black/white/accent), `title: {text, at?, size?}`, `subtitle?: {text, at?, size?}` | Pizarra a pantalla completa con título (T5). Tapa al hablante. |
 | `list_focus` | `bg?`, `label?` ("New"), `size?` (96), `items: [{text, at}]` | Lista donde el foco salta de ítem en ítem al decirse cada uno (T5). |
@@ -70,6 +81,33 @@ Todos llevan `type`, `id` (único, sin espacios), `start`, `end` (segundos; el e
 | `before_after` | `before`/`after` (imágenes) o `before_t`/`after_t` (segundos del propio clip: el build extrae los fotogramas), `x?`, `y?`, `w?`, `h?`, `label_before?`, `label_after?`, `duration?`, `at?` | Antes/después con barrido de izquierda a derecha y etiquetas. El momento "sale bien". |
 | `brand_card` | `bg?` (black/accent/white), `logo?` (on_dark/on_light/on_accent/isotipo; por defecto según `bg`), `logo_width?`, `title?`, `subtitle?`, `endorsement?`, `at?` | Tarjeta de marca de apertura o cierre: logo, título, tagline y endorsement (por defecto los de la marca). |
 
+## Frase detrás del hablante (`behind` con `words_at`)
+
+Con `words_at`, `kicker`, `enter` u `out`, el `behind` pasa a ser una **frase de 1 a 4 palabras** que entra palabra a
+palabra cuando se dice y sale despacio, desenfocándose. Sin esos campos sigue siendo la palabra única de siempre.
+
+```json
+{ "type": "behind", "id": "bh", "start": 2.7, "end": 7.5, "text": "DISTINTOS|COMPONENTES", "words_at": "auto",
+  "kicker": { "text": "Vamos a ver", "at": "word:vamos" }, "x": 0.72, "y": 0.28, "fit": 0.5, "color": "ink",
+  "matte": "alpha.webm", "matte_start": 2.7, "matte_end": 7.6 }
+```
+
+- `text`: la frase; `|` parte líneas. `words_at`: `"auto"` (busca las palabras, en orden, en lo que se dice entre
+  `start - 1` y `end`) o una lista con un tiempo o un ancla por palabra. Con una cifra o una palabra que no se dice tal
+  cual («3», «IA»), `auto` se para y enseña lo que se oye: pon la lista a mano.
+- `kicker`: antetítulo pequeño encima de la frase, un texto o `{text, at?, size?, tracking?, weight?, color?}`. Su `at`
+  por defecto es medio segundo antes de la primera palabra; tamaño 3,2 % del alto, peso 400, espaciado 0,3 em.
+- `x`, `y`: **centro** de la frase en fracción del lienzo (0–1; por defecto 0.5 y 0.28). `fit` (0.2–0.98, por defecto
+  0.85): fracción del ancho que ocupa la línea más larga; el tamaño lo ajusta el navegador con la fuente real, con techo
+  del 42 % del alto en una línea y del 30 % en varias. `size` en píxeles lo fija y desactiva el ajuste.
+- `color`: `accent`, `ink`, `paper` o un color CSS (blanco por defecto). `weight` y `tracking` (por defecto los
+  `display_weight`/`display_tracking` de la marca). `halo: false` quita la sombra difusa.
+- `enter`: `fade_word` (por defecto), `rise` (sube desde detrás de una máscara) o `chars` (letras escalonadas). `out`:
+  `blur` (por defecto) o `fade`; `out_dur` en segundos (por defecto el token `exit_ms` de la marca). La salida termina
+  en `end`; el antetítulo empieza a irse `exit_stagger_ms` antes.
+- `build` avisa si la frase completa queda quieta menos de `hold_min` (1,5 s) antes de salir, si la máscara del hablante
+  no cubre lo que se ve (entrada del antetítulo y salida incluidas) y si hay dos `behind` a menos de 20 s.
+
 ## Revelado de texto (`reveal`)
 
 `kinetic`, `behind`, `card.title` y `brand_card` aceptan `"reveal"`: `"fade"` (por defecto, sube y aparece),
@@ -84,6 +122,24 @@ la propone a partir de la web (colores del CSS y del logo, fuente, logo con vari
 con certeza lo deja «a confirmar» con candidatos (`accent_pending`) y `build` se niega hasta `frame28 brand set cliente --accent "#RRGGBB"`,
 que guarda lo que elija el usuario (también `--font`, `--ink`, `--tagline`); `frame28 brand list` las enumera.
 El `lower_third` muestra el isotipo de la marca; las `card` con `bg: accent` usan su color; la `brand_card` usa logo, tagline y endorsement.
+
+Tipografía y movimiento de la marca: `display_weight` (100–1000) y `display_tracking` (`-0.035em`, `2px`) para los
+titulares; `motion` con los tokens de tiempo en milisegundos y las curvas de GSAP. Hoy los usa el `behind` con frase:
+
+| token | por defecto | qué es |
+|---|---|---|
+| `enter_ms` | `standard_ms` o 200 | entrada de cada palabra (rápida: 100–400) |
+| `exit_ms` | 1200 | salida lenta (700–1400 recomendado) |
+| `exit_blur_px` | 28 | desenfoque al final de la salida |
+| `ease_in` / `ease_out` | `power1.out` / `sine.inOut` | curvas de GSAP (`expo.out`, `back.out(1.7)`, `none`…) |
+| `exit_stagger_ms` | 300 | adelanto de la salida del antetítulo |
+| `kicker_ms` | `slow_ms` o 500 | entrada del antetítulo |
+| `word_stagger_ms`, `char_stagger_ms` | 300, 20 | escalonado si no hay `words_at` / entre letras con `chars` |
+| `style` | `editorial` | `sober`, `editorial` o `promotional`: los mismos estilos que la Memoria y la campaña (ritmo; lo lee el director) |
+| `avoid` | — | efectos que la marca no quiere (`behind`, `cards_3d`, `camera`, `transitions`, `live_photos`, `brand_open`); `build` avisa si hay un `behind` |
+
+`fast_ms`, `standard_ms` y `slow_ms` (los del brand kit) se aceptan como base. Un token desconocido, fuera de rango o una
+curva que no es de GSAP paran el `build`.
 
 ## Nota de marca (antes del render)
 
@@ -106,5 +162,8 @@ cta, steps) · 9 subtítulos · 20 marca de agua (`watermark`).
 - Un evento visual cada 2–4 s; nada de tramos de más de 8 s sin overlay.
 - Cada overlay dice **una** cosa; máximo 3–4 palabras en cajas, 2 líneas en cinéticos.
 - Overlays en el lado **libre** del encuadre (`frame28 speaker` lo devuelve); pizarras cuando el hablante no aporta.
-- `behind` solo con fondo fijo, hablante centrado y sin gestos rápidos en ese tramo.
-- Animaciones de 0,15–0,5 s; los tiempos de entrada son los de la palabra que los dispara.
+- `behind` solo con fondo fijo, hablante centrado y sin gestos rápidos en ese tramo. La frase, uno cada ~20 s como
+  mucho, en el tercio superior, con la cabeza tapando 2 letras como mucho y en un color que contraste con la pared
+  (sobre fondos claros, `ink`).
+- Entradas rápidas (0,1–0,4 s) en la palabra que las dispara, con ancla a la voz; salidas lentas (0,7–1,4 s) con
+  desenfoque o fundido.

@@ -19,7 +19,7 @@ from .captions import load_captions, load_words
 
 # campos con texto visible, por tipo de overlay (el resto: ids, tiempos, rutas, colores)
 TEXT_FIELDS = {"title", "subtitle", "text", "label", "caption", "credit", "line", "discount", "code_label",
-               "endorsement", "label_before", "label_after"}
+               "endorsement", "label_before", "label_after", "kicker"}
 LIST_FIELDS = {"lines", "items", "series"}
 LIMITS = {"box": 26, "hook": 24, "lower_third": 30, "pointer": 22, "steps": 24, "kinetic": 28, "cta": 40}
 
@@ -92,6 +92,11 @@ def apply(sb: dict, translations: dict, lang: str) -> tuple[dict, list[str]]:
                     warns.append(f"{key}: {len(val)} caracteres, orientativo {lim} para {o['type']} ('{val[:30]}…')")
         except (KeyError, IndexError, ValueError, TypeError):
             warns.append(f"{key}: no existe en el storyboard, ignorada")
+    from .motion import phrase_tokens, spread
+    for o in out.get("overlays", []):
+        wa = o.get("words_at")
+        if o.get("type") == "behind" and isinstance(wa, list) and wa and len(wa) != len(phrase_tokens(o.get("text", ""))):
+            o["words_at"] = spread(wa, len(phrase_tokens(o.get("text", ""))))   # otra cantidad de palabras: mismos instantes
     src_strings = {k: v["text"] for k, v in extract(sb)["strings"].items()}
     keep = sorted(k for k, v in tr.items() if isinstance(v, str) and k in src_strings and _norm(v) == _norm(src_strings[k]))
     meta = out.setdefault("meta", {})
@@ -182,6 +187,12 @@ def translate_project(storyboard_path: str | Path, strings_path: str | Path, lan
     """Aplica las traducciones y, con caption_style por palabras, genera words.<lang>.json junto al storyboard."""
     sbp = Path(storyboard_path); sb = json.loads(sbp.read_text(encoding="utf-8-sig"))
     tr = json.loads(Path(strings_path).read_text(encoding="utf-8-sig"))
+    # las anclas a la voz ("word:…", words_at "auto") se fijan en segundos antes de traducir: el texto traducido ya no
+    # coincide con lo que se oye y la versión usa los mismos tiempos (F28-339)
+    from .motion import resolve_storyboard
+    sb, aerrs = resolve_storyboard(sb, sbp.parent)
+    if aerrs:
+        raise SystemExit("Anclas a la voz sin resolver en el original:\n  - " + "\n  - ".join(aerrs))
     new, warns = apply(sb, tr, lang)
     out = Path(out_path) if out_path else sbp.with_name(f"{sbp.stem}.{lang}.json")
     res = {"storyboard": str(out), "lang": lang, "translated": len(tr.get("strings", tr)), "warnings": warns}

@@ -1,0 +1,19 @@
+{
+ "version": 1,
+ "meta": {"title": "Javier · behind v2 (F28-339)", "lang": "es"},
+ "canvas": {"width": 1920, "height": 1080, "fps": 30},
+ "duration": 10.0,
+ "source": {"video": "clip.mp4", "audio": "voice.wav", "duration": 10.0},
+ "brand": "think28",
+ "words": "words.json",
+ "overlays": [
+  {
+   "type": "behind", "id": "bh2", "start": 2.7, "end": 7.5,
+   "text": "DISTINTOS|COMPONENTES", "words_at": "auto",
+   "kicker": {"text": "Vamos a ver", "at": "word:vamos"},
+   "x": 0.388, "y": 0.26, "fit": 0.33, "color": "ink",
+   "enter": "fade_word", "out": "blur",
+   "matte": "alpha_2.7.webm", "matte_start": 2.7, "matte_end": 7.6
+  }
+ ]
+}

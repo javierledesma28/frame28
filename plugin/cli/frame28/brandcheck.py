@@ -135,9 +135,10 @@ def screen_texts(sb: dict) -> list[tuple[dict, str, str]]:
     for o in sb.get("overlays", []):
         t = o.get("type")
         for k in ("title", "subtitle", "text", "label", "caption", "line", "code_label", "discount", "endorsement",
-                  "label_before", "label_after", "prefix", "suffix"):
+                  "label_before", "label_after", "prefix", "suffix", "kicker"):
             v = o.get(k)
-            add(o, k, v.get("text") if isinstance(v, dict) else v)
+            v = v.get("text") if isinstance(v, dict) else v
+            add(o, k, v.replace("|", " ") if isinstance(v, str) and t == "behind" else v)
         if t in ("kinetic", "card_words"):
             for n, line in enumerate(o.get("lines", [])):
                 add(o, f"lines[{n}]", " ".join(w.get("text", "") for w in line if isinstance(w, dict)))

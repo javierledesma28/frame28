@@ -141,3 +141,26 @@ def test_leftovers_ignores_kept_names_and_numbers():
     assert "a.text" in left and "e.text" in left
     assert "b.text" not in left and "c.text" not in left and "d.text" not in left
     assert i18n.leftovers(sb) == []                                           # sin huella no hay nada que comparar
+
+
+def test_translate_project_fixes_voice_anchors_before_translating(tmp_path):
+    # F28-339: el texto traducido ya no coincide con la voz; las anclas se fijan en segundos con el words.json original
+    # y, si la traducción tiene otro número de palabras, los instantes se reparten
+    write_json(tmp_path / "words.json", [{"text": "distintos", "start": 4.26, "end": 4.58},
+                                         {"text": "componentes", "start": 4.58, "end": 5.08}])
+    sb = {"version": 1, "meta": {"lang": "es"}, "source": {"video": "c.mp4", "duration": 10.0}, "words": "words.json",
+          "overlays": [{"type": "behind", "id": "bh", "start": 3.0, "end": 7.5, "text": "DISTINTOS COMPONENTES", "words_at": "auto",
+                        "kicker": {"text": "Vamos a ver"}, "matte": "a.webm"}]}
+    sbp = write_json(tmp_path / "sb.json", sb)
+    ex = i18n.extract(sb)["strings"]
+    assert {"bh.text", "bh.kicker.text"} <= set(ex)
+    sp = write_json(tmp_path / "en.json", {"bh.text": "COMPONENTS", "bh.kicker.text": "Let's see"})
+    r = i18n.translate_project(sbp, sp, "en")
+    o = json.loads((tmp_path / "sb.en.json").read_text(encoding="utf-8"))["overlays"][0]
+    assert o["text"] == "COMPONENTS" and o["kicker"] == {"text": "Let's see", "at": 3.72}
+    assert o["words_at"] == [4.22]
+    assert validate(json.loads((tmp_path / "sb.en.json").read_text(encoding="utf-8"))) == []
+    assert r["lang"] == "en"
+    bad = write_json(tmp_path / "bad.json", {**sb, "overlays": [{**sb["overlays"][0], "text": "3 COMPONENTES"}]})
+    with pytest.raises(SystemExit, match="Anclas a la voz sin resolver"):
+        i18n.translate_project(bad, sp, "en")

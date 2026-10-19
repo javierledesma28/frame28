@@ -305,3 +305,133 @@ def test_word_captions_get_a_backdrop_when_the_bottom_band_is_light(tmp_path):
     assert "bd-stroke" in html.split("<body")[1] and "bd-box" not in html.split("<body")[1]
     html, _ = build_with(245, "none", name="nada")
     assert "bd-" not in html.split("<body")[1]
+
+
+# ── behind v2: frase palabra a palabra anclada a la voz, con salida por desenfoque (F28-339) ──────────────────────────
+JAVIER_WORDS = [{"text": "vamos", "start": 2.86, "end": 3.16}, {"text": "a", "start": 3.16, "end": 3.40},
+                {"text": "ver", "start": 3.40, "end": 3.90}, {"text": "los", "start": 3.90, "end": 4.26},
+                {"text": "distintos", "start": 4.26, "end": 4.58}, {"text": "componentes", "start": 4.58, "end": 5.08}]
+
+
+def _bh2(**kw):
+    o = {"type": "behind", "id": "bh2", "start": 2.7, "end": 7.5, "text": "DISTINTOS COMPONENTES", "words_at": "auto",
+         "kicker": {"text": "Vamos a ver", "at": "word:vamos"}, "matte": "a.webm", "matte_start": 2.7, "matte_end": 7.6}
+    o.update(kw)
+    return o
+
+
+def _build_bh(tmp_path, name="p", brand=None, words=JAVIER_WORDS, **kw):
+    write_json(tmp_path / "words.json", words)
+    sb = _sb(overlays=[_bh2(**kw)], words="words.json", **({"brand": brand} if brand else {}))
+    r = build.build_project(write_json(tmp_path / f"{name}.json", sb), tmp_path / name, copy_assets=False)
+    return (tmp_path / name / "index.html").read_text(encoding="utf-8"), r
+
+
+def test_behind_v2_each_word_enters_on_its_spoken_word_and_leaves_with_blur(tmp_path):
+    html, r = _build_bh(tmp_path)
+    tl = html.split("gsap.timeline", 1)[1]
+    # cada palabra en su instante de words.json, 0,04 s antes; el antetítulo anclado a «vamos»
+    assert re.search(r'tl\.fromTo\("#bh2-w0", \{ opacity: 0 \}, \{ opacity: 1, duration: 0\.2, ease: "power1\.out" \}, 4\.22\)', tl)
+    assert re.search(r'tl\.fromTo\("#bh2-w1", .*\}, 4\.54\)', tl)
+    assert re.search(r'tl\.fromTo\("#bh2-k", \{ opacity: 0 \}, \{ opacity: 1, duration: 0\.5,.*\}, 2\.82\)', tl)
+    # salida lenta por desenfoque: termina en end; el antetítulo empieza a irse 0,3 s antes
+    assert 'tl.fromTo("#bh2-b .bh-l", { filter: "blur(0px)", opacity: 1 }, { filter: "blur(28px)", opacity: 0, duration: 1.2, ' \
+           'ease: "sine.inOut", immediateRender: false }, 6.3);' in tl
+    assert re.search(r'tl\.fromTo\("#bh2-k", \{ filter: "blur\(0px\)".*immediateRender: false \}, 6\.0\);', tl)
+    # capas: texto en la 2, el hablante con alfa en la 3 durante su tramo; ajuste al ancho en el navegador
+    assert 'id="bh2" class="clip"' in html and 'style="z-index:2;"' in html
+    assert '<video id="bh2-fg" class="clip cover" data-start="2.7" data-duration="4.9"' in html and "z-index:3" in html
+    assert 'data-fit="0.85"' in html and "function f28fit()" in html and "document.fonts.ready.then(f28fit)" in html
+    assert not re.search(r"\.(to|from|fromTo)\([^)]*\{[^}]*\b(left|top|width)\s*:", tl), "HyperFrames rechaza tweens de left/top/width"
+    assert r["warnings"] == [] or all("asset" in w for w in r["warnings"])
+
+
+def test_behind_v2_takes_motion_from_the_brand(tmp_path):
+    html, _ = _build_bh(tmp_path, brand={"accent": "#F5C500", "motion": {"enter_ms": 120, "exit_ms": 900, "exit_blur_px": 40,
+                                                                          "ease_out": "expo.inOut", "exit_stagger_ms": 200}})
+    assert 'duration: 0.12, ease: "power1.out" }, 4.22)' in html
+    assert '{ filter: "blur(40px)", opacity: 0, duration: 0.9, ease: "expo.inOut", immediateRender: false }, 6.6);' in html
+    assert 'immediateRender: false }, 6.4);' in html                                       # antetítulo 0,2 s antes
+    with pytest.raises(SystemExit, match="ease_in: curva de GSAP no válida"):
+        _build_bh(tmp_path, name="mala", brand={"motion": {"ease_in": "x\"); alert(1); (\""}})
+
+
+def test_behind_v2_variants_fade_rise_chars_and_no_kicker(tmp_path):
+    html, _ = _build_bh(tmp_path, name="fade", out="fade", enter="rise", kicker=None, words_at=[4.3, 4.6], color="ink", fit=0.6)
+    tl = html.split("gsap.timeline", 1)[1]
+    assert "blur(" not in tl and 'tl.fromTo("#bh2-b .bh-l", { opacity: 1 }, { opacity: 0, duration: 1.2' in tl
+    assert 'tl.set("#bh2-w0", { opacity: 1 }, 4.3); tl.fromTo("#bh2-w0 .wi", { yPercent: 110 }' in tl
+    assert "bh2-k" not in html and "color:var(--ink)" in html and 'data-fit="0.6"' in html
+    html, _ = _build_bh(tmp_path, name="chars", enter="chars", size=300)
+    assert "SplitText.create(\"#bh2-w0 .wi\"" in html and "SplitText.min.js" in html
+    assert "font-size:300px" in html and "data-fit" not in html                              # tamaño fijo: sin ajuste
+
+
+def test_behind_v2_lines_and_kicker_auto(tmp_path):
+    html, _ = _build_bh(tmp_path, name="lineas", text="DISTINTOS|COMPONENTES", kicker="los")
+    assert html.count('class="bh-l"') == 2
+    assert 'tl.fromTo("#bh2-k", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.out" }, 3.72);' in html
+
+
+def test_behind_v2_warns_short_hold_uncovered_matte_and_density(tmp_path):
+    _, r = _build_bh(tmp_path, name="corto", end=6.4, matte_start=3.5, matte_end=6.0)
+    w = "\n".join(r["warnings"])
+    assert "se queda quieta 0.46 s" in w and "alarga end hasta 7.44" in w
+    assert "la máscara del hablante (3.5–6.0 s) no cubre lo que se ve (2.82–6.4 s" in w
+    write_json(tmp_path / "words.json", JAVIER_WORDS)
+    sb = _sb(overlays=[_bh2(), _bh2(id="otro", start=8.0, end=9.9, words_at=[8.2, 8.5], kicker=None, matte_start=8.0, matte_end=9.9)],
+             words="words.json")
+    r = build.build_project(write_json(tmp_path / "dos.json", sb), tmp_path / "dos", copy_assets=False)
+    assert any("behind bh2 y otro: 5.3 s entre uno y otro" in x and "~20 s" in x for x in r["warnings"])
+
+
+def test_behind_v2_unknown_word_stops_the_build_with_what_is_heard(tmp_path):
+    with pytest.raises(SystemExit, match="words_at auto no encuentra «3»"):
+        _build_bh(tmp_path, name="cifra", text="3 COMPONENTES")
+    with pytest.raises(SystemExit, match="«componente» no se dice"):
+        _build_bh(tmp_path, name="palabra", kicker={"text": "x", "at": "word:componente"})
+
+
+def test_behind_v2_validation():
+    errs = "\n".join(build.validate(_sb(overlays=[_bh2(words_at=[4.2], x=560, fit=1.5, kicker={"size": 20}, out_dur=9, enter="zoom",
+                                                         text="UNA DOS TRES CUATRO CINCO")])))
+    for frag in ("5 palabras", "words_at tiene 1 tiempos y el texto 5", "x es una fracción", "fit es la fracción",
+                 "kicker es un texto", "out_dur 9 no cabe", "enter: valor no válido 'zoom'"):
+        assert frag in errs, frag
+    # sin resolver todavía (validate a pelo, como la prueba de los storyboards versionados): las anclas no son error
+    assert build.validate(_sb(overlays=[_bh2()])) == []
+    assert "tiene que ser un número (o un ancla" in "\n".join(build.validate(_sb(overlays=[_bh2(start="pronto")])))
+
+
+def test_behind_v2_poc_resolves_against_the_real_transcript(tmp_path):
+    # poc/clip-javier/storyboard-behind2.json con su words.json de verdad: «vamos» 2,86, «distintos» 4,26, «componentes» 4,58
+    src = Path(__file__).resolve().parents[3] / "poc" / "clip-javier" / "storyboard-behind2.json"
+    out = tmp_path / "p"
+    r = build.build_project(src, out, copy_assets=False)
+    tl = (out / "index.html").read_text(encoding="utf-8").split("gsap.timeline", 1)[1]
+    assert re.search(r'tl\.fromTo\("#bh2-k", \{ opacity: 0 \}.*\}, 2\.82\);', tl)
+    assert re.search(r'tl\.fromTo\("#bh2-w0", .*\}, 4\.22\);', tl) and re.search(r'tl\.fromTo\("#bh2-w1", .*\}, 4\.54\);', tl)
+    assert "blur(28px)" in tl and "}, 6.3);" in tl
+    assert not [w for w in r["warnings"] if "behind" in w]
+
+
+def test_behind_warns_when_the_brand_avoids_it(tmp_path):
+    # la Memoria o la campaña dicen «No uses: texto detrás del hablante» (motion.avoid, F28-347)
+    _, r = _build_bh(tmp_path, brand={"accent": "#F5C500", "motion": {"style": "sober", "avoid": ["behind"]}})
+    assert any("la marca pide no usar texto detrás del hablante" in w for w in r["warnings"])
+
+
+def test_legacy_behind_is_untouched(tmp_path, javier_storyboard):
+    bh = next(o for o in javier_storyboard["overlays"] if o["type"] == "behind")
+    assert not build.is_behind_v2(bh)
+    r = build.build_project(write_json(tmp_path / "sb.json", javier_storyboard), tmp_path / "p", copy_assets=False)
+    html = (tmp_path / "p" / "index.html").read_text(encoding="utf-8")
+    assert f'tl.fromTo("#{bh["id"]}-w", {{ opacity: 0, scale: 1.15 }}' in html or "SplitText" in html
+    assert "f28fit" not in html and "bhv2" not in html.split("<body")[1]
+    assert not any("behind" in w for w in r["warnings"])
+
+
+def test_brand_display_tokens_are_validated():
+    assert any("display_tracking" in e for e in build.brand_errors({"display_tracking": "1em; } body { color: red"}))
+    assert any("display_weight" in e for e in build.brand_errors({"display_weight": "bold"}))
+    assert build.brand_errors({"display_weight": 800, "display_tracking": "-0.035em", "motion": {"standard_ms": 240}}) == []
