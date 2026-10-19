@@ -240,10 +240,10 @@ El roadmap completo, versión a versión y con el estado de cada ítem, está en
 | `docs/install.ps1`, `docs/install.sh` | instaladores interactivos para Windows y macOS, servidos en frame28.t28.io |
 | `docs/instalar/`, `docs/instalar.md` | asistente web de instalación y las instrucciones para que Claude Code instale Frame28 por ti |
 | `research/04-roadmap-features.md` | investigación de features y repos a integrar, con roadmap priorizado |
-| `research/06-monetizacion.md`, `research/07-producto-frame28-app.md` | cómo se monetiza Frame28 y la definición del producto frame28.app (oferta, precios propuestos, plan) |
+| `research/06-monetizacion.md`, `research/07-producto-frame28-app.md` | cómo se pensó monetizar Frame28 y la primera definición de frame28.app (históricos: los planes y precios vigentes son los de [frame28.app](https://frame28.app)) |
 | `docs/roadmap/` | el roadmap por versiones, publicado en [frame28.t28.io/roadmap](https://frame28.t28.io/roadmap/); los datos viven en el propio `index.html` |
-| `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde y confidencialidad |
-| `plugin/cli/tests/` | pruebas de los módulos puros del CLI (`cd plugin/cli && uv run --group dev pytest`, unas 320 pruebas en unos 20 segundos; la CI las pasa en cada cambio del CLI) |
+| `scripts/release-check.py` | checklist de release: versión en los cuatro sitios, árbol limpio, tags, cuenta de `gh`, plugin validado, suite de pruebas en verde, versiones probadas, rama `release` y confidencialidad |
+| `plugin/cli/tests/` | pruebas del CLI (`cd plugin/cli && uv run --extra probado --group dev pytest`, unas 370 pruebas en unos 20 segundos, con las versiones exactas que instalas; la CI las pasa en cada cambio del CLI) |
 | `research/` | análisis del video de referencia, evaluación de repos, prueba HyperFrames vs Remotion |
 | `poc/` | pruebas de concepto (los medios y renders no se versionan) |
 
