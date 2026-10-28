@@ -32,7 +32,7 @@ from .env import find_tool, note, run
 
 # Cota inferior de yt-dlp (F28-91): las webs cambian y un yt-dlp viejo falla con errores que no dicen que es viejo. Se sube a
 # la última estable en cada release (release-check lo comprueba).
-YTDLP_MIN = "2026.8.19"
+YTDLP_MIN = "2026.10.26"
 
 # Aviso de derechos de Seguridad (informes/seguridad/2026-10-19-F28-287-descarga-legal.md, texto b). Si cambia el texto,
 # cambia la versión: las confirmaciones guardadas con otra versión ya no valen y se vuelve a preguntar.

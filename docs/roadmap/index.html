@@ -160,13 +160,13 @@
     <a class="logo" href="https://t28.io">
       <svg viewBox="0 0 480 120" role="img" aria-label="Think28"><rect width="480" height="120" rx="14" fill="#0a0a0a"/><text x="32" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-2">Think</text><text x="248" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#F5C500" letter-spacing="-3">28</text><rect x="32" y="88" width="24" height="1.5" fill="#F5C500" opacity="0.45"/><text x="32" y="106" font-family="Inter,Arial,sans-serif" font-weight="300" font-size="10" fill="#8a8a8a" letter-spacing="2">DIGITAL GROWTH PARTNER</text></svg>
     </a>
-    <div class="date">Frame28 · roadmap · actualizado 2026-10-19</div>
+    <div class="date">Frame28 · roadmap · actualizado 2026-10-28</div>
   </header>
 
   <section class="title">
     <div class="eyebrow">Dónde estamos y qué viene</div>
     <h1>Frame28, versión a versión</h1>
-    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Siete versiones publicadas en tres semanas; desde la 0.5 el plugin se conecta con tu cuenta de Frame28 (identidad, plan, método, Memoria de marca y campañas servidos desde frame28.app) y la 0.6 instala exactamente lo que pasó las pruebas.</p>
+    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Ocho versiones publicadas en un mes; desde la 0.5 el plugin se conecta con tu cuenta de Frame28 (identidad, plan, método, Memoria de marca y campañas servidos desde frame28.app), la 0.6 instala exactamente lo que pasó las pruebas y la 0.7 ancla el montaje a la voz.</p>
   </section>
 
   <nav class="track" aria-label="Versiones">
@@ -176,8 +176,9 @@
     <div class="stop done"><div class="v">v0.4.0</div><div class="w">1 oct · fiable para entregar a clientes</div></div>
     <div class="stop done"><div class="v">v0.5.0</div><div class="w">2 oct · conectado a tu cuenta</div></div>
     <div class="stop done"><div class="v">v0.5.1</div><div class="w">6 oct · «Usa Frame28» a la primera</div></div>
-    <div class="stop done here"><div class="v">v0.6.0</div><div class="w">19 oct · se instala lo que se probó</div><span class="here-tag">Estás aquí</span></div>
-    <div class="stop"><div class="v">v0.7.0</div><div class="w">calidad y alcance</div></div>
+    <div class="stop done"><div class="v">v0.6.0</div><div class="w">19 oct · se instala lo que se probó</div></div>
+    <div class="stop done here"><div class="v">v0.7.0</div><div class="w">28 oct · anclado a la voz</div><span class="here-tag">Estás aquí</span></div>
+    <div class="stop"><div class="v">v0.8.0</div><div class="w">calidad y alcance</div></div>
     <div class="stop"><div class="v">v1.0.0</div><div class="w">Frame28 Cloud, si la demanda lo pide</div></div>
   </nav>
 
@@ -186,7 +187,7 @@
     <div class="fact"><b>17</b><span>tipos de overlay</span></div>
     <div class="fact"><b>10</b><span>skills del plugin</span></div>
     <div class="fact"><b>5</b><span>casos reales montados</span></div>
-    <div class="fact"><b>7</b><span>releases públicas</span></div>
+    <div class="fact"><b>8</b><span>releases públicas</span></div>
   </section>
 
   <div class="controls" role="group" aria-label="Filtrar por estado">
@@ -294,7 +295,7 @@ const ROADMAP = [
       { t: "i18n check", d: "Antes del render avisa de los textos que siguen en el idioma original.", s: "hecho", e: "S", val: "medio" },
       { t: "Seguridad y licencias", d: "El HTML generado no admite valores en crudo del storyboard; THIRD-PARTY-NOTICES y aviso de licencia al descargar cada modelo; descargas atómicas con SHA-256; el B-roll anota si salen personas o marcas.", s: "hecho", e: "M", val: "alto" }
     ] },
-  { v: "v0.6.0", name: "Se instala lo que se probó", date: "19 oct 2026", state: "pub", here: true,
+  { v: "v0.6.0", name: "Se instala lo que se probó", date: "19 oct 2026", state: "pub",
     goal: "Quien instala o actualiza Frame28 recibe exactamente lo que pasó las pruebas, la Memoria se trabaja también desde Claude Code y la GPU acelera el alfa del hablante.",
     close: "Publicada como release v0.6.0: motor y plugin desde la rama release con versiones fijadas, skill frame28-memoria, marca de agua, alfa en GPU y un motor más robusto en Windows.",
     items: [
@@ -307,7 +308,16 @@ const ROADMAP = [
       { t: "Entrar desde la app de escritorio", d: "La cuenta de Frame28 también se conecta desde la app de escritorio de Claude, no solo desde la terminal.", s: "hecho", e: "S", val: "medio" },
       { t: "Guía y roadmap más rápidos", d: "Fuentes después del primer pintado con reservas del mismo tamaño; el deck y el roadmap no maquetan lo que no se ve.", s: "hecho", e: "S", val: "bajo" }
     ] },
-  { v: "v0.7.0", name: "Calidad y alcance", date: "siguiente", state: "next",
+  { v: "v0.7.0", name: "Anclado a la voz", date: "28 oct 2026", state: "pub", here: true,
+    goal: "Lo que sale en pantalla entra cuando se dice, la frase detrás del hablante se monta palabra a palabra al ritmo de la voz y el vídeo se trae desde su enlace con los derechos preguntados.",
+    close: "Publicada como release v0.7.0: anclas a la voz, frase detrás del hablante palabra a palabra, tokens de movimiento de la marca y frame28 fetch con puerta de derechos.",
+    items: [
+      { t: "Anclas a la voz", d: "Un overlay entra cuando se dice una palabra (\"at\": \"word:x\" o \"word:x#n\") y words_at \"auto\" reparte las de una frase; build las resuelve con el words.json del storyboard, corrige el arranque que Whisper pone tras una pausa y, si una palabra no se oye, lo dice. cut e i18n las conservan.", s: "hecho", e: "M", val: "alto" },
+      { t: "Frase detrás del hablante, palabra a palabra", d: "behind con words_at, kicker, enter u out: de 1 a 4 palabras que entran cuando se dicen, con antetítulo opcional, y salen desenfocándose; el navegador ajusta el tamaño al ancho con la fuente real y build avisa si la frase no se queda quieta o la máscara no cubre la entrada.", s: "hecho", e: "M", val: "alto" },
+      { t: "Movimiento con la marca", d: "Tokens de movimiento de la marca (duraciones de entrada y salida, desenfoque, curvas, style y avoid con los nombres de la Memoria); el estilo promocional entra más rápido y sale más despacio.", s: "hecho", e: "S", val: "medio" },
+      { t: "Traer el vídeo desde su enlace", d: "frame28 fetch baja en tu PC el vídeo, el audio o los subtítulos, solo si dices que tienes derechos (--rights own|licensed); elige vídeo en páginas con varios, topes de 3 h y 2 GB, caché, tramos y errores en nuestro idioma; sin cookies ni la configuración de yt-dlp del usuario, sin listas ni canales, y se para con DRM.", s: "hecho", e: "M", val: "alto" }
+    ] },
+  { v: "v0.8.0", name: "Calidad y alcance", date: "siguiente", state: "next",
     goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
     close: "Puertas de calidad automáticas en el check, gráficas ampliadas y el catálogo del vídeo de referencia completo.",
     items: [
