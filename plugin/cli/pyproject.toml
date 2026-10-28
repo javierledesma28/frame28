@@ -26,10 +26,20 @@ dependencies = [
 # (matte y OCR). onnxruntime-gpu da el mismo módulo que onnxruntime, así que el de CPU se excluye al instalar:
 # uv tool install --editable "./plugin/cli[gpu]" --python 3.12 --excludes ./plugin/cli/excluir-gpu.txt --reinstall
 # (unos 3 GB; sin esto todo va por CPU). `frame28 doctor` da la orden exacta para cada instalación.
+# Arriba los rangos, escritos a mano; debajo, las versiones exactas con las que se probó lo que el extra añade a
+# `probado` (F28-458). Esas no se editan a mano: las rehace `python scripts/fijar-dependencias.py --escribir`.
 gpu = [
   "nvidia-cublas-cu12>=12,<13; sys_platform != 'darwin'",
   "nvidia-cudnn-cu12>=9,<10; sys_platform != 'darwin'",
   "onnxruntime-gpu[cuda,cudnn]>=1.21,<1.27; sys_platform != 'darwin'",
+  "nvidia-cublas-cu12==12.9.2.10 ; sys_platform != 'darwin'",
+  "nvidia-cuda-nvrtc-cu12==12.9.86 ; sys_platform != 'darwin'",
+  "nvidia-cuda-runtime-cu12==12.9.79 ; sys_platform != 'darwin'",
+  "nvidia-cudnn-cu12==9.27.0.42 ; sys_platform != 'darwin'",
+  "nvidia-cufft-cu12==11.4.1.4 ; sys_platform != 'darwin'",
+  "nvidia-curand-cu12==10.3.10.19 ; sys_platform != 'darwin'",
+  "nvidia-nvjitlink-cu12==12.9.86 ; sys_platform != 'darwin'",
+  "onnxruntime-gpu==1.26.0 ; sys_platform != 'darwin'",
 ]
 # Las versiones exactas con las que pasaron las pruebas (F28-91): cada paquete que instalan las dependencias de arriba,
 # en todas las plataformas. Lo instalan el instalador, `uv tool upgrade` y las órdenes de `frame28 doctor`

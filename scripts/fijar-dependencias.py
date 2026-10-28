@@ -7,8 +7,12 @@ plataformas, con la versión con la que pasaron las pruebas. El instalador, `uv 
 pruebas corren con ella (`uv run --extra probado --group dev pytest`). Sin esto, una instalación limpia resolvía lo
 último de cada librería: el 2026-10-19 eran 20 paquetes distintos de los probados, varios de versión mayor.
 
-    python scripts/fijar-dependencias.py               # comprueba el extra; sale con 1 si falta, sobra o choca algo
-    python scripts/fijar-dependencias.py --escribir    # lo rehace conservando las versiones fijadas (tras tocar dependencies)
+El extra `gpu` hace lo mismo con lo que añade (F28-458): sus rangos, escritos a mano, y debajo la versión exacta de cada
+paquete de CUDA y de onnxruntime-gpu; lo que comparte con `probado` (numpy, protobuf…) queda en `probado`. Se instala
+siempre con él ("frame28[gpu,probado]"), así que quien acepta la aceleración recibe también la combinación probada.
+
+    python scripts/fijar-dependencias.py               # comprueba los extras; sale con 1 si falta, sobra o choca algo
+    python scripts/fijar-dependencias.py --escribir    # los rehace conservando las versiones fijadas (tras tocar dependencies)
     python scripts/fijar-dependencias.py --actualizar  # lo rehace con lo último dentro de los techos
 
 Después de --escribir o --actualizar: `uv run --extra probado --group dev pytest` en plugin/cli y, si pasa, commit.
@@ -27,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "plugin" / "cli" / "pyproject.toml"
 EXTRA = "probado"
 PYTHON_MIN = "3.11"            # requires-python del CLI: la resolución universal cubre 3.11 en adelante
-BLOQUE = re.compile(r'^(?P<cab>probado = \[\n)(?P<cuerpo>.*?)^\]', re.M | re.S)
+GPU = "gpu"                    # sus rangos (líneas sin `==`) y, debajo, las versiones exactas de lo que añade a `probado`
 PIN = re.compile(r"^(?P<nombre>[A-Za-z0-9][A-Za-z0-9._-]*)==(?P<version>[^\s;]+)(?:\s*;\s*(?P<marca>.+))?$")
 
 for _s in (sys.stdout, sys.stderr):
@@ -49,18 +53,33 @@ def dependencias(texto: str) -> list[str]:
     return re.findall(r'^\s*"([^"]+)",?\s*$', m.group(1), re.M)
 
 
-def fijadas(texto: str) -> list[str]:
-    """Las líneas del extra `probado`, tal cual."""
-    m = BLOQUE.search(texto)
+def bloque(extra: str) -> re.Pattern:
+    return re.compile(rf'^(?P<cab>{extra} = \[\n)(?P<cuerpo>.*?)^\]', re.M | re.S)
+
+
+def fijadas(texto: str, extra: str = EXTRA) -> list[str]:
+    """Las líneas de un extra (por defecto `probado`), tal cual."""
+    m = bloque(extra).search(texto)
     if not m:
-        raise SystemExit("pyproject.toml sin el extra `probado = [`")
+        raise SystemExit(f"pyproject.toml sin el extra `{extra} = [`")
     return re.findall(r'^\s*"([^"]+)",?\s*$', m.group("cuerpo"), re.M)
 
 
-def con_fijadas(texto: str, pins: list[str]) -> str:
-    """El pyproject con el extra `probado` sustituido (orden alfabético, una por línea)."""
-    cuerpo = "".join(f'  "{p}",\n' for p in sorted(pins, key=lambda p: (canon(p.split("==")[0]), p)))
-    return BLOQUE.sub(lambda m: m.group("cab") + cuerpo + "]", texto, count=1)
+def rangos_gpu(texto: str) -> list[str]:
+    """Las dependencias del extra gpu con su rango (las que se escriben a mano)."""
+    return [p for p in fijadas(texto, GPU) if "==" not in p]
+
+
+def pins_gpu(texto: str) -> list[str]:
+    """Las versiones exactas del extra gpu: las de las pruebas de lo que no fija ya `probado` (F28-458)."""
+    return [p for p in fijadas(texto, GPU) if "==" in p]
+
+
+def con_fijadas(texto: str, pins: list[str], extra: str = EXTRA, delante: list[str] | None = None) -> str:
+    """El pyproject con un extra sustituido: `delante` tal cual y los pins en orden alfabético, uno por línea."""
+    lineas = list(delante or []) + sorted(pins, key=lambda p: (canon(p.split("==")[0]), p))
+    cuerpo = "".join(f'  "{p}",\n' for p in lineas)
+    return bloque(extra).sub(lambda m: m.group("cab") + cuerpo + "]", texto, count=1)
 
 
 def nombre_version(pin: str) -> tuple[str, str] | None:
@@ -113,26 +132,40 @@ def resolver(deps: list[str], *, preferir: list[str] | None = None, restringir: 
         return [ln.strip() for ln in out.read_text(encoding="utf-8").splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
 
 
+def solo_gpu(resueltas: list[str], pins: list[str]) -> list[str]:
+    """De una resolución con el extra gpu, lo que no fija ya `probado` (CUDA y onnxruntime-gpu): eso fija el extra gpu,
+    que siempre se instala junto a `probado` ("frame28[gpu,probado]")."""
+    base = {nv for p in pins if (nv := nombre_version(p))}
+    return [p for p in resueltas if nombre_version(p) not in base]
+
+
 def main(argv: list[str]) -> int:
     texto = PYPROJECT.read_text(encoding="utf-8")
     deps, pins = dependencias(texto), fijadas(texto)
+    rangos, gpu = rangos_gpu(texto), pins_gpu(texto)
     if "--escribir" in argv or "--actualizar" in argv:
-        nuevas = resolver(deps, preferir=pins, actualizar="--actualizar" in argv)
-        PYPROJECT.write_bytes(con_fijadas(texto, nuevas).replace("\r\n", "\n").encode("utf-8"))
-        antes = {nv for p in pins if (nv := nombre_version(p))}
-        despues = {nv for p in nuevas if (nv := nombre_version(p))}
-        print(f"extra `{EXTRA}`: {len(nuevas)} líneas; {len(despues - antes)} versiones nuevas, {len(antes - despues)} retiradas.")
-        for n, v in sorted(despues - antes):
-            print(f"  + {n}=={v}")
+        act = "--actualizar" in argv
+        nuevas = resolver(deps, preferir=pins, actualizar=act)
+        # el extra gpu, con `probado` ya fijado: sus paquetes comunes (numpy, protobuf…) son los mismos
+        nuevas_gpu = solo_gpu(resolver(deps + rangos, preferir=nuevas + gpu, restringir=nuevas, actualizar=act), nuevas)
+        texto = con_fijadas(con_fijadas(texto, nuevas), nuevas_gpu, GPU, delante=rangos)
+        PYPROJECT.write_bytes(texto.replace("\r\n", "\n").encode("utf-8"))
+        for extra, a, b in ((EXTRA, pins, nuevas), (GPU, gpu, nuevas_gpu)):
+            antes = {nv for p in a if (nv := nombre_version(p))}
+            despues = {nv for p in b if (nv := nombre_version(p))}
+            print(f"extra `{extra}`: {len(b)} versiones; {len(despues - antes)} nuevas, {len(antes - despues)} retiradas.")
+            for n, v in sorted(despues - antes):
+                print(f"  + {n}=={v}")
         print("Ahora: cd plugin/cli && uv run --extra probado --group dev pytest")
         return 0
     malos = problemas(deps, pins, resolver(deps, restringir=pins))
+    malos += [f"gpu: {m}" for m in problemas(rangos, gpu, solo_gpu(resolver(deps + rangos, restringir=pins + gpu), pins))]
     for m in malos:
         print("  ✗ " + m)
     if malos:
-        print(f"El extra `{EXTRA}` no cuadra con las dependencias: python scripts/fijar-dependencias.py --escribir")
+        print(f"Los extras `{EXTRA}` y `{GPU}` no cuadran con las dependencias: python scripts/fijar-dependencias.py --escribir")
         return 1
-    print(f"extra `{EXTRA}`: {len(pins)} versiones exactas, completas y dentro de los rangos.")
+    print(f"extras `{EXTRA}` y `{GPU}`: {len(pins)} y {len(gpu)} versiones exactas, completas y dentro de los rangos.")
     return 0
 
 

@@ -43,9 +43,26 @@ def test_cada_dependencia_directa_tiene_techo(fd):
     assert "<18" in str(next(r for r in deps if r.name == "av").specifier)
 
 
-def test_el_extra_gpu_tambien_tiene_techos():
-    for r in _extra("gpu"):
+def test_el_extra_gpu_tambien_tiene_techos(fd):
+    rangos = [Requirement(r) for r in fd.rangos_gpu(PYPROJECT)]
+    assert len(rangos) == 3
+    for r in rangos:
         assert any(s.operator == "<" for s in r.specifier), f"gpu: {r.name} sin techo"
+
+
+def test_el_extra_gpu_fija_lo_que_anade_a_probado(fd):
+    """F28-458: quien acepta la aceleración recibe también las versiones probadas de CUDA y onnxruntime-gpu, dentro de
+    sus rangos, solo fuera de macOS y sin repetir lo que ya fija `probado` (con otra versión no se podrían instalar)."""
+    pins = [Requirement(p) for p in fd.pins_gpu(PYPROJECT)]
+    por_nombre = {fd.canon(r.name): next(iter(r.specifier)).version for r in pins}
+    for r in map(Requirement, fd.rangos_gpu(PYPROJECT)):
+        assert r.specifier.contains(por_nombre[fd.canon(r.name)]), f"gpu: {r.name} sin versión probada en su rango"
+    assert all(len(r.specifier) == 1 and str(r.marker) == 'sys_platform != "darwin"' for r in pins)
+    assert not set(por_nombre) & {fd.canon(r.name) for r in _extra("probado")}
+    lineas = fd.fijadas(PYPROJECT, "gpu")
+    rehecho = fd.con_fijadas(PYPROJECT, list(reversed(fd.pins_gpu(PYPROJECT))), "gpu", delante=fd.rangos_gpu(PYPROJECT))
+    assert fd.fijadas(rehecho, "gpu") == lineas  # el script lo rehace igual
+    assert fd.solo_gpu(["numpy==2.5.3", "onnxruntime-gpu==1.26.0"], ["numpy==2.5.3"]) == ["onnxruntime-gpu==1.26.0"]
 
 
 def test_probado_fija_cada_dependencia_directa_con_una_version_que_cabe_en_su_rango(fd):
