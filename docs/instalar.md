@@ -64,7 +64,10 @@ Bash; en PowerShell puede no estar). Ahí la persona no tiene terminal propia, a
    `claude mcp list` (o la fila «cuenta de Frame28» de `frame28 doctor`) lo dice sin tocar nada. Tú no escribes su email
    ni su código: es su login.
    En la app de escritorio no hay terminal: tras reiniciarla, la persona abre una sesión nueva de la pestaña Code y te
-   pide «Entra en mi cuenta de Frame28»; lánzalo entonces con el `claude.exe` de la app.
+   pide «Entra en mi cuenta de Frame28»; lánzalo entonces con el `claude.exe` de la app, **en segundo plano** o con el
+   tiempo de espera máximo (la persona tarda en escribir su email y el código, y tu herramienta corta a los 2 minutos) y
+   sin `--no-browser` (sin terminal falla con «stdin isn't a terminal»). Si aun así falla, pídele que abra PowerShell
+   desde el menú Inicio solo para ese paso y escriba allí la orden con la ruta del `claude.exe` de la app.
 8. **Cierre**: dile que abra una **sesión nueva** de Claude Code, en la terminal o en la app de escritorio (Frame28 aparece
    en las sesiones que empiezan después de entrar; en la app, después de cerrarla del todo o reiniciar), y que el primer uso es grabar un clip de 30 segundos y escribir
    «Aquí está mi clip. Móntamelo».
