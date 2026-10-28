@@ -161,7 +161,7 @@ de que existieran esas versiones no las recibe con `upgrade` (uv conserva cómo 
 fila «librerías (versiones probadas)» y se arregla repitiendo una vez el instalador o la orden de instalación de arriba.
 
 **Comprueba** que todo está al día: `frame28 --version` debe decir la versión de la
-[última release](https://github.com/javierledesma28/frame28/releases/latest) y `frame28 doctor` debe acabar en «Todo listo».
+[última release](https://github.com/javierledesma28/frame28/releases/latest) y `frame28 doctor` debe acabar en «Todo listo» (si dice que falta la cuenta de Frame28, su fila trae la orden para entrar).
 
 ¿Lo tienes instalado desde un clon con `--editable`? `git pull`; si cambió `pyproject.toml` o la versión,
 `uv tool install --editable "./plugin/cli[probado]" --python 3.12 --reinstall`; si cambiaron las skills con la misma versión,

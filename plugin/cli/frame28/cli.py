@@ -113,6 +113,9 @@ def doctor_summary(rows: list[dict]) -> str:
     pending = [r["name"] for r in rows if not r["ok"] and r.get("listo")]
     if pending:
         return "El motor está listo; falta: " + ", ".join(pending) + " (mira la orden de su fila)."
+    unknown = [r["name"] for r in rows if not r["ok"] and r.get("comprobar")]
+    if unknown:  # sin credenciales que leer (macOS): no se sabe, ni verde ni «falta»
+        return "Todo listo, salvo comprobar: " + ", ".join(unknown) + " (mira la orden de su fila)."
     return "Todo listo."
 
 

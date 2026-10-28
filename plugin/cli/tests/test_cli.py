@@ -268,7 +268,7 @@ def test_doctor_frame28_signed_in_never_reads_values(tmp_path):
     assert account_row("0.5.1", True)["ok"] is True
     unknown = account_row("0.5.1", None)                                                                   # sin saberlo no es verde (F28-453)
     assert unknown["ok"] is False and unknown["optional"] and "claude mcp list" in unknown["fix"]
-    assert all(account_row("0.5.1", s)["listo"] for s in (True, False, None))
+    assert account_row("0.5.1", True)["listo"] and account_row("0.5.1", False)["listo"] and unknown["comprobar"]
 
 
 def test_doctor_no_dice_todo_listo_sin_la_cuenta():
@@ -278,13 +278,15 @@ def test_doctor_no_dice_todo_listo_sin_la_cuenta():
     base = [{"name": "ffmpeg", "ok": True}, {"name": "gpu", "ok": False, "optional": True}]
     assert doctor_summary(base) == "Todo listo."
     assert doctor_summary(base + [account_row("0.7.0", True)]) == "Todo listo."
-    for s in (False, None):
-        msg = doctor_summary(base + [account_row("0.7.0", s)])
-        assert "Todo listo" not in msg and "cuenta de Frame28" in msg
+    falta = doctor_summary(base + [account_row("0.7.0", False)])
+    assert "Todo listo" not in falta and "cuenta de Frame28" in falta
+    # sin credenciales que leer (macOS, aunque ya haya entrado): ni verde ni «falta», solo «comprobar»
+    duda = doctor_summary(base + [account_row("0.7.0", None)])
+    assert duda.startswith("Todo listo, salvo comprobar: cuenta de Frame28")
     assert doctor_summary([{"name": "ffmpeg", "ok": False}, account_row("0.7.0", False)]) == "Faltan 1 requisitos."
     for rel in ("docs/instalar/index.html", "docs/instalar/en/index.html"):                               # el asistente web lo da por bueno
         web = (Path(__file__).resolve().parents[3] / rel).read_text(encoding="utf-8")
-        assert msg.split(" (")[0] in web
+        assert falta.split(" (")[0] in web and "Todo listo." in web
 
 
 def test_doctor_marketplace_clash(tmp_path):

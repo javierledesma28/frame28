@@ -1,4 +1,5 @@
-"""Comprobación del entorno: qué hay, qué falta y cómo instalarlo. Las filas `optional` no bloquean ("Todo listo")."""
+"""Comprobación del entorno: qué hay, qué falta y cómo instalarlo. Las filas `optional` no bloquean ("Todo listo"),
+salvo las `listo` (la cuenta de Frame28), sin las que el plugin no trabaja (F28-453)."""
 from __future__ import annotations
 
 import importlib
@@ -183,7 +184,8 @@ def account_row(plugin_version: str | None, signed: bool | None) -> dict | None:
     if not plugin_version:
         return None
     if signed is None:
-        return {"name": "cuenta de Frame28", "ok": False, "optional": True, "listo": True,
+        # en macOS (Llavero) es siempre así: «falta la cuenta» sería falso para quien ya entró, así que solo se avisa
+        return {"name": "cuenta de Frame28", "ok": False, "optional": True, "comprobar": True,
                 "fix": f"`claude mcp list`: «Connected» en {FRAME28_MCP} es que ya entraste; «Needs authentication», "
                        + FRAME28_LOGIN,
                 "detail": "sin comprobar aquí (no hay credenciales que leer)"}
