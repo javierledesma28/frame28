@@ -188,7 +188,11 @@ if (Has uv) {
   if (($extras -eq "probado") -and ($rec -notmatch 'editable') -and (Nvidia-Gpu)) {
     Say "   Tienes una tarjeta NVIDIA: puedo instalar tambien la aceleracion por GPU (transcribe unas 4 veces mas rapido)."
     Say "   Son unos 3,3 GB mas de descarga y disco. Sin ella todo funciona igual, por CPU."
-    if (Ask "Instalo la aceleracion por GPU (unos 3,3 GB)?") {
+    # 3,3 GB solo con un si explicito: por defecto no, y FRAME28_YES=1 no basta; hace falta FRAME28_GPU=1 (N-38 de F28-452)
+    if ($Yes) { $gpuSi = ($env:FRAME28_GPU -eq "1") }
+    else { $gpuSi = ((Read-Host "   Instalo la aceleracion por GPU (unos 3,3 GB)? [s/N]") -match '^(s|si|y|yes)$') }
+    if (-not $gpuSi) { Say "   --  sin aceleracion por GPU (se puede anadir despues: frame28 doctor da la orden)" "DarkGray" }
+    if ($gpuSi) {
       $extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes); $upgrade = $false
       $spec = "frame28[" + $extras + "] @ " + $MotorGit
     }

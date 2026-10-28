@@ -53,8 +53,9 @@ Bash; en PowerShell puede no estar). Ahí la persona no tiene terminal propia, a
    (`[probado]` trae las versiones exactas de las librerías con las que pasaron las pruebas; no lo quites) y después
    `uv tool update-shell`. Comprueba `frame28 --version`.
    **Con una tarjeta NVIDIA** (Windows o Linux: `nvidia-smi -L` responde), ofrece la aceleración por GPU, que transcribe
-   unas 4 veces más rápido. Avisa antes de que son unos **3,3 GB** más y de que sin ella todo funciona igual, por CPU. Si
-   acepta, instala en su lugar
+   unas 4 veces más rápido. **Pregúntaselo en el chat antes** y espera su respuesta: son unos **3,3 GB** más y sin ella
+   todo funciona igual, por CPU. Sin un sí suyo, no la instales. Si lanzas el instalador de un solo paso, `FRAME28_YES=1`
+   no la instala; solo con el sí de la persona añade `FRAME28_GPU=1`. Si acepta, instala en su lugar
    `uv tool install "frame28[gpu,probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli" --python 3.12 --excludes https://raw.githubusercontent.com/javierledesma28/frame28/release/plugin/cli/excluir-gpu.txt --reinstall`
    (la misma que propone `frame28 doctor` en su fila «gpu»; el `--excludes` no se quita: evita que queden dos onnxruntime que se pisan) y lánzalo en segundo plano: tarda varios
    minutos.

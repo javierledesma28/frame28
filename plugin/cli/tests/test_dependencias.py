@@ -150,11 +150,15 @@ def test_con_nvidia_se_ofrece_el_extra_gpu_avisando_del_tamano():
     t = _instalador("install.ps1")
     assert "function Nvidia-Gpu" in t and "nvidia-smi -L" in t
     bloque = t[t.index("# Con NVIDIA"):t.index("if ($rec -match 'editable') { Say")]
-    assert "($rec -notmatch 'editable')" in bloque and "3,3 GB" in bloque and 'Ask "' in bloque
+    assert "($rec -notmatch 'editable')" in bloque and "3,3 GB" in bloque
+    # N-38: solo con un sí explícito. Por defecto no (Ask da sí con Enter y con FRAME28_YES=1, que la guía manda poner)
+    assert 'Ask "' not in bloque and "[s/N]" in bloque and "-match '^(s|si|y|yes)$'" in bloque
+    assert 'if ($Yes) { $gpuSi = ($env:FRAME28_GPU -eq "1") }' in bloque
     assert '$extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes); $upgrade = $false' in bloque
     md = (REPO / "docs" / "instalar.md").read_text(encoding="utf-8")
     orden = env.gpu_install_cmd()   # la misma que da doctor: si una cambia, la otra también
     assert orden in md and "3,3 GB" in md and "nvidia-smi -L" in md
+    assert "Pregúntaselo en el chat antes" in md and "FRAME28_GPU=1" in md
 
 def test_el_plugin_sale_de_la_misma_rama_que_el_motor():
     """El marketplace vive en main (los usuarios lo añadieron así) pero sirve el plugin de la rama release: `plugin update`
