@@ -1,6 +1,9 @@
 """F28-238: todos los sitios que explican cómo entrar con la cuenta de Frame28 dan el mismo camino, que sirve también en la
 app de escritorio (allí `/mcp` no existe): `claude mcp login plugin:frame28:frame28` y una sesión nueva. Y ninguno manda
 lanzar `mcp login` para comprobar: borra la sesión guardada en cuanto empieza."""
+import os
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -59,3 +62,25 @@ def test_instalar_desde_la_app_de_escritorio():
     assert "CLAUDE_CODE_EXECPATH" in md and r"%APPDATA%\Claude\claude-code" in md and "no por fecha" in md
     assert "GetEnvironmentVariable('Path','Machine')" in md and r"%USERPROFILE%\.local\bin\frame28.exe" in md
     assert "FRAME28_YES=1" in md and "cerrar la app del todo" in md
+
+
+def _funcion_ps(nombre: str) -> str:
+    t = read(REPO / "docs" / "install.ps1")
+    i = t.index(f"function {nombre} {{")
+    fin = t.index("\n}\n", i) + 3
+    return t[i:fin]
+
+
+@pytest.mark.skipif(os.name != "nt" or not shutil.which("pwsh"), reason="install.ps1 es de Windows")
+def test_app_claude_elige_la_version_mas_alta(tmp_path):
+    """La carpeta de la app guarda varias versiones: gana la más alta por número (2.1.10 > 2.1.9), no por orden alfabético
+    ni por fecha; una CLAUDE_CODE_EXECPATH rota no cuenta."""
+    for v in ("2.1.9", "2.1.10", "basura"):
+        exe = tmp_path / "Claude" / "claude-code" / v / "abc" / "claude.exe"
+        exe.parent.mkdir(parents=True)
+        exe.write_text("")
+    script = _funcion_ps("App-Claude") + "\nApp-Claude\n"
+    env = {**os.environ, "APPDATA": str(tmp_path), "CLAUDE_CODE_EXECPATH": str(tmp_path / "no-existe.exe")}
+    r = subprocess.run(["pwsh", "-NoProfile", "-Command", script], capture_output=True, text=True, env=env, timeout=60)
+    assert r.returncode == 0, r.stderr
+    assert Path(r.stdout.strip()).parent.parent.name == "2.1.10"

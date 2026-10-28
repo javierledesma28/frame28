@@ -88,6 +88,10 @@ function Winget-Install($id) { winget install --id $id -e --accept-source-agreem
 Refresh-Path
 $PrevMotor = Motor-Version; $PrevPlugin = Plugin-Version
 $Update = ($PrevMotor -ne "" -or $PrevPlugin -ne "")
+# sin claude en el PATH, la app de escritorio trae su propio claude.exe: con el basta, no hace falta la version de terminal (F28-451)
+$Claude = "claude"; $App = $false
+if (-not (Has claude)) { $a = App-Claude; if ($a) { $Claude = $a; $App = $true } }
+$Reabrir = "abre una terminal nueva"; if ($App) { $Reabrir = "cierra la app de Claude del todo (tambien el icono junto al reloj) y vuelve a abrirla" }
 $os = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue)
 Say ""
 Say "  +------------------------------------------------------+" "Yellow"
@@ -134,7 +138,7 @@ foreach ($p in $pkgs) {
   if ($p.cmd -eq "node" -and (Has node) -and (Node-Major) -lt 22) {
     Say ("   Tienes Node.js " + (node --version) + "; el motor de render necesita la 22 o superior. Lo actualizo...")
     if (With-Retry "No se pudo actualizar Node.js con winget." { winget upgrade --id OpenJS.NodeJS.LTS -e --accept-source-agreements --accept-package-agreements --silent --disable-interactivity; if ($LASTEXITCODE -ne 0) { Winget-Install "OpenJS.NodeJS.LTS" }; Refresh-Path }) {
-      if ((Node-Major) -ge 22) { Ok ("Node.js " + (node --version)) } else { Warn "Node.js sigue en una version antigua en esta terminal; abre una nueva y repite la linea." }
+      if ((Node-Major) -ge 22) { Ok ("Node.js " + (node --version)) } else { Warn ("Node.js sigue en una version antigua aqui; " + $Reabrir + " y repite la instalacion.") }
     }
     continue
   }
@@ -142,7 +146,7 @@ foreach ($p in $pkgs) {
   Say ("   Instalando " + $p.name + " (puede tardar unos minutos)...")
   $id = $p.id
   if (With-Retry ("No se pudo instalar " + $p.name + " con winget.") { Winget-Install $id }) {
-    if (Has $p.cmd) { Ok $p.name } else { Warn ($p.name + " se instalo pero esta terminal aun no lo ve. Si algo falla mas adelante, abre una terminal nueva y repite la linea.") }
+    if (Has $p.cmd) { Ok $p.name } else { Warn ($p.name + " se instalo pero aqui aun no se ve. Si algo falla mas adelante, " + $Reabrir + " y repite la instalacion.") }
   }
 }
 
@@ -154,9 +158,6 @@ else { if (With-Retry "No se pudo instalar el runtime de Visual C++." { Winget-I
 
 # ---------- 3) Claude Code ----------
 Step "Claude Code" "Es la aplicacion de Anthropic con la que hablaras para montar tus videos. Frame28 es un plugin suyo."
-# sin claude en el PATH, la app de escritorio trae su propio claude.exe: con el basta, no hace falta la version de terminal
-$Claude = "claude"; $App = $false
-if (-not (Has claude)) { $a = App-Claude; if ($a) { $Claude = $a; $App = $true } }
 if (Has claude) { Skip ("Claude Code " + (claude --version 2>$null | Select-Object -First 1)) }
 elseif ($App) { Ok "Uso el Claude Code de la app de escritorio; no instalo la version de terminal" }
 else {
@@ -186,10 +187,10 @@ if (Has uv) {
     if (With-Retry "No se pudo instalar el motor de Frame28." { if ($upgrade) { uv tool upgrade frame28; if ($LASTEXITCODE -eq 0) { return } }; uv tool install --python 3.12 --force $spec @gpuArgs }) {
       uv tool update-shell 2>&1 | Out-Null
       Refresh-Path
-      if (Has frame28) { Ok ("frame28 " + ((frame28 --version) -split " ")[-1]) } else { Warn "frame28 quedo en %USERPROFILE%\.local\bin; abre una terminal nueva para usarlo." }
+      if (Has frame28) { Ok ("frame28 " + ((frame28 --version) -split " ")[-1]) } else { Warn ("frame28 quedo en %USERPROFILE%\.local\bin; " + $Reabrir + " para usarlo.") }
     }
   }
-} else { Fail "uv no esta disponible; no puedo instalar el motor. Abre una terminal nueva y vuelve a ejecutar la linea." }
+} else { Fail ("uv no esta disponible; no puedo instalar el motor. " + $Reabrir + " y vuelve a ejecutar la instalacion.") }
 
 # ---------- 5) plugin ----------
 Step "Plugin de Frame28 en Claude Code" "Las instrucciones que convierten a Claude en director de montaje. Ocupan menos que una foto."
@@ -214,7 +215,9 @@ if ((Has claude) -or $App) {
 
 # ---------- 6) comprobacion ----------
 Step "Comprobacion" "frame28 doctor revisa que cada pieza este en su sitio."
-if (Has frame28) { frame28 doctor 2>&1 | Tee-Object -FilePath $Log -Append } else { Warn "frame28 no esta en esta terminal; abre una nueva y escribe: frame28 doctor" }
+$F28 = Join-Path $env:USERPROFILE ".local\bin\frame28.exe"   # por su ruta: la app no ve el PATH nuevo hasta reiniciarse (F28-451)
+if (Has frame28) { $F28 = "frame28" }
+if ((Has frame28) -or (Test-Path $F28)) { & $F28 doctor 2>&1 | Tee-Object -FilePath $Log -Append } else { Warn ("frame28 no aparece; " + $Reabrir + " y pide a Claude: frame28 doctor") }
 
 # ---------- 7) siguiente ----------
 Step "Listo" "Que hacer ahora."
@@ -227,7 +230,8 @@ if ($Update) {
   if (-not $PrevPlugin -and $NewPlugin) { $changes += ("plugin " + $NewPlugin + " (nuevo)") }
   if ($changes.Count -gt 0) {
     Say ("   Frame28 actualizado: " + ($changes -join ", ") + ".") "Green"
-    Say "   Cierra y vuelve a abrir Claude Code para usar la version nueva."
+    if ($App) { Say "   Cierra la app de Claude del todo (tambien el icono junto al reloj) y vuelve a abrirla para usar la version nueva." }
+    else { Say "   Cierra y vuelve a abrir Claude Code para usar la version nueva." }
   } else {
     Say ("   Todo estaba al dia (motor " + $NewMotor + ", plugin " + $NewPlugin + "). No he cambiado nada.") "Green"
   }
