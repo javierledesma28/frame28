@@ -45,6 +45,10 @@ function App-Claude {  # el claude.exe de la app de escritorio (pestana Code), "
   return ""
 }
 function Motor-Version { if (Has frame28) { try { return ((frame28 --version 2>$null) -split " ")[-1] } catch { return "" } } return "" }
+function Nvidia-Gpu {  # $true si hay una NVIDIA con su driver (nvidia-smi responde) (F28-452)
+  if (-not (Has nvidia-smi)) { return $false }
+  try { $null = & nvidia-smi -L 2>$null; return ($LASTEXITCODE -eq 0) } catch { return $false }
+}
 function Plugin-Version {  # version del plugin instalado en Claude Code, "" si no esta
   $f = Join-Path $env:USERPROFILE ".claude\plugins\installed_plugins.json"
   if (-not (Test-Path $f)) { return "" }
@@ -180,6 +184,15 @@ if (Has uv) {
   if ($rec -match '"gpu"') { $extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes) }
   $spec = "frame28[" + $extras + "] @ " + $MotorGit
   $upgrade = ($rec -match '"probado"') -and ($rec -match 'rev=release')
+  # Con NVIDIA, la aceleracion por GPU (transcribir 4 veces mas rapido) es opcional y pesa: se avisa antes (F28-452)
+  if (($extras -eq "probado") -and ($rec -notmatch 'editable') -and (Nvidia-Gpu)) {
+    Say "   Tienes una tarjeta NVIDIA: puedo instalar tambien la aceleracion por GPU (transcribe unas 4 veces mas rapido)."
+    Say "   Son unos 3,3 GB mas de descarga y disco. Sin ella todo funciona igual, por CPU."
+    if (Ask "Instalo la aceleracion por GPU (unos 3,3 GB)?") {
+      $extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes); $upgrade = $false
+      $spec = "frame28[" + $extras + "] @ " + $MotorGit
+    }
+  }
   if ($rec -match 'editable') { Say "   --  el motor esta instalado en modo desarrollo (editable, desde un clon): no lo toco" "DarkGray" }
   else {
     if ($PrevMotor) { Say ("   Tienes el motor " + $PrevMotor + ". Busco la version publicada y, si es nueva, la instalo...") }

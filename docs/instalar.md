@@ -52,9 +52,16 @@ Bash; en PowerShell puede no estar). Ahí la persona no tiene terminal propia, a
 4. **Motor de Frame28**: `uv tool install --python 3.12 --force "frame28[probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli"`
    (`[probado]` trae las versiones exactas de las librerías con las que pasaron las pruebas; no lo quites) y después
    `uv tool update-shell`. Comprueba `frame28 --version`.
+   **Con una tarjeta NVIDIA** (Windows o Linux: `nvidia-smi -L` responde), ofrece la aceleración por GPU, que transcribe
+   unas 4 veces más rápido. Avisa antes de que son unos **3,3 GB** más y de que sin ella todo funciona igual, por CPU. Si
+   acepta, instala en su lugar
+   `uv tool install --python 3.12 --force "frame28[gpu,probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli" --excludes https://raw.githubusercontent.com/javierledesma28/frame28/release/plugin/cli/excluir-gpu.txt`
+   (el `--excludes` no se quita: evita que queden dos onnxruntime que se pisan) y lánzalo en segundo plano: tarda varios
+   minutos.
 5. **Plugin**: `claude plugin marketplace add javierledesma28/frame28` y `claude plugin install frame28@think28 --scope user`.
    Si falla por no haber iniciado sesión, indícale que lo haga y repite.
-6. **Comprobación**: `frame28 doctor`. Explica cada línea. Las aspas en «gpu» y «modelo RVM» son normales.
+6. **Comprobación**: `frame28 doctor`. Explica cada línea. El aspa en «modelo RVM» es normal (se descarga la
+   primera vez que hace falta); la de «gpu» también si el equipo no tiene NVIDIA o la persona no quiso la aceleración.
 7. **Cuenta de Frame28** (sin esto el plugin no puede trabajar): `claude mcp login plugin:frame28:frame28` en una terminal
    nueva (Claude Code 2.1.186 o posterior: si no conoce `login`, `claude update` y repite; alternativa, `claude` → `/mcp` →
    **frame28** → **Authenticate**). Puedes lanzarlo tú si la persona está delante: se abre su navegador y ella escribe su

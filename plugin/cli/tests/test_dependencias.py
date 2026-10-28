@@ -143,6 +143,19 @@ def test_install_ps1_instala_el_motor_con_las_versiones_probadas():
     assert 'install --python 3.12 --force "git+$Repo' not in t
 
 
+
+def test_con_nvidia_se_ofrece_el_extra_gpu_avisando_del_tamano():
+    """F28-452: en un equipo nuevo con NVIDIA, install.ps1 e instalar.md ofrecen el extra gpu (con --excludes, o quedan dos
+    onnxruntime que se pisan) avisando antes de los ~3,3 GB; una instalación editable no se toca."""
+    t = _instalador("install.ps1")
+    assert "function Nvidia-Gpu" in t and "nvidia-smi -L" in t
+    bloque = t[t.index("# Con NVIDIA"):t.index("if ($rec -match 'editable') { Say")]
+    assert "($rec -notmatch 'editable')" in bloque and "3,3 GB" in bloque and 'Ask "' in bloque
+    assert '$extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes); $upgrade = $false' in bloque
+    md = (REPO / "docs" / "instalar.md").read_text(encoding="utf-8")
+    orden = f'uv tool install --python 3.12 --force "{env.install_spec(gpu=True)}" --excludes {env.GPU_EXCLUDES_URL}'
+    assert orden in md and "3,3 GB" in md and "nvidia-smi -L" in md
+
 def test_el_plugin_sale_de_la_misma_rama_que_el_motor():
     """El marketplace vive en main (los usuarios lo añadieron así) pero sirve el plugin de la rama release: `plugin update`
     trae la release publicada, no lo que haya en main."""
