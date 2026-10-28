@@ -65,6 +65,29 @@ def test_el_extra_gpu_fija_lo_que_anade_a_probado(fd):
     assert fd.solo_gpu(["numpy==2.5.3", "onnxruntime-gpu==1.26.0"], ["numpy==2.5.3"]) == ["onnxruntime-gpu==1.26.0"]
 
 
+def test_escribir_rehace_los_dos_extras_sin_tocar_los_rangos(fd, tmp_path, monkeypatch):
+    """`--escribir` (sin uv: la resolución se sustituye) deja `probado` con su resolución y el extra gpu con sus rangos
+    delante y solo lo que añade a `probado` debajo."""
+    py = tmp_path / "pyproject.toml"
+    py.write_text(PYPROJECT, encoding="utf-8")
+    probado = fd.fijadas(PYPROJECT)
+    nuevo = "onnxruntime-gpu==1.26.1 ; sys_platform != 'darwin'"
+    llamadas = []
+
+    def resolver(deps, **kw):
+        llamadas.append((deps, kw))
+        return probado if len(llamadas) == 1 else probado + [nuevo]
+
+    monkeypatch.setattr(fd, "PYPROJECT", py)
+    monkeypatch.setattr(fd, "resolver", resolver)
+    assert fd.main(["--escribir"]) == 0
+    texto = py.read_text(encoding="utf-8")
+    assert fd.fijadas(texto) == probado
+    assert fd.fijadas(texto, "gpu") == fd.rangos_gpu(PYPROJECT) + [nuevo]
+    # la del gpu se resuelve con los rangos del extra y limitada por `probado`
+    assert llamadas[1][0] == fd.dependencias(PYPROJECT) + fd.rangos_gpu(PYPROJECT) and llamadas[1][1]["restringir"] == probado
+
+
 def test_probado_fija_cada_dependencia_directa_con_una_version_que_cabe_en_su_rango(fd):
     pins = _extra("probado")
     assert pins and all(len(r.specifier) == 1 and next(iter(r.specifier)).operator == "==" for r in pins)
