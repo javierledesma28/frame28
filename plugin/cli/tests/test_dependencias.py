@@ -153,7 +153,7 @@ def test_con_nvidia_se_ofrece_el_extra_gpu_avisando_del_tamano():
     assert "($rec -notmatch 'editable')" in bloque and "3,3 GB" in bloque and 'Ask "' in bloque
     assert '$extras = "gpu,probado"; $gpuArgs = @("--excludes", $GpuExcludes); $upgrade = $false' in bloque
     md = (REPO / "docs" / "instalar.md").read_text(encoding="utf-8")
-    orden = f'uv tool install --python 3.12 --force "{env.install_spec(gpu=True)}" --excludes {env.GPU_EXCLUDES_URL}'
+    orden = env.gpu_install_cmd()   # la misma que da doctor: si una cambia, la otra también
     assert orden in md and "3,3 GB" in md and "nvidia-smi -L" in md
 
 def test_el_plugin_sale_de_la_misma_rama_que_el_motor():

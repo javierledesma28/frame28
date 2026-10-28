@@ -55,8 +55,8 @@ Bash; en PowerShell puede no estar). Ahí la persona no tiene terminal propia, a
    **Con una tarjeta NVIDIA** (Windows o Linux: `nvidia-smi -L` responde), ofrece la aceleración por GPU, que transcribe
    unas 4 veces más rápido. Avisa antes de que son unos **3,3 GB** más y de que sin ella todo funciona igual, por CPU. Si
    acepta, instala en su lugar
-   `uv tool install --python 3.12 --force "frame28[gpu,probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli" --excludes https://raw.githubusercontent.com/javierledesma28/frame28/release/plugin/cli/excluir-gpu.txt`
-   (el `--excludes` no se quita: evita que queden dos onnxruntime que se pisan) y lánzalo en segundo plano: tarda varios
+   `uv tool install "frame28[gpu,probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli" --python 3.12 --excludes https://raw.githubusercontent.com/javierledesma28/frame28/release/plugin/cli/excluir-gpu.txt --reinstall`
+   (la misma que propone `frame28 doctor` en su fila «gpu»; el `--excludes` no se quita: evita que queden dos onnxruntime que se pisan) y lánzalo en segundo plano: tarda varios
    minutos.
 5. **Plugin**: `claude plugin marketplace add javierledesma28/frame28` y `claude plugin install frame28@think28 --scope user`.
    Si falla por no haber iniciado sesión, indícale que lo haga y repite.
