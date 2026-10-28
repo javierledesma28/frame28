@@ -11,6 +11,26 @@ Convierte un clip de la persona hablando a cámara en un video montado (rótulos
 texto detrás del hablante, callouts donde señala, gráficas y subtítulos). Piezas: un **CLI** `frame28` (Python,
 instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Renderiza con HyperFrames (Node.js).
 
+## Si estás en la app de escritorio
+
+Mira antes de empezar si corres dentro de la app de escritorio de Claude (pestaña Code): la variable
+`CLAUDE_CODE_ENTRYPOINT` vale `claude-desktop` y `CLAUDE_CODE_EXECPATH` apunta a su `claude.exe` (la ve tu herramienta
+Bash; en PowerShell puede no estar). Ahí la persona no tiene terminal propia, así que:
+
+- **No instales Claude Code de terminal** (paso 3) si `claude` no está en el PATH: usa el de la app. En Bash,
+  `"$CLAUDE_CODE_EXECPATH"`; en PowerShell, el más reciente de
+  `%APPDATA%\Claude\claude-code\<versión>\<hash>\claude.exe` (ordena por versión, no por fecha). Donde este documento
+  diga `claude …`, usa esa ruta.
+- **Las variables no pasan de una orden a la siguiente** y la app no ve el PATH nuevo hasta que se reinicia. En cada
+  orden que vaya después de un `winget`, recarga el PATH del registro delante:
+  `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')`
+  (Bash: `export PATH="$PATH:/c/Program Files/nodejs:$HOME/.local/bin"` o la carpeta que corresponda).
+- Llama al motor por su ruta, `%USERPROFILE%\.local\bin\frame28.exe`, hasta que la app se reinicie.
+- Si lanzas tú el instalador de un solo paso, ponle `FRAME28_YES=1` (no puede preguntar) y avisa antes de lo que va a
+  instalar.
+- **Cierre**: la persona tiene que cerrar la app del todo (también el icono junto al reloj) o reiniciar el equipo, y la
+  cuenta de Frame28 (paso 7) se hace después, en una sesión nueva de la pestaña Code.
+
 ## Plan
 
 1. **Detecta el sistema** (Windows, macOS o Linux) y comprueba internet.
@@ -19,14 +39,15 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
      necesita para instalar el motor desde GitHub; un equipo recién instalado no lo trae).
    - Windows: `winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements`,
      `winget install --id OpenJS.NodeJS.LTS -e ...`, `winget install --id astral-sh.uv -e ...`, `winget install --id Git.Git -e ...`, y el runtime
-     `winget install --id Microsoft.VCRedist.2015+.x64 -e ...` si falta. Tras instalar, refresca el PATH de la
-     sesión o avisa de que hay que abrir una terminal nueva.
+     `winget install --id Microsoft.VCRedist.2015+.x64 -e ...` si falta. Después de cada `winget`, recarga el PATH del
+     registro en la misma orden que use el programa nuevo (ver «Si estás en la app de escritorio»); en una terminal de la
+     persona, abrir una nueva también sirve.
    - macOS: si no hay Homebrew, explícale que Homebrew le pedirá su contraseña y puede tardar 5–15 minutos
      descargando las Command Line Tools; lánzalo con
      `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` en una
      terminal **de la persona** (es interactivo). Luego `brew install ffmpeg node uv git` y carga `brew shellenv`.
    - Linux (Debian/Ubuntu): `sudo apt-get install -y ffmpeg git`, Node desde nodesource, uv desde `https://astral.sh/uv/install.sh`.
-3. **Claude Code** en terminal, si `claude` no existe: `curl -fsSL https://claude.ai/install.sh | bash` (macOS/Linux)
+3. **Claude Code** en terminal, si `claude` no existe y no estás en la app de escritorio (allí usa su `claude.exe`): `curl -fsSL https://claude.ai/install.sh | bash` (macOS/Linux)
    o `irm https://claude.ai/install.ps1 | iex` (Windows). La persona tendrá que iniciar sesión después con `claude`.
 4. **Motor de Frame28**: `uv tool install --python 3.12 --force "frame28[probado] @ git+https://github.com/javierledesma28/frame28@release#subdirectory=plugin/cli"`
    (`[probado]` trae las versiones exactas de las librerías con las que pasaron las pruebas; no lo quites) y después
@@ -42,8 +63,10 @@ instalado con `uv`) y un **plugin de Claude Code** (skills) que lo dirige. Rende
    dirección de vuelta. No lo lances para comprobar si ya entró: `mcp login` borra la sesión guardada en cuanto empieza;
    `claude mcp list` (o la fila «cuenta de Frame28» de `frame28 doctor`) lo dice sin tocar nada. Tú no escribes su email
    ni su código: es su login.
+   En la app de escritorio no hay terminal: tras reiniciarla, la persona abre una sesión nueva de la pestaña Code y te
+   pide «Entra en mi cuenta de Frame28»; lánzalo entonces con el `claude.exe` de la app.
 8. **Cierre**: dile que abra una **sesión nueva** de Claude Code, en la terminal o en la app de escritorio (Frame28 aparece
-   en las sesiones que empiezan después de entrar), y que el primer uso es grabar un clip de 30 segundos y escribir
+   en las sesiones que empiezan después de entrar; en la app, después de cerrarla del todo o reiniciar), y que el primer uso es grabar un clip de 30 segundos y escribir
    «Aquí está mi clip. Móntamelo».
    Guía con imágenes: https://frame28.t28.io/presentacion/
 

@@ -36,6 +36,14 @@ function Warn($t) { Say ("   !   " + $t) "Yellow" }
 function Fail($t) { Say ("   X   " + $t) "Red" }
 function Has($n)  { $null -ne (Get-Command $n -ErrorAction SilentlyContinue) }
 function Quit { throw "FRAME28_SALIR" }   # termina el instalador sin cerrar la terminal
+function App-Claude {  # el claude.exe de la app de escritorio (pestana Code), "" si no hay (F28-451)
+  if ($env:CLAUDE_CODE_EXECPATH -and (Test-Path $env:CLAUDE_CODE_EXECPATH)) { return $env:CLAUDE_CODE_EXECPATH }
+  $d = Join-Path $env:APPDATA "Claude\claude-code"   # <version>\<hash>\claude.exe: la version mas alta, no la ultima tocada
+  $e = Get-ChildItem -Path (Join-Path $d "*\*\claude.exe") -ErrorAction SilentlyContinue |
+       Sort-Object { try { [version]$_.Directory.Parent.Name } catch { [version]"0.0" } } -Descending | Select-Object -First 1
+  if ($e) { return $e.FullName }
+  return ""
+}
 function Motor-Version { if (Has frame28) { try { return ((frame28 --version 2>$null) -split " ")[-1] } catch { return "" } } return "" }
 function Plugin-Version {  # version del plugin instalado en Claude Code, "" si no esta
   $f = Join-Path $env:USERPROFILE ".claude\plugins\installed_plugins.json"
@@ -146,7 +154,11 @@ else { if (With-Retry "No se pudo instalar el runtime de Visual C++." { Winget-I
 
 # ---------- 3) Claude Code ----------
 Step "Claude Code" "Es la aplicacion de Anthropic con la que hablaras para montar tus videos. Frame28 es un plugin suyo."
+# sin claude en el PATH, la app de escritorio trae su propio claude.exe: con el basta, no hace falta la version de terminal
+$Claude = "claude"; $App = $false
+if (-not (Has claude)) { $a = App-Claude; if ($a) { $Claude = $a; $App = $true } }
 if (Has claude) { Skip ("Claude Code " + (claude --version 2>$null | Select-Object -First 1)) }
+elseif ($App) { Ok "Uso el Claude Code de la app de escritorio; no instalo la version de terminal" }
 else {
   Say "   Instalo la version de terminal con el instalador oficial de Anthropic. Despues tendras que iniciar"
   Say "   sesion una vez con tu cuenta de Claude (plan Pro o superior). Si prefieres la app de escritorio,"
@@ -181,21 +193,23 @@ if (Has uv) {
 
 # ---------- 5) plugin ----------
 Step "Plugin de Frame28 en Claude Code" "Las instrucciones que convierten a Claude en director de montaje. Ocupan menos que una foto."
-if (Has claude) {
-  claude plugin marketplace add $Marketplace 2>&1 | Add-Content -Path $Log
-  claude plugin marketplace update think28 2>&1 | Add-Content -Path $Log      # si ya estaba: trae la version publicada (F28-102)
-  claude plugin install "frame28@think28" --scope user 2>&1 | Add-Content -Path $Log
+# Plan B: pedirselo a Claude. /plugin no existe en la pestana Code de la app de escritorio (F28-451)
+$PlanB = "      Instala el plugin de Frame28 siguiendo https://frame28.t28.io/instalar.md"
+if ((Has claude) -or $App) {
+  & $Claude plugin marketplace add $Marketplace 2>&1 | Add-Content -Path $Log
+  & $Claude plugin marketplace update think28 2>&1 | Add-Content -Path $Log      # si ya estaba: trae la version publicada (F28-102)
+  & $Claude plugin install "frame28@think28" --scope user 2>&1 | Add-Content -Path $Log
   $installed = ($LASTEXITCODE -eq 0)
-  claude plugin update "frame28@think28" 2>&1 | Add-Content -Path $Log
+  & $Claude plugin update "frame28@think28" 2>&1 | Add-Content -Path $Log
   if ($installed -or $LASTEXITCODE -eq 0) { Ok "Plugin frame28 instalado y al dia" }
   else {
-    Warn "No pude instalarlo automaticamente (quiza falta iniciar sesion en Claude Code)."
-    Say "   Cuando hayas iniciado sesion, escribe dentro de Claude Code:"
-    Say ("      /plugin marketplace add " + $Marketplace); Say "      /plugin install frame28@think28"
+    Warn "No pude instalarlo automaticamente (quiza falta iniciar sesion en Claude)."
+    Say "   Cuando hayas iniciado sesion, abre una sesion de Claude Code (terminal o pestana Code de la app) y escribele:"
+    Say $PlanB
   }
 } else {
-  Warn "Claude Code no esta disponible ahora. Cuando lo tengas, escribe dentro de Claude Code:"
-  Say ("      /plugin marketplace add " + $Marketplace); Say "      /plugin install frame28@think28"
+  Warn "Claude Code no esta disponible ahora. Cuando lo tengas, abre una sesion y escribele:"
+  Say $PlanB
 }
 
 # ---------- 6) comprobacion ----------
@@ -218,6 +232,19 @@ if ($Update) {
     Say ("   Todo estaba al dia (motor " + $NewMotor + ", plugin " + $NewPlugin + "). No he cambiado nada.") "Green"
   }
   Say "   Para trabajar: abre Claude Code en la carpeta de tu video y pidelo con tus palabras."
+  Say ""
+  Say ("   Guia completa con imagenes: " + $Guide) "Yellow"
+  Say ("   Si algo fallo, envia el fichero " + $Log + " a quien te paso Frame28 o pegaselo a Claude.")
+  Say ""
+  Quit
+}
+if ($App) {  # solo la app de escritorio: sin terminal; la app toma el PATH nuevo al abrirse (F28-451)
+  Say "   Instalacion terminada. Tres cosas para empezar:" "Green"
+  Say "   1. Cierra la app de Claude del todo (tambien el icono junto al reloj) o reinicia el equipo:"
+  Say "      asi reconoce los programas nuevos. Abrir solo una sesion nueva no basta."
+  Say "   2. Entra con tu cuenta de Frame28 (una vez): en una sesion NUEVA de la pestana Code, escribe"
+  Say "      `"Entra en mi cuenta de Frame28`". Se abre el navegador: tu email y el codigo que te llega."
+  Say "   3. Graba un clip hablando a camara, abre otra sesion nueva en su carpeta y escribe: `"Aqui esta mi clip. Montamelo.`""
   Say ""
   Say ("   Guia completa con imagenes: " + $Guide) "Yellow"
   Say ("   Si algo fallo, envia el fichero " + $Log + " a quien te paso Frame28 o pegaselo a Claude.")

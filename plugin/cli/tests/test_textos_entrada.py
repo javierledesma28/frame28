@@ -46,3 +46,16 @@ def test_install_ps1_solo_ascii():
     """Windows PowerShell 5.1 lee la web en Latin-1: un carácter no ASCII rompe el instalador (CLAUDE.md)."""
     bad = sorted({c for c in read(REPO / "docs" / "install.ps1") if ord(c) > 127})
     assert not bad
+
+
+def test_instalar_desde_la_app_de_escritorio():
+    """F28-451: en la app de escritorio no hay terminal. Se usa su claude.exe en vez de instalar la CLI, el PATH se recarga
+    del registro tras winget, el plan B no manda a /plugin (en la pestaña Code no existe) y el cierre pide cerrar la app."""
+    ps1, md = read(REPO / "docs" / "install.ps1"), read(REPO / "docs" / "instalar.md")
+    assert "$env:CLAUDE_CODE_EXECPATH" in ps1 and r"Claude\claude-code" in ps1 and "[version]" in ps1
+    assert "if ((Has claude) -or $App)" in ps1 and "& $Claude plugin install" in ps1
+    assert "/plugin marketplace add" not in ps1 and "/plugin install" not in ps1
+    assert "if ($App) {" in ps1 and "Cierra la app de Claude del todo" in ps1
+    assert "CLAUDE_CODE_EXECPATH" in md and r"%APPDATA%\Claude\claude-code" in md and "no por fecha" in md
+    assert "GetEnvironmentVariable('Path','Machine')" in md and r"%USERPROFILE%\.local\bin\frame28.exe" in md
+    assert "FRAME28_YES=1" in md and "cerrar la app del todo" in md
