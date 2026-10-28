@@ -104,6 +104,18 @@ def fetch(ctx, url, out_path, rights, audio, subs, section, pick, max_duration, 
     out(r, as_json or True)
 
 
+def doctor_summary(rows: list[dict]) -> str:
+    """Cierre de doctor. «Todo listo» solo si además de los requisitos está lo que el plugin necesita para trabajar (la
+    cuenta de Frame28, filas `listo`): antes salía con el plugin sin poder trabajar (F28-453)."""
+    missing = [r for r in rows if not r["ok"] and not r.get("optional")]
+    if missing:
+        return f"Faltan {len(missing)} requisitos."
+    pending = [r["name"] for r in rows if not r["ok"] and r.get("listo")]
+    if pending:
+        return "El motor está listo; falta: " + ", ".join(pending) + " (mira la orden de su fila)."
+    return "Todo listo."
+
+
 @main.command()
 @click.option("--json", "as_json", is_flag=True)
 def doctor(as_json):
@@ -116,8 +128,7 @@ def doctor(as_json):
         mark = "✓" if r["ok"] else "✗"
         tag = "  (opcional)" if not r["ok"] and r.get("optional") else ""
         click.echo(f"  {mark} {r['name']:<20} {r['detail']}{tag}" + ("" if r["ok"] else f"\n      → {r['fix']}"))
-    missing = [r for r in rows if not r["ok"] and not r.get("optional")]
-    click.echo("\n" + ("Todo listo." if not missing else f"Faltan {len(missing)} requisitos."))
+    click.echo("\n" + doctor_summary(rows))
 
 
 @main.command()

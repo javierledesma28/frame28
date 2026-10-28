@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -264,8 +265,26 @@ def test_doctor_frame28_signed_in_never_reads_values(tmp_path):
     row = account_row("0.5.1", False)
     assert row["ok"] is False and row["fix"] == FRAME28_LOGIN and "mcp login plugin:frame28:frame28" in row["fix"]
     assert "sesión nueva" in row["fix"] and "claude update" in row["fix"]
-    assert account_row("0.5.1", True)["ok"] is True and account_row("0.5.1", None)["ok"] is True          # sin saberlo, sin aspa
-    assert "claude mcp list" in account_row("0.5.1", None)["detail"]
+    assert account_row("0.5.1", True)["ok"] is True
+    unknown = account_row("0.5.1", None)                                                                   # sin saberlo no es verde (F28-453)
+    assert unknown["ok"] is False and unknown["optional"] and "claude mcp list" in unknown["fix"]
+    assert all(account_row("0.5.1", s)["listo"] for s in (True, False, None))
+
+
+def test_doctor_no_dice_todo_listo_sin_la_cuenta():
+    """F28-453: el plugin sin cuenta no puede trabajar; doctor cerraba «Todo listo» igual y la persona se quedaba ahí."""
+    from frame28.cli import doctor_summary
+    from frame28.doctor import account_row
+    base = [{"name": "ffmpeg", "ok": True}, {"name": "gpu", "ok": False, "optional": True}]
+    assert doctor_summary(base) == "Todo listo."
+    assert doctor_summary(base + [account_row("0.7.0", True)]) == "Todo listo."
+    for s in (False, None):
+        msg = doctor_summary(base + [account_row("0.7.0", s)])
+        assert "Todo listo" not in msg and "cuenta de Frame28" in msg
+    assert doctor_summary([{"name": "ffmpeg", "ok": False}, account_row("0.7.0", False)]) == "Faltan 1 requisitos."
+    for rel in ("docs/instalar/index.html", "docs/instalar/en/index.html"):                               # el asistente web lo da por bueno
+        web = (Path(__file__).resolve().parents[3] / rel).read_text(encoding="utf-8")
+        assert msg.split(" (")[0] in web
 
 
 def test_doctor_marketplace_clash(tmp_path):

@@ -177,13 +177,17 @@ def frame28_signed_in(config_dir: Path | None = None) -> bool | None:
 
 
 def account_row(plugin_version: str | None, signed: bool | None) -> dict | None:
-    """Fila «cuenta de Frame28»: sin entrar, el plugin no trabaja, y la app de escritorio no lo explica (F28-238)."""
+    """Fila «cuenta de Frame28»: sin entrar, el plugin no trabaja, y la app de escritorio no lo explica (F28-238). No
+    bloquea el motor (`optional`), pero sin ella el cierre no es «Todo listo» (`listo`, F28-453): sin credenciales que
+    leer tampoco sale en verde, porque no se sabe."""
     if not plugin_version:
         return None
     if signed is None:
-        return {"name": "cuenta de Frame28", "ok": True, "optional": True, "fix": "",
-                "detail": "sin comprobar aquí: `claude mcp list` dice Connected o Needs authentication"}
-    return {"name": "cuenta de Frame28", "ok": signed, "optional": True, "fix": "" if signed else FRAME28_LOGIN,
+        return {"name": "cuenta de Frame28", "ok": False, "optional": True, "listo": True,
+                "fix": f"`claude mcp list`: «Connected» en {FRAME28_MCP} es que ya entraste; «Needs authentication», "
+                       + FRAME28_LOGIN,
+                "detail": "sin comprobar aquí (no hay credenciales que leer)"}
+    return {"name": "cuenta de Frame28", "ok": signed, "optional": True, "listo": True, "fix": "" if signed else FRAME28_LOGIN,
             "detail": "has entrado (Frame28 sale en las sesiones nuevas de Claude Code)" if signed else
                       "sin entrar: el plugin no puede trabajar hasta que entres con tu cuenta"}
 
