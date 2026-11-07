@@ -39,14 +39,15 @@ mucho.
 - **±1 fotograma contra la voz**: el recuadro entra en 13,26 s, con el arranque real de «vídeo» (13,30 en `words.json`;
   `snap_to_voice` lo pega a la voz). En el fotograma 397 no está, en el 398 apenas asoma y en el 399 ya entra; lleno en 0,25 s.
   Sale desde 15,2 s, 1,2 s con desenfoque y antes de la gráfica de 16,5.
-- **Composición**: entre la viga y la estantería, para no cortar nada de la pared (`x` 420, `y` 180, 640×360); el pelo y la
-  cabeza tapan la esquina inferior derecha del recuadro y la cifra queda fuera de la silueta.
-- **Contenido del recuadro**: un contador sobre el acento (`storyboard-pip.json`), que llega a 60 s con «minuto» (14,54 s). Antes
+- **Composición**: entre la viga y la estantería, con unos 30 px de aire a cada lado para que no parezca pegado (`x` 445, `y` 180,
+  590×332); el pelo y la cabeza tapan la esquina inferior derecha del recuadro y la cifra queda fuera de la silueta.
+- **Contenido del recuadro**: un contador sobre el acento (`storyboard-pip.json`), que llega a 60 s con «minuto» (14,54 s), sin
+  etiqueta: a este tamaño no se leería, y la voz y el subtítulo ya lo dicen. Antes
   era un tramo del vídeo de clip-demo y Diseño lo paró: la misma habitación, así que el borde se perdía contra la pared, y su
   título interior se leía «FRA E28» porque lo tapaba el hablante de dentro del clip.
 - **Tiempos, con GPU**: la máscara de R1 (10,5 s, 315 fotogramas) 45 s, antes 6 min 40 s en CPU; la de R2 (3,6 s, 108 fotogramas)
   13 s dentro del primer `build`, y el siguiente `build` 3,6 s porque sale de la caché. Render de 41,6 s con `--workers 10 --gpu`,
-  2 min 35 s en la última pasada y 3 min 50 s en las anteriores, con el clip de antes.
+  entre 2 min 35 s y 3 min 50 s según la pasada.
 
 ## Medidas (2026-10-19)
 
