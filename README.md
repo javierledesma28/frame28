@@ -23,7 +23,7 @@
   <a href="https://t28.io">t28.io</a>
 </p>
 
-<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.7.0 · MIT</sub></p>
+<p align="center"><sub>A Think28 product · <a href="https://t28.io">t28.io</a> · v0.7.1 · MIT</sub></p>
 
 ---
 
@@ -210,7 +210,9 @@ demo que enseñe todas las técnicas, hay un [guion de 60 segundos con lo que de
 
 ## Estado y roadmap
 
-v0.7.0 ancla el montaje a la voz: un texto entra cuando se dice una palabra (`"at": "word:…"`) y la frase detrás del
+v0.7.1 pone a punto la instalación: funciona desde la app de escritorio, sin terminal; el extra de GPU solo se instala
+si dices que sí, con las versiones exactas con las que se probó; y `frame28 doctor` ya no dice «Todo listo» si te falta
+entrar con tu cuenta. v0.7.0 ancla el montaje a la voz: un texto entra cuando se dice una palabra (`"at": "word:…"`) y la frase detrás del
 hablante aparece palabra a palabra, a su ritmo; y `frame28 fetch` trae el vídeo desde su enlace, con la pregunta de
 derechos por delante. Desde la v0.6 el motor y el plugin salen de la rama `release`, con las versiones exactas de sus
 dependencias, y `frame28 doctor` dice de dónde viene el tuyo. Desde la v0.5 el plugin se conecta con tu cuenta de

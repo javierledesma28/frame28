@@ -160,13 +160,13 @@
     <a class="logo" href="https://t28.io">
       <svg viewBox="0 0 480 120" role="img" aria-label="Think28"><rect width="480" height="120" rx="14" fill="#0a0a0a"/><text x="32" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#ffffff" letter-spacing="-2">Think</text><text x="248" y="78" font-family="Inter,Arial,sans-serif" font-weight="800" font-size="64" fill="#F5C500" letter-spacing="-3">28</text><rect x="32" y="88" width="24" height="1.5" fill="#F5C500" opacity="0.45"/><text x="32" y="106" font-family="Inter,Arial,sans-serif" font-weight="300" font-size="10" fill="#8a8a8a" letter-spacing="2">DIGITAL GROWTH PARTNER</text></svg>
     </a>
-    <div class="date">Frame28 · roadmap · actualizado 2026-10-28</div>
+    <div class="date">Frame28 · roadmap · actualizado 2026-11-07</div>
   </header>
 
   <section class="title">
     <div class="eyebrow">Dónde estamos y qué viene</div>
     <h1>Frame28, versión a versión</h1>
-    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Ocho versiones publicadas en un mes; desde la 0.5 el plugin se conecta con tu cuenta de Frame28 (identidad, plan, método, Memoria de marca y campañas servidos desde frame28.app), la 0.6 instala exactamente lo que pasó las pruebas y la 0.7 ancla el montaje a la voz.</p>
+    <p>Del clip de una persona hablando a cámara al vídeo que vende, todo generado por código y en local. Nueve versiones publicadas en poco más de un mes; desde la 0.5 el plugin se conecta con tu cuenta de Frame28 (identidad, plan, método, Memoria de marca y campañas servidos desde frame28.app), la 0.6 instala exactamente lo que pasó las pruebas y la 0.7 ancla el montaje a la voz.</p>
   </section>
 
   <nav class="track" aria-label="Versiones">
@@ -177,7 +177,8 @@
     <div class="stop done"><div class="v">v0.5.0</div><div class="w">2 oct · conectado a tu cuenta</div></div>
     <div class="stop done"><div class="v">v0.5.1</div><div class="w">6 oct · «Usa Frame28» a la primera</div></div>
     <div class="stop done"><div class="v">v0.6.0</div><div class="w">19 oct · se instala lo que se probó</div></div>
-    <div class="stop done here"><div class="v">v0.7.0</div><div class="w">28 oct · anclado a la voz</div><span class="here-tag">Estás aquí</span></div>
+    <div class="stop done"><div class="v">v0.7.0</div><div class="w">28 oct · anclado a la voz</div></div>
+    <div class="stop done here"><div class="v">v0.7.1</div><div class="w">7 nov · se instala desde la app</div><span class="here-tag">Estás aquí</span></div>
     <div class="stop"><div class="v">v0.8.0</div><div class="w">calidad y alcance</div></div>
     <div class="stop"><div class="v">v1.0.0</div><div class="w">Frame28 Cloud, si la demanda lo pide</div></div>
   </nav>
@@ -187,7 +188,7 @@
     <div class="fact"><b>17</b><span>tipos de overlay</span></div>
     <div class="fact"><b>10</b><span>skills del plugin</span></div>
     <div class="fact"><b>5</b><span>casos reales montados</span></div>
-    <div class="fact"><b>8</b><span>releases públicas</span></div>
+    <div class="fact"><b>9</b><span>releases públicas</span></div>
   </section>
 
   <div class="controls" role="group" aria-label="Filtrar por estado">
@@ -308,7 +309,7 @@ const ROADMAP = [
       { t: "Entrar desde la app de escritorio", d: "La cuenta de Frame28 también se conecta desde la app de escritorio de Claude, no solo desde la terminal.", s: "hecho", e: "S", val: "medio" },
       { t: "Guía y roadmap más rápidos", d: "Fuentes después del primer pintado con reservas del mismo tamaño; el deck y el roadmap no maquetan lo que no se ve.", s: "hecho", e: "S", val: "bajo" }
     ] },
-  { v: "v0.7.0", name: "Anclado a la voz", date: "28 oct 2026", state: "pub", here: true,
+  { v: "v0.7.0", name: "Anclado a la voz", date: "28 oct 2026", state: "pub",
     goal: "Lo que sale en pantalla entra cuando se dice, la frase detrás del hablante se monta palabra a palabra al ritmo de la voz y el vídeo se trae desde su enlace con los derechos preguntados.",
     close: "Publicada como release v0.7.0: anclas a la voz, frase detrás del hablante palabra a palabra, tokens de movimiento de la marca y frame28 fetch con puerta de derechos.",
     items: [
@@ -316,6 +317,15 @@ const ROADMAP = [
       { t: "Frase detrás del hablante, palabra a palabra", d: "behind con words_at, kicker, enter u out: de 1 a 4 palabras que entran cuando se dicen, con antetítulo opcional, y salen desenfocándose; el navegador ajusta el tamaño al ancho con la fuente real y build avisa si la frase no se queda quieta o la máscara no cubre la entrada.", s: "hecho", e: "M", val: "alto" },
       { t: "Movimiento con la marca", d: "Tokens de movimiento de la marca (duraciones de entrada y salida, desenfoque, curvas, style y avoid con los nombres de la Memoria); el estilo promocional entra más rápido y sale más despacio.", s: "hecho", e: "S", val: "medio" },
       { t: "Traer el vídeo desde su enlace", d: "frame28 fetch baja en tu PC el vídeo, el audio o los subtítulos, solo si dices que tienes derechos (--rights own|licensed); elige vídeo en páginas con varios, topes de 3 h y 2 GB, caché, tramos y errores en nuestro idioma; sin cookies ni la configuración de yt-dlp del usuario, sin listas ni canales, y se para con DRM.", s: "hecho", e: "M", val: "alto" }
+    ] },
+  { v: "v0.7.1", name: "Se instala desde la app", date: "7 nov 2026", state: "pub", here: true,
+    goal: "Quien instala desde la app de escritorio, sin terminal, termina con el motor probado y sabe si le falta entrar con su cuenta.",
+    close: "Publicada como release v0.7.1: instalación desde la app de escritorio, extra de GPU con un sí explícito y versiones exactas, y un doctor que no da por listo lo que aún no puede trabajar.",
+    items: [
+      { t: "Instalar desde la app de escritorio", d: "Sin claude en el PATH, install.ps1 usa el claude.exe de la app en vez de instalar la CLI de terminal, y el cierre pide cerrar la app del todo; instalar.md gana los pasos desde la app y cómo entrar con la cuenta.", s: "hecho", e: "S", val: "alto" },
+      { t: "GPU solo con un sí explícito", d: "Con NVIDIA el instalador de Windows ofrece el extra de GPU avisando de los 3,3 GB y pregunta [s/N]; FRAME28_YES=1 no basta (hace falta FRAME28_GPU=1) y desde la app se pregunta en el chat.", s: "hecho", e: "S", val: "medio" },
+      { t: "doctor no da por listo lo que no puede trabajar", d: "Sin la cuenta de Frame28 cierra «El motor está listo; falta: cuenta de Frame28» en vez de «Todo listo»; sin credenciales que leer (macOS) avisa «salvo comprobar» y da la orden.", s: "hecho", e: "S", val: "alto" },
+      { t: "GPU con las versiones probadas", d: "frame28[gpu,probado] instala las versiones exactas de CUDA y onnxruntime-gpu (8 paquetes, fuera de macOS); fijar-dependencias.py las rehace y release-check las vigila.", s: "hecho", e: "S", val: "medio" }
     ] },
   { v: "v0.8.0", name: "Calidad y alcance", date: "siguiente", state: "next",
     goal: "El montaje se autoevalúa y el catálogo de técnicas cubre los vídeos de producto y de software.",
