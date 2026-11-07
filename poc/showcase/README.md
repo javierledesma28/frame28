@@ -8,7 +8,8 @@ web (F28-292).
 | Tramo | Escena | Serie | Estado |
 |---|---|---|---|
 | 1,9–12,4 s | Frase detrás del hablante palabra a palabra: antetítulo «TRES COSAS» y ESCUCHA / ENTIENDE / MONTA, cada palabra cuando la dice (mientras cuenta con los dedos), la cabeza delante de la última línea y salida lenta con desenfoque | R1 (F28-339) | hecha |
-| — | Las escenas de R2 a R5 | F28-340 a F28-343 | pendientes |
+| 13,3–16,4 s | Clip en recuadro detrás del hablante al decir «un vídeo de un minuto»: el pelo y la cabeza lo tapan, entra rápido con la palabra y se va despacio con desenfoque | R2 (F28-340) | hecha |
+| — | Las escenas de R3 a R5 | F28-341 a F28-343 | pendientes |
 | 16,5–41,6 s | Barras «a mano / con Frame28», contador 22×, dos cinéticos y tarjeta de marca, los de `poc/clip-demo` desplazados | — | de partida |
 
 ## Cómo se reproduce
@@ -21,8 +22,9 @@ cd poc/showcase
 frame28 cut apply ../clip-demo/work/cut/clip.mp4 keep.json --audio ../clip-demo/work/cut/voice.wav \
   --words ../clip-demo/work/cut/words.json --captions ../clip-demo/work/cut/captions.json -o work
 cd work
-frame28 matte clip.mp4 --start 2.0 --end 12.5 -o alpha_2.0.webm     # unos 7 min en CPU; --gpu con el extra gpu
-cp ../storyboard.json . && frame28 build storyboard.json -o project && frame28 check project
+frame28 matte clip.mp4 --start 2.0 --end 12.5 -o alpha_2.0.webm     # la frase de R1, con su máscara explícita
+ffmpeg -ss 5.4 -t 3.6 -i ../../clip-demo/out/demo.mp4 -an pip.mp4    # el clip de R2: el vídeo montado de clip-demo
+cp ../storyboard.json . && frame28 build storyboard.json -o project && frame28 check project     # R2 calcula su tramo aquí
 frame28 render project -o out/showcase.mp4 --workers 10
 ```
 
@@ -30,6 +32,17 @@ El storyboard ancla las palabras a la voz (`"words": "words.json"` en la raíz y
 `build` vuelve a poner cada palabra en su sitio sin tocar segundos. Al añadir una escena, respeta el ritmo del modo
 promocional (un evento cada 1–3 s solo en los primeros 20–30 s) y que haya una frase detrás del hablante cada ~20 s como
 mucho.
+
+## Medidas de R2 (2026-11-07)
+
+- **±1 fotograma contra la voz**: el recuadro entra en 13,26 s, con el arranque real de «vídeo» (13,30 en `words.json`;
+  `snap_to_voice` lo pega a la voz). En el fotograma 397 no está, en el 398 apenas asoma y en el 399 ya entra; lleno en 0,25 s.
+  Sale desde 15,2 s, 1,2 s con desenfoque y antes de la gráfica de 16,5.
+- **Composición**: entre la viga y la estantería, para no cortar nada de la pared (`x` 420, `y` 120, 640×360); el pelo y la
+  cabeza tapan la esquina inferior derecha del recuadro.
+- **Tiempos, con GPU**: la máscara de R1 (10,5 s, 315 fotogramas) 45 s, antes 6 min 40 s en CPU; la de R2 (3,6 s, 108 fotogramas)
+  13 s dentro del primer `build`, y el siguiente `build` 3,6 s porque sale de la caché. Render de 41,6 s con `--workers 10 --gpu`,
+  3 min 50 s.
 
 ## Medidas (2026-10-19)
 

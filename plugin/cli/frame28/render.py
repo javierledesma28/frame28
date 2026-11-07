@@ -1,6 +1,7 @@
 """check + render de un proyecto HyperFrames, con ffmpeg garantizado en PATH y hoja de contacto de revisión."""
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
@@ -50,9 +51,10 @@ def parse_check(returncode: int, out: str) -> dict:
     """Lee la salida de `hyperframes check`. Antes bastaba con no ver líneas ✗ para aprobar: si npx fallaba (sin red la
     primera vez, Node viejo, error de npm) no había ✗ y salía «check pasó» (F28-81). Ahora solo aprueba si HyperFrames se
     ejecutó de verdad (su resumen «N error(s)» o «Check passed/failed») y no hay errores reales; el texto detrás del
-    hablante (text_occluded) y los avisos de contraste se separan para que el agente decida."""
+    hablante (text_occluded) y los avisos de contraste se separan para que el agente decida. text_occluded cuenta como
+    falso positivo con cualquier elemento detrás (F28-340): tapar es justo lo que se busca."""
     marks = [l.strip() for l in out.splitlines() if "✗" in l]
-    occluded = [e for e in marks if "text_occluded" in e]          # el falso positivo conocido: texto detrás del hablante
+    occluded = [e for e in marks if "text_occluded" in e]          # el falso positivo conocido: lo que va detrás del hablante
     contrast = [e for e in marks if "(need " in e]                  # HyperFrames lo da como aviso: sombra, caja u otro color
     real = [e for e in marks if e not in occluded and e not in contrast]
     totals = [int(n) for n in re.findall(r"(\d+) error\(s\)", out)]
@@ -75,7 +77,15 @@ def check(project: str | Path) -> dict:
         return parse_check(127, "npx no encontrado: instala Node.js 22 o superior")
     except subprocess.TimeoutExpired:
         return parse_check(124, "hyperframes check no terminó en 10 minutos")
-    return parse_check(r.returncode, r.stdout + r.stderr)
+    return {**parse_check(r.returncode, r.stdout + r.stderr), "matte_warnings": matte_warnings(Path(project))}
+
+
+def matte_warnings(project: Path) -> list[str]:
+    """El aviso de coste de la máscara que dejó `build`: quien solo lee `check` también tiene que verlo."""
+    try:
+        return json.loads((project / "matte-plan.json").read_text(encoding="utf-8")).get("warnings", [])
+    except (OSError, ValueError):
+        return []
 
 
 def render_timeout(project: Path) -> int:

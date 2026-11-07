@@ -123,6 +123,11 @@ def phrase_tokens(text: str) -> list[str]:
     return [w for w in re.split(r"[\s|]+", str(text)) if w.strip()]
 
 
+def auto_matte(o: dict) -> bool:
+    """¿Este overlay va detrás del hablante con la máscara calculada sola? Con `matte` explícito manda ese fichero."""
+    return (o.get("type") == "behind" or o.get("layer") == "behind") and not o.get("matte")
+
+
 def is_anchor(v) -> bool:
     return isinstance(v, str) and (v.strip() == "auto" or bool(ANCHOR_RE.match(v.strip())))
 

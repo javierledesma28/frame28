@@ -69,6 +69,20 @@
    "matte_end": 12.5
   },
   {
+   "type": "broll",
+   "id": "r2",
+   "start": "word:vídeo",
+   "end": 16.4,
+   "src": "pip.mp4",
+   "pip": {
+    "x": 420,
+    "y": 120,
+    "w": 640,
+    "h": 360
+   },
+   "layer": "behind"
+  },
+  {
    "type": "chart",
    "id": "c1",
    "kind": "bar",

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -428,6 +429,149 @@ def test_behind_missing_matte_says_how_to_make_it(tmp_path):
     r = build.build_project(write_json(tmp_path / "sb.json", sb), tmp_path / "p")
     w = next(w for w in r["warnings"] if "a.webm" in w)
     assert "máscara del behind bh2" in w and "frame28 matte <clip> --start 2.7 --end 7.6 -o a.webm" in w
+
+
+# ── capa «detrás» para cualquier elemento, con máscara automática (F28-340) ──────────────────────────────────────────
+def _layer_sb(tmp_path, *overlays, **root):
+    (tmp_path / "clip.mp4").write_bytes(b"clip")
+    (tmp_path / "a.png").write_bytes(b"png")
+    (tmp_path / "pip.mp4").write_bytes(b"pip")
+    return _sb(overlays=list(overlays), **{"source": {"video": "clip.mp4", "duration": 20.0}, **root})
+
+
+def _layer_build(monkeypatch, tmp_path, *overlays, make_matte=True, **root):
+    from frame28 import matte as M
+    calls = []
+
+    def fake(video, out, start, end, ratio=None, gpu=None):
+        calls.append((start, end)); out.write_bytes(b"webm")
+        return {"seconds": 3.0, "provider": "CPUExecutionProvider"}
+
+    monkeypatch.setattr(M, "matte", fake)
+    monkeypatch.setattr(M, "matte_speed", lambda: ("cpu", 1.0))
+    r = build.build_project(write_json(tmp_path / "storyboard.json", _layer_sb(tmp_path, *overlays, **root)), tmp_path / "p", make_matte=make_matte)
+    return Path(r["index"]).read_text(encoding="utf-8"), r, calls
+
+
+IMG_BEHIND = {"type": "image", "id": "im", "start": 2.0, "end": 5.0, "src": "a.png", "x": 100, "y": 100, "w": 500, "layer": "behind"}
+
+
+def test_image_behind_goes_in_layer_2_and_the_mask_in_layer_3_only_in_its_segment(monkeypatch, tmp_path):
+    html, r, calls = _layer_build(monkeypatch, tmp_path, IMG_BEHIND)
+    assert re.search(r'id="im"[^>]*z-index:2;', html)
+    key = r["matte"]["segments"][0]["key"]
+    m = re.search(r'<video id="f28-matte-0" class="clip cover" data-start="1.8" data-duration="3.4" data-track-index="2" src="matte/([^"]+)"[^>]*z-index:3', html)
+    assert m and m.group(1) == f"{key}.webm"
+    assert (tmp_path / "p" / "matte" / f"{key}.webm").read_bytes() == b"webm"     # viaja con el proyecto
+    assert calls and html.count('<video id="f28-matte-') == 1
+
+
+@pytest.mark.parametrize("overlay, sel", [
+    ({"type": "box", "id": "e", "x": 10, "y": 10, "text": "hola"}, r'id="e"[^>]*z-index:2;'),
+    ({"type": "kinetic", "id": "e", "x": 10, "y": 10, "lines": [[{"text": "hola", "at": 2.5}]]}, r'id="e"[^>]*z-index:2;'),
+    ({"type": "card_words", "id": "e", "lines": [[{"text": "hola", "at": 2.5}]]}, r'id="e"[^>]*z-index:2;'),
+    ({"type": "broll", "id": "e", "src": "pip.mp4", "pip": {"x": 10, "y": 10, "w": 400, "h": 300}}, r'id="e"[^>]*z-index:2;'),
+])
+def test_every_layer_type_goes_behind_and_leaves_with_the_brand_tokens(monkeypatch, tmp_path, overlay, sel):
+    html, r, _ = _layer_build(monkeypatch, tmp_path, {"start": 2.0, "end": 5.0, "layer": "behind", **overlay})
+    assert re.search(sel, html) and "f28-matte-0" in html
+    m = build.motion_tokens({})
+    assert f'tl.fromTo("#e", {{ filter: "blur(0px)", opacity: 1 }}, {{ filter: "blur({m["blur"]}px)", opacity: 0, duration: {m["exit"]},' in html
+
+
+def test_the_pip_window_stays_where_the_storyboard_puts_it(monkeypatch, tmp_path):
+    # `inset` es el atajo de top/right/bottom/left: detrás de ellos los anulaba y el recuadro caía en la esquina (F28-340)
+    html, _, _ = _layer_build(monkeypatch, tmp_path, {"type": "broll", "id": "e", "start": 2.0, "end": 5.0, "src": "pip.mp4", "pip": {"x": 420, "y": 80, "w": 400, "h": 300}})
+    style = re.search(r'id="e"[^>]*style="([^"]*)"', html).group(1)
+    assert "inset:auto; left:420px; top:80px; width:400px; height:300px;" in style
+
+
+def test_no_style_resets_the_position_it_just_set():
+    # la misma trampa en cualquier otro elemento: en el código, `inset:auto` siempre antes de left/top/right/bottom
+    source = (Path(build.__file__)).read_text(encoding="utf-8")
+    assert not re.search(r"\b(?:left|top|right|bottom):[^\"\n]*inset:\s*auto", source)
+
+
+def test_the_mask_fades_in_and_out_inside_its_margin(monkeypatch, tmp_path):
+    # otra codificación del mismo fotograma: con un corte seco se veía el salto de uno o dos niveles (F28-340)
+    html, _, _ = _layer_build(monkeypatch, tmp_path, IMG_BEHIND)
+    assert 'tl.fromTo("#f28-matte-0", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "none" }, 1.8);' in html
+    assert 'tl.fromTo("#f28-matte-0", { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "none", immediateRender: false }, 5.0);' in html
+
+
+def test_no_fade_where_the_element_is_already_there(monkeypatch, tmp_path):
+    # empieza en el primer fotograma y pasa del final del clip: sin margen, la máscara tiene que estar entera
+    html, _, _ = _layer_build(monkeypatch, tmp_path, {**IMG_BEHIND, "start": 0.0, "end": 25.0}, duration=30.0)
+    assert "f28-matte-0" in html and 'tl.fromTo("#f28-matte-0"' not in html
+
+
+def test_two_overlapping_behind_elements_share_one_mask_and_warn(monkeypatch, tmp_path):
+    other = {**IMG_BEHIND, "id": "im2", "start": 4.0, "end": 7.0}
+    html, r, calls = _layer_build(monkeypatch, tmp_path, IMG_BEHIND, other)
+    assert len(calls) == 1 and html.count('id="f28-matte-') == 1
+    assert any("dos elementos detrás del hablante a la vez" in w for w in r["warnings"])
+
+
+def test_phrase_behind_without_matte_uses_the_automatic_segments(monkeypatch, tmp_path):
+    html, r, calls = _layer_build(monkeypatch, tmp_path, {"type": "behind", "id": "bh", "start": 2.0, "end": 5.0, "text": "HOLA"})
+    assert len(calls) == 1 and 'id="f28-matte-0"' in html and 'id="bh-fg"' not in html
+    html, _, _ = _layer_build(monkeypatch, tmp_path, _bh2(matte=None, matte_start=None, matte_end=None, kicker=None, words_at=[3.0, 3.5]))
+    assert 'id="f28-matte-0"' in html and 'id="bh2-fg"' not in html
+
+
+def test_element_with_its_own_matte_keeps_it(monkeypatch, tmp_path):
+    (tmp_path / "mia.webm").write_bytes(b"mia")
+    html, r, calls = _layer_build(monkeypatch, tmp_path, {**IMG_BEHIND, "matte": "mia.webm", "matte_start": 1.5})
+    assert not calls and "f28-matte" not in html and "matte" not in r
+    assert re.search(r'<video id="im-fg"[^>]*data-start="1.5"[^>]*src="mia.webm"[^>]*z-index:3', html)
+
+
+def test_no_matte_warns_that_it_stays_in_front(monkeypatch, tmp_path):
+    html, r, calls = _layer_build(monkeypatch, tmp_path, IMG_BEHIND, make_matte=False)
+    assert not calls and "f28-matte" not in html
+    assert any("sin máscara para 1.8–5.2 s (im)" in w and "--no-matte" in w for w in r["warnings"])
+
+
+def test_check_repeats_the_cost_warning_left_by_build(monkeypatch, tmp_path):
+    from frame28 import matte as M, render
+    monkeypatch.setattr(M, "MATTE_WARN_S", 1.0)
+    _, r, _ = _layer_build(monkeypatch, tmp_path, IMG_BEHIND)
+    assert r["warnings"] and render.matte_warnings(tmp_path / "p") == r["matte"]["warnings"] and "min en GPU" in r["matte"]["warnings"][0]
+    build.build_project(write_json(tmp_path / "s2.json", _layer_sb(tmp_path)), tmp_path / "p")
+    assert render.matte_warnings(tmp_path / "p") == []                            # sin nada detrás no queda un aviso viejo
+
+
+def test_brand_that_avoids_behind_warns_for_any_element(monkeypatch, tmp_path):
+    _, r, _ = _layer_build(monkeypatch, tmp_path, IMG_BEHIND, brand={"accent": "#F5C500", "motion": {"style": "sober", "avoid": ["behind"]}})
+    assert any("im: la marca pide no poner nada detrás del hablante" in w for w in r["warnings"])
+
+
+def test_layer_validation():
+    ok = _sb(overlays=[IMG_BEHIND])
+    assert not build.validate(ok)
+    bad = lambda **k: build.validate(_sb(overlays=[{**IMG_BEHIND, **k}]))  # noqa: E731
+    assert any("layer" in e for e in bad(layer="front"))
+    chart = {"type": "pointer", "id": "p", "start": 1, "end": 2, "dot": [0, 0], "box": [0, 0], "text": "x", "layer": "behind"}
+    assert any("pueden ir detrás del hablante" in e for e in build.validate(_sb(overlays=[chart])))
+    full = {"type": "broll", "id": "b", "start": 1, "end": 2, "src": "a.mp4", "layer": "behind"}
+    assert any("solo en ventana" in e for e in build.validate(_sb(overlays=[full])))
+    assert any("matte_ratio" in e for e in build.validate(_sb(overlays=[], matte_ratio=3)))
+    assert not build.validate(_sb(overlays=[{"type": "behind", "id": "b", "start": 1, "end": 2, "text": "SIN MATTE"}]))
+
+
+def test_storyboard_without_layer_never_loads_the_mask_code(monkeypatch, tmp_path):
+    # un storyboard de antes: ni cálculo ni matte-plan.json; el HTML se compara con el de antes en la entrega
+    monkeypatch.setitem(sys.modules, "frame28.matte", None)                       # si build la importara, reventaría aquí
+    r = build.build_project(write_json(tmp_path / "s.json", _layer_sb(tmp_path, {"type": "box", "id": "e", "start": 1, "end": 2, "x": 1, "y": 1, "text": "hola"})), tmp_path / "p")
+    assert "matte" not in r and not (tmp_path / "p" / "matte-plan.json").exists()
+    assert "f28-matte" not in Path(r["index"]).read_text(encoding="utf-8")
+
+
+def test_check_text_occluded_counts_for_any_element_behind():
+    from frame28 import render
+    out = "✗ text_occluded: #e box hidden by #f28-matte-0\nCheck failed\n1 error(s)\n"
+    r = render.parse_check(1, out)
+    assert r["passed"] and len(r["known_false_positives"]) == 1
 
 
 def test_legacy_behind_is_untouched(tmp_path, javier_storyboard):

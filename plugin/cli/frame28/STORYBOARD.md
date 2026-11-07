@@ -67,7 +67,7 @@ anclas como están (se resuelven contra el `words.json` ya cortado) e `i18n appl
 | `lower_third` | `x`, `y`, `title`, `subtitle?` | Tarjeta de identidad monoespaciada que se escribe carácter a carácter (T1). La caja mide lo que mide el texto (sin recortes con logos anchos o fuentes distintas). |
 | `box` | `x`, `y`, `text`, `at?` | Frase corta en caja con esquinas de encuadre (T7). Aparece con pop. |
 | `kinetic` | `x`, `y`, `size?` (124), `color?` (CSS; para fondos claros, pone sombra clara), `lines: [[{text, at, accent?}]]` | Tipografía cinética: cada palabra entra en su `at` (T2). Una lista por línea. `accent: true` la pinta con el color de acento. |
-| `behind` | `text`, `at?`, `size?` (240), `matte`, `matte_start?`, `matte_end?`; frase palabra a palabra: `words_at`, `kicker?`, `enter?`, `out?` (ver abajo) | Palabra gigante **detrás** del hablante (T3). `matte` es el WebM con alfa de `frame28 matte`; `matte_start/end` su rango en el clip (por defecto `start/end`). |
+| `behind` | `text`, `at?`, `size?` (240), `matte?`, `matte_start?`, `matte_end?`; frase palabra a palabra: `words_at`, `kicker?`, `enter?`, `out?` (ver abajo) | Palabra gigante **detrás** del hablante (T3). Sin `matte`, la máscara se calcula sola (ver «Detrás del hablante»); con él, es el WebM con alfa de `frame28 matte` y `matte_start/end` su rango en el clip (por defecto `start/end`). |
 | `pointer` | `dot: [x,y]`, `box: [x,y]`, `text`, `at?` | Callout con punto, línea que crece y caja (T6). Ponlo donde el hablante señala; la línea se calcula sola. |
 | `card` | `bg` (black/white/accent), `title: {text, at?, size?}`, `subtitle?: {text, at?, size?}` | Pizarra a pantalla completa con título (T5). Tapa al hablante. |
 | `list_focus` | `bg?`, `label?` ("New"), `size?` (96), `items: [{text, at}]` | Lista donde el foco salta de ítem en ítem al decirse cada uno (T5). |
@@ -109,6 +109,31 @@ palabra cuando se dice y sale despacio, desenfocándose. Sin esos campos sigue s
   en `end`; el antetítulo empieza a irse `exit_stagger_ms` antes.
 - `build` avisa si la frase completa queda quieta menos de `hold_min` (1,5 s) antes de salir, si la máscara del hablante
   no cubre lo que se ve (entrada del antetítulo y salida incluidas) y si hay dos `behind` a menos de 20 s.
+
+## Detrás del hablante (`layer`)
+
+`"layer": "behind"` manda detrás de la persona una `image`, un `broll` en ventana (`pip`), un `box`, un `card_words` o un
+`kinetic`: la cabeza y las manos los tapan. Todo lo demás de cada tipo sigue igual, y sale despacio y con desenfoque con
+los tokens de la marca (`exit_ms`, `exit_blur_px`, `ease_out`). En otro tipo, o en un `broll` a pantalla completa, `validate`
+lo rechaza.
+
+```json
+{ "type": "image", "id": "foto", "start": 13.0, "end": 16.4, "src": "foto.png", "x": 1180, "y": 180, "w": 560, "layer": "behind" }
+```
+
+- **La máscara se calcula sola.** `build` une las ventanas de todo lo que va detrás (también los `behind` sin `matte`): 0,2 s
+  de margen por lado, huecos de menos de 1 s fusionados, en múltiplos exactos de fotograma. Un vídeo con alfa por tramo en la
+  capa 3, solo durante el tramo; fuera de él se ve el clip tal cual.
+- **Caché** en `.frame28/matte/`, junto al storyboard, por el contenido del clip, el tramo, el modelo y el `matte_ratio` de la
+  raíz (opcional; `downsample_ratio` de RVM). Un segundo `build` no recalcula nada.
+- **Coste.** Calcularla lleva minutos: `frame28 matte --plan storyboard.json` lista los tramos, qué hay ya en caché y el
+  tiempo estimado sin calcular nada. Por encima de 60 s de máscara avisan `build` y `check`. `build --no-matte` no calcula y
+  avisa de que lo de detrás queda delante; `--gpu/--cpu` eligen dónde corre RVM.
+- **El borde lo limpia el motor**, sin claves que ajustar: el alfa bajo de RVM, que guarda fantasmas de lo que hay detrás, se
+  descarta. La máscara entra y sale con un fundido dentro de su margen, para que el paso al clip no se note.
+- **Con `matte` propio** (y `matte_start/end`), el elemento lleva ese fichero y no entra en los tramos.
+- **Un elemento cada vez**: `build` avisa si dos se solapan (comparten máscara, pero se pisan). Si la marca lo evita
+  (`motion.avoid` con `behind`), también avisa.
 
 ## Revelado de texto (`reveal`)
 
@@ -156,7 +181,7 @@ validate` enseña la nota en una línea.
 
 ## Capas (z-index) que aplica el generador
 
-1 fondo (clip) · 2 texto `behind` · 3 vídeo alfa del hablante · 4 overlays sobre el hablante · 5 pizarras · 6 venta (hook,
+1 fondo (clip) · 2 lo que va detrás (`behind` y `layer: "behind"`) · 3 vídeo alfa del hablante · 4 overlays sobre el hablante · 5 pizarras · 6 venta (hook,
 cta, steps) · 9 subtítulos · 20 marca de agua (`watermark`).
 
 ## Reglas de dirección (resumen; detalle en la skill `frame28-storyboard`)
@@ -164,6 +189,8 @@ cta, steps) · 9 subtítulos · 20 marca de agua (`watermark`).
 - Un evento visual cada 2–4 s; nada de tramos de más de 8 s sin overlay.
 - Cada overlay dice **una** cosa; máximo 3–4 palabras en cajas, 2 líneas en cinéticos.
 - Overlays en el lado **libre** del encuadre (`frame28 speaker` lo devuelve); pizarras cuando el hablante no aporta.
+- Lo de detrás, en el lado libre (`free_side` de `frame28 speaker`) y sin tapar la cara: lo tapan la cabeza y las manos, no al
+  revés. Con gestos rápidos, lejos de las manos: RVM las deja semitransparentes.
 - `behind` solo con fondo fijo, hablante centrado y sin gestos rápidos en ese tramo. La frase, uno cada ~20 s como
   mucho, en el tercio superior, con la cabeza tapando 2 letras como mucho y en un color que contraste con la pared
   (sobre fondos claros, `ink`).

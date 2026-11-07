@@ -70,7 +70,8 @@ plugin/                           EL PLUGIN (solo esto se instala; el resto del 
                                   a mitad repite en CPU) → words.json, captions.json (por frase), words.srt (LF), transcript.json
     cut.py                        jump cuts: silencios (también dentro de palabras estiradas), muletillas, falsos arranques; apply remapea
     audio.py                      measure / clean (highpass, afftdn|rnnoise, loudnorm 2 pasadas) / compare
-    matte.py                      RobustVideoMatting (alfa) y speaker_layout (bbox del hablante en el lienzo)
+    matte.py                      RobustVideoMatting: alfa limpiado (`alpha_lut`) y VP9 por tubería, tramos con caché para lo que va
+                                  detrás (`segment_plan`, `ensure_segments`; los llama build) y speaker_layout (bbox del hablante en el lienzo)
     pose.py                       MediaPipe Pose: track, gestos de señalar → pointers propuestos, face_box
     graphics.py                   RapidOCR: texto ya presente en el vídeo, marca de agua, tarjetas, zonas libres 3x3, colisiones
     reframe.py                    apaisado → 9:16/1:1: crop siguiendo la cara (zona muerta, suavizado) o blur; map_gestures/map_canvas_point
@@ -152,7 +153,8 @@ frame28 reframe work/cut/clip.mp4 -o work/cut/vertical.mp4 --path work/cut/refra
 frame28 reframe-map work/cut/reframe.json --gestures work/cut/gestures.json -o work/cut/gestures-vertical.json   # pointers del apaisado al vertical
 frame28 speaker work/cut/clip.mp4 ; frame28 gestures work/cut/clip.mp4 --words work/cut/words.json -o work/cut/gestures.json --annotate work/cut/gestos.png
 frame28 graphics work/clip.mp4 -o work/graphics.json --annotate work/graphics.png   # vídeos ya producidos
-frame28 matte work/cut/clip.mp4 --start 4.3 --end 6.8 -o work/cut/alpha.webm       # solo el tramo con `behind`
+frame28 matte --plan work/cut/storyboard.json       # qué tramos pide lo que va detrás y cuánto tardarán; los calcula `build`, con caché
+frame28 matte work/cut/clip.mp4 --start 4.3 --end 6.8 -o work/cut/alpha.webm       # a mano, solo para un `behind` con su `matte` propio
 frame28 build work/cut/storyboard.json -o work/cut/project [--graphics work/graphics.json] && frame28 check work/cut/project && frame28 render work/cut/project -o out/x.mp4
 frame28 cover out/x.mp4 --at 12.0 -o out/cover.png --title "Línea 1|Línea 2" --brand think28
 frame28 clips markers work/cut/captions.json --lang es --words work/cut/words.json --side right -o work/cut/markers.json   # overlays propuestos en frases de resultado y promesa
@@ -343,8 +345,10 @@ instalación sin `[probado]` no recibe las versiones probadas: el instalador la 
   URL: uv guarda el nombre excluido en `uv-receipt.toml` y `uv tool upgrade` lo respeta); `doctor` marca los dos juntos
   como fallo y da la orden. `onnxruntime-gpu` < 1.27 (CUDA 12, la misma de ctranslate2; 1.27 pasa a CUDA 13). (2) Sin
   `env.enable_cuda_dlls()` onnxruntime no encuentra cuDNN y **sigue en CPU sin error** (RapidOCR solo avisa): por eso matte
-  y graphics informan del proveedor real (`provider`). (3) RVM a 1080p: inferencia 592 → 103 ms por fotograma, pero el
-  total solo gana ~20 % (1,2–1,4 → 1,5–1,7 fps): mandan escribir los PNG y codificar el VP9. (4) OCR: 1,2 s por fotograma
+  y graphics informan del proveedor real (`provider`). (3) RVM a 1080p: inferencia 592 → 103 ms por fotograma, y durante un
+  tiempo el total apenas ganaba porque mandaban escribir los PNG y codificar el VP9. Sin PNG, por tubería y con el VP9 en
+  tiempo real (F28-331, 2026-11-07, 180 fotogramas con la GPU al 34 %): 247 → 59 s en CUDA y 194 → 86 s en CPU, fichero un
+  27 % mayor. (4) OCR: 1,2 s por fotograma
   en CPU y 1,5 s en CUDA con los mismos textos; por eso va en CPU salvo `--gpu`. (5) `cudnn_conv_algo_search=DEFAULT` en
   onnxruntime 1.2x con cuDNN 9 es el plan de reserva («Fallback mode. May be extremely slow»): el OCR en CUDA tardó 98,5 s
   frente a 27,7 s en CPU; usar HEURISTIC (EXHAUSTIVE ya no mide algoritmos: solo cambia la heurística). Los avisos de
@@ -362,6 +366,20 @@ instalación sin `[probado]` no recibe las versiones probadas: el instalador la 
   exige whisper-cpp compilado (no usar; importar `words.srt` con `--preserve-cues` si hace falta).
 - **HyperFrames no admite un `<video data-start>` dentro de otro elemento temporizado** (`video_nested_in_timed_element`):
   el contenedor del `broll` no lleva `data-start`; su visibilidad va por opacidad.
+- **Las etiquetas de color de un vídeo crudo van antes de `-i`** (F28-340, ffmpeg 9.0.2): `-colorspace bt709` después de
+  `-i` no etiqueta, **convierte** los planos desde BT.601 y solo guarda `color_space`; antes de `-i` solo etiqueta y guarda las
+  tres. Era el salto de color al entrar la máscara: la piel bajaba 4,6 de luma de un fotograma al siguiente (R −4,3, G −6,7);
+  ahora el salto es de menos de 2 niveles y, con los fundidos, ningún fotograma cambia más de 1 respecto al anterior. Sin
+  etiqueta tampoco vale: el compositor lee un VP9 sin etiquetar como BT.601 (`chromeGuessForUntaggedMatrix`). Para medirlo,
+  `render --fps` igual al del clip: con otro, los fotogramas no casan y la medida no vale.
+- **El alfa bajo de RVM no es pelo, es memoria** (F28-340): guarda fantasmas de lo que hay detrás (un llavero en la pared, una
+  estela junto a la oreja) y un filete del color de la pared alrededor de una mano rápida. Sobre el vídeo no se ven; sobre una
+  tarjeta, sí. `matte.alpha_lut` (64–240, sin clave en el storyboard) los limpia: con suelo 32 siguen, con 96 salen
+  escalones en los dedos. Dilatar la máscara, que era el plan, ensancha el halo; no se hace. Al revisar una salida: un
+  `behind` saliendo deja ver el fondo a través a propósito (`opacity` < 1 desde `exit_ms` antes del final), no es fantasma.
+- **`data-start` tiene que ser exacto**: `2.467` en vez de `74/30` retrasa un fotograma. Los tramos se redondean a
+  `matte.segment_step(fps)` (0,1 s a 30 fps, 0,04 a 25, 0,125 a 24, 0,05 a 60), y `ensure_segments` corta medio fotograma antes
+  porque `-ss` se queda con el primer fotograma ≥ corte.
 - **`.clip` aplica `inset: 0`**: un overlay con alto propio (cta, hook) necesita `inset:auto; height:max-content` o se
   estira hasta el borde del lienzo.
 - **Un SVG inline grande (QR) triplica el tiempo de captura**: el QR va como PNG en data URI.

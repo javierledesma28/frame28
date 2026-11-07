@@ -190,8 +190,9 @@ def transcribe(audio, out_dir, lang, model, device, compute, script, as_json):
 
 
 @main.command()
-@click.argument("video", type=click.Path(exists=True))
-@click.option("-o", "--out", "out_webm", required=True, type=click.Path())
+@click.argument("video", required=False, type=click.Path(exists=True))
+@click.option("-o", "--out", "out_webm", type=click.Path())
+@click.option("--plan", "plan_sb", type=click.Path(exists=True), default=None, help="Storyboard: lista sus tramos de máscara, qué hay en caché y el tiempo estimado, sin calcular nada")
 @click.option("--start", type=float, default=None)
 @click.option("--end", type=float, default=None)
 @click.option("--ratio", type=float, default=None, help="downsample_ratio de RVM (auto por resolución)")
@@ -199,9 +200,19 @@ def transcribe(audio, out_dir, lang, model, device, compute, script, as_json):
 @click.option("--keep-png", type=click.Path(), default=None, help="Conservar la secuencia PNG RGBA aquí")
 @click.option("--gpu/--cpu", default=None, help="RVM en CUDA o en CPU; sin indicarlo, CUDA si el extra gpu la trae (FRAME28_ONNX=auto|gpu|cpu)")
 @click.option("--json", "as_json", is_flag=True)
-def matte(video, out_webm, start, end, ratio, fps, keep_png, gpu, as_json):
-    """Máscara alfa del hablante (RobustVideoMatting) como WebM VP9 con alfa. Usa --start/--end para solo un tramo."""
-    from .matte import matte as _matte
+def matte(video, out_webm, plan_sb, start, end, ratio, fps, keep_png, gpu, as_json):
+    """Máscara alfa del hablante (RobustVideoMatting) como WebM VP9 con alfa. Usa --start/--end para solo un tramo.
+    Con --plan <storyboard> dice qué tramos pide y cuánto tardarán; los calcula `frame28 build`."""
+    from .matte import matte as _matte, segment_plan
+    if plan_sb:
+        sb_path = Path(plan_sb)
+        from .build import resolve_storyboard
+        sb, errs = resolve_storyboard(json.loads(sb_path.read_text(encoding="utf-8-sig")), sb_path.parent)
+        if errs:
+            raise SystemExit("Storyboard inválido:\n  - " + "\n  - ".join(errs))
+        return out(segment_plan(sb, sb_path.parent), as_json or True)
+    if not video or not out_webm:
+        raise click.UsageError("hace falta el vídeo y -o salida.webm (o --plan storyboard.json)")
     out(_matte(video, out_webm, start, end, ratio, fps, keep_png, gpu), as_json or True)
 
 
@@ -1009,11 +1020,14 @@ def brand_init(name, base, to_user, accent, logo):
 @click.argument("storyboard", type=click.Path(exists=True))
 @click.option("-o", "--out", "out_dir", required=True, type=click.Path())
 @click.option("--graphics", "graphics_json", type=click.Path(exists=True), default=None, help="graphics.json de `frame28 graphics`: avisa de overlays que pisan gráficos del vídeo")
+@click.option("--no-matte", is_flag=True, help="No calcular las máscaras que falten: solo avisa (lo de detrás queda delante del hablante)")
+@click.option("--gpu/--cpu", default=None, help="RVM en CUDA o en CPU para las máscaras; sin indicarlo, CUDA si el extra gpu la trae")
 @click.option("--json", "as_json", is_flag=True)
-def build(storyboard, out_dir, graphics_json, as_json):
-    """storyboard.json → proyecto HyperFrames (index.html + assets copiados). Con --graphics avisa de overlays que pisan gráficos del vídeo."""
+def build(storyboard, out_dir, graphics_json, no_matte, gpu, as_json):
+    """storyboard.json → proyecto HyperFrames (index.html + assets copiados). Con --graphics avisa de overlays que pisan gráficos del vídeo.
+    Si algo va detrás del hablante sin `matte` propio, calcula la máscara de cada tramo (minutos; `frame28 matte --plan` lo estima) y la guarda en caché."""
     from .build import build_project
-    r = build_project(storyboard, out_dir)
+    r = build_project(storyboard, out_dir, make_matte=not no_matte, gpu=gpu)
     if graphics_json:
         from .graphics import collisions
         sb = json.loads(Path(storyboard).read_text(encoding="utf-8-sig"))
@@ -1037,8 +1051,10 @@ def check(project, as_json):
             click.echo("  " + e)
         for w in r["contrast_warnings"]:
             click.echo("  aviso de contraste: " + w)
+        for w in r.get("matte_warnings", []):
+            click.echo("  aviso de máscara: " + w)
         if r["known_false_positives"]:
-            click.echo(f"  ({len(r['known_false_positives'])} aviso(s) text_occluded ignorados: es el texto detrás del hablante)")
+            click.echo(f"  ({len(r['known_false_positives'])} aviso(s) text_occluded ignorados: es lo que va detrás del hablante)")
     if not r["passed"]:   # `frame28 check … && frame28 render` ya no deja pasar un render con errores
         raise SystemExit(1)
 

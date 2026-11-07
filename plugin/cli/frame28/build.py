@@ -14,7 +14,7 @@ import shutil
 from pathlib import Path
 
 from . import GSAP_VERSION, HYPERFRAMES_VERSION
-from .motion import (AUTO_WINDOW_S, BEHIND_MIN_GAP_S, HOLD_MIN_S, KICKER_LEAD_S, TIME_KEYS, is_anchor, motion_errors,
+from .motion import (AUTO_WINDOW_S, BEHIND_MIN_GAP_S, HOLD_MIN_S, KICKER_LEAD_S, TIME_KEYS, auto_matte, is_anchor, motion_errors,
                      motion_tokens, phrase_tokens, resolve_storyboard)
 
 OVERLAY_TYPES = {"lower_third", "box", "kinetic", "behind", "pointer", "card", "list_focus", "card_words", "image", "brand_card", "chart", "draw", "broll",
@@ -293,7 +293,8 @@ class Builder:
         self.brand_meta = brand
         self.motion = motion_tokens(brand)       # duraciones y curvas de entradas y salidas (F28-339)
         self.uses_fit = False                    # algún texto se ajusta al ancho en el navegador (data-fit)
-        self.brand_assets: dict[str, Path] = {}  # ruta publicada -> fichero origen (logos)
+        self.brand_assets: dict[str, Path] = {}  # ruta publicada -> fichero origen (logos y máscaras de la caché)
+        self.matte_plan: dict | None = None      # tramos de máscara de lo que va detrás del hablante (matte.segment_plan)
         # duración total: puede superar la del clip (tarjetas de cierre sobre negro)
         self.dur = float(sb.get("duration", sb["source"]["duration"]))
         canvas = sb.get("canvas", {})
@@ -339,6 +340,39 @@ class Builder:
     def asset(self, rel: str) -> str:
         self.assets.add(rel)
         return rel
+
+    def z(self, o: dict, front: int) -> int:
+        """Capa del overlay: la suya, o la 2 si va detrás del hablante (el orden entre ellos es el del storyboard)."""
+        return 2 if o.get("layer") == "behind" else front
+
+    def leave(self, o: dict, d: float = 0.2) -> None:
+        """Salida del overlay. Lo que va detrás sale despacio y con desenfoque, con los tokens de la marca; lo de delante, igual que siempre."""
+        if o.get("layer") != "behind":
+            return self.fade_out(f"#{o['id']}", o["end"], d)
+        m = self.motion; od = round(min(m["exit"], (o["end"] - o["start"]) / 2), 3)
+        self.js.append(f'tl.fromTo("#{o["id"]}", {{ filter: "blur(0px)", opacity: 1 }}, {{ filter: "blur({m["blur"]}px)", opacity: 0, duration: {od}, '
+                       f'ease: "{m["ease_out"]}", immediateRender: false }}, {round(o["end"] - od, 3)});')
+
+    def speaker_mattes(self) -> None:
+        """Un vídeo con alfa del hablante por tramo de máscara (capa 3), solo durante su tramo: fuera de él se ve el clip tal cual.
+        Entra y sale con un fundido en su margen, cuando aún no hay nada detrás: es otra codificación del mismo fotograma, con
+        uno o dos niveles de diferencia (F28-340), y eso en un corte seco se nota."""
+        by_id = {o["id"]: o for o in self.sb.get("overlays", [])}
+        for n, x in enumerate((self.matte_plan or {}).get("segments", [])):
+            if not x.get("cached"):
+                self.warnings.append(f"sin máscara para {x['start']}–{x['end']} s ({', '.join(x['ids'])}): ahí queda delante del hablante; "
+                                     "`frame28 build` sin --no-matte la calcula")
+                continue
+            pub = f"matte/{x['key']}.webm"
+            self.brand_assets[pub] = Path(x["file"])
+            self.html.append(f'<video id="f28-matte-{n}" class="clip cover" data-start="{x["start"]}" data-duration="{round(x["end"] - x["start"], 3)}" '
+                             f'data-track-index="2" src="{pub}" muted playsinline style="z-index:3"></video>')
+            lead = round(min(by_id[i]["start"] for i in x["ids"]) - x["start"], 3)
+            tail = round(x["end"] - max(by_id[i]["end"] for i in x["ids"]), 3)
+            if lead > 0:
+                self.js.append(f'tl.fromTo("#f28-matte-{n}", {{ opacity: 0 }}, {{ opacity: 1, duration: {lead}, ease: "none" }}, {x["start"]});')
+            if tail > 0:
+                self.js.append(f'tl.fromTo("#f28-matte-{n}", {{ opacity: 1 }}, {{ opacity: 0, duration: {tail}, ease: "none", immediateRender: false }}, {round(x["end"] - tail, 3)});')
 
     def logo_width(self, pub: str | None, height: int = 30) -> int:
         """Ancho que ocupará el logo a `height` px (PNG/JPG por sus dimensiones, SVG por viewBox); 30 si no se sabe."""
@@ -398,9 +432,9 @@ class Builder:
         if o["x"] + est > self.W:
             self.warnings.append(f"box {o['id']}: '{o['text']}' probablemente se sale del lienzo por la derecha "
                                  f"(x {o['x']} + ~{round(est)} px > {self.W}); acorta el texto o muévelo a x <= {max(0, round(self.W - est))}")
-        self.timed(o, f"left:{o['x']}px; top:{o['y']}px;", cls="box", inner=self.corners() + esc(o["text"]), z=4, track=4)
+        self.timed(o, f"left:{o['x']}px; top:{o['y']}px;", cls="box", inner=self.corners() + esc(o["text"]), z=self.z(o, 4), track=4)
         self.box_in(f"#{o['id']}", o.get("at", o["start"]))
-        self.fade_out(f"#{o['id']}", o["end"])
+        self.leave(o)
 
     def kinetic(self, o: dict) -> None:
         i = o["id"]; size = o.get("size", 124)
@@ -411,11 +445,11 @@ class Builder:
             rows.append(f"<div>{spans}</div>")
         color = o.get("color")
         cls = "kin onlight" if color else "kin"
-        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; font-size:{size}px;" + (f" color:{color};" if color else ""), cls=cls, inner="".join(rows), z=4, track=5)
+        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; font-size:{size}px;" + (f" color:{color};" if color else ""), cls=cls, inner="".join(rows), z=self.z(o, 4), track=5)
         for li, line in enumerate(o["lines"]):
             for wi, w in enumerate(line):
                 self.reveal(f"#{i}-{li}-{wi}", w["at"], o.get("reveal", "fade"))
-        self.fade_out(f"#{i}", o["end"])
+        self.leave(o)
 
     def behind(self, o: dict) -> None:
         """Texto detrás del hablante: capa 2 = texto, capa 3 = vídeo con alfa (solo en su tramo)."""
@@ -424,9 +458,8 @@ class Builder:
         i = o["id"]; size = o.get("size", 240)
         mode = o.get("reveal", "fade")
         self.timed(o, "", cls="clip behind", inner=f'<div class="w{" rise" if mode == "rise" else ""}" id="{i}-w" style="font-size:{size}px;"><span class="wi">{esc(o["text"])}</span></div>', z=2, track=1)
-        m = self.asset(o["matte"]); ms = o.get("matte_start", o["start"]); me = o.get("matte_end", o["end"])
-        self.html.append(f'<video id="{i}-fg" class="clip cover" data-start="{ms}" data-duration="{round(me - ms, 3)}" data-track-index="2" '
-                         f'src="{m}" muted playsinline style="z-index:3"></video>')
+        if o.get("matte"):                      # sin `matte`, entra en los tramos automáticos (speaker_mattes)
+            self.matte_layer(o)
         at = o.get("at", o["start"])
         if mode in ("rise", "chars"):
             self.reveal(f"#{i}-w", at, mode, 0.4)
@@ -486,7 +519,7 @@ class Builder:
         block = (f'<div class="bhv2" id="{i}-b"{fit_attr} style="left:{x}px; top:{y}px; font-size:{size}px; font-weight:{weight}; '
                  f'letter-spacing:{tracking}; color:{color};{halo}">{kick}{"".join(rows)}</div>')
         self.timed(o, "", cls="clip", inner=block, z=2, track=1)
-        ms, me = self.matte_layer(o)
+        ms, me = self.matte_layer(o) if o.get("matte") else (None, None)
         # entradas: el antetítulo con un fundido y cada palabra en su instante
         kat = None
         if k:
@@ -526,7 +559,7 @@ class Builder:
                                  f"hasta {round(last + hm + od, 2)} o acorta out_dur")
         first = max(o["start"], min(ats + ([kat] if kat is not None else [])))
         tol = 1 / self.fps
-        if ms > first + tol or me < o["end"] - tol:
+        if ms is not None and (ms > first + tol or me < o["end"] - tol):
             self.warnings.append(f"behind {i}: la máscara del hablante ({ms}–{me} s) no cubre lo que se ve ({round(first, 2)}–{o['end']} s, "
                                  "salida incluida): ahí el texto queda delante de la persona; regenera la máscara con `frame28 matte` "
                                  "para ese tramo o ajusta matte_start/matte_end")
@@ -597,17 +630,19 @@ class Builder:
                     txt = f'<span class="accent">{txt}</span>'
                 spans.append(f'<span class="w" id="{i}-{li}-{wi}">{txt}</span>')
             rows.append(f'<div class="row" style="font-size:{size}px">{"".join(spans)}</div>')
-        self.timed(o, "", cls=f"clip card cw {bg}", inner="".join(rows), z=5, track=6)
+        self.timed(o, "", cls=f"clip card cw {bg}", inner="".join(rows), z=self.z(o, 5), track=6)
         for li, line in enumerate(o["lines"]):
             for wi, w in enumerate(line):
                 self.pop(f"#{i}-{li}-{wi}", w["at"], 0.25)
+        if o.get("layer") == "behind":
+            self.leave(o)
 
     def image(self, o: dict) -> None:
         """Imagen o captura que entra con pop (captura de UI, logo, foto)."""
         i = o["id"]; src = self.asset(o["src"])
-        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; width:{o['w']}px;", cls="img", inner=f'<img src="{src}" alt="">', z=4, track=7)
+        self.timed(o, f"left:{o['x']}px; top:{o['y']}px; width:{o['w']}px;", cls="img", inner=f'<img src="{src}" alt="">', z=self.z(o, 4), track=7)
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0, scale: 0.92, y: 20 }}, {{ opacity: 1, scale: 1, y: 0, duration: 0.35, ease: "power3.out" }}, {o.get("at", o["start"])});')
-        self.fade_out(f"#{i}", o["end"])
+        self.leave(o)
 
     def broll(self, o: dict) -> None:
         """B-roll: vídeo o imagen de apoyo. `full` (por defecto) tapa al hablante; `pip: {x,y,w,h}` lo pone en una ventana.
@@ -617,7 +652,7 @@ class Builder:
         is_video = Path(src).suffix.lower() in (".mp4", ".webm", ".mov", ".m4v")
         pip = o.get("pip")
         cls = "clip broll " + ("pip" if pip else "full")
-        style = f"left:{pip['x']}px; top:{pip['y']}px; width:{pip['w']}px; height:{pip['h']}px; inset:auto;" if pip else ""
+        style = f"inset:auto; left:{pip['x']}px; top:{pip['y']}px; width:{pip['w']}px; height:{pip['h']}px;" if pip else ""
         dur = round(o["end"] - o["start"], 3)
         media_start = f' data-media-start="{o["in"]}"' if o.get("in") else ""
         loop = ' data-loop="true"' if o.get("loop") else ""
@@ -630,7 +665,7 @@ class Builder:
         cap = f'<div class="cap" id="{i}-c">{esc(o["caption"])}</div>' if o.get("caption") else ""
         # el contenedor NO lleva data-start (un <video> temporizado dentro de otro elemento temporizado confunde al
         # extractor de HyperFrames): su visibilidad la lleva la opacidad; el vídeo tiene su propia ventana.
-        self.html.append(f'<div id="{i}" class="{cls}" style="z-index:{5 if not pip else 4};{style}">{media}{cap}{credit}</div>')
+        self.html.append(f'<div id="{i}" class="{cls}" style="z-index:{self.z(o, 5 if not pip else 4)};{style}">{media}{cap}{credit}</div>')
         fade = float(o.get("fade", 0.25))
         self.js.append(f'tl.fromTo("#{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: {fade} }}, {at});')
         kb = o.get("ken_burns")
@@ -640,7 +675,7 @@ class Builder:
             self.js.append(f'tl.fromTo("#{i}-m", {{ scale: {s0}, xPercent: 0, yPercent: 0 }}, {{ scale: {s1}, xPercent: {dx}, yPercent: {dy}, duration: {dur}, ease: "none" }}, {o["start"]});')
         if o.get("caption"):
             self.js.append(f'tl.fromTo("#{i}-c", {{ opacity: 0, y: 16 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {round(at + 0.2, 3)});')
-        self.fade_out(f"#{i}", o["end"], fade)
+        self.leave(o, fade)
 
     # ---------- venta ----------
     def hook(self, o: dict) -> None:
@@ -985,7 +1020,17 @@ class Builder:
             if t not in OVERLAY_TYPES:
                 self.warnings.append(f"overlay {o.get('id')}: tipo desconocido '{t}', ignorado"); continue
             getattr(self, t)(o)
+            if t != "behind" and o.get("layer") == "behind" and o.get("matte"):
+                self.matte_layer(o)
+        self.speaker_mattes()
         self.captions(sb)
+        layered = sorted((o for o in sb.get("overlays", []) if o.get("layer") == "behind"), key=lambda o: o["start"])
+        for a, b2 in zip(layered, layered[1:]):
+            if b2["start"] < a["end"]:
+                self.warnings.append(f"{a['id']} y {b2['id']}: dos elementos detrás del hablante a la vez ({b2['start']}–{min(a['end'], b2['end'])} s); "
+                                     "el método pide uno cada vez")
+        if layered and "behind" in self.motion["avoid"]:
+            self.warnings.append(f"{', '.join(o['id'] for o in layered)}: la marca pide no poner nada detrás del hablante (motion.avoid); llévalo delante")
         bh = sorted((o for o in sb.get("overlays", []) if o.get("type") == "behind"), key=lambda o: o["start"])
         for a, b2 in zip(bh, bh[1:]):
             if b2["start"] - a["start"] < BEHIND_MIN_GAP_S:
@@ -1075,7 +1120,8 @@ NUM_KEYS = {"start", "end", "at", "x", "y", "w", "h", "size", "duration", "value
 PATH_KEYS = {"src", "matte", "before", "after"}
 BG_TOKENS = {"black", "white", "accent", "none"}
 ENUMS = {"reveal": {"fade", "rise", "chars"}, "kind": {"bar", "counter"}, "pan": {"left", "right", "up", "down"},
-         "sort": {"asc", "desc"}, "enter": {"fade", "fade_word", "rise", "chars"}, "out": {"blur", "fade"}}
+         "sort": {"asc", "desc"}, "enter": {"fade", "fade_word", "rise", "chars"}, "out": {"blur", "fade"}, "layer": {"behind"}}
+LAYER_BEHIND_TYPES = {"image", "broll", "box", "card_words", "kinetic"}
 TRACKING_RE = re.compile(r"^-?\d*\.?\d+(em|px)$")
 SVG_BAD = re.compile(r"<\s*script|<\s*foreignObject|\bon[a-z]+\s*=|javascript\s*:|<\s*iframe|<\s*object|<\s*embed", re.I)
 CSS_BAD = re.compile(r"[<>{};]|/\*|\\")
@@ -1373,9 +1419,13 @@ def validate(sb: dict) -> list[str]:
                 errs.append(f"{p}: end {o['end']} supera la duración {dur}")
         t = o.get("type")
         req = {"lower_third": ["x", "y", "title"], "box": ["x", "y", "text"], "kinetic": ["x", "y", "lines"],
-               "behind": ["text", "matte"], "pointer": ["dot", "box", "text"], "card": ["title"],
+               "behind": ["text"], "pointer": ["dot", "box", "text"], "card": ["title"],
                "list_focus": ["items"], "card_words": ["lines"], "image": ["src", "x", "y", "w"], "brand_card": [], "chart": ["kind"], "draw": ["x", "y", "w"],
                "broll": ["src"], "hook": [], "cta": [], "steps": ["items"], "before_after": []}.get(t, [])
+        if "layer" in o and t not in LAYER_BEHIND_TYPES:
+            errs.append(f"{p} ({t}): layer no vale aquí; pueden ir detrás del hablante {', '.join(sorted(LAYER_BEHIND_TYPES))} (la frase detrás es el tipo behind)")
+        if t == "broll" and o.get("layer") == "behind" and not o.get("pip"):
+            errs.append(f"{p} (broll): detrás del hablante solo en ventana (pip)")
         if t == "hook" and not (o.get("text") or o.get("lines")):
             errs.append(f"{p} (hook): falta 'text' o 'lines'")
         for k in req:
@@ -1403,6 +1453,9 @@ def validate(sb: dict) -> list[str]:
         errs.append("canvas demasiado pequeño (mínimo 480 px de lado)")
     if sb.get("platform") not in (None, "tiktok", "reels", "shorts", "youtube", "pdp"):
         errs.append("platform debe ser tiktok, reels, shorts, youtube o pdp")
+    mr = sb.get("matte_ratio")
+    if mr is not None and not (_is_num(mr) and 0.1 <= mr <= 1):
+        errs.append("matte_ratio es el downsample_ratio de RVM (0.1–1; sin él, el que toca por resolución)")
     errs += watermark_errors(sb.get("watermark"))
     errs += safety_errors(sb)
     if isinstance(sb.get("brand"), dict):
@@ -1465,7 +1518,10 @@ def platform_warnings(sb: dict) -> list[str]:
     return out
 
 
-def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets: bool = True) -> dict:
+def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets: bool = True, make_matte: bool = True,
+                  gpu: bool | None = None) -> dict:
+    """Storyboard → proyecto HyperFrames. Si algo va detrás del hablante sin `matte` propio, calcula los tramos de máscara
+    que falten (`make_matte=False` solo avisa) y los deja en la caché de la carpeta del storyboard (F28-340)."""
     sb_path = Path(storyboard_path)
     sb = json.loads(sb_path.read_text(encoding="utf-8-sig"))
     sb, errs = resolve_storyboard(sb, sb_path.parent)   # "word:…" y words_at "auto" → segundos (F28-339)
@@ -1478,6 +1534,13 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
     b.warnings.extend(platform_warnings(sb))
     from .i18n import leftovers
     b.warnings.extend(f"sin traducir: {w}" for w in leftovers(sb))
+    plan_file = out / "matte-plan.json"
+    plan_file.unlink(missing_ok=True)
+    if any(auto_matte(o) for o in sb.get("overlays", [])):
+        from .matte import ensure_segments, segment_plan
+        b.matte_plan = ensure_segments(sb, sb_path.parent, gpu) if make_matte else segment_plan(sb, sb_path.parent)
+        b.warnings.extend(b.matte_plan["warnings"])
+        plan_file.write_text(json.dumps(b.matte_plan, ensure_ascii=False, indent=2), encoding="utf-8")   # `check` repite el aviso de coste
     html_text = b.build()
     (out / "index.html").write_text(html_text, encoding="utf-8")
     (out / "hyperframes.json").write_text(json.dumps({
@@ -1510,10 +1573,10 @@ def build_project(storyboard_path: str | Path, out_dir: str | Path, copy_assets:
             else:
                 hint = next((f" (máscara del behind {o.get('id')}: genérala con `frame28 matte <clip> --start "
                              f"{o.get('matte_start', o.get('start'))} --end {o.get('matte_end', o.get('end'))} -o {rel}`)"
-                             for o in sb.get("overlays", []) if o.get("type") == "behind" and o.get("matte") == rel), "")
+                             for o in sb.get("overlays", []) if (o.get("type") == "behind" or o.get("layer") == "behind") and o.get("matte") == rel), "")
                 b.warnings.append(f"asset no encontrado: {src}{hint}")
         for pub, srcfile in b.brand_assets.items():
             dst = out / pub; dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(srcfile, dst); copied.append(pub)
     return {"project": str(out), "index": str(out / "index.html"), "overlays": len(sb.get("overlays", [])),
             "captions": getattr(b, "caption_count", len(sb.get("captions", []))), "canvas": [b.W, b.H],
-            "assets": copied, "warnings": b.warnings}
+            "assets": copied, "warnings": b.warnings, **({"matte": b.matte_plan} if b.matte_plan else {})}
