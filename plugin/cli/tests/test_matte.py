@@ -90,7 +90,8 @@ def _fake_ffmpeg(tmp_path, code: int = 0):
     return script
 
 
-def test_webm_args_are_fast_vp9_with_alpha_from_raw_frames():
+def test_webm_args_are_fast_vp9_with_alpha_from_raw_frames(monkeypatch):
+    monkeypatch.setattr(M, "ffmpeg", lambda: "ffmpeg")      # la CI no tiene ffmpeg: la orden se arma sin buscarlo
     a = M.webm_args("a.webm", 1920, 1080, "25/1")
     assert a[a.index("-f") + 1] == "rawvideo" and a[a.index("-pix_fmt") + 1] == "yuva420p" and a[a.index("-s") + 1] == "1920x1080"
     assert a[a.index("-framerate") + 1] == "25/1" and a[a.index("-i") + 1] == "-"
@@ -110,8 +111,9 @@ def test_the_mask_takes_the_color_tags_of_the_clip(monkeypatch, stdout, tags):
     assert M.color_tags("x.mp4") == tags
 
 
-def test_webm_args_put_the_color_tags_on_the_input():
+def test_webm_args_put_the_color_tags_on_the_input(monkeypatch):
     # después de -i, ffmpeg 9 no etiqueta sino que convierte los planos y el salto de color seguía ahí con la etiqueta correcta
+    monkeypatch.setattr(M, "ffmpeg", lambda: "ffmpeg")
     a = M.webm_args("a.webm", 1920, 1080, "25/1", color=["-colorspace", "bt709", "-color_trc", "bt709"])
     assert a.index("-f") < a.index("-colorspace") < a.index("-color_trc") < a.index("-i") and a[a.index("-colorspace") + 1] == "bt709"
     assert a.count("-colorspace") == 1

@@ -4,12 +4,18 @@ La suite cubre solo los módulos puros y rápidos (sin ffmpeg, sin modelos, sin 
 
     uv run --group dev pytest
 
+y, antes de integrar, también como la CI, sin ffmpeg en ningún sitio:
+
+    FRAME28_SIN_FFMPEG=1 uv run --group dev pytest
+
 `scripts/release-check.py` la lanza antes de etiquetar.
 """
 from __future__ import annotations
 
 import json
+import os
 import struct
+import tempfile
 import wave
 from pathlib import Path
 
@@ -27,6 +33,31 @@ def _storyboards() -> list[Path]:
 
 
 STORYBOARDS = _storyboards()
+
+_HERRAMIENTAS = ("ffmpeg", "ffmpeg.exe", "ffprobe", "ffprobe.exe")
+
+
+def sin_ffmpeg(environ: dict) -> dict:
+    """El entorno de la CI, donde no hay ffmpeg: sin FRAME28_FFMPEG ni FRAME28_FFPROBE, sin las carpetas del PATH que lo
+    traen y sin paquetes de WinGet. `FRAME28_FFMPEG=/no/existe` no basta: con la variable puesta, `env.ffmpeg()` devuelve
+    esa ruta sin buscar, y una prueba que solo arma la orden pasaba en este PC y fallaba en la CI (F28-304 y F28-340)."""
+    out = {k: v for k, v in environ.items() if k not in ("FRAME28_FFMPEG", "FRAME28_FFPROBE")}
+    out["PATH"] = os.pathsep.join(d for d in environ.get("PATH", "").split(os.pathsep)
+                                  if d and not any((Path(d) / n).exists() for n in _HERRAMIENTAS))
+    out["LOCALAPPDATA"] = str(Path(tempfile.gettempdir()) / "frame28-sin-ffmpeg")    # no existe: sin WinGet
+    return out
+
+
+def pytest_configure(config):
+    if not os.environ.get("FRAME28_SIN_FFMPEG"):
+        return
+    nuevo = sin_ffmpeg(dict(os.environ))
+    for k in ("FRAME28_FFMPEG", "FRAME28_FFPROBE"):
+        os.environ.pop(k, None)
+    os.environ.update(nuevo)
+    from frame28 import env
+    if env.find_tool("ffmpeg", "FRAME28_FFMPEG") or env.find_tool("ffprobe", "FRAME28_FFPROBE"):
+        raise pytest.UsageError("FRAME28_SIN_FFMPEG=1 pero ffmpeg sigue a la vista: revisa conftest.sin_ffmpeg")
 
 
 @pytest.fixture(autouse=True)

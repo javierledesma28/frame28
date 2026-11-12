@@ -1,9 +1,11 @@
 """env: descargas de modelos (aviso de licencia) y avisos de terceros al día con las dependencias."""
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
+from conftest import sin_ffmpeg
 from frame28 import env
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -39,3 +41,20 @@ def test_the_suite_never_probes_nvenc_with_the_real_ffmpeg(monkeypatch):
     monkeypatch.setattr(env, "ffmpeg", lambda: "/no/existe/ffmpeg")
     assert env.encoder_mode() == "cpu"
     assert env.encoder_args(18) == ["-c:v", "libx264", "-crf", "18"]
+
+
+def test_sin_ffmpeg_is_the_ci_environment(tmp_path, monkeypatch):
+    # F28-340: FRAME28_FFMPEG=/no/existe dejaba que ffmpeg() devolviera esa ruta y la CI, sin ffmpeg, fallaba en dos pruebas
+    con, sin = tmp_path / "con", tmp_path / "sin"
+    con.mkdir(); sin.mkdir()
+    (con / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg")).write_bytes(b"")
+    environ = {"PATH": os.pathsep.join([str(con), str(sin)]), "FRAME28_FFMPEG": "/no/existe", "FRAME28_FFPROBE": "/no/existe",
+               "LOCALAPPDATA": str(tmp_path), "OTRA": "1"}
+    out = sin_ffmpeg(environ)
+    assert out["PATH"] == str(sin) and "FRAME28_FFMPEG" not in out and "FRAME28_FFPROBE" not in out and out["OTRA"] == "1"
+    assert not Path(out["LOCALAPPDATA"]).exists()
+    for k in ("FRAME28_FFMPEG", "FRAME28_FFPROBE"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("PATH", out["PATH"]); monkeypatch.setenv("LOCALAPPDATA", out["LOCALAPPDATA"])
+    monkeypatch.setattr(env, "_winget_best", lambda exe: env._winget_candidates(exe) and max(env._winget_candidates(exe)) or None)
+    assert env.find_tool("ffmpeg", "FRAME28_FFMPEG") is None

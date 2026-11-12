@@ -166,9 +166,12 @@ frame28 captions export work/storyboard.en.json -o out/x-en.srt   # SRT de una v
 frame28 report --rate 60 ; frame28 report note "director" --tokens 12000 --minutes 20   # tiempo por orden y coste del vídeo
 ```
 
-**Pruebas:** `cd plugin/cli && uv run --extra probado --group dev pytest` (unas 370, unos 20 s, con las versiones exactas
+**Pruebas:** `cd plugin/cli && uv run --extra probado --group dev pytest` (unas 580, unos 20 s, con las versiones exactas
 que reciben los clientes). Sin modelos ni render y sin necesitar ffmpeg: las pruebas que lo llaman sustituyen ffmpeg y
-`run`, y la suite pasa igual con `FRAME28_FFMPEG=/no/existe` (pasarla también así antes de integrar).
+`run`. Antes de integrar, pasarla también como la CI, sin ffmpeg en ningún sitio: `FRAME28_SIN_FFMPEG=1 uv run …`
+(`conftest.sin_ffmpeg` quita las variables, las carpetas del PATH que lo traen y WinGet). `FRAME28_FFMPEG=/no/existe`
+no sirve para eso: `env.ffmpeg()` devuelve la ruta sin buscarla, y dos veces una prueba que armaba la orden con el
+ffmpeg real pasó aquí y rompió la CI (F28-304, F28-340).
 `FRAME28_PRUEBA_INSTALACION=1` suma la instalación limpia de punta a punta (~40 s con la caché de uv). En la carpeta
 principal salen unas cuantas más que en un worktree: las que recorren `poc/*/storyboard*.json` también encuentran allí los
 casos locales del Cliente A.
@@ -217,7 +220,7 @@ roadmap»). Cada release los sube todos: `claude plugin update` solo actúa si c
    `here: true` (quitárselo a la anterior), su parada de la cabecera a `done here` y el contador de releases. `YTDLP_MIN`
    (`plugin/cli/frame28/fetch.py`) sube a la última estable de yt-dlp, probada con `frame28 fetch` y un vídeo de dominio
    público.
-2. Pruebas dos veces (normal y con `FRAME28_FFMPEG=/no/existe`), `claude plugin validate ./plugin` y `claude plugin validate .`.
+2. Pruebas dos veces (normal y con `FRAME28_SIN_FFMPEG=1`), `claude plugin validate ./plugin` y `claude plugin validate .`.
 3. Avance rápido de `main` en la carpeta principal y, **desde ella**, `python -X utf8 scripts/release-check.py --notes`:
    versiones, árbol, rama, tags, cuenta de `gh`, release, CLI, plugin, pruebas, extra `probado`, cota de yt-dlp, rama
    `release` y confidencialidad. Desde un worktree no hay `_private/` y la fila de confidencialidad se salta.
